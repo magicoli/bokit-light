@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "slug": "villa-test",
+      "name": "Villa Test",
+      "color": "#3B82F6",
+      "capacity": 4,
+      "is_active": true,
+      "ical_sources": [
+        {
+          "name": "Test Calendar 1",
+          "url": "https://calendar.google.com/calendar/ical/en.french%23holiday%40group.v.calendar.google.com/public/basic.ics",
+          "sync_enabled": true
+        }
+      ]
+    }
+  ]
+}
