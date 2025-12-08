@@ -17,3 +17,6 @@
 - [ ] Make sure all texts are using a localization functions (like gettext _() etc. or the most suitable for Laravel), for future translations of the interface.
 - [ ] ICS includes description with sometimes valuable info, they should appear in the popup.
 - [ ] "Property" word is wrongly used. "Gîtes Mosaïques" is a property, that includes 5 rental units, "Sun", "Moon", "Violeta", "Zandoli", "Zetoil". "Le lit d'Oli" is another property, which includes only 1 unit (the "lit d'Oli"). This confusion might complicate further plans to allow multiple properties.
+
+## Bugs to fix later
+- [ ] Booking block with calculation based on first day column creates a multiplied rounding error, making the block not exactly the width it should have.

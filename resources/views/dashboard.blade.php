@@ -71,7 +71,7 @@
     <!-- Calendar Grid - Full width -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
         <div class="inline-block min-w-full align-middle">
-            <table class="min-w-full divide-y divide-gray-200" style="table-layout: auto;">
+            <table class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;">
                 <!-- Header: Day numbers and names -->
                 <thead class="bg-gray-50 sticky top-0 z-10">
                     <tr>
