@@ -89,7 +89,7 @@ class IcalParser
     /**
      * Parse a date property from VObject
      */
-    protected function parseDate($dateProperty): ?\DateTime
+    protected function parseDate($dateProperty): ?\DateTimeInterface
     {
         if (!$dateProperty) {
             return null;
