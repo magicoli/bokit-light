@@ -11,45 +11,56 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get month from query string or default to current month
-        $date = $request->has('month') 
-            ? Carbon::parse($request->month)
+        // Get date range from query string
+        $view = $request->get('view', 'month'); // month or week
+        $date = $request->has('date') 
+            ? Carbon::parse($request->date)
             : Carbon::now();
         
-        $startOfMonth = $date->copy()->startOfMonth();
-        $endOfMonth = $date->copy()->endOfMonth();
+        if ($view === 'week') {
+            $startDate = $date->copy()->startOfWeek();
+            $endDate = $date->copy()->endOfWeek();
+        } else {
+            $startDate = $date->copy()->startOfMonth();
+            $endDate = $date->copy()->endOfMonth();
+        }
         
-        // Get all active properties with their bookings for the month
+        // Generate days array
+        $days = [];
+        $currentDay = $startDate->copy();
+        while ($currentDay <= $endDate) {
+            $days[] = $currentDay->copy();
+            $currentDay->addDay();
+        }
+        
+        // Get all active properties with their bookings for the period
         $properties = Property::active()
-            ->with(['bookings' => function ($query) use ($startOfMonth, $endOfMonth) {
-                $query->inRange($startOfMonth, $endOfMonth)
-                      ->orderBy('check_in');
+            ->with(['bookings' => function ($query) use ($startDate, $endDate) {
+                // Get bookings that overlap with our date range
+                // Include check_out day for visual display
+                $query->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('check_in', [$startDate, $endDate])
+                      ->orWhereBetween('check_out', [$startDate, $endDate])
+                      ->orWhere(function ($q2) use ($startDate, $endDate) {
+                          $q2->where('check_in', '<=', $startDate)
+                             ->where('check_out', '>=', $endDate);
+                      });
+                })->orderBy('check_in');
             }])
             ->orderBy('name')
             ->get();
         
-        // Generate calendar grid (including days from previous/next month)
-        $startOfCalendar = $startOfMonth->copy()->startOfWeek();
-        $endOfCalendar = $endOfMonth->copy()->endOfWeek();
-        
-        $calendarDays = [];
-        $currentDay = $startOfCalendar->copy();
-        
-        while ($currentDay <= $endOfCalendar) {
-            $calendarDays[] = [
-                'date' => $currentDay->copy(),
-                'isCurrentMonth' => $currentDay->month === $date->month,
-                'isToday' => $currentDay->isToday(),
-            ];
-            $currentDay->addDay();
-        }
-        
         return view('dashboard', [
             'properties' => $properties,
-            'calendarDays' => $calendarDays,
-            'currentMonth' => $date,
-            'prevMonth' => $date->copy()->subMonth(),
-            'nextMonth' => $date->copy()->addMonth(),
+            'days' => $days,
+            'currentDate' => $date,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'view' => $view,
+            'prevPeriod' => $view === 'week' ? $date->copy()->subWeek() : $date->copy()->subMonth(),
+            'nextPeriod' => $view === 'week' ? $date->copy()->addWeek() : $date->copy()->addMonth(),
+            'prevYear' => $date->copy()->subYear(),
+            'nextYear' => $date->copy()->addYear(),
         ]);
     }
     
