@@ -20,23 +20,23 @@ class DashboardController extends Controller
         // Calculate date range based on view
         switch ($view) {
             case 'week':
-                $startDate = $date->copy()->startOfWeek();
-                $endDate = $date->copy()->endOfWeek();
+                $startDate = $date->copy()->startOfWeek()->startOfDay();
+                $endDate = $date->copy()->endOfWeek()->startOfDay();
                 $prevPeriod = $date->copy()->subWeek();
                 $nextPeriod = $date->copy()->addWeek();
                 break;
                 
             case '2weeks':
-                $startDate = $date->copy()->startOfWeek();
-                $endDate = $date->copy()->startOfWeek()->addDays(13); // 2 weeks
+                $startDate = $date->copy()->startOfWeek()->startOfDay();
+                $endDate = $date->copy()->startOfWeek()->addDays(13)->startOfDay(); // 2 weeks
                 $prevPeriod = $date->copy()->subWeeks(2);
                 $nextPeriod = $date->copy()->addWeeks(2);
                 break;
                 
             case 'month':
             default:
-                $startDate = $date->copy()->startOfMonth();
-                $endDate = $date->copy()->endOfMonth();
+                $startDate = $date->copy()->startOfMonth()->startOfDay();
+                $endDate = $date->copy()->endOfMonth()->startOfDay(); // Normalize to midnight
                 $prevPeriod = $date->copy()->subMonth();
                 $nextPeriod = $date->copy()->addMonth();
                 break;

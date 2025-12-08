@@ -149,25 +149,34 @@
 
                                         $extend = ($startsBeforePeriod ? 0.5 : 0) + ($endsAfterPeriod ? 0.5 : 0);
                                         $dayBlocks = $daysToEnd + $extend;
-                                        $maxBlocks = min($dayBlocks, $remainingDays) + $extend;
 
                                         // Calculate width
                                         $leftPercent = $isActualFirstDay ? 50 : 0;
-                                        $widthPercent = ($dayBlocks * 100);
-                                        $maxWidth = $maxBlocks * 100;
+                                        $widthPercent = $dayBlocks * 100;
                                     @endphp
 
                                     <div class="absolute rounded-xl text-white text-xs font-medium overflow-hidden hover:shadow-xl hover:opacity-100 transition-all flex items-center px-2 cursor-pointer z-10"
                                          style="left: {{ $leftPercent }}%;
                                                 width: {{ $widthPercent }}%;
-                                                max-width: {{ $maxWidth }}%;
                                                 top: 0.375rem;
                                                 bottom: 0.375rem;
                                                 margin-left: 2px;
                                                 margin-right: 2px;
                                                 background-color: {{ $property->color }};
                                                 opacity: 0.92"
-                                         @click="showBooking({{ $booking->id }})">
+                                         data-debug='{{ json_encode([
+                                            "dayIndex" => $dayIndex,
+                                            "totalDays" => count($days),
+                                            "remainingDays" => $remainingDays,
+                                            "daysToEnd" => $daysToEnd,
+                                            "extend" => $extend,
+                                            "dayBlocks" => $dayBlocks,
+                                            "leftPercent" => $leftPercent,
+                                            "widthPercent" => $widthPercent,
+                                            "startsBeforePeriod" => $startsBeforePeriod,
+                                            "endsAfterPeriod" => $endsAfterPeriod,
+                                         ]) }}'
+                                         @click="showBooking({{ $booking->id }}, $el)">
                                         @if($startsBeforePeriod)
                                             <span class="opacity-75 mr-1">◀</span>
                                         @endif
@@ -190,14 +199,14 @@
     <!-- Booking Detail Modal -->
     <div x-show="selectedBooking"
          x-cloak
-         @click.self="selectedBooking = null"
+         @click.self="selectedBooking = null; debugInfo = null"
          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" @click.stop>
             <template x-if="selectedBooking">
                 <div>
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-xl font-bold text-gray-900" x-text="selectedBooking.guest_name"></h3>
-                        <button @click="selectedBooking = null" class="text-gray-400 hover:text-gray-600">
+                        <button @click="selectedBooking = null; debugInfo = null" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -234,6 +243,30 @@
                         <div class="border-t pt-3">
                             <span class="text-sm font-medium text-gray-500">Nights:</span>
                             <span class="text-sm text-gray-900 ml-2" x-text="calculateNights(selectedBooking.check_in, selectedBooking.check_out)"></span>
+                        </div>
+
+                        <!-- Debug info -->
+                        <div class="border-t pt-3 bg-gray-50 -mx-6 -mb-6 p-4 rounded-b-lg">
+                            <div class="text-xs font-mono text-gray-600 space-y-1">
+                                <div><strong>Debug:</strong></div>
+                                <div>ID: <span x-text="selectedBooking.id"></span></div>
+                                <div>Check-in: <span x-text="selectedBooking.check_in"></span></div>
+                                <div>Check-out: <span x-text="selectedBooking.check_out"></span></div>
+                                <template x-if="debugInfo">
+                                    <div class="mt-2 pt-2 border-t border-gray-300">
+                                        <div><strong>Block calc:</strong></div>
+                                        <div>dayIndex: <span x-text="debugInfo.dayIndex"></span> / totalDays: <span x-text="debugInfo.totalDays"></span></div>
+                                        <div>remainingDays: <span x-text="debugInfo.remainingDays"></span></div>
+                                        <div>daysToEnd: <span x-text="debugInfo.daysToEnd"></span></div>
+                                        <div>extend: <span x-text="debugInfo.extend"></span></div>
+                                        <div>dayBlocks: <span x-text="debugInfo.dayBlocks"></span></div>
+                                        <div>maxBlocks: <span x-text="debugInfo.maxBlocks"></span></div>
+                                        <div>left: <span x-text="debugInfo.leftPercent"></span>% / width: <span x-text="debugInfo.widthPercent"></span>%</div>
+                                        <div>maxWidth: <span x-text="debugInfo.maxWidth"></span>%</div>
+                                        <div>startsBefore: <span x-text="debugInfo.startsBeforePeriod"></span> / endsAfter: <span x-text="debugInfo.endsAfterPeriod"></span></div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -277,11 +310,17 @@
 function calendar() {
     return {
         selectedBooking: null,
+        debugInfo: null,
 
-        async showBooking(bookingId) {
+        async showBooking(bookingId, element) {
             try {
                 const response = await fetch(`/booking/${bookingId}`);
                 this.selectedBooking = await response.json();
+
+                // Extract debug info from element
+                if (element && element.dataset.debug) {
+                    this.debugInfo = JSON.parse(element.dataset.debug);
+                }
             } catch (error) {
                 console.error('Failed to load booking:', error);
             }
