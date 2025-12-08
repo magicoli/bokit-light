@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bokit - Architecture Calendrier de Réservations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            padding: 0 40px;
+            gap: 5px;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        h3 {
+            color: #495057;
+            font-size: 1.4em;
+            margin: 30px 0 15px 0;
+        }
+        
+        .architecture-diagram {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .layer {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .layer:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .layer h4 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .layer-icon {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .layer ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .layer li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .layer li:last-child {
+            border-bottom: none;
+        }
+        
+        .layer li:before {
+            content: "→";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .data-model {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #e9ecef;
+        }
+        
+        .table h4 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .table-icon {
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+        }
+        
+        .fields {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .field {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .field-name {
+            font-weight: 600;
+            color: #495057;
+            min-width: 200px;
+        }
+        
+        .field-type {
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            background: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        
+        .field-desc {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .code-block .keyword {
+            color: #c678dd;
+        }
+        
+        .code-block .string {
+            color: #98c379;
+        }
+        
+        .code-block .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+        
+        .highlight-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .highlight-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .checklist {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .checklist h4 {
+            color: #0c5460;
+            margin-bottom: 15px;
+        }
+        
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist li:before {
+            content: "☐";
+            font-size: 1.5em;
+            color: #17a2b8;
+            margin-right: 10px;
+        }
+        
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .flow-step {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .flow-step:not(:last-child):after {
+            content: "↓";
+            display: block;
+            text-align: center;
+            font-size: 2em;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .flow-step h5 {
+            color: #667eea;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .tech-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .tech-item h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .tech-item p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .priority-urgent {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .priority-soon {
+            background: #ffd93d;
+            color: #333;
+        }
+
+        .priority-future {
+            background: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏖️ Bokit</h1>
+            <p>Architecture d'une application de gestion de calendriers de réservations</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">Vue d'ensemble</button>
+            <button class="tab" onclick="showTab('data')">Modèle de données</button>
+            <button class="tab" onclick="showTab('structure')">Structure Laravel</button>
+            <button class="tab" onclick="showTab('config')">Configuration</button>
+            <button class="tab" onclick="showTab('roadmap')">Roadmap</button>
+        </div>
+        
+        <div class="content">
+            <!-- VUE D'ENSEMBLE -->
+            <div id="overview" class="tab-content active">
+                <h2>Architecture générale</h2>
+                
+                <div class="highlight-box">
+                    <h4>🎯 Objectif Phase 1 (Urgent - jours/heures)</h4>
+                    <p>Une web app simple, responsive et fonctionnelle pour visualiser en un coup d'œil tous les calendriers de réservations synchronisés depuis des sources iCal externes.</p>
+                </div>
+                
+                <div class="architecture-diagram">
+                    <div class="layer">
+                        <h4>
+                            <span class="layer-icon">1</span>
+                            Sources externes
+                        </h4>
+                        <ul>
+                            <li>Booking.com (iCal)</li>
+                            <li>Airbnb (iCal)</li>
+                            <li>Plugin WordPress (iCal)</li>
+                            <li>Autres sources iCal</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="layer">
+                        <h4>
+                            <span class="layer-icon">2</span>
+                            Backend Laravel
+                        </h4>
+                        <ul>
+                            <li>Import/parsing iCal</li>
+                            <li>Normalisation données</li>
+                            <li>Stockage SQLite</li>
+                            <li>API REST simple</li>
+                            <li>Command scheduler</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="layer">
+                        <h4>
+                            <span class="layer-icon">3</span>
+                            Frontend Blade + Alpine
+                        </h4>
+                        <ul>
+                            <li>Vue multi-calendrier</li>
+                            <li>Navigation mois/semaine</li>
+                            <li>Popups détails</li>
+                            <li>Responsive mobile</li>
+                            <li>Auth simple</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>Flux de données</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>1. Synchronisation automatique (cron toutes les heures)</h5>
+                        <p>Laravel scheduler exécute une commande qui lit le fichier de config, fetch les URLs iCal, parse les événements et met à jour la base de données.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>2. Normalisation des données</h5>
+                        <p>Les événements iCal sont convertis en réservations avec détection des doublons (même UID = même réservation sur différentes sources).</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>3. Affichage temps réel</h5>
+                        <p>L'interface charge les données via des routes Laravel classiques (pas d'API lourde), Alpine.js gère l'interactivité côté client (popups, navigation).</p>
+                    </div>
+                </div>
+                
+                <h3>Stack technique</h3>
+                <div class="tech-stack">
+                    <div class="tech-item">
+                        <h4>Laravel 11</h4>
+                        <p>Framework backend, routing, ORM Eloquent, scheduler</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>SQLite</h4>
+                        <p>Base de données légère, facilement migratable vers MySQL</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Blade</h4>
+                        <p>Templating server-side pour performance optimale</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Alpine.js</h4>
+                        <p>Réactivité légère côté client (navigation, popups, filtres)</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Tailwind CSS</h4>
+                        <p>Styling rapide et responsive sans écrire de CSS custom</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>ICal Parser</h4>
+                        <p>Package PHP pour parser les fichiers iCal (sabre/vobject)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MODÈLE DE DONNÉES -->
+            <div id="data" class="tab-content">
+                <h2>Modèle de données</h2>
+                
+                <p>Structure pensée pour être <strong>évolutive</strong> et faciliter les intégrations futures (export iCal, synchronisation API, facturation...).</p>
+                
+                <div class="data-model">
+                    <div class="table">
+                        <h4>
+                            <span class="table-icon">📦</span>
+                            properties (unités de location)
+                        </h4>
+                        <div class="fields">
+                            <div class="field">
+                                <span class="field-name">id</span>
+                                <span class="field-type">bigint</span>
+                                <span class="field-desc">PK auto-increment</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">slug</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">Identifiant unique (ex: villa-blue)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">name</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">Nom d'affichage</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">color</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">Couleur hex pour le calendrier</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">capacity</span>
+                                <span class="field-type">int</span>
+                                <span class="field-desc">Capacité max (nullable, phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">settings</span>
+                                <span class="field-type">json</span>
+                                <span class="field-desc">Métadonnées futures (adresse, tarifs...)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">is_active</span>
+                                <span class="field-type">boolean</span>
+                                <span class="field-desc">Actif ou archivé</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">created_at, updated_at</span>
+                                <span class="field-type">timestamp</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table">
+                        <h4>
+                            <span class="table-icon">🔗</span>
+                            ical_sources (sources de synchronisation)
+                        </h4>
+                        <div class="fields">
+                            <div class="field">
+                                <span class="field-name">id</span>
+                                <span class="field-type">bigint</span>
+                                <span class="field-desc">PK</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">property_id</span>
+                                <span class="field-type">bigint</span>
+                                <span class="field-desc">FK → properties</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">name</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">Ex: "Booking.com", "Airbnb"</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">url</span>
+                                <span class="field-type">text</span>
+                                <span class="field-desc">URL du flux iCal</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">sync_enabled</span>
+                                <span class="field-type">boolean</span>
+                                <span class="field-desc">Activer/désactiver la synchro</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">last_synced_at</span>
+                                <span class="field-type">timestamp</span>
+                                <span class="field-desc">Dernière synchro réussie</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">last_error</span>
+                                <span class="field-type">text</span>
+                                <span class="field-desc">Dernier message d'erreur (nullable)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">created_at, updated_at</span>
+                                <span class="field-type">timestamp</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table">
+                        <h4>
+                            <span class="table-icon">📅</span>
+                            bookings (réservations consolidées)
+                        </h4>
+                        <div class="fields">
+                            <div class="field">
+                                <span class="field-name">id</span>
+                                <span class="field-type">bigint</span>
+                                <span class="field-desc">PK</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">property_id</span>
+                                <span class="field-type">bigint</span>
+                                <span class="field-desc">FK → properties</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">uid</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">UID iCal unique (détection doublons)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">source_name</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">Source prioritaire si dédupliqué</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">guest_name</span>
+                                <span class="field-type">string</span>
+                                <span class="field-desc">Nom du client</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">check_in</span>
+                                <span class="field-type">date</span>
+                                <span class="field-desc">Date d'arrivée</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">check_out</span>
+                                <span class="field-type">date</span>
+                                <span class="field-desc">Date de départ</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">adults</span>
+                                <span class="field-type">int</span>
+                                <span class="field-desc">Nombre d'adultes (nullable, phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">children</span>
+                                <span class="field-type">int</span>
+                                <span class="field-desc">Nombre d'enfants (nullable, phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">price</span>
+                                <span class="field-type">decimal(10,2)</span>
+                                <span class="field-desc">Prix total (nullable, phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">commission</span>
+                                <span class="field-type">decimal(10,2)</span>
+                                <span class="field-desc">Commission (nullable, phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">notes</span>
+                                <span class="field-type">text</span>
+                                <span class="field-desc">Notes internes (phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">is_manual</span>
+                                <span class="field-type">boolean</span>
+                                <span class="field-desc">Réservation manuelle vs importée</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">group_id</span>
+                                <span class="field-type">bigint</span>
+                                <span class="field-desc">Pour grouper plusieurs réservations (phase 2)</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">raw_data</span>
+                                <span class="field-type">json</span>
+                                <span class="field-desc">Données brutes iCal pour référence</span>
+                            </div>
+                            <div class="field">
+                                <span class="field-name">created_at, updated_at</span>
+                                <span class="field-type">timestamp</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <h4>💡 Points clés du modèle</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>Le champ <code>uid</code> permet de détecter les doublons entre sources (même réservation vue par Booking et Airbnb)</li>
+                        <li>Les champs de phase 2 sont déjà présents en nullable pour éviter les migrations complexes plus tard</li>
+                        <li>Le champ <code>raw_data</code> garde la trace des données originales pour debugging</li>
+                        <li>Structure compatible avec les standards iCal (facilite l'export futur)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- STRUCTURE LARAVEL -->
+            <div id="structure" class="tab-content">
+                <h2>Structure du projet Laravel</h2>
+                
+                <div class="code-block">
+<span class="comment">// Structure minimaliste Laravel pour Phase 1</span>
+
+bokit/
+├── app/
+│   ├── Console/
+│   │   └── Commands/
+│   │       └── SyncIcalFeeds.php        <span class="comment">// Commande de synchro</span>
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── DashboardController.php  <span class="comment">// Vue principale calendrier</span>
+│   │   │   └── BookingController.php    <span class="comment">// Détails réservations</span>
+│   │   └── Middleware/
+│   │       └── Authenticate.php         <span class="comment">// Auth basique</span>
+│   ├── Models/
+│   │   ├── Property.php
+│   │   ├── IcalSource.php
+│   │   └── Booking.php
+│   └── Services/
+│       ├── IcalParser.php               <span class="comment">// Parsing iCal</span>
+│       └── BookingNormalizer.php        <span class="comment">// Normalisation données</span>
+├── config/
+│   └── bokit.php                        <span class="comment">// Config custom (charge JSON)</span>
+├── database/
+│   ├── migrations/
+│   │   ├── 2024_xx_create_properties_table.php
+│   │   ├── 2024_xx_create_ical_sources_table.php
+│   │   └── 2024_xx_create_bookings_table.php
+│   └── database.sqlite                  <span class="comment">// Base SQLite</span>
+├── resources/
+│   └── views/
+│       ├── layouts/
+│       │   └── app.blade.php            <span class="comment">// Layout principal</span>
+│       ├── dashboard.blade.php          <span class="comment">// Vue calendrier</span>
+│       └── components/
+│           ├── calendar-grid.blade.php
+│           └── booking-popup.blade.php
+├── routes/
+│   └── web.php
+├── storage/
+│   └── config/
+│       └── properties.json              <span class="comment">// Config sources iCal</span>
+├── .env
+└── composer.json
+                </div>
+                
+                <h3>Packages requis</h3>
+                <div class="code-block">
+<span class="keyword">{</span>
+    <span class="string">"require"</span>: {
+        <span class="string">"php"</span>: <span class="string">"^8.2"</span>,
+        <span class="string">"laravel/framework"</span>: <span class="string">"^11.0"</span>,
+        <span class="string">"sabre/vobject"</span>: <span class="string">"^4.5"</span>,     <span class="comment">// Parser iCal robuste</span>
+        <span class="string">"guzzlehttp/guzzle"</span>: <span class="string">"^7.8"</span>     <span class="comment">// HTTP client pour fetch</span>
+    }
+<span class="keyword">}</span>
+                </div>
+                
+                <h3>Exemple de commande de synchronisation</h3>
+                <div class="code-block">
+<span class="comment">// app/Console/Commands/SyncIcalFeeds.php</span>
+
+<span class="keyword">namespace</span> App\Console\Commands;
+
+<span class="keyword">use</span> Illuminate\Console\Command;
+<span class="keyword">use</span> App\Services\IcalParser;
+<span class="keyword">use</span> App\Models\IcalSource;
+
+<span class="keyword">class</span> SyncIcalFeeds <span class="keyword">extends</span> Command
+{
+    <span class="keyword">protected</span> $signature = <span class="string">'bokit:sync'</span>;
+    <span class="keyword">protected</span> $description = <span class="string">'Synchronise toutes les sources iCal actives'</span>;
+
+    <span class="keyword">public function</span> handle(IcalParser $parser)
+    {
+        $sources = IcalSource::where(<span class="string">'sync_enabled'</span>, <span class="keyword">true</span>)->get();
+        
+        <span class="keyword">foreach</span> ($sources <span class="keyword">as</span> $source) {
+            <span class="keyword">try</span> {
+                $this->info(<span class="string">"Syncing {$source->name}..."</span>);
+                $parser->syncSource($source);
+                $this->info(<span class="string">"✓ {$source->name} synchronized"</span>);
+            } <span class="keyword">catch</span> (\Exception $e) {
+                $this->error(<span class="string">"✗ {$source->name}: {$e->getMessage()}"</span>);
+                $source->update([<span class="string">'last_error'</span> => $e->getMessage()]);
+            }
+        }
+        
+        $this->info(<span class="string">'Synchronization complete!'</span>);
+    }
+}
+
+<span class="comment">// Dans app/Console/Kernel.php:</span>
+<span class="keyword">protected function</span> schedule(Schedule $schedule)
+{
+    $schedule->command(<span class="string">'bokit:sync'</span>)->hourly();
+}
+                </div>
+                
+                <h3>Logique du service IcalParser (simplifié)</h3>
+                <div class="code-block">
+<span class="comment">// app/Services/IcalParser.php</span>
+
+<span class="keyword">namespace</span> App\Services;
+
+<span class="keyword">use</span> Sabre\VObject;
+<span class="keyword">use</span> Illuminate\Support\Facades\Http;
+<span class="keyword">use</span> App\Models\{IcalSource, Booking};
+
+<span class="keyword">class</span> IcalParser
+{
+    <span class="keyword">public function</span> syncSource(IcalSource $source)
+    {
+        <span class="comment">// 1. Fetch le fichier iCal</span>
+        $response = Http::timeout(30)->get($source->url);
+        
+        <span class="keyword">if</span> (!$response->successful()) {
+            <span class="keyword">throw new</span> \Exception(<span class="string">"Failed to fetch iCal feed"</span>);
+        }
+        
+        <span class="comment">// 2. Parse avec sabre/vobject</span>
+        $vcalendar = VObject\Reader::read($response->body());
+        
+        <span class="comment">// 3. Extract les événements</span>
+        $events = [];
+        <span class="keyword">foreach</span> ($vcalendar->VEVENT <span class="keyword">as</span> $vevent) {
+            $events[] = [
+                <span class="string">'uid'</span> => (string) $vevent->UID,
+                <span class="string">'summary'</span> => (string) $vevent->SUMMARY,
+                <span class="string">'dtstart'</span> => $vevent->DTSTART->getDateTime(),
+                <span class="string">'dtend'</span> => $vevent->DTEND->getDateTime(),
+                <span class="string">'raw'</span> => $vevent->serialize(),
+            ];
+        }
+        
+        <span class="comment">// 4. Upsert dans la base (par UID pour éviter doublons)</span>
+        <span class="keyword">foreach</span> ($events <span class="keyword">as</span> $event) {
+            Booking::updateOrCreate(
+                [<span class="string">'uid'</span> => $event[<span class="string">'uid'</span>], <span class="string">'property_id'</span> => $source->property_id],
+                [
+                    <span class="string">'guest_name'</span> => $event[<span class="string">'summary'</span>],
+                    <span class="string">'check_in'</span> => $event[<span class="string">'dtstart'</span>]->format(<span class="string">'Y-m-d'</span>),
+                    <span class="string">'check_out'</span> => $event[<span class="string">'dtend'</span>]->format(<span class="string">'Y-m-d'</span>),
+                    <span class="string">'source_name'</span> => $source->name,
+                    <span class="string">'raw_data'</span> => [<span class="string">'ical'</span> => $event[<span class="string">'raw'</span>]],
+                    <span class="string">'is_manual'</span> => <span class="keyword">false</span>,
+                ]
+            );
+        }
+        
+        <span class="comment">// 5. Update last_synced_at</span>
+        $source->update([
+            <span class="string">'last_synced_at'</span> => now(),
+            <span class="string">'last_error'</span> => <span class="keyword">null</span>,
+        ]);
+    }
+}
+                </div>
+            </div>
+            
+            <!-- CONFIGURATION -->
+            <div id="config" class="tab-content">
+                <h2>Configuration JSON</h2>
+                
+                <p>Pour la phase 1, pas besoin d'interface admin complexe. Un simple fichier JSON bien structuré suffit :</p>
+                
+                <div class="code-block">
+<span class="comment">// storage/config/properties.json</span>
+
+{
+  <span class="string">"properties"</span>: [
+    {
+      <span class="string">"slug"</span>: <span class="string">"villa-blue"</span>,
+      <span class="string">"name"</span>: <span class="string">"Villa Blue"</span>,
+      <span class="string">"color"</span>: <span class="string">"#3B82F6"</span>,
+      <span class="string">"capacity"</span>: 6,
+      <span class="string">"is_active"</span>: <span class="keyword">true</span>,
+      <span class="string">"ical_sources"</span>: [
+        {
+          <span class="string">"name"</span>: <span class="string">"Booking.com"</span>,
+          <span class="string">"url"</span>: <span class="string">"https://admin.booking.com/hotel/hoteladmin/ical/XXXXXX.ics"</span>,
+          <span class="string">"sync_enabled"</span>: <span class="keyword">true</span>
+        },
+        {
+          <span class="string">"name"</span>: <span class="string">"Airbnb"</span>,
+          <span class="string">"url"</span>: <span class="string">"https://www.airbnb.com/calendar/ical/YYYYYY.ics"</span>,
+          <span class="string">"sync_enabled"</span>: <span class="keyword">true</span>
+        },
+        {
+          <span class="string">"name"</span>: <span class="string">"WordPress Multipass"</span>,
+          <span class="string">"url"</span>: <span class="string">"https://example.com/wp-json/multipass/v1/ical/villa-blue"</span>,
+          <span class="string">"sync_enabled"</span>: <span class="keyword">true</span>
+        }
+      ]
+    },
+    {
+      <span class="string">"slug"</span>: <span class="string">"studio-ocean"</span>,
+      <span class="string">"name"</span>: <span class="string">"Studio Ocean View"</span>,
+      <span class="string">"color"</span>: <span class="string">"#10B981"</span>,
+      <span class="string">"capacity"</span>: 2,
+      <span class="string">"is_active"</span>: <span class="keyword">true</span>,
+      <span class="string">"ical_sources"</span>: [
+        {
+          <span class="string">"name"</span>: <span class="string">"Booking.com"</span>,
+          <span class="string">"url"</span>: <span class="string">"https://admin.booking.com/hotel/hoteladmin/ical/ZZZZZZ.ics"</span>,
+          <span class="string">"sync_enabled"</span>: <span class="keyword">true</span>
+        }
+      ]
+    }
+  ]
+}
+                </div>
+                
+                <h3>Commande d'initialisation</h3>
+                <div class="code-block">
+<span class="comment">// Commande artisan pour charger le JSON dans la DB</span>
+php artisan bokit:import-config storage/config/properties.json
+
+<span class="comment">// La commande lit le JSON et crée/update les records en DB</span>
+<span class="comment">// Permet de garder le JSON comme source de vérité</span>
+<span class="comment">// et d'avoir les données en DB pour les perfs</span>
+                </div>
+                
+                <div class="highlight-box">
+                    <h4>💡 Avantages de cette approche</h4>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Rapide</strong> : Pas d'interface admin à développer pour la phase 1</li>
+                        <li><strong>Git-friendly</strong> : Le fichier JSON peut être versionné</li>
+                        <li><strong>Portable</strong> : Facile de dupliquer la config pour un nouvel environnement</li>
+                        <li><strong>Évolutif</strong> : Facile d'ajouter une interface admin plus tard qui écrit ce JSON</li>
+                    </ul>
+                </div>
+                
+                <h3>Variables d'environnement (.env)</h3>
+                <div class="code-block">
+APP_NAME=Bokit
+APP_ENV=local
+APP_KEY=base64:...
+APP_DEBUG=<span class="keyword">true</span>
+APP_URL=http://bokit.local
+
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/database/database.sqlite
+
+<span class="comment"># Auth simple (à renforcer en prod)</span>
+ADMIN_EMAIL=oli@magiiic.com
+ADMIN_PASSWORD=<span class="string">"un_mot_de_passe_fort"</span>
+
+<span class="comment"># Optionnel : notification Slack/email en cas d'erreur de synchro</span>
+SYNC_ERROR_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/HERE
+                </div>
+            </div>
+            
+            <!-- ROADMAP -->
+            <div id="roadmap" class="tab-content">
+                <h2>Roadmap de développement</h2>
+                
+                <h3><span class="priority-badge priority-urgent">Phase 1 - URGENT</span> Calendrier fonctionnel (jours)</h3>
+                <div class="checklist">
+                    <h4>Setup projet (1-2h)</h4>
+                    <ul>
+                        <li>Laravel 11 fresh install</li>
+                        <li>Config SQLite + migrations</li>
+                        <li>Install sabre/vobject + Tailwind + Alpine</li>
+                        <li>Auth basique (email/password dans .env)</li>
+                    </ul>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Backend (3-4h)</h4>
+                    <ul>
+                        <li>Models (Property, IcalSource, Booking)</li>
+                        <li>Service IcalParser (fetch + parse + upsert)</li>
+                        <li>Command SyncIcalFeeds</li>
+                        <li>Config JSON loader</li>
+                        <li>Routes pour dashboard + détails</li>
+                    </ul>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Frontend (4-5h)</h4>
+                    <ul>
+                        <li>Layout responsive (header + navigation)</li>
+                        <li>Vue calendrier multi-propriété (grille mensuelle)</li>
+                        <li>Navigation prev/next mois</li>
+                        <li>Popup détails réservation (Alpine.js)</li>
+                        <li>Styling Tailwind + mobile-first</li>
+                    </ul>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Tests & deploy (1-2h)</h4>
+                    <ul>
+                        <li>Tester avec vraies URLs iCal</li>
+                        <li>Setup cron pour synchro horaire</li>
+                        <li>Déployer sur un de tes serveurs</li>
+                        <li>Monitoring basique (logs Laravel)</li>
+                    </ul>
+                </div>
+                
+                <p><strong>Temps total estimé : 10-15h</strong> (réparti sur 2-3 jours en travaillant dessus tranquillement)</p>
+                
+                <h3><span class="priority-badge priority-soon">Phase 2 - Court terme</span> Fonctionnalités avancées (semaines)</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>Export iCal consolidé</h5>
+                        <p>Route Laravel qui génère un fichier .ics par propriété avec toutes les réservations consolidées. Permet de synchroniser vers d'autres systèmes.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>Notes internes sur réservations</h5>
+                        <p>Formulaire simple pour ajouter des notes (instructions nettoyage, demandes spéciales...). Champ <code>notes</code> déjà présent en DB.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>Champs supplémentaires</h5>
+                        <p>Extraction des données guests/adults/children/price depuis les descriptions iCal (parsing custom selon sources). Champs déjà prévus en DB.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>Réservations groupées</h5>
+                        <p>Interface pour lier manuellement plusieurs réservations (même client, même période, différentes unités). Utilise le champ <code>group_id</code>.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>Réservations manuelles</h5>
+                        <p>Formulaire pour créer des réservations "internes" (réservations directes, maintenance, blocages...). Flag <code>is_manual=true</code>.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h5>Export arrivées uniquement</h5>
+                        <p>Vue/export spécial qui ne montre que les dates d'arrivée (utile pour planning ménage, accueil clients...).</p>
+                    </div>
+                </div>
+                
+                <h3><span class="priority-badge priority-future">Phase 3 - Future</span> Gestion complète (mois)</h3>
+                <ul style="margin-left: 20px; margin-top: 20px;">
+                    <li><strong>Gestion tarifs</strong> : Grille tarifaire saisonnière, tarifs par durée, promotions</li>
+                    <li><strong>Formulaire réservation</strong> : Front-end public pour réservations directes</li>
+                    <li><strong>Devis & factures</strong> : Génération PDF, envoi automatique, suivi paiements</li>
+                    <li><strong>Sync API temps réel</strong> : Intégration Beds24, Lodgify, etc. (webhooks)</li>
+                    <li><strong>Variantes plateforme</strong> : Desktop app (Electron), PWA, plugin WP</li>
+                    <li><strong>Multi-user</strong> : Gestion des rôles (admin, employés, propriétaires)</li>
+                    <li><strong>Intégration Agnstk</strong> : Migration vers ton framework quand il sera prêt</li>
+                </ul>
+                
+                <div class="highlight-box" style="margin-top: 30px;">
+                    <h4>🎯 Stratégie globale</h4>
+                    <p>L'objectif est de sortir rapidement une Phase 1 <strong>fonctionnelle et utilisable au quotidien</strong>, puis d'itérer progressivement. La structure de données est pensée dès le départ pour supporter les évolutions futures sans migrations complexes. Tu pourras intégrer Agnstk plus tard quand il sera mature, le modèle de données étant déjà propre et normalisé.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
