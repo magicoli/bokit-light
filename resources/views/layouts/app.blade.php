@@ -17,7 +17,7 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center">
                     <h1 class="text-2xl font-bold text-gray-900">
@@ -34,7 +34,7 @@
         </div>
     </nav>
     
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
         @yield('content')
     </main>
 </body>

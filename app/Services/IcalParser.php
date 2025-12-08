@@ -120,7 +120,7 @@ class IcalParser
                 [
                     'guest_name' => $this->cleanGuestName($event['summary']),
                     'check_in' => $event['dtstart']->format('Y-m-d'),
-                    'check_out' => $event['dtend']->format('Y-m-d'),
+                    'check_out' => $event['dtend']->format('Y-m-d'), // iCal dates are already correct (real check-in/check-out)
                     'source_name' => $source->name,
                     'raw_data' => [
                         'ical' => $event['raw'],

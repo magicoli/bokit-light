@@ -11,18 +11,35 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get date range from query string
-        $view = $request->get('view', 'month'); // month or week
+        // Get view mode from query or default based on screen size (handled by JS)
+        $view = $request->get('view', 'month');
         $date = $request->has('date') 
             ? Carbon::parse($request->date)
             : Carbon::now();
         
-        if ($view === 'week') {
-            $startDate = $date->copy()->startOfWeek();
-            $endDate = $date->copy()->endOfWeek();
-        } else {
-            $startDate = $date->copy()->startOfMonth();
-            $endDate = $date->copy()->endOfMonth();
+        // Calculate date range based on view
+        switch ($view) {
+            case 'week':
+                $startDate = $date->copy()->startOfWeek();
+                $endDate = $date->copy()->endOfWeek();
+                $prevPeriod = $date->copy()->subWeek();
+                $nextPeriod = $date->copy()->addWeek();
+                break;
+                
+            case '2weeks':
+                $startDate = $date->copy()->startOfWeek();
+                $endDate = $date->copy()->startOfWeek()->addDays(13); // 2 weeks
+                $prevPeriod = $date->copy()->subWeeks(2);
+                $nextPeriod = $date->copy()->addWeeks(2);
+                break;
+                
+            case 'month':
+            default:
+                $startDate = $date->copy()->startOfMonth();
+                $endDate = $date->copy()->endOfMonth();
+                $prevPeriod = $date->copy()->subMonth();
+                $nextPeriod = $date->copy()->addMonth();
+                break;
         }
         
         // Generate days array
@@ -36,8 +53,6 @@ class DashboardController extends Controller
         // Get all active properties with their bookings for the period
         $properties = Property::active()
             ->with(['bookings' => function ($query) use ($startDate, $endDate) {
-                // Get bookings that overlap with our date range
-                // Include check_out day for visual display
                 $query->where(function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('check_in', [$startDate, $endDate])
                       ->orWhereBetween('check_out', [$startDate, $endDate])
@@ -57,8 +72,8 @@ class DashboardController extends Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
             'view' => $view,
-            'prevPeriod' => $view === 'week' ? $date->copy()->subWeek() : $date->copy()->subMonth(),
-            'nextPeriod' => $view === 'week' ? $date->copy()->addWeek() : $date->copy()->addMonth(),
+            'prevPeriod' => $prevPeriod,
+            'nextPeriod' => $nextPeriod,
             'prevYear' => $date->copy()->subYear(),
             'nextYear' => $date->copy()->addYear(),
         ]);
