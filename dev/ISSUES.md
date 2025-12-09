@@ -7,11 +7,11 @@
 - [x] Today button links include current date in URL, it should include no date (default is today) or a key word like "today", otherwise it could create confusion when bookmarking a page.
 - [x] Bookings ending after the current displayed period still overflow the calendar, creating an horizontal scrollbar and making the right arrow invisible.
 - [x] Mobile week display overflow, move property/unit small title as additional above the row instead of in a specific column.
-- [ ] IMPORTANT: bookings deleted from  source calendar are not deleted locally. Only ongoing or future bookings should be deleted if they vanish from sources.
+- [ ] IMPORTANT: bookings deleted from  source calendar are not deleted locally. Only ongoing or future bookings should be deleted if they vanish from sources. ⚠️ **IMPLEMENTED, READY TO TEST** (auto-migrations enabled, just deploy and reload page)
 - [x] Navigation must be limited to a maximum, customizable in config (no limit for past, maximum 2 years in the future by default)
 - [ ] Border radius should only apply to actual begin or end of the bookings. If a booking starts or ends before the current displayed period, the truncated border should have no border radius.
 
-## Imrovements
+## Improvements
 - [-] Implement user authentication
     - [x] Through WordPress API
     - [ ] Avoid double login with WP API
@@ -31,6 +31,7 @@
 - [ ] Unit lifecycle dates: add start_date (unit opening) and end_date (permanent closure) to rental units, distinct from temporary availability blocks
 - [ ] Visual marker when in local dev environment (change header color or add a badge) based on hostname/URL (localhost or local network)
 
-## Bugs to fix later
+## Improvements
+- [ ] Critical database migrations must be detected and executed automatically from the web UI instead of requring command-line access
 - [ ] Fresh installation should be possible from both web UI or install script
-- [ ] Some overlapping booking are cut before the border (middle of the day) instead of on the border (Bouquin/Moon/15-01 to 08-02). Booking block with calculation based on first day column creates a multiplied rounding error, making the block not exactly the width it should have.
+- [ ] Some overlapping booking are still cut before the border (middle of the day) instead of on the border (for long stays). Booking block with calculation based on first day column creates a multiplied rounding error, making the block not exactly the width it should have.
