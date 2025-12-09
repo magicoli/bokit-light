@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'wp.auth' => \App\Http\Middleware\WordPressAuth::class,
         ]);
         
+        // Check installation FIRST (before anything else)
+        $middleware->append(\App\Http\Middleware\CheckInstalled::class);
+        
         // Auto-sync middleware (WordPress-style pseudo-cron for calendar sync)
         $middleware->append(\App\Http\Middleware\AutoSync::class);
     })
