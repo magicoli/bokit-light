@@ -20,7 +20,6 @@
 /storage/pail
 /storage/config/**
 !/storage/config/properties.example.json
-/vendor
 Homestead.json
 Homestead.yaml
 Thumbs.db
