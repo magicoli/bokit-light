@@ -17,6 +17,14 @@ class DashboardController extends Controller
             ? Carbon::parse($request->date)
             : Carbon::now();
         
+        // Limit future navigation (configurable, default 24 months)
+        $maxFutureMonths = env('MAX_FUTURE_MONTHS', 24);
+        $maxDate = Carbon::now()->addMonths($maxFutureMonths);
+        
+        if ($date->isAfter($maxDate)) {
+            $date = $maxDate;
+        }
+        
         // Calculate date range based on view
         switch ($view) {
             case 'week':
@@ -76,6 +84,8 @@ class DashboardController extends Controller
             'nextPeriod' => $nextPeriod,
             'prevYear' => $date->copy()->subYear(),
             'nextYear' => $date->copy()->addYear(),
+            'canNavigateForward' => $nextPeriod->isBefore($maxDate),
+            'canNavigateYearForward' => $date->copy()->addYear()->isBefore($maxDate),
         ]);
     }
     

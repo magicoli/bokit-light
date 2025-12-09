@@ -7,7 +7,8 @@
 - [x] Today button links include current date in URL, it should include no date (default is today) or a key word like "today", otherwise it could create confusion when bookmarking a page.
 - [x] Bookings ending after the current displayed period still overflow the calendar, creating an horizontal scrollbar and making the right arrow invisible.
 - [x] Mobile week display overflow, move property/unit small title as additional above the row instead of in a specific column.
-- [ ] Navigation must be limited to a maximum, customizable in config (no limit for past, maximum 2 years in the future by default)
+- [ ] IMPORTANT: bookings deleted from  source calendar are not deleted locally
+- [x] Navigation must be limited to a maximum, customizable in config (no limit for past, maximum 2 years in the future by default)
 - [ ] Border radius should only apply to actual begin or end of the bookings. If a booking starts or ends before the current displayed period, the truncated border should have no border radius.
 
 ## Imrovements
@@ -27,6 +28,7 @@
 - [ ] Multi-tenant support: allow distinct properties, each with their own admins, rental units and calendars
 - [ ] Multi-manager support: allow some users to manage multiple selected properties, calendar view show all units together, grouped by property
 - [ ] Admin role: admin user can manage any property
+- [ ] Unit lifecycle dates: add start_date (unit opening) and end_date (permanent closure) to rental units, distinct from temporary availability blocks
 
 ## Bugs to fix later
 - [ ] Fresh installation should be possible from both web UI or install script
