@@ -108,11 +108,14 @@ class IcalParser
      */
     protected function syncEventsToDatabase(IcalSource $source, array $events): array
     {
-        $stats = ['created' => 0, 'updated' => 0];
+        $stats = ['created' => 0, 'updated' => 0, 'deleted' => 0];
+
+        // Get all UIDs from the feed
+        $feedUids = array_column($events, 'uid');
 
         foreach ($events as $event) {
             // Use UID + property_id as unique constraint
-            $booking = Booking::updateOrCreate(
+            $booking = Booking::withTrashed()->updateOrCreate(
                 [
                     'uid' => $event['uid'],
                     'property_id' => $source->property_id,
@@ -127,6 +130,7 @@ class IcalParser
                         'description' => $event['description'],
                     ],
                     'is_manual' => false,
+                    'deleted_at' => null, // Restore if was previously deleted
                 ]
             );
 
@@ -135,6 +139,21 @@ class IcalParser
             } else {
                 $stats['updated']++;
             }
+        }
+
+        // Soft delete bookings from this source that are no longer in the feed
+        // BUT ONLY if check_out is in the future (don't delete past bookings as iCal feeds don't include history)
+        $deleted = Booking::where('property_id', $source->property_id)
+            ->where('source_name', $source->name)
+            ->where('check_out', '>=', now()->format('Y-m-d')) // Only future/current bookings
+            ->whereNotIn('uid', $feedUids)
+            ->whereNull('deleted_at')
+            ->update(['deleted_at' => now()]);
+
+        $stats['deleted'] = $deleted;
+
+        if ($deleted > 0) {
+            Log::info("Soft deleted {$deleted} bookings that are no longer in the feed");
         }
 
         return $stats;
