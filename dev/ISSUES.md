@@ -13,6 +13,7 @@
 ## Imrovements
 - [-] Implement user authentication
     - [x] Through WordPress API
+    - [ ] Avoid double login with WP API
     - [ ] Internal auth
     - [ ] Alternative auth (OAuth, OpenID Connect...)
 - [ ] Internal cron tasks management
@@ -21,6 +22,10 @@
 - [ ] Make sure all texts are using a localization functions (like gettext _() etc. or the most suitable for Laravel), for future translations of the interface.
 - [ ] ICS includes description with sometimes valuable info, they should appear in the popup.
 - [ ] "Property" word is wrongly used. "Gîtes Mosaïques" is a property, that includes 5 rental units, "Sun", "Moon", "Violeta", "Zandoli", "Zetoil". "Le lit d'Oli" is another property, which includes only 1 unit (the "lit d'Oli"). This confusion might complicate further plans to allow multiple properties.
+- [ ] Multi-tenant support: allow distinct properties, each with their own admins, rental units and calendars
+- [ ] Multi-manager support: allow some users to manage multiple selected properties, calendar view show all units together, grouped by property
+- [ ] Admin role: admin user can manage any property
 
 ## Bugs to fix later
+- [ ] Fresh installation should be possible from both web UI or install script
 - [ ] Some overlapping booking are cut before the border (middle of the day) instead of on the border (Bouquin/Moon/15-01 to 08-02). Booking block with calculation based on first day column creates a multiplied rounding error, making the block not exactly the width it should have.
