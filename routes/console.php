@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule automatic calendar sync every hour
-Schedule::command('bokit:sync')->hourly();
+// Note: Auto-sync is handled by AutoSync middleware (WordPress-style)
+// No system cron needed - sync runs automatically on page loads

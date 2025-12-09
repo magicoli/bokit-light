@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'wp.auth' => \App\Http\Middleware\WordPressAuth::class,
         ]);
+        
+        // Auto-sync middleware (WordPress-style pseudo-cron)
+        $middleware->append(\App\Http\Middleware\AutoSync::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

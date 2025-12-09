@@ -16,7 +16,9 @@
     - [ ] Avoid double login with WP API
     - [ ] Internal auth
     - [ ] Alternative auth (OAuth, OpenID Connect...)
-- [ ] Internal cron tasks management
+- [x] Internal cron tasks management (WordPress-style auto-sync)
+- [ ] Manual sync trigger for admin users
+- [ ] Force sync before booking confirmation (when creating/modifying bookings)
 - [ ] Timezone support: must be set in config, and taken in account for ics imports (do not use browser timezone, the valid one is the one of the rental location)
 - [ ] Highlight week-end columns
 - [ ] Make sure all texts are using a localization functions (like gettext _() etc. or the most suitable for Laravel), for future translations of the interface.
