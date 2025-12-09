@@ -61,7 +61,8 @@ class DashboardController extends Controller
         // Get all active properties with their bookings for the period
         $properties = Property::active()
             ->with(['bookings' => function ($query) use ($startDate, $endDate) {
-                $query->where(function ($q) use ($startDate, $endDate) {
+                $query->withTrashed() // Include soft deleted bookings for debug
+                    ->where(function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('check_in', [$startDate, $endDate])
                       ->orWhereBetween('check_out', [$startDate, $endDate])
                       ->orWhere(function ($q2) use ($startDate, $endDate) {
@@ -91,7 +92,8 @@ class DashboardController extends Controller
     
     public function booking(Booking $booking)
     {
-        $booking->load('property');
+        // Load with trashed to allow viewing deleted bookings
+        $booking = Booking::withTrashed()->with('property')->findOrFail($booking->id);
         return response()->json($booking);
     }
 }

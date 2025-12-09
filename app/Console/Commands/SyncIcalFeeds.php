@@ -32,6 +32,7 @@ class SyncIcalFeeds extends Command
 
         $totalCreated = 0;
         $totalUpdated = 0;
+        $totalDeleted = 0;
         $errors = 0;
 
         // Sync each source
@@ -41,11 +42,12 @@ class SyncIcalFeeds extends Command
             try {
                 $stats = $parser->syncSource($source);
                 
-                $this->line("  ✓ Created: {$stats['created']}, Updated: {$stats['updated']}");
+                $this->line("  ✓ Created: {$stats['created']}, Updated: {$stats['updated']}, Deleted: {$stats['deleted']}");
                 $this->line("  Last synced: <fg=green>" . $source->fresh()->last_synced_at->diffForHumans() . "</>");
                 
                 $totalCreated += $stats['created'];
                 $totalUpdated += $stats['updated'];
+                $totalDeleted += $stats['deleted'];
                 
             } catch (\Exception $e) {
                 $this->error("  ✗ Failed: {$e->getMessage()}");
@@ -59,6 +61,7 @@ class SyncIcalFeeds extends Command
         $this->info('Summary:');
         $this->line("  Bookings created: <fg=green>{$totalCreated}</>");
         $this->line("  Bookings updated: <fg=yellow>{$totalUpdated}</>");
+        $this->line("  Bookings deleted: <fg=red>{$totalDeleted}</>");
         
         if ($errors > 0) {
             $this->line("  Errors: <fg=red>{$errors}</>");

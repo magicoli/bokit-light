@@ -187,7 +187,12 @@
                                         @if($startsBeforePeriod)
                                             <span class="opacity-75 mr-1">◀</span>
                                         @endif
-                                        <span class="truncate text-lg flex-2">{{ $booking->guest_name }}</span>
+                                        <span class="truncate text-lg flex-2">
+                                            @if($booking->trashed())
+                                                <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">DELETED</span> 
+                                            @endif
+                                            {{ $booking->guest_name }}
+                                        </span>
                                         @if($endsAfterPeriod)
                                             <span class="opacity-75 ms-auto mr-">▶</span>
                                         @endif
@@ -212,7 +217,10 @@
             <template x-if="selectedBooking">
                 <div>
                     <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-gray-900" x-text="selectedBooking.guest_name"></h3>
+                        <h3 class="text-xl font-bold text-gray-900">
+                            <span x-show="selectedBooking.deleted_at" class="inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mr-2">DELETED</span>
+                            <span x-text="selectedBooking.guest_name"></span>
+                        </h3>
                         <button @click="selectedBooking = null" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
