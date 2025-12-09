@@ -11,6 +11,12 @@ class WordPressAuth
 {
     public function handle(Request $request, Closure $next)
     {
+        // Skip auth if disabled
+        $authMethod = env('AUTH_METHOD', 'wordpress');
+        if ($authMethod === 'none' || $authMethod === null) {
+            return $next($request);
+        }
+        
         // Check if user is already authenticated
         if (Session::has("wp_user")) {
             return $next($request);
