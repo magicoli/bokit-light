@@ -11,6 +11,11 @@
 - [ ] Border radius should only apply to actual begin or end of the bookings. If a booking starts or ends before the current displayed period, the truncated border should have no border radius.
 
 ## Imrovements
+- [-] Implement user authentication
+    - [x] Through WordPress API
+    - [ ] Internal auth
+    - [ ] Alternative auth (OAuth, OpenID Connect...)
+- [ ] Internal cron tasks management
 - [ ] Timezone support: must be set in config, and taken in account for ics imports (do not use browser timezone, the valid one is the one of the rental location)
 - [ ] Highlight week-end columns
 - [ ] Make sure all texts are using a localization functions (like gettext _() etc. or the most suitable for Laravel), for future translations of the interface.

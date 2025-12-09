@@ -280,10 +280,11 @@
 function calendar() {
     return {
         selectedBooking: null,
+        baseUrl: '{{ url('/') }}',
 
         async showBooking(bookingId) {
             try {
-                const response = await fetch(`/booking/${bookingId}`);
+                const response = await fetch(`${this.baseUrl}/booking/${bookingId}`);
                 this.selectedBooking = await response.json();
             } catch (error) {
                 console.error('Failed to load booking:', error);

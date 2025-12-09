@@ -26,6 +26,14 @@
                 </div>
                 
                 <div class="flex items-center space-x-4">
+                    @if(session()->has('wp_user'))
+                        <span class="text-sm text-gray-600">
+                            {{ session('wp_user')['name'] }}
+                        </span>
+                        <a href="{{ route('logout') }}" class="text-sm text-blue-600 hover:text-blue-800">
+                            Logout
+                        </a>
+                    @endif
                     <span class="text-sm text-gray-500">
                         {{ now()->format('l, F j, Y') }}
                     </span>
