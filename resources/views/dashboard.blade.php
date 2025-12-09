@@ -56,14 +56,27 @@
 
             <!-- Right: Period navigation + Year -->
             <div class="flex items-center space-x-1">
-                <a href="?date={{ $nextPeriod->format('Y-m-d') }}&view={{ $view }}"
-                   class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    ›
-                </a>
-                <a href="?date={{ $nextYear->format('Y-m-d') }}&view={{ $view }}"
-                   class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    »
-                </a>
+                @if($canNavigateForward)
+                    <a href="?date={{ $nextPeriod->format('Y-m-d') }}&view={{ $view }}"
+                       class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        ›
+                    </a>
+                @else
+                    <span class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
+                        ›
+                    </span>
+                @endif
+                
+                @if($canNavigateYearForward)
+                    <a href="?date={{ $nextYear->format('Y-m-d') }}&view={{ $view }}"
+                       class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        »
+                    </a>
+                @else
+                    <span class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
+                        »
+                    </span>
+                @endif
             </div>
         </div>
     </div>
