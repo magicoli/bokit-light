@@ -90,10 +90,10 @@ class DashboardController extends Controller
         ]);
     }
     
-    public function booking(Booking $booking)
+    public function booking($id)
     {
         // Load with trashed to allow viewing deleted bookings
-        $booking = Booking::withTrashed()->with('property')->findOrFail($booking->id);
+        $booking = Booking::withTrashed()->with('property')->findOrFail($id);
         return response()->json($booking);
     }
 }

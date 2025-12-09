@@ -15,5 +15,5 @@ Route::get('/logout', function () {
 
 Route::middleware(['wp.auth'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/booking/{booking}', [DashboardController::class, 'booking'])->name('booking.show');
+    Route::get('/booking/{id}', [DashboardController::class, 'booking'])->name('booking.show');
 });
