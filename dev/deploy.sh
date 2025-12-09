@@ -27,7 +27,15 @@ log "BASE_DIR: $BASE_DIR"
 log DEPLOY_BOKIT=$DEPLOY_BOKIT
 log DEPLOY_WP=$DEPLOY_WP
 
-rsync -Wavz --delete $BASE_DIR/ $DEPLOY_BOKIT/ --exclude=.git* --exclude-from=.gitignore
-rsync -Wavz $BASE_DIR/wordpress/bokit-connector/ $DEPLOY_WP/wp-content/plugins/bokit-connector/
+log deploying bokit app on $DEPLOY_BOKIT
+rsync --progress -Wavz --delete $BASE_DIR/ $DEPLOY_BOKIT/ --exclude=.git* --exclude-from=.gitignore
+remote_bokit_host=$(echo $DEPLOY_BOKIT | cut -d: -f 1)
+remote_bokit_path=$(echo $DEPLOY_BOKIT | cut -d: -f 2)
+log "executing ssh $remote_bokit_host 'cd $remote_bokit_path && php artisan migrate --force'"
+ssh $remote_bokit_host "cd $remote_bokit_path && php artisan migrate --force"
+log "deploying bokit-connector plugin on $DEPLOY_WP"
+rsync --progress -Wavz $BASE_DIR/wordpress/bokit-connector/ $DEPLOY_WP/wp-content/plugins/bokit-connector/
+log "checking bokit app deployment"
 curl -I $DEPLOY_BOKIT_URL | head -1
+log "opening $DEPLOY_BOKIT_URL in local browser"
 open $DEPLOY_BOKIT_URL
