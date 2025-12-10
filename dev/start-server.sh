@@ -21,4 +21,6 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-php artisan serve --host=0.0.0.0 --port=8000
+which symfony >/dev/null \
+&& symfony serve --allow-all-ip \
+|| php artisan serve --host=0.0.0.0
