@@ -2,25 +2,32 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
+use App\Support\Options;
 use Illuminate\Support\Facades\Route;
 
-// Installation routes (no middleware)
+// Installation routes (no middleware needed - CheckInstalled handles redirect)
 Route::get('/install', [InstallController::class, 'index'])->name('install');
 Route::post('/install/run', [InstallController::class, 'install'])->name('install.run');
 
-// Login route (no CheckInstalled middleware to avoid redirect loop)
-Route::post('/login', function () {
-    // Le middleware WordPressAuth gère l'authentification
-    return redirect('/');
-})->middleware('wp.auth');
+// Determine auth middleware based on options
+$authMethod = Options::get('auth.method', 'none');
+$authMiddleware = $authMethod === 'wordpress' ? 'auth.wordpress' : 'auth.none';
 
-Route::get('/logout', function () {
-    session()->forget('wp_user');
-    return redirect('/');
-})->name('logout');
+// Login/Logout routes (only for WordPress auth)
+if ($authMethod === 'wordpress') {
+    Route::post('/login', function () {
+        // Handled by WordPressAuth middleware
+        return redirect('/');
+    })->middleware($authMiddleware);
 
-// App routes (require installation + auth)
-Route::middleware(['wp.auth'])->group(function () {
+    Route::get('/logout', function () {
+        session()->forget('wp_user');
+        return redirect('/');
+    })->name('logout');
+}
+
+// App routes (protected by auth)
+Route::middleware([$authMiddleware])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/booking/{id}', [DashboardController::class, 'booking'])->name('booking.show');
 });
