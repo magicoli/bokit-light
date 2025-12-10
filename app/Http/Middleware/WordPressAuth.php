@@ -40,13 +40,25 @@ class WordPressAuth
     private function authenticate(Request $request, Closure $next)
     {
         $wpUrl = Options::get('auth.wordpress.site_url');
-        $requiredRole = Options::get('auth.wordpress.required_role', 'bokit_manager');
+        $requiredRole = Options::get('auth.wordpress.required_role', 'administrator');
 
         try {
             // Verify credentials via custom WP endpoint
+            \Log::info('WordPress auth attempt', [
+                'wp_url' => $wpUrl,
+                'username' => $request->username,
+                'endpoint' => $wpUrl . "/wp-json/bokit/v1/auth",
+            ]);
+
             $response = Http::post($wpUrl . "/wp-json/bokit/v1/auth", [
                 "username" => $request->username,
                 "password" => $request->password,
+            ]);
+
+            \Log::info('WordPress API response', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'successful' => $response->successful(),
             ]);
 
             if ($response->successful()) {
@@ -60,11 +72,17 @@ class WordPressAuth
                     Session::put("wp_user", [
                         "id" => $user["id"],
                         "name" => $user["name"],
+                        "email" => $user["email"] ?? '',
                         "roles" => $user["roles"],
                     ]);
 
                     return redirect("/");
                 }
+
+                \Log::warning('WordPress auth role check failed', [
+                    'required_role' => $requiredRole,
+                    'user_roles' => $user["roles"] ?? [],
+                ]);
 
                 return back()->with(
                     "error",
@@ -73,11 +91,21 @@ class WordPressAuth
             }
 
             $error = $response->json();
+            \Log::error('WordPress auth failed', [
+                'status' => $response->status(),
+                'error' => $error,
+            ]);
+
             return back()->with(
                 "error",
                 $error["message"] ?? "Invalid credentials",
             );
         } catch (\Exception $e) {
+            \Log::error('WordPress auth exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return back()->with(
                 "error",
                 "Authentication failed: " . $e->getMessage(),

@@ -67,9 +67,10 @@ class Options
         }
 
         // Write to file
+        $path = config('options.path') . "/{$section}.json";
         file_put_contents(
-            "{$dir}/{$section}.json",
-            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            $path,
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
 
         // Update cache

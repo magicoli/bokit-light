@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Property;
+use App\Models\Unit;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -58,8 +58,8 @@ class DashboardController extends Controller
             $currentDay->addDay();
         }
         
-        // Get all active properties with their bookings for the period
-        $properties = Property::active()
+        // Get all active units with their bookings for the period
+        $units = Unit::where('is_active', true)
             ->with(['bookings' => function ($query) use ($startDate, $endDate) {
                 $query->withTrashed() // Include soft deleted bookings for debug
                     ->where(function ($q) use ($startDate, $endDate) {
@@ -75,7 +75,7 @@ class DashboardController extends Controller
             ->get();
         
         return view('dashboard', [
-            'properties' => $properties,
+            'properties' => $units, // Keep 'properties' name for BC with view
             'days' => $days,
             'currentDate' => $date,
             'startDate' => $startDate,
@@ -93,7 +93,7 @@ class DashboardController extends Controller
     public function booking($id)
     {
         // Load with trashed to allow viewing deleted bookings
-        $booking = Booking::withTrashed()->with('property')->findOrFail($id);
+        $booking = Booking::withTrashed()->with('unit')->findOrFail($id);
         return response()->json($booking);
     }
 }

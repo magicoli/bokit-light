@@ -26,7 +26,7 @@ class CheckInstalled
     private function isInstalled(): bool
     {
         try {
-            return Schema::hasTable('properties');
+            return Schema::hasTable('units');
         } catch (\Exception $e) {
             return false;
         }
