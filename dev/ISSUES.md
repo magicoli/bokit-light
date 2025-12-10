@@ -16,6 +16,7 @@
     - [ ] Sync interval is not enforced, or not properly. E.g. with SYNC_INTERVAL=300 in .env, last sync at 20:26:15, loading a page at 20:37:50 should trigger an immediate sync but nothing happens
 - [x] Navigation must be limited to a maximum, customizable in config (no limit for past, maximum 2 years in the future by default)
 - [ ] Border radius should only apply to actual begin or end of the bookings. If a booking starts or ends before the current displayed period, the truncated border should have no border radius.
+- [ ] WP authentication works with some websites and some not, results to Invalid credentials error.
 
 ## Enhancements and new features
 

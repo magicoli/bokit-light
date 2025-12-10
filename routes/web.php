@@ -5,9 +5,9 @@ use App\Http\Controllers\InstallController;
 use App\Support\Options;
 use Illuminate\Support\Facades\Route;
 
-// Installation routes (no middleware needed - CheckInstalled handles redirect)
+// Installation routes
 Route::get('/install', [InstallController::class, 'index'])->name('install');
-Route::post('/install/run', [InstallController::class, 'install'])->name('install.run');
+Route::post('/install', [InstallController::class, 'process'])->name('install.process');
 
 // Determine auth middleware based on options
 $authMethod = Options::get('auth.method', 'none');

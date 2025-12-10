@@ -3,53 +3,34 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Property extends Model
 {
     protected $fillable = [
-        'slug',
         'name',
-        'color',
-        'capacity',
+        'slug',
         'settings',
-        'is_active',
     ];
 
     protected $casts = [
         'settings' => 'array',
-        'is_active' => 'boolean',
     ];
 
     /**
-     * Get the iCal sources for this property
+     * Get the units for this property
      */
-    public function icalSources(): HasMany
+    public function units()
     {
-        return $this->hasMany(IcalSource::class);
+        return $this->hasMany(Unit::class);
     }
 
     /**
-     * Get the bookings for this property
+     * Get the users for this property
      */
-    public function bookings(): HasMany
+    public function users()
     {
-        return $this->hasMany(Booking::class);
-    }
-
-    /**
-     * Get active iCal sources
-     */
-    public function activeIcalSources(): HasMany
-    {
-        return $this->icalSources()->where('sync_enabled', true);
-    }
-
-    /**
-     * Scope to get only active properties
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
+        return $this->belongsToMany(User::class, 'property_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 }

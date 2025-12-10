@@ -24,7 +24,7 @@ The plugin provides a REST API endpoint for authentication:
   "username": "magic",
   "name": "Olivier van Helden",
   "email": "olivier@van-helden.net",
-  "roles": ["administrator", "bokit_manager"]
+  "roles": ["administrator", "administrator"]
 }
 ```
 

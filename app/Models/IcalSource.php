@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class IcalSource extends Model
 {
     protected $fillable = [
-        'property_id',
+        'unit_id',
         'name',
         'url',
         'sync_enabled',
@@ -22,11 +22,11 @@ class IcalSource extends Model
     ];
 
     /**
-     * Get the property that owns this iCal source
+     * Get the unit that owns this iCal source
      */
-    public function property(): BelongsTo
+    public function unit(): BelongsTo
     {
-        return $this->belongsTo(Property::class);
+        return $this->belongsTo(Unit::class);
     }
 
     /**
