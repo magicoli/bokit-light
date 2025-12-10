@@ -22,6 +22,7 @@
     <ul class="text-sm text-blue-800 space-y-1">
         <li>✓ Database structure created</li>
         <li>✓ Authentication configured</li>
+        <li>✓ Administrator account created</li>
         <li>✓ System ready for use</li>
     </ul>
 </div>

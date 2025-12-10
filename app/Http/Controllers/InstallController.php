@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Http;
 use App\Support\Options;
+use App\Models\User;
 
 class InstallController extends Controller
 {
@@ -23,6 +25,11 @@ class InstallController extends Controller
             'view' => 'auth',
         ],
         3 => [
+            'name' => 'admin',
+            'title' => 'First Administrator',
+            'view' => 'admin',
+        ],
+        4 => [
             'name' => 'complete',
             'title' => 'Installation Complete',
             'view' => 'complete',
@@ -35,21 +42,8 @@ class InstallController extends Controller
      */
     public function index()
     {
-        // If already installed, redirect to dashboard
-        if ($this->isInstalled() && Options::has('auth.method')) {
-            // If we're on the complete step, allow it
-            $currentStepNumber = Session::get('install_step', 1);
-            $step = $this->steps[$currentStepNumber] ?? null;
-            
-            if (!$step || $step['name'] !== 'complete') {
-                return redirect('/');
-            }
-        }
-
         // Get current step from session (default to 1)
         $currentStepNumber = Session::get('install_step', 1);
-        
-        // Get step config
         $step = $this->steps[$currentStepNumber] ?? null;
         
         if (!$step) {
@@ -94,6 +88,14 @@ class InstallController extends Controller
             }
 
             $result = $this->$methodName($request);
+
+            // If method returned false, it handled the transition itself
+            if ($result === false) {
+                return response()->json([
+                    'success' => true,
+                    'next_step' => Session::get('install_step'),
+                ]);
+            }
 
             // Move to next step
             $nextStep = $currentStepNumber + 1;
@@ -150,8 +152,8 @@ class InstallController extends Controller
         // Save auth method
         Options::set('auth.method', $authMethod);
 
-        // Save WordPress-specific settings if applicable
         if ($authMethod === 'wordpress') {
+            // Save WordPress-specific settings
             $request->validate([
                 'wp_site_url' => 'required|url',
                 'wp_required_role' => 'required|string',
@@ -159,7 +161,75 @@ class InstallController extends Controller
 
             Options::set('auth.wordpress.site_url', $request->input('wp_site_url'));
             Options::set('auth.wordpress.required_role', $request->input('wp_required_role'));
+            
+            // Next step will be admin login (step 3)
+            return true;
+        } else {
+            // No authentication = no admin user needed
+            // Skip step 3 (admin login) - jump directly to step 4 (complete)
+            Session::put('install_step', 4);
+            session()->save(); // Force session save
+            
+            // Return false to signal we've handled the step transition ourselves
+            return false;
         }
+    }
+
+    /**
+     * Process step 3: Create first admin user (WordPress only)
+     */
+    private function processAdmin(Request $request)
+    {
+        $authMethod = Options::get('auth.method');
+
+        if ($authMethod !== 'wordpress') {
+            throw new \Exception('This step is only for WordPress authentication');
+        }
+
+        // WordPress authentication
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $wpUrl = Options::get('auth.wordpress.site_url');
+        $requiredRole = Options::get('auth.wordpress.required_role', 'administrator');
+
+        // Authenticate via WordPress
+        $response = Http::post($wpUrl . '/wp-json/bokit/v1/auth', [
+            'username' => $request->input('username'),
+            'password' => $request->input('password'),
+        ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('Authentication failed. Please check your credentials and verify that you have the required permissions on the WordPress site.');
+        }
+
+        $wpUser = $response->json();
+
+        // Check if user has required role
+        if (!in_array($requiredRole, $wpUser['roles'] ?? []) && !in_array('administrator', $wpUser['roles'] ?? [])) {
+            throw new \Exception('Access denied. Your WordPress account does not have the required role to become administrator.');
+        }
+
+        // Create admin user
+        $user = User::create([
+            'name' => $wpUser['name'],
+            'email' => $wpUser['email'] ?? '',
+            'auth_provider' => 'wordpress',
+            'auth_provider_id' => $wpUser['id'],
+            'is_admin' => true,
+        ]);
+
+        // Store in session
+        Session::put('wp_user', [
+            'id' => $wpUser['id'],
+            'name' => $wpUser['name'],
+            'email' => $wpUser['email'] ?? '',
+            'roles' => $wpUser['roles'],
+        ]);
+        
+        Session::put('user_id', $user->id);
 
         return true;
     }
