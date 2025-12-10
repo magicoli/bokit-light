@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Options;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -11,12 +12,11 @@ class WordPressAuth
 {
     public function handle(Request $request, Closure $next)
     {
-        // Skip auth if disabled
-        $authMethod = env('AUTH_METHOD', 'wordpress');
-        if ($authMethod === 'none' || $authMethod === null) {
-            return $next($request);
+        // Verify WP_SITE_URL is configured
+        if (!Options::get('auth.wordpress.site_url')) {
+            abort(503, 'WordPress site URL not configured');
         }
-        
+
         // Check if user is already authenticated
         if (Session::has("wp_user")) {
             return $next($request);
@@ -31,13 +31,16 @@ class WordPressAuth
         }
 
         // Show login form
-        return $this->showLoginForm();
+        return response()->view("auth.login", [
+            'authMessage' => 'Use your WordPress credentials',
+            'authDetails' => Options::get('auth.wordpress.site_url'),
+        ]);
     }
 
     private function authenticate(Request $request, Closure $next)
     {
-        $wpUrl = env("WP_SITE_URL", "https://gites-mosaiques.com");
-        $requiredRole = env("WP_REQUIRED_ROLE", "bokit_manager");
+        $wpUrl = Options::get('auth.wordpress.site_url');
+        $requiredRole = Options::get('auth.wordpress.required_role', 'bokit_manager');
 
         try {
             // Verify credentials via custom WP endpoint
@@ -80,10 +83,5 @@ class WordPressAuth
                 "Authentication failed: " . $e->getMessage(),
             );
         }
-    }
-
-    private function showLoginForm()
-    {
-        return response()->view("auth.login");
     }
 }

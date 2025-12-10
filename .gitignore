@@ -16,14 +16,11 @@
 /public/build
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
-/storage/config/**
-!/storage/config/properties.example.json
 Homestead.json
 Homestead.yaml
 Thumbs.db
 tmp/
 .env
-storage/database/
 *.sqlite*
+storage/**
+*~

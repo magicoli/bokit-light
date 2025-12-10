@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Bokit</title>
+    <title>Login - {{ config('app.name') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <h1 class="text-2xl font-bold text-center mb-6">Bokit Calendar</h1>
+        <div class="text-center mb-6">
+            <div class="text-4xl mb-2">{{ config('app.logo') }}</div>
+            <h1 class="text-2xl font-bold">{{ config('app.name') }}</h1>
+            <p class="text-sm text-gray-500">{{ config('app.slogan') }}</p>
+        </div>
         
         @if(session('error'))
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -53,9 +57,16 @@
             </div>
         </form>
         
+        @if(isset($authMessage) || isset($authDetails))
         <div class="mt-4 text-center text-sm text-gray-600">
-            <p>Use your WordPress credentials</p>
+            @if(isset($authMessage))
+                <p>{{ $authMessage }}</p>
+            @endif
+            @if(isset($authDetails))
+                <p class="text-xs text-gray-500 mt-1">{{ $authDetails }}</p>
+            @endif
         </div>
+        @endif
     </div>
 </body>
 </html>

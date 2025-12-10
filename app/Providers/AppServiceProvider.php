@@ -19,10 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Ensure database directory exists
-        $dbPath = storage_path('database/default');
-        if (!is_dir($dbPath)) {
-            mkdir($dbPath, 0755, true);
-        }
+        // All initialization now handled by bootstrap/init.php
     }
 }

@@ -1,7 +1,23 @@
 <?php
 
-return [
+// Generate a random key and save it if not provided
+$key = env("APP_KEY", "base64:" . base64_encode(random_bytes(32)));
+if (empty(env("APP_KEY"))) {
+    putenv("APP_KEY={$key}");
 
+    if (!file_exists($envPath = dirname(__DIR__) . "/.env")) {
+        file_put_contents($envPath, "APP_KEY={$key}\n");
+    } else {
+        // Replace APP_KEY in .env file if it exists, otherwise add it
+        $env = file_get_contents($envPath);
+        $env =
+            "APP_KEY={$key}\n" .
+            preg_replace('/^APP_KEY=.*$(?:\r\n|\n)?/m', "", $env);
+        file_put_contents($envPath, $env);
+    }
+}
+
+return [
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -13,7 +29,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    "name" => env("APP_NAME", "Bokit"),
+    "slogan" => env("APP_SLOGAN", "Bring On Kitsch Island Time"),
+    "logo" => env("APP_LOGO", "🏖️"),
 
     /*
     |--------------------------------------------------------------------------
@@ -26,7 +44,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    "env" => env("APP_ENV", "production"),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +57,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    "debug" => (bool) env("APP_DEBUG", false),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,7 +70,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    "url" => env("APP_URL", "http://localhost"),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,7 +83,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    "timezone" => "UTC",
 
     /*
     |--------------------------------------------------------------------------
@@ -78,11 +96,11 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    "locale" => env("APP_LOCALE", "en"),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    "fallback_locale" => env("APP_FALLBACK_LOCALE", "en"),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    "faker_locale" => env("APP_FAKER_LOCALE", "en_US"),
 
     /*
     |--------------------------------------------------------------------------
@@ -95,14 +113,12 @@ return [
     |
     */
 
-    'cipher' => 'AES-256-CBC',
+    "cipher" => "AES-256-CBC",
 
-    'key' => env('APP_KEY'),
+    "key" => env("APP_KEY"),
 
-    'previous_keys' => [
-        ...array_filter(
-            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
-        ),
+    "previous_keys" => [
+        ...array_filter(explode(",", (string) env("APP_PREVIOUS_KEYS", ""))),
     ],
 
     /*
@@ -118,9 +134,8 @@ return [
     |
     */
 
-    'maintenance' => [
-        'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
-        'store' => env('APP_MAINTENANCE_STORE', 'database'),
+    "maintenance" => [
+        "driver" => env("APP_MAINTENANCE_DRIVER", "file"),
+        "store" => env("APP_MAINTENANCE_STORE", "database"),
     ],
-
 ];
