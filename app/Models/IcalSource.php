@@ -13,7 +13,8 @@ class IcalSource extends Model
         'url',
         'sync_enabled',
         'last_synced_at',
-        'last_error',
+        'last_sync_status',
+        'last_sync_error',
     ];
 
     protected $casts = [
@@ -44,7 +45,8 @@ class IcalSource extends Model
     {
         $this->update([
             'last_synced_at' => now(),
-            'last_error' => null,
+            'last_sync_status' => 'success',
+            'last_sync_error' => null,
         ]);
     }
 
@@ -54,7 +56,9 @@ class IcalSource extends Model
     public function markAsErrored(string $error): void
     {
         $this->update([
-            'last_error' => $error,
+            'last_synced_at' => now(),
+            'last_sync_status' => 'error',
+            'last_sync_error' => $error,
         ]);
     }
 }

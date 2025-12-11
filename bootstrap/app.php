@@ -23,8 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             "auth.none" => \App\Http\Middleware\NoAuth::class,
         ]);
 
-        // TODO: Re-enable AutoSync after testing
-        // $middleware->append(\App\Http\Middleware\AutoSync::class);
+        // Auto-sync iCal sources on page loads
+        $middleware->append(\App\Http\Middleware\AutoSync::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

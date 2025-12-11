@@ -58,24 +58,27 @@ class DashboardController extends Controller
             $currentDay->addDay();
         }
         
-        // Get all active units with their bookings for the period
-        $units = Unit::where('is_active', true)
-            ->with(['bookings' => function ($query) use ($startDate, $endDate) {
-                $query->withTrashed() // Include soft deleted bookings for debug
-                    ->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('check_in', [$startDate, $endDate])
-                      ->orWhereBetween('check_out', [$startDate, $endDate])
-                      ->orWhere(function ($q2) use ($startDate, $endDate) {
-                          $q2->where('check_in', '<=', $startDate)
-                             ->where('check_out', '>=', $endDate);
-                      });
-                })->orderBy('check_in');
+        // Get all properties with their active units and bookings
+        $properties = \App\Models\Property::orderBy('id')
+            ->with(['units' => function ($query) use ($startDate, $endDate) {
+                $query->where('is_active', true)
+                    ->orderBy('id')
+                    ->with(['bookings' => function ($q) use ($startDate, $endDate) {
+                        $q->withTrashed() // Include soft deleted bookings for debug
+                            ->where(function ($q2) use ($startDate, $endDate) {
+                            $q2->whereBetween('check_in', [$startDate, $endDate])
+                              ->orWhereBetween('check_out', [$startDate, $endDate])
+                              ->orWhere(function ($q3) use ($startDate, $endDate) {
+                                  $q3->where('check_in', '<=', $startDate)
+                                     ->where('check_out', '>=', $endDate);
+                              });
+                        })->orderBy('check_in');
+                    }]);
             }])
-            ->orderBy('name')
             ->get();
         
         return view('dashboard', [
-            'properties' => $units, // Keep 'properties' name for BC with view
+            'properties' => $properties,
             'days' => $days,
             'currentDate' => $date,
             'startDate' => $startDate,

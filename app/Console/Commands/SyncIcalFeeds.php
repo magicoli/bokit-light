@@ -37,7 +37,7 @@ class SyncIcalFeeds extends Command
 
         // Sync each source
         foreach ($sources as $source) {
-            $this->line("Syncing: <fg=cyan>{$source->name}</> (Property: {$source->property->name})");
+            $this->line("Syncing: <fg=cyan>{$source->name}</> (Unit: {$source->unit->name})");
 
             try {
                 $stats = $parser->syncSource($source);
@@ -78,14 +78,16 @@ class SyncIcalFeeds extends Command
      */
     protected function getSourcesToSync()
     {
-        $query = IcalSource::with('property')->enabled();
+        $query = IcalSource::with(['unit.property'])->enabled();
 
         if ($sourceId = $this->option('source')) {
             $query->where('id', $sourceId);
         }
 
         if ($propertyId = $this->option('property')) {
-            $query->where('property_id', $propertyId);
+            $query->whereHas('unit', function ($q) use ($propertyId) {
+                $q->where('property_id', $propertyId);
+            });
         }
 
         return $query->get();

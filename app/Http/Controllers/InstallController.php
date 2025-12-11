@@ -420,6 +420,9 @@ class InstallController extends Controller
     {
         // Mark installation as complete
         Options::set("install.complete", true);
+        
+        // Set default sync interval (1 hour = 3600 seconds)
+        Options::set("sync.interval", 3600);
 
         return response()->json([
             "success" => true,
@@ -594,5 +597,9 @@ class InstallController extends Controller
                 $table->integer("last_activity")->index();
             });
         }
+        
+        // Note: We don't need 'jobs' or 'failed_jobs' tables because we use
+        // dispatchAfterResponse() which executes jobs synchronously after the
+        // HTTP response is sent, without using a database queue.
     }
 }
