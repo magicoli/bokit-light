@@ -5,40 +5,41 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Log;
+use App\Support\Options;
+use App\Jobs\SyncIcalSources;
 
 class AutoSync
 {
     public function handle(Request $request, Closure $next)
     {
+        // Only run auto-sync if installation is complete
+        if (!Options::get('install.complete', false)) {
+            return $next($request);
+        }
+
         // Check if sync is needed (configurable interval)
-        $syncInterval = env('SYNC_INTERVAL', 3600); // Default: 1 hour
-        $lastSync = Cache::get('last_auto_sync', 0);
+        $syncInterval = (int) Options::get('sync.interval', 3600); // Default: 1 hour
+        $lastSync = Cache::get("last_auto_sync", 0);
         $now = time();
-        
+
         if ($now - $lastSync > $syncInterval) {
-            // Update timestamp immediately to prevent concurrent syncs
-            Cache::put('last_auto_sync', $now, 7200); // 2 hours TTL
+            Log::debug("[AutoSync] Sync triggered", [
+                'last_sync' => $lastSync,
+                'now' => $now,
+                'interval' => $syncInterval,
+            ]);
             
-            // Launch sync in background (non-blocking)
-            $this->launchSyncInBackground();
+            // Update timestamp immediately to prevent concurrent syncs
+            Cache::put("last_auto_sync", $now, 7200); // 2 hours TTL
+
+            // Dispatch job to run AFTER the HTTP response is sent to the user
+            // This is non-blocking for the user, WordPress-style!
+            SyncIcalSources::dispatchAfterResponse();
+            
+            Log::debug('[AutoSync] Sync job will run after response');
         }
 
         return $next($request);
-    }
-
-    private function launchSyncInBackground()
-    {
-        $artisan = base_path('artisan');
-        $php = PHP_BINARY;
-        
-        // Launch command in background without blocking
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows
-            pclose(popen("start /B $php $artisan bokit:sync", "r"));
-        } else {
-            // Linux/Mac
-            exec("$php $artisan bokit:sync > /dev/null 2>&1 &");
-        }
     }
 }

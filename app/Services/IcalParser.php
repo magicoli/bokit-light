@@ -17,7 +17,7 @@ class IcalParser
     public function syncSource(IcalSource $source): array
     {
         try {
-            Log::info("Syncing iCal source: {$source->name} for property {$source->property_id}");
+            Log::info("Syncing iCal source: {$source->name} for unit {$source->unit_id}");
 
             // 1. Fetch the iCal feed
             $response = Http::timeout(30)->get($source->url);
@@ -114,11 +114,11 @@ class IcalParser
         $feedUids = array_column($events, 'uid');
 
         foreach ($events as $event) {
-            // Use UID + property_id as unique constraint
+            // Use UID + unit_id as unique constraint
             $booking = Booking::withTrashed()->updateOrCreate(
                 [
                     'uid' => $event['uid'],
-                    'property_id' => $source->property_id,
+                    'unit_id' => $source->unit_id,
                 ],
                 [
                     'guest_name' => $this->cleanGuestName($event['summary']),
@@ -143,7 +143,7 @@ class IcalParser
 
         // Soft delete bookings from this source that are no longer in the feed
         // BUT ONLY if check_out is in the future (don't delete past bookings as iCal feeds don't include history)
-        $deleted = Booking::where('property_id', $source->property_id)
+        $deleted = Booking::where('unit_id', $source->unit_id)
             ->where('source_name', $source->name)
             ->where('check_out', '>=', now()->format('Y-m-d')) // Only future/current bookings
             ->whereNotIn('uid', $feedUids)

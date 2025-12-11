@@ -88,9 +88,9 @@
                 <!-- Header: Day numbers and names -->
                 <thead class="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                        <!-- Property column header -->
+                        <!-- Unit column header -->
                         <th scope="col" class="property-column sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r-2 border-gray-300 min-w-[100px] w-[120px] max-sm:hidden">
-                            Property
+                            Unit
                         </th>
 
                         <!-- Day columns with vertical separators -->
@@ -110,31 +110,43 @@
 
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach($properties as $property)
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <!-- Property name (sticky) -->
-                        <td class="property-column sticky left-0 z-10 bg-white px-4 py-3 border-r-2 border-gray-300 hover:bg-gray-50 max-sm:hidden">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: {{ $property->color }}"></div>
-                                <span class="font-medium text-gray-900 text-sm whitespace-nowrap">{{ $property->name }}</span>
-                            </div>
-                        </td>
+                        <!-- Property Header Row -->
+                        <tr class="bg-gray-100 border-t-2 border-gray-300">
+                            <td class="property-column sticky left-0 z-10 bg-gray-100 px-4 py-2 border-r-2 border-gray-300 max-sm:hidden">
+                                <span class="font-bold text-gray-800 text-sm">{{ $property->name }}</span>
+                            </td>
+                            @foreach($days as $day)
+                            <td class="bg-gray-100 border-r border-gray-200"></td>
+                            @endforeach
+                        </tr>
 
-                        <!-- Day cells with bookings -->
-                        @foreach($days as $dayIndex => $day)
-                        <td class="relative h-16 max-sm:h-20 px-0 border-r border-gray-200">
-                            <!-- Property label (mobile only) -->
-                            @if($dayIndex === 0)
-                            <div class="hidden max-sm:block absolute top-0.5 left-0.5 text-[0.6rem] font-semibold z-[5] px-1 py-0.5 rounded" style="background-color: {{ $property->color }}; color: white; opacity: 0.9;">
-                                {{ $property->name }}
-                            </div>
-                            @endif
-                            <!-- Background highlight for today (behind bookings) -->
-                            @if($day->isToday())
-                            <div class="absolute inset-0 bg-blue-50 opacity-40 pointer-events-none max-sm:!top-[1.75rem]"></div>
-                            @endif
+                        <!-- Units of this Property -->
+                        @foreach($property->units as $unit)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <!-- Unit name (sticky) -->
+                            <td class="property-column sticky left-0 z-10 bg-white px-4 py-3 border-r-2 border-gray-300 hover:bg-gray-50 max-sm:hidden">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: {{ $unit->color }}"></div>
+                                    <span class="font-medium text-gray-900 text-sm whitespace-nowrap">{{ $unit->name }}</span>
+                                </div>
+                            </td>
 
-                            <!-- Bookings overlapping this day -->
-                            @foreach($property->bookings as $booking)
+                            <!-- Day cells with bookings -->
+                            @foreach($days as $dayIndex => $day)
+                            <td class="relative h-16 max-sm:h-20 px-0 border-r border-gray-200">
+                                <!-- Unit label (mobile only) -->
+                                @if($dayIndex === 0)
+                                <div class="hidden max-sm:block absolute top-0.5 left-0.5 text-[0.6rem] font-semibold z-[5] px-1 py-0.5 rounded" style="background-color: {{ $unit->color }}; color: white; opacity: 0.9;">
+                                    {{ $unit->name }}
+                                </div>
+                                @endif
+                                <!-- Background highlight for today (behind bookings) -->
+                                @if($day->isToday())
+                                <div class="absolute inset-0 bg-blue-50 opacity-40 pointer-events-none max-sm:!top-[1.75rem]"></div>
+                                @endif
+
+                                <!-- Bookings overlapping this day -->
+                                @foreach($unit->bookings as $booking)
                                 @php
                                     // Real check-in/check-out dates (hotel format)
                                     $checkIn = $booking->check_in;
@@ -181,7 +193,7 @@
                                                 bottom: 0.375rem;
                                                 margin-left: 2px;
                                                 margin-right: 2px;
-                                                background-color: {{ $property->color }};
+                                                background-color: {{ $unit->color }};
                                                 opacity: 0.92"
                                          @click="showBooking({{ $booking->id }})">
                                         @if($startsBeforePeriod)
@@ -201,7 +213,8 @@
                             @endforeach
                         </td>
                         @endforeach
-                    </tr>
+                        </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
             </table>
@@ -230,10 +243,10 @@
 
                     <div class="space-y-3">
                         <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full mr-3" :style="`background-color: ${selectedBooking.property?.color || '#999'}`"></div>
+                            <div class="w-4 h-4 rounded-full mr-3" :style="`background-color: ${selectedBooking.unit?.color || '#999'}`"></div>
                             <div>
-                                <span class="text-sm font-medium text-gray-500">Property:</span>
-                                <span class="text-sm text-gray-900 ml-2" x-text="selectedBooking.property?.name"></span>
+                                <span class="text-sm font-medium text-gray-500">Unit:</span>
+                                <span class="text-sm text-gray-900 ml-2" x-text="selectedBooking.unit?.name"></span>
                             </div>
                         </div>
 
