@@ -1,50 +1,134 @@
-# Issues and bugs to fix, features to implement
+# Bokit - Issues & Future Features
 
-## Bugs for immediate fix
-- [x] Hand pointer when hovering anywhere on a booking
-- [x] Dates on dashboard wrong (checkout day + 1)
-- ~[x] Dates on popup wrong (checking day -1)~
-- [x] Dates on popups not properly fixed: now display the string "Invalid Date" for both checkin and checkout, although no error appeared during refresh
-- [x] Reduce day column minimum width not properly implemented: the dashboard is now only optimized for smaller screens (huge property column on big screen) instead of being only optimized for big screen as before, it should be responsive and fill most available space with the actual calendar. 
-- [ ] The dashboard should fit full month on 1280x800 screen, but take advantage of bigger screens for clear display.
-- [x] On smaller screens, the shown period should be adjusted dynamically to best fit the screen width (2 weeks, 1 week instead of 1 month). The simplle navigation button must be adjusted too to switch to the next/previous displayed period (plus or minus 1 month by default, or 1 or 2 weeks according to the current display). Double arrow navigation remains unchanged as plus or minus 1 year.
-- [x] Today button links include current date in URL, it should include no date (default is today) or a key word like "today", otherwise it could create confusion when bookmarking a page.
-- [x] Bookings ending after the current displayed period still overflow the calendar, creating an horizontal scrollbar and making the right arrow invisible.
-- [x] Mobile week display overflow, move property/unit small title as additional above the row instead of in a specific column.
-- [ ] ⚠️ IMPORTANT: bookings deleted from source calendar are not deleted locally. Only ongoing or future bookings should be deleted if they vanish from sources. **IMPLEMENTED, Not yet successful**
-    - [ ] ⚠️ IMPORTANT: bookings reactivated from source calendar are still marked as deleted
-- [ ] ⚠️ REGRESSION: autosync does not work anymore, manual sync with php artisan sync still working
-    - [ ] Sync interval is not enforced, or not properly. E.g. with SYNC_INTERVAL=300 in .env, last sync at 20:26:15, loading a page at 20:37:50 should trigger an immediate sync but nothing happens
-- [x] Navigation must be limited to a maximum, customizable in config (no limit for past, maximum 2 years in the future by default)
-- [ ] Border radius should only apply to actual begin or end of the bookings. If a booking starts or ends before the current displayed period, the truncated border should have no border radius.
-- [ ] WP authentication works with some websites and some not, results to Invalid credentials error. Could be related to siteurl difference with home in the case of WordPress installation in a subdirectory.
-- [ ] ⚠️ Install Complete screen should set option install.complete (or app.install or app.installed, whatever) to true on click,
-    - [ ] Install route must be enabled only if install.complete is not set or not true
-    - [ ] Web route should only check if install.complete is true instead of validating on behalf of install class. 
-    - [ ] Only install class can decide if the site is installed or not.
+## Current Issues
 
-## Enhancements and new features
+### Known Bugs
+None currently reported.
 
-- [x] Internal cron tasks management (WordPress-style auto-sync)
-- [-] Implement user authentication
-    - [x] Through WordPress API
-    - [ ] Avoid double login with WP API
-    - [ ] Internal auth
-    - [ ] Alternative auth (OAuth, OpenID Connect...)
-- [ ] Manual sync trigger for admin users
-- [ ] Force sync before booking confirmation (when creating/modifying bookings)
-- [ ] Timezone support: must be set in config, and taken in account for ics imports (do not use browser timezone, the valid one is the one of the rental location)
-- [ ] Highlight week-end columns
-- [ ] Make sure all texts are using a localization functions (like gettext _() etc. or the most suitable for Laravel), for future translations of the interface.
-- [ ] ICS includes description with sometimes valuable info, they should appear in the popup.
-- [ ] "Property" word is wrongly used. "Gîtes Mosaïques" is a property, that includes 5 rental units, "Sun", "Moon", "Violeta", "Zandoli", "Zetoil". "Le lit d'Oli" is another property, which includes only 1 unit (the "lit d'Oli"). This confusion might complicate further plans to allow multiple properties.
-- [ ] Multi-tenant support: allow distinct properties, each with their own admins, rental units and calendars
-- [ ] Multi-manager support: allow some users to manage multiple selected properties, calendar view show all units together, grouped by property
-- [ ] Admin role: admin user can manage any property
-- [ ] Unit lifecycle dates: add start_date (unit opening) and end_date (permanent closure) to rental units, distinct from temporary availability blocks
-- [ ] Visual marker when in local dev environment (change header color or add a badge) based on hostname/URL (localhost or local network)
+### Technical Debt
+None currently identified.
 
-## Bugs to fix later
-- [ ] Critical database migrations must be detected and executed automatically from the web UI instead of requring command-line access
-- [ ] Fresh installation should be possible from both web UI or install script
-- [ ] Some overlapping booking are still cut before the border (middle of the day) instead of on the border (for long stays). Booking block with calculation based on first day column creates a multiplied rounding error, making the block not exactly the width it should have.
+## Planned Features
+
+### High Priority
+
+#### 1. Blocked Dates Management
+**Status:** Partially implemented (filter only)  
+**Documentation:** `dev/UNAVAILABLE.md`
+
+Currently, iCal events with `SUMMARY:Unavailable` are filtered out and not displayed. Full implementation would include:
+
+- [ ] Display blocked dates in calendar (grayed out or with pattern)
+- [ ] Store blocked dates in database (extend `bookings` table with `type` field)
+- [ ] Manual block creation UI for property managers
+- [ ] Support for multiple provider patterns (Airbnb, Booking.com, VRBO, etc.)
+- [ ] Business rules (minimum stay gaps, cleaning buffers, etc.)
+- [ ] Prevent manual bookings on blocked dates
+
+**Implementation Notes:**
+- Extend `bookings` table with `type VARCHAR(20)` field ('booking', 'blocked', 'maintenance')
+- Update `IcalParser` to detect and categorize blocking patterns
+- Calendar view should show blocked dates with visual distinction
+- See `dev/UNAVAILABLE.md` for detailed implementation plan
+
+### Medium Priority
+
+#### 2. Multi-user Access Control
+**Status:** Not started
+
+- [ ] Role-based permissions (admin, manager, viewer)
+- [ ] Property-specific access (user can manage only their properties)
+- [ ] Audit log for changes
+- [ ] User invitation system
+
+#### 3. Booking Management Interface
+**Status:** Basic view-only implemented
+
+- [x] View booking details in modal
+- [ ] Create manual bookings
+- [ ] Edit booking details (guest name, dates, notes)
+- [ ] Delete bookings
+- [ ] Mark bookings as confirmed/pending
+- [ ] Add pricing information
+
+#### 4. Reporting & Analytics
+**Status:** Not started
+
+- [ ] Occupancy rate by unit/property
+- [ ] Revenue tracking (requires pricing data)
+- [ ] Export to CSV/Excel
+- [ ] Calendar heatmap view
+- [ ] Booking source statistics
+
+### Low Priority
+
+#### 5. Installation Flow Enhancement
+**Status:** Basic 5-step wizard implemented
+
+Currently the Enter key doesn't submit forms in the installation wizard. Investigation needed.
+
+- [ ] Fix Enter key form submission in installation
+- [ ] Add validation feedback
+- [ ] Progress indicators between steps
+- [ ] Installation test mode
+
+#### 6. Mobile App
+**Status:** Not started
+
+- [ ] Native iOS app
+- [ ] Native Android app
+- [ ] Push notifications for new bookings
+- [ ] Offline mode
+
+#### 7. Email Notifications
+**Status:** Not started
+
+- [ ] New booking alerts
+- [ ] Checkout reminders
+- [ ] Sync error notifications
+- [ ] Configurable email templates
+
+## Feature Requests
+
+Add user-requested features here.
+
+## Won't Implement
+
+Features that have been considered but decided against:
+
+- **Real-time sync:** WordPress-style periodic sync (on page load) is sufficient and doesn't require external processes
+- **Redis/Queue workers:** Using `dispatchAfterResponse()` keeps deployment simple
+
+## Documentation Needed
+
+- [ ] User guide for property managers
+- [ ] API documentation (if API is exposed)
+- [ ] Backup and restore procedures
+- [ ] Deployment guide for production environments
+
+## Performance Optimization
+
+- [ ] Database indexing review
+- [ ] Query optimization for large datasets
+- [ ] Caching strategy for calendar views
+- [ ] Image/asset optimization
+
+## Security
+
+- [ ] Security audit
+- [ ] Rate limiting on sync operations
+- [ ] Input validation review
+- [ ] CSRF protection verification
+- [ ] SQL injection testing
+
+## Testing
+
+- [ ] Unit tests for critical components
+- [ ] Integration tests for sync operations
+- [ ] Browser compatibility testing
+- [ ] Mobile responsiveness testing
+- [ ] Load testing with multiple properties/units
+
+---
+
+Last updated: 2025-12-11
