@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
+use App\Support\Options;
 
 class CheckInstalled
 {
@@ -15,20 +15,11 @@ class CheckInstalled
             return $next($request);
         }
 
-        // Check if application is installed
-        if (!$this->isInstalled()) {
+        // Check if application is installed - single source of truth
+        if (!Options::get('install.complete', false)) {
             return redirect('/install');
         }
 
         return $next($request);
-    }
-
-    private function isInstalled(): bool
-    {
-        try {
-            return Schema::hasTable('units');
-        } catch (\Exception $e) {
-            return false;
-        }
     }
 }

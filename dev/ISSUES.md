@@ -5,7 +5,8 @@
 - [x] Dates on dashboard wrong (checkout day + 1)
 - ~[x] Dates on popup wrong (checking day -1)~
 - [x] Dates on popups not properly fixed: now display the string "Invalid Date" for both checkin and checkout, although no error appeared during refresh
-- [x] Reduce day column minimum width not properly implemented: the dashboard is now only optimized for smaller screens (huge property column on big screen) instead of being only optimized for big screen as before, it should be responsive and fill most available space with the actual calendar. The dashboard should fit full month on 1360x768 screen, but take advantage of bigger screens for clear display.
+- [x] Reduce day column minimum width not properly implemented: the dashboard is now only optimized for smaller screens (huge property column on big screen) instead of being only optimized for big screen as before, it should be responsive and fill most available space with the actual calendar. 
+- [ ] The dashboard should fit full month on 1280x800 screen, but take advantage of bigger screens for clear display.
 - [x] On smaller screens, the shown period should be adjusted dynamically to best fit the screen width (2 weeks, 1 week instead of 1 month). The simplle navigation button must be adjusted too to switch to the next/previous displayed period (plus or minus 1 month by default, or 1 or 2 weeks according to the current display). Double arrow navigation remains unchanged as plus or minus 1 year.
 - [x] Today button links include current date in URL, it should include no date (default is today) or a key word like "today", otherwise it could create confusion when bookmarking a page.
 - [x] Bookings ending after the current displayed period still overflow the calendar, creating an horizontal scrollbar and making the right arrow invisible.
@@ -16,7 +17,11 @@
     - [ ] Sync interval is not enforced, or not properly. E.g. with SYNC_INTERVAL=300 in .env, last sync at 20:26:15, loading a page at 20:37:50 should trigger an immediate sync but nothing happens
 - [x] Navigation must be limited to a maximum, customizable in config (no limit for past, maximum 2 years in the future by default)
 - [ ] Border radius should only apply to actual begin or end of the bookings. If a booking starts or ends before the current displayed period, the truncated border should have no border radius.
-- [ ] WP authentication works with some websites and some not, results to Invalid credentials error.
+- [ ] WP authentication works with some websites and some not, results to Invalid credentials error. Could be related to siteurl difference with home in the case of WordPress installation in a subdirectory.
+- [ ] ⚠️ Install Complete screen should set option install.complete (or app.install or app.installed, whatever) to true on click,
+    - [ ] Install route must be enabled only if install.complete is not set or not true
+    - [ ] Web route should only check if install.complete is true instead of validating on behalf of install class. 
+    - [ ] Only install class can decide if the site is installed or not.
 
 ## Enhancements and new features
 

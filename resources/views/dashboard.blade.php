@@ -66,7 +66,7 @@
                         ›
                     </span>
                 @endif
-                
+
                 @if($canNavigateYearForward)
                     <a href="?date={{ $nextYear->format('Y-m-d') }}&view={{ $view }}"
                        class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
@@ -189,7 +189,7 @@
                                         @endif
                                         <span class="truncate text-lg flex-2">
                                             @if($booking->trashed())
-                                                <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">DELETED</span> 
+                                                <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">DELETED</span>
                                             @endif
                                             {{ $booking->guest_name }}
                                         </span>
@@ -271,9 +271,9 @@
 (function() {
     function getOptimalView() {
         const width = window.innerWidth;
-        if (width >= 1360) return 'month';
-        if (width >= 680) return '2weeks';
-        return 'week';
+        if (width < 640) return 'week';
+        if (width < 1280) return '2weeks';
+        return 'month';
     }
 
     function checkAndRedirect() {

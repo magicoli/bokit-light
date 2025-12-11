@@ -1,37 +1,37 @@
 {
-  "properties": [
-    {
-      "slug": "villa-blue",
-      "name": "Villa Blue",
-      "color": "#3B82F6",
-      "capacity": 6,
-      "is_active": true,
-      "ical_sources": [
+    "properties": [
         {
-          "name": "Booking.com",
-          "url": "https://admin.booking.com/hotel/hoteladmin/ical/XXXXXX.ics",
-          "sync_enabled": true
+            "slug": "my-accommodation",
+            "name": "My Accommodation",
+            "color": "#3B82F6",
+            "capacity": 6,
+            "is_active": true,
+            "ical_sources": [
+                {
+                    "name": "Booking.com",
+                    "url": "https://admin.booking.com/hotel/hoteladmin/ical/XXXXXX.ics",
+                    "sync_enabled": true
+                },
+                {
+                    "name": "Airbnb",
+                    "url": "https://www.airbnb.com/calendar/ical/YYYYYY.ics",
+                    "sync_enabled": true
+                }
+            ]
         },
         {
-          "name": "Airbnb",
-          "url": "https://www.airbnb.com/calendar/ical/YYYYYY.ics",
-          "sync_enabled": true
+            "slug": "studio-ocean",
+            "name": "Studio Ocean View",
+            "color": "#10B981",
+            "capacity": 2,
+            "is_active": true,
+            "ical_sources": [
+                {
+                    "name": "Booking.com",
+                    "url": "https://admin.booking.com/hotel/hoteladmin/ical/ZZZZZZ.ics",
+                    "sync_enabled": true
+                }
+            ]
         }
-      ]
-    },
-    {
-      "slug": "studio-ocean",
-      "name": "Studio Ocean View",
-      "color": "#10B981",
-      "capacity": 2,
-      "is_active": true,
-      "ical_sources": [
-        {
-          "name": "Booking.com",
-          "url": "https://admin.booking.com/hotel/hoteladmin/ical/ZZZZZZ.ics",
-          "sync_enabled": true
-        }
-      ]
-    }
-  ]
+    ]
 }
