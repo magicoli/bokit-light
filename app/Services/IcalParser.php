@@ -64,9 +64,16 @@ class IcalParser
 
         foreach ($vcalendar->VEVENT as $vevent) {
             try {
+                $summary = (string) ($vevent->SUMMARY ?? 'No title');
+                
+                // Skip "Unavailable" entries (blocked dates, not actual bookings)
+                if (stripos($summary, 'Unavailable') !== false) {
+                    continue;
+                }
+                
                 $event = [
                     'uid' => (string) ($vevent->UID ?? null),
-                    'summary' => (string) ($vevent->SUMMARY ?? 'No title'),
+                    'summary' => $summary,
                     'description' => (string) ($vevent->DESCRIPTION ?? ''),
                     'dtstart' => $this->parseDate($vevent->DTSTART),
                     'dtend' => $this->parseDate($vevent->DTEND),
@@ -125,9 +132,9 @@ class IcalParser
                     'check_in' => $event['dtstart']->format('Y-m-d'),
                     'check_out' => $event['dtend']->format('Y-m-d'), // iCal dates are already correct (real check-in/check-out)
                     'source_name' => $source->name,
+                    'notes' => $event['description'] ?: null, // Store description in notes field
                     'raw_data' => [
                         'ical' => $event['raw'],
-                        'description' => $event['description'],
                     ],
                     'is_manual' => false,
                     'deleted_at' => null, // Restore if was previously deleted

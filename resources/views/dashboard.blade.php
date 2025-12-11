@@ -245,13 +245,12 @@
                         <div class="flex items-center">
                             <div class="w-4 h-4 rounded-full mr-3" :style="`background-color: ${selectedBooking.unit?.color || '#999'}`"></div>
                             <div>
-                                <span class="text-sm font-medium text-gray-500">Unit:</span>
                                 <span class="text-sm text-gray-900 ml-2" x-text="selectedBooking.unit?.name"></span>
                             </div>
                         </div>
 
                         <div class="border-t pt-3">
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="flex flex-col-3 gap-4">
                                 <div>
                                     <span class="text-xs font-medium text-gray-500 uppercase">Check-in</span>
                                     <div class="text-sm text-gray-900 font-semibold mt-1" x-text="formatDate(selectedBooking.check_in)"></div>
@@ -260,7 +259,15 @@
                                     <span class="text-xs font-medium text-gray-500 uppercase">Check-out</span>
                                     <div class="text-sm text-gray-900 font-semibold mt-1" x-text="formatDate(selectedBooking.check_out)"></div>
                                 </div>
+                                <div>
+                                    <span class="text-xs ms-auto font-medium right text-gray-500 uppercase">Nights</span>
+                                    <div class="text-sm text-gray-900 font-semibold mt-1" x-text="calculateNights(selectedBooking.check_in, selectedBooking.check_out)"></div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div x-show="selectedBooking.notes" class="border-t pt-3">
+                            <div class="text-sm text-gray-700 whitespace-pre-wrap" x-text="selectedBooking.notes"></div>
                         </div>
 
                         <div class="border-t pt-3">
@@ -268,10 +275,6 @@
                             <span class="text-sm text-gray-900 ml-2" x-text="selectedBooking.source_name"></span>
                         </div>
 
-                        <div class="border-t pt-3">
-                        <span class="text-sm font-medium text-gray-500">Nights:</span>
-                        <span class="text-sm text-gray-900 ml-2" x-text="calculateNights(selectedBooking.check_in, selectedBooking.check_out)"></span>
-                        </div>
                     </div>
                 </div>
             </template>
@@ -342,7 +345,7 @@ function calendar() {
             const start = new Date(checkIn);
             const end = new Date(checkOut);
             const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-            return `${nights} night${nights !== 1 ? 's' : ''}`;
+            return `${nights}`;
         }
     }
 }
