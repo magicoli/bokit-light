@@ -11,35 +11,54 @@
  */
 
 // If this file is called directly, abort.
-if (!defined('WPINC')) {
-    die;
+if (!defined("WPINC")) {
+    die();
 }
 
-define('BOKIT_CONNECTOR_VERSION', '0.1.0');
-define('BOKIT_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define("BOKIT_CONNECTOR_VERSION", "0.1.0");
+define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
  * Register REST API endpoint for authentication
  */
-add_action('rest_api_init', function () {
-    register_rest_route('bokit/v1', '/auth', [
-        'methods' => 'POST',
-        'callback' => 'bokit_connector_authenticate_user',
-        'permission_callback' => '__return_true',
-        'args' => [
-            'username' => [
-                'required' => true,
-                'type' => 'string',
-                'description' => 'WordPress username or email',
+add_action("rest_api_init", "bokit_connector_register_rest_routes");
+function bokit_connector_register_rest_routes()
+{
+    register_rest_route("bokit/v1", "/auth", [
+        "methods" => "POST",
+        "callback" => "bokit_connector_authenticate_user",
+        "permission_callback" => "__return_true",
+        "args" => [
+            "username" => [
+                "required" => true,
+                "type" => "string",
+                "description" => "WordPress username or email",
             ],
-            'password' => [
-                'required' => true,
-                'type' => 'string',
-                'description' => 'WordPress password',
+            "password" => [
+                "required" => true,
+                "type" => "string",
+                "description" => "WordPress password",
             ],
         ],
     ]);
-});
+
+    register_rest_route("bokit/v1", "/status", [
+        "methods" => "GET",
+        "callback" => "bokit_connector_get_status",
+        "permission_callback" => "__return_true",
+    ]);
+}
+
+/**
+ * Get status of the plugin
+ */
+function bokit_connector_get_status()
+{
+    return new WP_REST_Response([
+        "status" => "OK",
+        "version" => BOKIT_CONNECTOR_VERSION,
+    ]);
+}
 
 /**
  * Authenticate user and return user data
@@ -47,27 +66,33 @@ add_action('rest_api_init', function () {
  * @param WP_REST_Request $request
  * @return WP_REST_Response|WP_Error
  */
-function bokit_connector_authenticate_user($request) {
-    $username = $request->get_param('username');
-    $password = $request->get_param('password');
-    
+function bokit_connector_authenticate_user($request)
+{
+    $username = $request->get_param("username");
+    $password = $request->get_param("password");
+
     // Verify credentials (wp_authenticate accepts username or email)
     $user = wp_authenticate($username, $password);
-    
+
     if (is_wp_error($user)) {
         return new WP_Error(
-            'invalid_credentials',
-            'Invalid username or password',
-            ['status' => 401]
+            "authentication_failed",
+            $user->get_error_message(),
+            [
+                "status" => 401,
+            ],
         );
     }
-    
+
     // Return user data
-    return new WP_REST_Response([
-        'id' => $user->ID,
-        'username' => $user->user_login,
-        'name' => $user->display_name,
-        'email' => $user->user_email,
-        'roles' => $user->roles,
-    ], 200);
+    return new WP_REST_Response(
+        [
+            "id" => $user->ID,
+            "username" => $user->user_login,
+            "name" => $user->display_name,
+            "email" => $user->user_email,
+            "roles" => $user->roles,
+        ],
+        200,
+    );
 }

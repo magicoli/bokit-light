@@ -4,27 +4,16 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Support\Options;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 
-// Installation routes (always accessible, no middleware)
+// Installation routes (always accessible during installation)
 Route::get('/install', [InstallController::class, 'index'])->name('install');
 Route::post('/install', [InstallController::class, 'process'])->name('install.process');
+Route::post('/install/complete', [InstallController::class, 'complete'])->name('install.complete');
 
-// Check if installation is complete
-$isInstalled = false;
-try {
-    $authMethod = Options::get('auth.method');
-    $isInstalled = Schema::hasTable('units') && Options::has('auth.method');
-    
-    // For WordPress auth, also check that an admin user exists
-    if ($isInstalled && $authMethod === 'wordpress') {
-        $isInstalled = $isInstalled && \App\Models\User::where('is_admin', true)->exists();
-    }
-} catch (\Exception $e) {
-    // Not installed
-}
+// Check if installation is complete - single source of truth
+$isInstalled = Options::get('install.complete', false);
 
-// Only setup auth routes if installation is complete
+// Only setup app routes if installation is complete
 if ($isInstalled) {
     // Determine auth middleware based on options
     $authMethod = Options::get('auth.method', 'none');

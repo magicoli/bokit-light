@@ -32,7 +32,7 @@ The plugin provides a REST API endpoint for authentication:
 ```json
 {
   "code": "invalid_credentials",
-  "message": "Invalid username or password",
+  "message": "(wordpress error message)"
   "data": {"status": 401}
 }
 ```
