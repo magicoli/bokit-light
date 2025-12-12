@@ -8,18 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class IcalSource extends Model
 {
     protected $fillable = [
-        'unit_id',
-        'name',
-        'url',
-        'sync_enabled',
-        'last_synced_at',
-        'last_sync_status',
-        'last_sync_error',
+        "unit_id",
+        "name",
+        "url",
+        "sync_enabled",
+        "last_synced_at",
+        "last_sync_status",
+        "last_sync_error",
     ];
 
     protected $casts = [
-        'sync_enabled' => 'boolean',
-        'last_synced_at' => 'datetime',
+        "sync_enabled" => "boolean",
+        "last_synced_at" => "datetime",
     ];
 
     /**
@@ -35,7 +35,7 @@ class IcalSource extends Model
      */
     public function scopeEnabled($query)
     {
-        return $query->where('sync_enabled', true);
+        return $query->where("sync_enabled", true);
     }
 
     /**
@@ -44,9 +44,9 @@ class IcalSource extends Model
     public function markAsSynced(): void
     {
         $this->update([
-            'last_synced_at' => now(),
-            'last_sync_status' => 'success',
-            'last_sync_error' => null,
+            "last_synced_at" => now(),
+            "last_sync_status" => "success",
+            "last_sync_error" => null,
         ]);
     }
 
@@ -56,9 +56,17 @@ class IcalSource extends Model
     public function markAsErrored(string $error): void
     {
         $this->update([
-            'last_synced_at' => now(),
-            'last_sync_status' => 'error',
-            'last_sync_error' => $error,
+            "last_synced_at" => now(),
+            "last_sync_status" => "error",
+            "last_sync_error" => $error,
         ]);
+    }
+
+    /**
+     * Get the full name including property, unit and source
+     */
+    public function fullname(): string
+    {
+        return trim("{$this->unit->fullname()} {$this->name}");
     }
 }

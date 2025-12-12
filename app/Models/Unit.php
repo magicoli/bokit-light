@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Unit extends Model
 {
     protected $fillable = [
-        'property_id',
-        'name',
-        'slug',
-        'color',
-        'capacity',
-        'is_active',
-        'settings',
+        "property_id",
+        "name",
+        "slug",
+        "color",
+        "capacity",
+        "is_active",
+        "settings",
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'settings' => 'array',
+        "is_active" => "boolean",
+        "settings" => "array",
     ];
 
     /**
@@ -43,5 +43,13 @@ class Unit extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Get the full name including property and unit
+     */
+    public function fullname(): string
+    {
+        return trim("{$this->property->name} {$this->name}");
     }
 }

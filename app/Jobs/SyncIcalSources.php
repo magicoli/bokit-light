@@ -43,16 +43,16 @@ class SyncIcalSources implements ShouldQueue
                         foreach (['total', 'new', 'updated', 'deleted', 'vanished'] as $key) {
                             $totalStats[$key] += $stats[$key] ?? 0;
                         }
-                        Log::debug("[SyncJob] Synced {$source->name}", $stats);
+                        Log::debug("[SyncJob] Synced {$source->fullname()}", $stats);
                     } else {
                         $errors++;
-                        Log::warning("[SyncJob] Failed to sync {$source->name}", [
+                        Log::warning("[SyncJob] Failed to sync {$source->fullname()}", [
                             "error" => $stats['error'] ?? 'Unknown error',
                         ]);
                     }
                 } catch (\Exception $e) {
                     $errors++;
-                    Log::warning("[SyncJob] Failed to sync {$source->name}", [
+                    Log::warning("[SyncJob] Failed to sync {$source->fullname()}", [
                         "error" => $e->getMessage(),
                     ]);
                 }

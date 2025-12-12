@@ -6,14 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Property extends Model
 {
-    protected $fillable = [
-        'name',
-        'slug',
-        'settings',
-    ];
+    protected $fillable = ["name", "slug", "settings"];
 
     protected $casts = [
-        'settings' => 'array',
+        "settings" => "array",
     ];
 
     /**
@@ -29,8 +25,16 @@ class Property extends Model
      */
     public function users()
     {
-        return $this->belongsToMany(User::class, 'property_user')
-            ->withPivot('role')
+        return $this->belongsToMany(User::class, "property_user")
+            ->withPivot("role")
             ->withTimestamps();
+    }
+
+    /**
+     * Get the full name for display
+     */
+    public function fullname(): string
+    {
+        return $this->property->name;
     }
 }

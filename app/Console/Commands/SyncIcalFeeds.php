@@ -42,7 +42,7 @@ class SyncIcalFeeds extends Command
         // Sync each source
         foreach ($sources as $source) {
             $this->line(
-                "Syncing: {$source->unit->property->name} {$source->unit->name} <fg=cyan>{$source->name}</>",
+                "Syncing: <fg=cyan>{$source->fullname()}</>",
             );
 
             try {
@@ -53,14 +53,16 @@ class SyncIcalFeeds extends Command
                     throw new \Exception($stats["error"] ?? "Unknown error");
                 }
                 
-                // Display per-source stats
-                $parts = [];
-                if ($stats['new'] > 0) $parts[] = "<fg=green>{$stats['new']} new</>";
-                if ($stats['updated'] > 0) $parts[] = "<fg=yellow>{$stats['updated']} updated</>";
-                if ($stats['deleted'] > 0) $parts[] = "<fg=red>{$stats['deleted']} deleted</>";
-                if ($stats['vanished'] > 0) $parts[] = "<fg=magenta>{$stats['vanished']} vanished</>";
+                // Display per-source detailed stats (always show all)
+                $parts = [
+                    "Total: {$stats['total']}",
+                    ($stats['new'] > 0 ? "<fg=green>" : "") . "New: {$stats['new']}" . ($stats['new'] > 0 ? "</>" : ""),
+                    ($stats['updated'] > 0 ? "<fg=yellow>" : "") . "Updated: {$stats['updated']}" . ($stats['updated'] > 0 ? "</>" : ""),
+                    ($stats['deleted'] > 0 ? "<fg=red>" : "") . "Deleted: {$stats['deleted']}" . ($stats['deleted'] > 0 ? "</>" : ""),
+                    ($stats['vanished'] > 0 ? "<fg=magenta>" : "") . "Vanished: {$stats['vanished']}" . ($stats['vanished'] > 0 ? "</>" : ""),
+                ];
                 
-                $this->line("  ✓ " . ($parts ? implode(", ", $parts) : "No changes"));
+                $this->line("  ✓ " . implode(", ", $parts));
                 
                 // Accumulate totals
                 foreach (['total', 'new', 'updated', 'deleted', 'vanished'] as $key) {
