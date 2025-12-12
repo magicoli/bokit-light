@@ -167,7 +167,6 @@
                                         // Calculate position and width
                                         $isActualFirstDay = $checkIn->isSameDay($day);
 
-
                                         // Calculate the END of the visible block (not checkout!)
                                         // If booking extends beyond visible period, block ends at end of last visible day
                                         // Otherwise, block ends at checkout (noon of checkout day)
@@ -193,7 +192,7 @@
                                                 bottom: 0.375rem;
                                                 margin-left: 2px;
                                                 margin-right: 2px;
-                                                background-color: {{ $unit->color }};
+                                                background-color: {{ $booking->color }};
                                                 opacity: 0.92"
                                          @click="showBooking({{ $booking->id }})">
                                         @if($startsBeforePeriod)
@@ -229,6 +228,7 @@
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" @click.stop>
             <template x-if="selectedBooking">
                 <div>
+                    <!-- Title: Guest name -->
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-xl font-bold text-gray-900">
                             <span x-show="selectedBooking.deleted_at" class="inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mr-2">DELETED</span>
@@ -242,37 +242,96 @@
                     </div>
 
                     <div class="space-y-3">
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full mr-3" :style="`background-color: ${selectedBooking.unit?.color || '#999'}`"></div>
-                            <div>
-                                <span class="text-sm text-gray-900 ml-2" x-text="selectedBooking.unit?.name"></span>
+                        <!-- Unit + Status -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="text-sm font-medium text-gray-900" x-text="selectedBooking.unit?.name"></span>
                             </div>
+                            <span class="inline-flex items-center px-2 py-1 rounded text-white text-xs font-semibold"
+                                  :style="`background-color: ${selectedBooking.color}`"
+                                  x-text="selectedBooking.status_label"></span>
                         </div>
 
+                        <!-- Check-in / Check-out / Nights (une seule rangée) -->
                         <div class="border-t pt-3">
-                            <div class="flex flex-col-3 gap-4">
+                            <div class="grid grid-cols-3 gap-4">
                                 <div>
-                                    <span class="text-xs font-medium text-gray-500 uppercase">Check-in</span>
+                                    <span class="text-xs font-medium text-gray-500 uppercase block">Check-in</span>
                                     <div class="text-sm text-gray-900 font-semibold mt-1" x-text="formatDate(selectedBooking.check_in)"></div>
                                 </div>
                                 <div>
-                                    <span class="text-xs font-medium text-gray-500 uppercase">Check-out</span>
+                                    <span class="text-xs font-medium text-gray-500 uppercase block">Check-out</span>
                                     <div class="text-sm text-gray-900 font-semibold mt-1" x-text="formatDate(selectedBooking.check_out)"></div>
                                 </div>
                                 <div>
-                                    <span class="text-xs ms-auto font-medium right text-gray-500 uppercase">Nights</span>
+                                    <span class="text-xs font-medium text-gray-500 uppercase block">Nights</span>
                                     <div class="text-sm text-gray-900 font-semibold mt-1" x-text="calculateNights(selectedBooking.check_in, selectedBooking.check_out)"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div x-show="selectedBooking.notes" class="border-t pt-3">
-                            <div class="text-sm text-gray-700 whitespace-pre-wrap" x-text="selectedBooking.notes"></div>
+                        <!-- Guests / Adults / Children -->
+                        <div x-show="selectedBooking.raw_data?.guests || selectedBooking.adults || selectedBooking.children" class="border-t pt-3">
+                            <div x-show="selectedBooking.raw_data?.guests" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Guests:</span>
+                                <span class="text-gray-900 ml-2" x-text="selectedBooking.raw_data?.guests"></span>
+                            </div>
+                            <div x-show="selectedBooking.adults" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Adults:</span>
+                                <span class="text-gray-900 ml-2" x-text="selectedBooking.adults"></span>
+                            </div>
+                            <div x-show="selectedBooking.children" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Children:</span>
+                                <span class="text-gray-900 ml-2" x-text="selectedBooking.children"></span>
+                            </div>
                         </div>
 
+                        <!-- Phone / Mobile / Country / Arrival time -->
+                        <div>
+                            <div x-show="selectedBooking.raw_data?.phone" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Phone:</span>
+                                <a :href="'tel:' + selectedBooking.raw_data?.phone" class="text-blue-600 hover:underline ml-2" x-text="selectedBooking.raw_data?.phone"></a>
+                            </div>
+                            <div x-show="selectedBooking.raw_data?.mobile" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Mobile:</span>
+                                <a :href="'tel:' + selectedBooking.raw_data?.mobile" class="text-blue-600 hover:underline ml-2" x-text="selectedBooking.raw_data?.mobile"></a>
+                            </div>
+                            <div x-show="selectedBooking.raw_data?.email" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Email:</span>
+                                <a :href="'mailto:' + selectedBooking.raw_data?.email" class="text-blue-600 hover:underline ml-2" x-text="selectedBooking.raw_data?.email"></a>
+                            </div>
+                            <div x-show="selectedBooking.raw_data?.country" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Country:</span>
+                                <span class="text-gray-900 ml-2" x-text="selectedBooking.raw_data?.country"></span>
+                            </div>
+                            <div x-show="selectedBooking.raw_data?.arrival_time" class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Arrival time:</span>
+                                <span class="text-gray-900 ml-2" x-text="selectedBooking.raw_data?.arrival_time"></span>
+                            </div>
+                        </div>
+
+                        <!-- Guest Comments -->
+                        <div x-show="selectedBooking.raw_data?.guest_comments" class="border-t pt-3">
+                            <span class="text-sm font-medium text-gray-500 block mb-2">Guest comments:</span>
+                            <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded whitespace-pre-wrap" x-text="selectedBooking.raw_data?.guest_comments"></div>
+                        </div>
+
+                        <!-- Notes (unprocessed data) -->
+                        <div x-show="selectedBooking.notes" class="border-t pt-3">
+                            <span class="text-sm font-medium text-gray-500 block mb-2">Notes:</span>
+                            <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded whitespace-pre-wrap" x-text="selectedBooking.notes"></div>
+                        </div>
+
+                        <!-- Source + API Source -->
                         <div class="border-t pt-3">
-                            <span class="text-sm font-medium text-gray-500">Source:</span>
-                            <span class="text-sm text-gray-900 ml-2" x-text="selectedBooking.source_name"></span>
+                            <div class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">Source:</span>
+                                <span class="text-gray-900 ml-2" x-text="selectedBooking.source_name"></span>
+                                <span class="text-gray-900 ml-2">
+                                    <span x-text="selectedBooking.raw_data?.api_source"></span>
+                                    <span x-show="selectedBooking.raw_data?.api_ref" x-text="' ' + selectedBooking.raw_data?.api_ref"></span>
+                                </span>
+                            </div>
                         </div>
 
                     </div>

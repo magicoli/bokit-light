@@ -2,101 +2,117 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Unit;
-use App\Models\Booking;
+use App\Models\Property;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    /**
+     * Display the calendar dashboard
+     */
     public function index(Request $request)
     {
-        // Get view mode from query or default based on screen size (handled by JS)
+        // Get view type from request (default: month)
         $view = $request->get('view', 'month');
-        $date = $request->has('date') 
-            ? Carbon::parse($request->date)
-            : Carbon::now();
         
-        // Limit future navigation (configurable, default 24 months)
-        $maxFutureMonths = env('MAX_FUTURE_MONTHS', 24);
-        $maxDate = Carbon::now()->addMonths($maxFutureMonths);
+        // Get date from request or use today
+        $dateParam = $request->get('date');
+        $currentDate = $dateParam ? Carbon::parse($dateParam) : Carbon::now();
         
-        if ($date->isAfter($maxDate)) {
-            $date = $maxDate;
-        }
-        
-        // Calculate date range based on view
+        // Calculate date range based on view type
         switch ($view) {
             case 'week':
-                $startDate = $date->copy()->startOfWeek()->startOfDay();
-                $endDate = $date->copy()->endOfWeek()->startOfDay();
-                $prevPeriod = $date->copy()->subWeek();
-                $nextPeriod = $date->copy()->addWeek();
+                $startDate = $currentDate->copy()->startOfWeek();
+                $endDate = $startDate->copy()->addDays(6);
+                $prevPeriod = $startDate->copy()->subWeek();
+                $nextPeriod = $startDate->copy()->addWeek();
                 break;
-                
             case '2weeks':
-                $startDate = $date->copy()->startOfWeek()->startOfDay();
-                $endDate = $date->copy()->startOfWeek()->addDays(13)->startOfDay(); // 2 weeks
-                $prevPeriod = $date->copy()->subWeeks(2);
-                $nextPeriod = $date->copy()->addWeeks(2);
+                $startDate = $currentDate->copy()->startOfWeek();
+                $endDate = $startDate->copy()->addDays(13);
+                $prevPeriod = $startDate->copy()->subWeeks(2);
+                $nextPeriod = $startDate->copy()->addWeeks(2);
                 break;
-                
             case 'month':
             default:
-                $startDate = $date->copy()->startOfMonth()->startOfDay();
-                $endDate = $date->copy()->endOfMonth()->startOfDay(); // Normalize to midnight
-                $prevPeriod = $date->copy()->subMonth();
-                $nextPeriod = $date->copy()->addMonth();
+                $startDate = $currentDate->copy()->startOfMonth()->startOfWeek();
+                $endDate = $currentDate->copy()->endOfMonth()->endOfWeek();
+                $prevPeriod = $currentDate->copy()->subMonth();
+                $nextPeriod = $currentDate->copy()->addMonth();
                 break;
         }
         
-        // Generate days array
+        // Year navigation
+        $prevYear = $currentDate->copy()->subYear();
+        $nextYear = $currentDate->copy()->addYear();
+        
+        // Check if we can navigate forward (not beyond today + 2 years)
+        $maxFutureDate = Carbon::now()->addYears(2);
+        $canNavigateForward = $nextPeriod->lte($maxFutureDate);
+        $canNavigateYearForward = $nextYear->lte($maxFutureDate);
+        
+        // Generate array of days for the view
         $days = [];
-        $currentDay = $startDate->copy();
-        while ($currentDay <= $endDate) {
-            $days[] = $currentDay->copy();
-            $currentDay->addDay();
+        $day = $startDate->copy();
+        while ($day <= $endDate) {
+            $days[] = $day->copy();
+            $day->addDay();
         }
         
-        // Get all properties with their active units and bookings
-        $properties = \App\Models\Property::orderBy('id')
-            ->with(['units' => function ($query) use ($startDate, $endDate) {
-                $query->where('is_active', true)
-                    ->orderBy('id')
-                    ->with(['bookings' => function ($q) use ($startDate, $endDate) {
-                        $q->withTrashed() // Include soft deleted bookings for debug
-                            ->where(function ($q2) use ($startDate, $endDate) {
-                            $q2->whereBetween('check_in', [$startDate, $endDate])
-                              ->orWhereBetween('check_out', [$startDate, $endDate])
-                              ->orWhere(function ($q3) use ($startDate, $endDate) {
-                                  $q3->where('check_in', '<=', $startDate)
-                                     ->where('check_out', '>=', $endDate);
-                              });
-                        })->orderBy('check_in');
-                    }]);
-            }])
-            ->get();
+        // Load properties with their units and bookings
+        $properties = Property::with([
+            'units.bookings' => function ($query) use ($startDate, $endDate) {
+                $query->where('check_out', '>=', $startDate->format('Y-m-d'))
+                      ->where('check_in', '<=', $endDate->format('Y-m-d'));
+            }
+        ])->get();
         
         return view('dashboard', [
-            'properties' => $properties,
-            'days' => $days,
-            'currentDate' => $date,
+            'view' => $view,
+            'currentDate' => $currentDate,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'view' => $view,
+            'days' => $days,
+            'prevYear' => $prevYear,
+            'nextYear' => $nextYear,
             'prevPeriod' => $prevPeriod,
             'nextPeriod' => $nextPeriod,
-            'prevYear' => $date->copy()->subYear(),
-            'nextYear' => $date->copy()->addYear(),
-            'canNavigateForward' => $nextPeriod->isBefore($maxDate),
-            'canNavigateYearForward' => $date->copy()->addYear()->isBefore($maxDate),
+            'canNavigateForward' => $canNavigateForward,
+            'canNavigateYearForward' => $canNavigateYearForward,
+            'properties' => $properties,
         ]);
     }
-    
+
+    /**
+     * Get booking details (API endpoint)
+     */
     public function booking($id)
     {
-        // Load with trashed to allow viewing deleted bookings
-        $booking = Booking::withTrashed()->with('unit')->findOrFail($id);
-        return response()->json($booking);
+        $booking = \App\Models\Booking::with('unit.property')->findOrFail($id);
+        
+        return response()->json([
+            'id' => $booking->id,
+            'guest_name' => $booking->guest_name,
+            'check_in' => $booking->check_in->format('Y-m-d'),
+            'check_out' => $booking->check_out->format('Y-m-d'),
+            'status' => $booking->status,
+            'status_label' => $booking->status_label,
+            'color' => $booking->color,
+            'adults' => $booking->adults,
+            'children' => $booking->children,
+            'notes' => $booking->notes,
+            'raw_data' => $booking->raw_data,
+            'source_name' => $booking->source_name,
+            'unit' => [
+                'id' => $booking->unit->id,
+                'name' => $booking->unit->name,
+                'color' => $booking->unit->color,
+            ],
+            'property' => [
+                'id' => $booking->unit->property->id,
+                'name' => $booking->unit->property->name,
+            ],
+        ]);
     }
 }

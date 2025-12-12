@@ -8,22 +8,22 @@ use Illuminate\Console\Command;
 
 class SyncIcalFeeds extends Command
 {
-    protected $signature = 'bokit:sync 
+    protected $signature = 'bokit:sync
                             {--source= : Sync only a specific source ID}
                             {--property= : Sync only sources for a specific property ID}';
 
-    protected $description = 'Synchronize iCal feeds from external sources';
+    protected $description = "Synchronize iCal feeds from external sources";
 
     public function handle(IcalParser $parser): int
     {
-        $this->info('🏖️  Starting Bokit calendar synchronization...');
+        $this->info("🏖️  Starting Bokit calendar synchronization...");
         $this->newLine();
 
         // Get sources to sync
         $sources = $this->getSourcesToSync();
 
         if ($sources->isEmpty()) {
-            $this->warn('No active sources found to sync.');
+            $this->warn("No active sources found to sync.");
             return self::SUCCESS;
         }
 
@@ -37,20 +37,32 @@ class SyncIcalFeeds extends Command
 
         // Sync each source
         foreach ($sources as $source) {
-            $this->line("Syncing: <fg=cyan>{$source->name}</> (Unit: {$source->unit->name})");
+            $this->line(
+                "Syncing: {$source->unit->property->name} {$source->unit->name} <fg=cyan>{$source->name}</>",
+            );
 
             try {
                 $stats = $parser->syncSource($source);
-                
-                $this->line("  ✓ Created: {$stats['created']}, Updated: {$stats['updated']}, Deleted: {$stats['deleted']}");
-                $this->line("  Last synced: <fg=green>" . $source->fresh()->last_synced_at->diffForHumans() . "</>");
-                
-                $totalCreated += $stats['created'];
-                $totalUpdated += $stats['updated'];
-                $totalDeleted += $stats['deleted'];
-                
+                if (!$stats["success"] ?? false) {
+                    // $this->error("  ✗ Failed: {$stats["error"]}");
+                    $errors++;
+                    throw new \Exception($stats["error"]);
+                }
+                $this->line(
+                    "  ✓ Success: {$stats["success"]}, count: {$stats["count"]}",
+                );
+                // $this->line(
+                //     "  Last synced: <fg=green>" .
+                //         $source->fresh()->last_synced_at->diffForHumans() .
+                //         "</>",
+                // );
+
+                $totalUpdated += $stats["count"];
+                // $totalCreated += $stats["created"];
+                // $totalUpdated += $stats["updated"];
+                // $totalDeleted += $stats["deleted"];
             } catch (\Exception $e) {
-                $this->error("  ✗ Failed: {$e->getMessage()}");
+                $this->error("  ✗ Failed: {$e->getCode()} {$e->getMessage()}");
                 $errors++;
             }
 
@@ -58,17 +70,17 @@ class SyncIcalFeeds extends Command
         }
 
         // Summary
-        $this->info('Summary:');
+        $this->info("Summary:");
         $this->line("  Bookings created: <fg=green>{$totalCreated}</>");
         $this->line("  Bookings updated: <fg=yellow>{$totalUpdated}</>");
         $this->line("  Bookings deleted: <fg=red>{$totalDeleted}</>");
-        
+
         if ($errors > 0) {
             $this->line("  Errors: <fg=red>{$errors}</>");
         }
 
         $this->newLine();
-        $this->info('✅ Synchronization complete!');
+        $this->info("✅ Synchronization complete!");
 
         return self::SUCCESS;
     }
@@ -78,15 +90,15 @@ class SyncIcalFeeds extends Command
      */
     protected function getSourcesToSync()
     {
-        $query = IcalSource::with(['unit.property'])->enabled();
+        $query = IcalSource::with(["unit.property"])->enabled();
 
-        if ($sourceId = $this->option('source')) {
-            $query->where('id', $sourceId);
+        if ($sourceId = $this->option("source")) {
+            $query->where("id", $sourceId);
         }
 
-        if ($propertyId = $this->option('property')) {
-            $query->whereHas('unit', function ($q) use ($propertyId) {
-                $q->where('property_id', $propertyId);
+        if ($propertyId = $this->option("property")) {
+            $query->whereHas("unit", function ($q) use ($propertyId) {
+                $q->where("property_id", $propertyId);
             });
         }
 
