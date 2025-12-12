@@ -26,19 +26,30 @@ class SyncIcalSources implements ShouldQueue
             $parser = new IcalParser();
             $sources = IcalSource::with("unit.property")->enabled()->get();
 
-            $totalCreated = 0;
-            $totalUpdated = 0;
-            $totalDeleted = 0;
+            $totalStats = [
+                'total' => 0,
+                'new' => 0,
+                'updated' => 0,
+                'deleted' => 0,
+                'vanished' => 0,
+            ];
             $errors = 0;
 
             foreach ($sources as $source) {
                 try {
                     $stats = $parser->syncSource($source);
-                    $totalCreated += $stats["created"] ?? 0;
-                    $totalUpdated += $stats["updated"] ?? 0;
-                    $totalDeleted += $stats["deleted"] ?? 0;
-
-                    Log::debug("[SyncJob] Synced {$source->name}", $stats);
+                    
+                    if ($stats['success'] ?? false) {
+                        foreach (['total', 'new', 'updated', 'deleted', 'vanished'] as $key) {
+                            $totalStats[$key] += $stats[$key] ?? 0;
+                        }
+                        Log::debug("[SyncJob] Synced {$source->name}", $stats);
+                    } else {
+                        $errors++;
+                        Log::warning("[SyncJob] Failed to sync {$source->name}", [
+                            "error" => $stats['error'] ?? 'Unknown error',
+                        ]);
+                    }
                 } catch (\Exception $e) {
                     $errors++;
                     Log::warning("[SyncJob] Failed to sync {$source->name}", [
@@ -48,9 +59,11 @@ class SyncIcalSources implements ShouldQueue
             }
 
             Log::info("[SyncJob] Synchronization completed", [
-                "created" => $totalCreated,
-                "updated" => $totalUpdated,
-                "deleted" => $totalDeleted,
+                "total" => $totalStats['total'],
+                "new" => $totalStats['new'],
+                "updated" => $totalStats['updated'],
+                "deleted" => $totalStats['deleted'],
+                "vanished" => $totalStats['vanished'],
                 "errors" => $errors,
             ]);
         } catch (\Exception $e) {

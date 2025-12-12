@@ -1,10 +1,3 @@
-## Note sur les précédentes actions:
-
-- Options dans route/web.php n'était pas l'erreur mais si ça avait été le cas,  ce n'est pas dans routes/web.php qu'il faut régler le problème mais à la source, sinon on devrait ajouter des checks chaque fois qu'on utilise Options::get(). Ton ta modif ne fixait pas le bug, j'ai mis le try catch dans Options et ça n'a toujours pas résolu pas le bug. Mais c'est réglé maintenant:
-- Le vrai bug était l'ancien fichier de migration en double, que j'avais demandé de supprimer, il réessayait chaque fois une migration qui avait déjà été faite et comme il échouait, il déclenchait  une chaîne d'erreurs après. Je l'ai supprimé et c'est reparti comme en 40.
-- Pour le trouver, j'ai trouvé la dernière version fonctionnelle,  j'ai fait une branche debug, j'ai fait un soft reset vers cette version pour voir tous les fichiers changés et j'ai annulé les changements un à un jusque ça fonctionne. C'est ce qui m'a pointé ce doublon de migration, je suis revernu au master et j'ai supprimé ce doublon, et voilà.
-- J'ai fait d'autres corrections, et fait une analyse de tout ce qui reste à régler à ce stade pour les imports, je l'ai détaillée ici (tmp/ICAL-DECODE.md)
-
 **Attention**, il y a un bon paquet de changements et d'ajouts à faire, il faut y aller par étapes sinon on va se retrouver de nouveau avec un bug dont on ne trouve pas la source.
 
 ## Metadata structure
@@ -32,14 +25,14 @@
 
 - "status" doit être une colonne dans bookings, pas une metadonnée
 - les statuts à prendre en compte sont
-    - cancelled -> pas affiché dans le calendrier, pas bloquant
-    - vanished -> pas affiché dans le calendrier, pas bloquant (statut spécial pour la gestion interne)
+    - cancelled -> pas affiché dans le calendrier (option show deleted dans le futur), pas bloquant
+    - vanished -> pas affiché dans le calendrier (option show deleted dans le futur), pas bloquant (statut spécial pour la gestion interne)
     - inquiry -> affiché en gris, pas bloquant
     - request
     - new
     - confirmed
-    - blocked (je crois que c'est "black" dans beds24) -> pas encore affiché dans le calendrier (nécessite gestion des availabilities)
-    - unavailable ("SUMMARY=Unavailable" dans beds24) -> pas encore affiché dans le calendrier (nécessite gestion des availabilities)
+    - blocked (je crois que c'est "black" dans beds24) -> bloquant, affiché en black 50% opacity
+    - unavailable ("SUMMARY=Unavailable" dans beds24, "SUMMARY:Airbnb (Not available)" dans airbnb) -> pas encore affiché en black 50% opacity
     - undefined -> statut par défaut (on n'utilise pas "Confirmed" comme défaut), bloquant
 - quand on gérera les réservations, request, new, confirmed et undefined seront bloquants
 - quand on gérera les availabilities, blocked, unavailable seront bloquants
