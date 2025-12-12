@@ -6,87 +6,130 @@ use App\Models\Booking;
 use App\Models\IcalSource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Sabre\VObject;
-use Exception;
 
 class IcalParser
 {
     /**
-     * Synchronize a single iCal source
+     * Sync all iCal sources
+     */
+    public function syncAll(): array
+    {
+        $sources = IcalSource::with("unit")->get();
+        $results = [];
+
+        foreach ($sources as $source) {
+            $results[] = $this->syncSource($source);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Sync a single iCal source
      */
     public function syncSource(IcalSource $source): array
     {
+        $seed = rand(1000, 9999);
         try {
-            Log::info("Syncing iCal source: {$source->name} for unit {$source->unit_id}");
+            $seededUrl = url()->query($source->url, ["seed" => $seed]);
 
-            // 1. Fetch the iCal feed
-            $response = Http::timeout(30)->get($source->url);
+            Log::info(
+                "[IcalParser] Syncing source: {$source->unit->property->name} {$source->unit->name} from {$source->name}",
+            );
+
+            // Fetch iCal file
+            $response = Http::timeout(30)->get($seededUrl);
 
             if (!$response->successful()) {
-                throw new Exception("Failed to fetch iCal feed. HTTP Status: " . $response->status());
+                $message = "Failed to fetch {$source->unit->property->name} {$source->unit->name} from {$source->name} ({$response->status()})";
+                Log::error("[IcalParser] {$message}", [
+                    "url" => $seededUrl,
+                    "property_id" => $source->unit->property->id,
+                    "unit_id" => $source->unit->id,
+                    "source_id" => $source->id,
+                    "status" => $response->status(),
+                    "reason" => $response->reason(),
+                ]);
+                return ["success" => false, "error" => $message];
             }
 
-            // 2. Parse with sabre/vobject
-            $vcalendar = VObject\Reader::read($response->body());
+            $icalContent = $response->body();
 
-            // 3. Extract events
-            $events = $this->extractEvents($vcalendar);
+            // Parse events
+            $events = $this->parseIcal($icalContent);
 
-            Log::info("Found " . count($events) . " events in iCal feed");
+            // Sync to database
+            $synced = $this->syncEventsToDatabase($events, $source);
 
-            // 4. Sync to database
-            $stats = $this->syncEventsToDatabase($source, $events);
+            Log::info(
+                "[IcalParser] Synced {$synced} events from source {$source->id}",
+            );
 
-            // 5. Mark as successfully synced
-            $source->markAsSynced();
-
-            Log::info("Sync completed: {$stats['created']} created, {$stats['updated']} updated");
-
-            return $stats;
-
-        } catch (Exception $e) {
-            Log::error("Sync failed for {$source->name}: {$e->getMessage()}");
-            $source->markAsErrored($e->getMessage());
-            throw $e;
+            return ["success" => true, "count" => $synced];
+        } catch (\Exception $e) {
+            $message = "Error syncing {$source->unit->property->name} {$source->unit->name} from {$source->name}";
+            Log::error("[IcalParser] {$message}", [
+                "error" => $e->getMessage(),
+                "url" => $source->url,
+                "property_id" => $source->unit->property->id,
+                "unit_id" => $source->unit->id,
+                "source_id" => $source->id,
+            ]);
+            return ["success" => false, "error" => $message];
         }
     }
 
     /**
-     * Extract events from a VCalendar object
+     * Parse iCal content and extract events
      */
-    protected function extractEvents(VObject\Component\VCalendar $vcalendar): array
+    protected function parseIcal(string $content): array
     {
         $events = [];
+        $lines = explode("\n", $content);
+        $currentEvent = null;
+        $currentField = null;
+        $currentValue = "";
 
-        if (!isset($vcalendar->VEVENT)) {
-            return $events;
-        }
+        foreach ($lines as $line) {
+            $line = rtrim($line, "\r");
 
-        foreach ($vcalendar->VEVENT as $vevent) {
-            try {
-                $summary = (string) ($vevent->SUMMARY ?? 'No title');
-                
-                // Skip "Unavailable" entries (blocked dates, not actual bookings)
-                if (stripos($summary, 'Unavailable') !== false) {
-                    continue;
-                }
-                
-                $event = [
-                    'uid' => (string) ($vevent->UID ?? null),
-                    'summary' => $summary,
-                    'description' => (string) ($vevent->DESCRIPTION ?? ''),
-                    'dtstart' => $this->parseDate($vevent->DTSTART),
-                    'dtend' => $this->parseDate($vevent->DTEND),
-                    'raw' => $vevent->serialize(),
-                ];
-
-                // Only add if we have valid dates
-                if ($event['dtstart'] && $event['dtend']) {
-                    $events[] = $event;
-                }
-            } catch (Exception $e) {
-                Log::warning("Failed to parse event: {$e->getMessage()}");
+            // Handle line continuation (starts with space or tab)
+            if (preg_match('/^[ \t]/', $line)) {
+                $currentValue .= ltrim($line);
                 continue;
+            }
+
+            // Store previous field
+            if ($currentField && $currentEvent !== null) {
+                $currentEvent[$currentField] = $currentValue;
+            }
+
+            // Parse new field
+            if (strpos($line, ":") !== false) {
+                [$field, $value] = explode(":", $line, 2);
+
+                // Remove parameters (e.g., DTSTART;VALUE=DATE)
+                $field = preg_replace('/;.*$/', "", $field);
+
+                $currentField = $field;
+                $currentValue = $value;
+
+                // Start new event
+                if ($field === "BEGIN" && $value === "VEVENT") {
+                    $currentEvent = [];
+                }
+
+                // End current event
+                if (
+                    $field === "END" &&
+                    $value === "VEVENT" &&
+                    $currentEvent !== null
+                ) {
+                    $events[] = $currentEvent;
+                    $currentEvent = null;
+                    $currentField = null;
+                    $currentValue = "";
+                }
             }
         }
 
@@ -94,120 +137,105 @@ class IcalParser
     }
 
     /**
-     * Parse a date property from VObject
-     */
-    protected function parseDate($dateProperty): ?\DateTimeInterface
-    {
-        if (!$dateProperty) {
-            return null;
-        }
-
-        try {
-            return $dateProperty->getDateTime();
-        } catch (Exception $e) {
-            Log::warning("Failed to parse date: {$e->getMessage()}");
-            return null;
-        }
-    }
-
-    /**
      * Sync events to database
      */
-    protected function syncEventsToDatabase(IcalSource $source, array $events): array
-    {
-        $stats = ['created' => 0, 'updated' => 0, 'deleted' => 0];
-
-        // Get all UIDs from the feed
-        $feedUids = array_column($events, 'uid');
+    protected function syncEventsToDatabase(
+        array $events,
+        IcalSource $source,
+    ): int {
+        $synced = 0;
 
         foreach ($events as $event) {
-            // Use UID + unit_id as unique constraint
-            $booking = Booking::withTrashed()->updateOrCreate(
+            // Required fields
+            if (
+                !isset($event["UID"]) ||
+                !isset($event["DTSTART"]) ||
+                !isset($event["DTEND"])
+            ) {
+                continue;
+            }
+
+            // Skip "Unavailable" bookings
+            $summary = $event["SUMMARY"] ?? "";
+            if (strtolower(trim($summary)) === "unavailable") {
+                continue;
+            }
+
+            // Parse dates
+            $checkIn = $this->parseIcalDate($event["DTSTART"]);
+            $checkOut = $this->parseIcalDate($event["DTEND"]);
+
+            if (!$checkIn || !$checkOut) {
+                continue;
+            }
+
+            // Decode and parse metadata from DESCRIPTION field
+            $description = $this->decodeIcalText($event["DESCRIPTION"] ?? "");
+            $parsed = BookingMetadataParser::parse($description);
+
+            // Extract critical fields
+            $status = $parsed["metadata"]["status"] ?? null;
+            $adults = $parsed["metadata"]["adult"] ?? null;
+            $children = $parsed["metadata"]["child"] ?? null;
+
+            // Create or update booking
+            Booking::updateOrCreate(
                 [
-                    'uid' => $event['uid'],
-                    'unit_id' => $source->unit_id,
+                    "uid" => $event["UID"],
+                    "unit_id" => $source->unit_id,
                 ],
                 [
-                    'guest_name' => $this->cleanGuestName($event['summary']),
-                    'check_in' => $event['dtstart']->format('Y-m-d'),
-                    'check_out' => $event['dtend']->format('Y-m-d'), // iCal dates are already correct (real check-in/check-out)
-                    'source_name' => $source->name,
-                    'notes' => $event['description'] ?: null, // Store description in notes field
-                    'raw_data' => [
-                        'ical' => $event['raw'],
-                    ],
-                    'is_manual' => false,
-                    'deleted_at' => null, // Restore if was previously deleted
-                ]
+                    "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
+                    "check_in" => $checkIn,
+                    "check_out" => $checkOut,
+                    "status" => strtolower($status),
+                    "adults" => $adults,
+                    "children" => $children,
+                    "notes" => $parsed["notes"] ?: null,
+                    "raw_data" => $parsed["metadata"],
+                    "source_name" => $source->name ?? "undefined",
+                ],
             );
 
-            if ($booking->wasRecentlyCreated) {
-                $stats['created']++;
-            } else {
-                $stats['updated']++;
-            }
+            $synced++;
         }
 
-        // Soft delete bookings from this source that are no longer in the feed
-        // BUT ONLY if check_out is in the future (don't delete past bookings as iCal feeds don't include history)
-        $deleted = Booking::where('unit_id', $source->unit_id)
-            ->where('source_name', $source->name)
-            ->where('check_out', '>=', now()->format('Y-m-d')) // Only future/current bookings
-            ->whereNotIn('uid', $feedUids)
-            ->whereNull('deleted_at')
-            ->update(['deleted_at' => now()]);
-
-        $stats['deleted'] = $deleted;
-
-        if ($deleted > 0) {
-            Log::info("Soft deleted {$deleted} bookings that are no longer in the feed");
-        }
-
-        return $stats;
+        return $synced;
     }
 
     /**
-     * Clean guest name from summary (remove common prefixes)
+     * Parse iCal date format
      */
-    protected function cleanGuestName(string $summary): string
+    protected function parseIcalDate(string $date): ?string
     {
-        // Remove common prefixes like "Reserved", "Booking.com:", etc.
-        $cleaners = [
-            '/^Reserved\s*[-:]\s*/i',
-            '/^Booking\.com\s*[-:]\s*/i',
-            '/^Airbnb\s*[-:]\s*/i',
-            '/^VRBO\s*[-:]\s*/i',
-        ];
+        // Remove timezone info
+        $date = preg_replace("/^TZID=.*?:/", "", $date);
 
-        foreach ($cleaners as $pattern) {
-            $summary = preg_replace($pattern, '', $summary);
+        // Format: YYYYMMDD or YYYYMMDDTHHMMSS
+        if (preg_match("/^(\d{4})(\d{2})(\d{2})/", $date, $matches)) {
+            return "{$matches[1]}-{$matches[2]}-{$matches[3]}";
         }
 
-        return trim($summary) ?: 'Guest';
+        return null;
     }
 
     /**
-     * Sync all enabled sources
+     * Decode iCal text escaping
+     *
+     * iCal spec escapes special characters:
+     * - \n -> newline
+     * - \, -> comma
+     * - \; -> semicolon
+     * - \\ -> backslash
      */
-    public function syncAllSources(): array
+    protected function decodeIcalText(string $text): string
     {
-        $sources = IcalSource::enabled()->get();
-        $results = [];
+        // Decode escape sequences
+        $text = str_replace('\\n', "\n", $text); // \n -> actual newline
+        $text = str_replace("\\,", ",", $text); // \, -> ,
+        $text = str_replace("\\;", ";", $text); // \; -> ;
+        $text = str_replace("\\\\", "\\", $text); // \\ -> \
 
-        foreach ($sources as $source) {
-            try {
-                $results[$source->id] = [
-                    'success' => true,
-                    'stats' => $this->syncSource($source),
-                ];
-            } catch (Exception $e) {
-                $results[$source->id] = [
-                    'success' => false,
-                    'error' => $e->getMessage(),
-                ];
-            }
-        }
-
-        return $results;
+        return $text;
     }
 }

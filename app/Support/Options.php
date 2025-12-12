@@ -43,7 +43,12 @@ class Options
         // Remove section from key (e.g., 'auth.method' → 'method')
         $subKey = substr($key, strlen($section) + 1);
 
-        return data_get($data, $subKey, $default);
+        try {
+            return data_get($data, $subKey, $default);
+        } catch (Exception $e) {
+            Log::error("Error getting option {$key}: {$e->getMessage()}");
+            return $default;
+        }
     }
 
     /**
@@ -67,10 +72,10 @@ class Options
         }
 
         // Write to file
-        $path = config('options.path') . "/{$section}.json";
+        $path = config("options.path") . "/{$section}.json";
         file_put_contents(
             $path,
-            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
         );
 
         // Update cache

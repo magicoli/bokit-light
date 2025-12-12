@@ -1,4 +1,7 @@
 <?php
+
+use function Sodium\add;
+
 /**
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
@@ -95,4 +98,19 @@ function bokit_connector_authenticate_user($request)
         ],
         200,
     );
+}
+
+add_action("init", "bokit_connector_add_roles");
+
+/**
+ * Register Bokit Manager role, only used to set users allowed
+ * for external Bokit authentication through REST API.
+ */
+function bokit_connector_add_roles()
+{
+    add_role("bokit_manager", "Bokit Manager", [
+        "read" => true,
+        // "edit_posts" => false,
+        // "delete_posts" => false,
+    ]);
 }

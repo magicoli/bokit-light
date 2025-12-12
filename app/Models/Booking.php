@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
+use App\Services\BookingMetadataParser;
 
 class Booking extends Model
 {
@@ -14,6 +15,7 @@ class Booking extends Model
         'unit_id',
         'uid',
         'source_name',
+        'status',
         'guest_name',
         'check_in',
         'check_out',
@@ -106,5 +108,29 @@ class Booking extends Model
     public function scopeImported($query)
     {
         return $query->where('is_manual', false);
+    }
+    
+    /**
+     * Get the color for this booking based on status
+     */
+    public function getColorAttribute(): string
+    {
+        return BookingMetadataParser::getStatusColor($this->status);
+    }
+    
+    /**
+     * Get the human-readable status label
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return BookingMetadataParser::getStatusLabel($this->status);
+    }
+    
+    /**
+     * Get metadata value by key with optional default
+     */
+    public function getMetadata(string $key, $default = null)
+    {
+        return $this->raw_data[$key] ?? $default;
     }
 }

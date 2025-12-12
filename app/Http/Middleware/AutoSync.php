@@ -14,30 +14,24 @@ class AutoSync
     public function handle(Request $request, Closure $next)
     {
         // Only run auto-sync if installation is complete
-        if (!Options::get('install.complete', false)) {
+        if (!Options::get("install.complete", false)) {
             return $next($request);
         }
 
         // Check if sync is needed (configurable interval)
-        $syncInterval = (int) Options::get('sync.interval', 3600); // Default: 1 hour
+        $syncInterval = (int) Options::get("sync.interval", 3600); // Default: 1 hour
         $lastSync = Cache::get("last_auto_sync", 0);
         $now = time();
 
         if ($now - $lastSync > $syncInterval) {
-            Log::debug("[AutoSync] Sync triggered", [
-                'last_sync' => $lastSync,
-                'now' => $now,
-                'interval' => $syncInterval,
-            ]);
-            
             // Update timestamp immediately to prevent concurrent syncs
             Cache::put("last_auto_sync", $now, 7200); // 2 hours TTL
 
             // Dispatch job to run AFTER the HTTP response is sent to the user
             // This is non-blocking for the user, WordPress-style!
             SyncIcalSources::dispatchAfterResponse();
-            
-            Log::debug('[AutoSync] Sync job will run after response');
+
+            Log::debug("[AutoSync] Sync job launched in background");
         }
 
         return $next($request);
