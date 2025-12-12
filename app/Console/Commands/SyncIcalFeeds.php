@@ -30,9 +30,13 @@ class SyncIcalFeeds extends Command
         $this->info("Found {$sources->count()} source(s) to sync");
         $this->newLine();
 
-        $totalCreated = 0;
-        $totalUpdated = 0;
-        $totalDeleted = 0;
+        $totalStats = [
+            'total' => 0,
+            'new' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+            'vanished' => 0,
+        ];
         $errors = 0;
 
         // Sync each source
@@ -43,26 +47,28 @@ class SyncIcalFeeds extends Command
 
             try {
                 $stats = $parser->syncSource($source);
-                if (!$stats["success"] ?? false) {
-                    // $this->error("  ✗ Failed: {$stats["error"]}");
+                
+                if (!($stats["success"] ?? false)) {
                     $errors++;
-                    throw new \Exception($stats["error"]);
+                    throw new \Exception($stats["error"] ?? "Unknown error");
                 }
-                $this->line(
-                    "  ✓ Success: {$stats["success"]}, count: {$stats["count"]}",
-                );
-                // $this->line(
-                //     "  Last synced: <fg=green>" .
-                //         $source->fresh()->last_synced_at->diffForHumans() .
-                //         "</>",
-                // );
-
-                $totalUpdated += $stats["count"];
-                // $totalCreated += $stats["created"];
-                // $totalUpdated += $stats["updated"];
-                // $totalDeleted += $stats["deleted"];
+                
+                // Display per-source stats
+                $parts = [];
+                if ($stats['new'] > 0) $parts[] = "<fg=green>{$stats['new']} new</>";
+                if ($stats['updated'] > 0) $parts[] = "<fg=yellow>{$stats['updated']} updated</>";
+                if ($stats['deleted'] > 0) $parts[] = "<fg=red>{$stats['deleted']} deleted</>";
+                if ($stats['vanished'] > 0) $parts[] = "<fg=magenta>{$stats['vanished']} vanished</>";
+                
+                $this->line("  ✓ " . ($parts ? implode(", ", $parts) : "No changes"));
+                
+                // Accumulate totals
+                foreach (['total', 'new', 'updated', 'deleted', 'vanished'] as $key) {
+                    $totalStats[$key] += $stats[$key] ?? 0;
+                }
+                
             } catch (\Exception $e) {
-                $this->error("  ✗ Failed: {$e->getCode()} {$e->getMessage()}");
+                $this->error("  ✗ Failed: {$e->getMessage()}");
                 $errors++;
             }
 
@@ -71,9 +77,11 @@ class SyncIcalFeeds extends Command
 
         // Summary
         $this->info("Summary:");
-        $this->line("  Bookings created: <fg=green>{$totalCreated}</>");
-        $this->line("  Bookings updated: <fg=yellow>{$totalUpdated}</>");
-        $this->line("  Bookings deleted: <fg=red>{$totalDeleted}</>");
+        $this->line("  Total bookings: <fg=cyan>{$totalStats['total']}</>");
+        $this->line("  New: <fg=green>{$totalStats['new']}</>");
+        $this->line("  Updated: <fg=yellow>{$totalStats['updated']}</>");
+        $this->line("  Deleted: <fg=red>{$totalStats['deleted']}</>");
+        $this->line("  Vanished: <fg=magenta>{$totalStats['vanished']}</>");
 
         if ($errors > 0) {
             $this->line("  Errors: <fg=red>{$errors}</>");

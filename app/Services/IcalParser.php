@@ -37,8 +37,13 @@ class IcalParser
                 "[IcalParser] Syncing source: {$source->unit->property->name} {$source->unit->name} from {$source->name}",
             );
 
-            // Fetch iCal file
-            $response = Http::timeout(30)->get($seededUrl);
+            // Fetch iCal file with browser-like headers to avoid rate limiting
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept' => 'text/calendar,text/plain,*/*',
+                ])
+                ->get($seededUrl);
 
             if (!$response->successful()) {
                 $message = "Failed to fetch {$source->unit->property->name} {$source->unit->name} from {$source->name} ({$response->status()})";
@@ -59,13 +64,20 @@ class IcalParser
             $events = $this->parseIcal($icalContent);
 
             // Sync to database
-            $synced = $this->syncEventsToDatabase($events, $source);
+            $stats = $this->syncEventsToDatabase($events, $source);
 
             Log::info(
-                "[IcalParser] Synced {$synced} events from source {$source->id}",
+                "[IcalParser] Synced source {$source->id}: {$stats['new']} new, {$stats['updated']} updated, {$stats['deleted']} deleted, {$stats['vanished']} vanished",
             );
 
-            return ["success" => true, "count" => $synced];
+            return [
+                "success" => true,
+                "total" => $stats['total'],
+                "new" => $stats['new'],
+                "updated" => $stats['updated'],
+                "deleted" => $stats['deleted'],
+                "vanished" => $stats['vanished'],
+            ];
         } catch (\Exception $e) {
             $message = "Error syncing {$source->unit->property->name} {$source->unit->name} from {$source->name}";
             Log::error("[IcalParser] {$message}", [
@@ -142,8 +154,17 @@ class IcalParser
     protected function syncEventsToDatabase(
         array $events,
         IcalSource $source,
-    ): int {
-        $synced = 0;
+    ): array {
+        $stats = [
+            'total' => 0,
+            'new' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+            'vanished' => 0,
+        ];
+        
+        // Collect UIDs from feed for vanished detection
+        $feedUids = [];
 
         foreach ($events as $event) {
             // Required fields
@@ -154,6 +175,8 @@ class IcalParser
             ) {
                 continue;
             }
+            
+            $feedUids[] = $event["UID"];
 
             // Skip "Unavailable" bookings
             $summary = $event["SUMMARY"] ?? "";
@@ -174,12 +197,20 @@ class IcalParser
             $parsed = BookingMetadataParser::parse($description);
 
             // Extract critical fields
-            $status = $parsed["metadata"]["status"] ?? null;
+            $status = strtolower($parsed["metadata"]["status"] ?? "undefined");
             $adults = $parsed["metadata"]["adult"] ?? null;
             $children = $parsed["metadata"]["child"] ?? null;
+            
+            // Track deleted bookings (cancelled/deleted status)
+            $isDeleted = in_array($status, ['cancelled', 'cancelled_by_owner', 'cancelled_by_guest']);
+
+            // Get existing booking to compare
+            $existing = Booking::where('uid', $event["UID"])
+                ->where('unit_id', $source->unit_id)
+                ->first();
 
             // Create or update booking
-            Booking::updateOrCreate(
+            $booking = Booking::updateOrCreate(
                 [
                     "uid" => $event["UID"],
                     "unit_id" => $source->unit_id,
@@ -188,7 +219,7 @@ class IcalParser
                     "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
                     "check_in" => $checkIn,
                     "check_out" => $checkOut,
-                    "status" => strtolower($status),
+                    "status" => $status,
                     "adults" => $adults,
                     "children" => $children,
                     "notes" => $parsed["notes"] ?: null,
@@ -196,11 +227,45 @@ class IcalParser
                     "source_name" => $source->name ?? "undefined",
                 ],
             );
-
-            $synced++;
+            
+            // Track stats
+            if ($isDeleted) {
+                $stats['deleted']++;
+            } elseif ($booking->wasRecentlyCreated) {
+                $stats['new']++;
+            } elseif ($existing && $this->hasBookingChanged($existing, $booking)) {
+                $stats['updated']++;
+            }
+            
+            $stats['total']++;
         }
+        
+        // Detect vanished bookings (not in feed anymore)
+        // Only check for future/current bookings
+        $vanished = Booking::where('unit_id', $source->unit_id)
+            ->where('source_name', $source->name)
+            ->where('check_out', '>=', now()->format('Y-m-d'))
+            ->whereNotIn('uid', $feedUids)
+            ->whereNotIn('status', ['cancelled', 'cancelled_by_owner', 'cancelled_by_guest', 'vanished'])
+            ->update(['status' => 'vanished']);
+        
+        $stats['vanished'] = $vanished;
 
-        return $synced;
+        return $stats;
+    }
+    
+    /**
+     * Check if booking data has actually changed
+     */
+    protected function hasBookingChanged(Booking $old, Booking $new): bool
+    {
+        return $old->guest_name !== $new->guest_name ||
+               $old->check_in !== $new->check_in ||
+               $old->check_out !== $new->check_out ||
+               $old->status !== $new->status ||
+               $old->adults !== $new->adults ||
+               $old->children !== $new->children ||
+               $old->notes !== $new->notes;
     }
 
     /**

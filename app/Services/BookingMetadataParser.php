@@ -68,7 +68,7 @@ class BookingMetadataParser
                             break;
 
                         case "email":
-                            $metadata[email] = $value;
+                            $metadata["email"] = $value;
                             break;
 
                         case "country":
