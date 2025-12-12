@@ -21,6 +21,12 @@
 - A court terme, seule l'API de Beds24 va être ajoutée.
 - Booking.com et Airbnb n'ont pas d'API publique pour l'instant. C'est encore à vérifier pour VRBO (Abritel/Expedia).
 
+## Bugs
+- dans syncEventsToDatabase, les tests de statut sont fait sur les chaînes formattées pour l'affichage, ça va poser un problème à la traduction. Les statuts sauvés dans la db et utilisés pour tous les tests doivent être des slugs, ce n'est qu'à l'affichage qu'on les change en strings humaines.
+- la vérification si un événement a changé ne peut pas se faire sur l'état actuel de la db, car certaines données sont transformées avant d'être sauvegardées ou peuvent être modifiées. Il faut conserver un checksum des données sources à vérifier, et le comparer avec le checksum des nouvelles données sources. On ne calcule qu'une seule fois la valeur a comparer et on ne stocke qu'une seule simple chaîne pour les vérifications futures.
+- en corrigeant l'interprétation des status, les dates bloquées (unavailable) n'apparaissent plus. Elles doivent apparaître sur le calendrier.
+- l'ajout d'une rangée pour la property est utile uniquement si elle contient plusieurs units. Si il n'y a qu'une seule unité, il faut afficher une seule rangée.
+
 ## iCal Decode
 
 - "status" doit être une colonne dans bookings, pas une metadonnée
