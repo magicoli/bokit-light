@@ -116,14 +116,14 @@ class BookingMetadataParser
     {
         $status = strtolower($status ?? "");
         $colors = [
-            "cancelled" => "#88888866", // Gray 50%
-            "vanished" => "#88888866", // Gray 50%
-            "inquiry" => "#f59e0b66", // Orange 50%
+            "cancelled" => "#88888880", // Gray 50%
+            "vanished" => "#88888880", // Gray 50%
+            "inquiry" => "#f59e0b80", // Orange 50%
             "request" => "#f59e0b", // Orange - booking requests
             "new" => "#3b82f6", // Blue - new/pending bookings
             "confirmed" => "#10b981", // Green - confirmed bookings
-            "blocked" => "darkgrey",
-            "unavailable" => "darkgrey",
+            "blocked" => "#0000080", // Black 50%
+            "unavailable" => "#0000080", // Black 50%
         ];
 
         return $colors[$status] ?? "#888888";
@@ -137,31 +137,21 @@ class BookingMetadataParser
      */
     public static function getStatusLabel(?string $status): string
     {
-        // - cancelled -> pas affiché dans le calendrier, pas bloquant
-        // - vanished -> pas affiché dans le calendrier, pas bloquant (statut spécial pour la gestion interne)
-        // - inquiry -> affiché en gris, pas bloquant
-        // - request
-        // - new
-        // - confirmed
-        // - blocked (je crois que c'est "black" dans beds24) -> pas encore affiché dans le calendrier (nécessite gestion des availabilities)
-        // - unavailable ("SUMMARY=Unavailable" dans beds24) -> pas encore affiché dans le calendrier (nécessite gestion des availabilities)
-        // - undefined -> statut par défaut (on n'utilise pas "Confirmed" comme défaut), bloquant
-
         $labels = [
-            "inquiry" => __("Inquiry"),
-            "request" => __("Request"),
-            "new" => __("New"),
-            "confirmed" => __("Confirmed"),
-            "cancelled_by_owner" => __("Cancelled by Owner"),
-            "cancelled_by_guest" => __("Cancelled by Guest"),
-            // "deleted" => __("Deleted"), // Might be redundant with cancelled
-            "vanished" => __("Vanished"),
-            "blocked" => __("Blocked"),
-            "unavailable" => __("Unavailable"),
-            "undefined" => __("Undefined"),
+            "inquiry" => __("Inquiry"), // Non-blocking
+            "request" => __("Request"), // Blocking (TODO: add a deadline logic to release the dates)
+            "new" => __("New"), // Blocking
+            "confirmed" => __("Confirmed"), // Blocking
+            "cancelled_by_owner" => __("Cancelled by Owner"), // Non-blocking
+            "cancelled_by_guest" => __("Cancelled by Guest"), // Non-blocking (TODO: add a deadline logic to hide the booking)
+            "vanished" => __("Vanished"), // Non-blocking (TODO: add a deadline logic to hide the booking)
+            "deleted" => __("Deleted"), // Non-blocking, not shown in the UI
+            "blocked" => __("Blocked"), // Blocking
+            "unavailable" => __("Unavailable"), // Blocking
+            "undefined" => __("Undefined"), // Blocking
         ];
 
-        $status = strtolower($status ?? "");
+        $status = strtolower($status ?? "undefined");
 
         return $labels[$status] ?? ucfirst($status);
     }
