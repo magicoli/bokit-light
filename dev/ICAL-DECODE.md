@@ -26,6 +26,7 @@
 - la vérification si un événement a changé ne peut pas se faire sur l'état actuel de la db, car certaines données sont transformées avant d'être sauvegardées ou peuvent être modifiées. Il faut conserver un checksum des données sources à vérifier, et le comparer avec le checksum des nouvelles données sources. On ne calcule qu'une seule fois la valeur a comparer et on ne stocke qu'une seule simple chaîne pour les vérifications futures.
 - en corrigeant l'interprétation des status, les dates bloquées (unavailable) n'apparaissent plus. Elles doivent apparaître sur le calendrier.
 - l'ajout d'une rangée pour la property est utile uniquement si elle contient plusieurs units. Si il n'y a qu'une seule unité, il faut afficher une seule rangée.
+- REGRESSION: la vue par défaut affiche maintenant plus, ou moins qu'un mois, selon la largeur du viewport, elle doit afficher un mois entier, responsive pour entrer au minimum dans un viewport de 1280px.
 
 ## iCal Decode
 
