@@ -11,13 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         // Step 1: Add property_id to bookings table (useful for direct queries)
-        Schema::table("bookings", function (Blueprint $table) {
-            $table
-                ->unsignedBigInteger("property_id")
-                ->nullable()
-                ->after("unit_id");
-            $table->index(["property_id"]);
-        });
+        // Only add if column doesn't exist
+        if (!Schema::hasColumn("bookings", "property_id")) {
+            Schema::table("bookings", function (Blueprint $table) {
+                $table
+                    ->unsignedBigInteger("property_id")
+                    ->nullable()
+                    ->after("unit_id");
+                $table->index(["property_id"]);
+            });
+        }
 
         // Step 2: Create source_mappings table for mapping multiple sources to bookings
         Schema::create("source_mappings", function (Blueprint $table) {

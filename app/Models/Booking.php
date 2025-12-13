@@ -334,14 +334,6 @@ class Booking extends Model
     }
 
     /**
-     * Get the property that owns this booking
-     */
-    public function property(): BelongsTo
-    {
-        return $this->belongsTo(Property::class);
-    }
-
-    /**
      * Get all source mappings associated with this booking
      */
     public function sourceMappings()
