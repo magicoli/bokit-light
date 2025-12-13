@@ -146,7 +146,19 @@
                                 @endif
 
                                 <!-- Bookings overlapping this day -->
+                                @php
+                                    // Debug: count bookings by status
+                                    $bookingStatuses = $unit->bookings->pluck('status')->countBy();
+                                    // \Log::info("Unit {$unit->name} has bookings:", $bookingStatuses->toArray());
+                                @endphp
                                 @foreach($unit->bookings as $booking)
+                                @php
+                                    // Debug: show all bookings including their status
+                                    if ($booking->status === 'cancelled' || $booking->status === 'vanished') {
+                                        // Log these bookings to see if they are being processed
+                                        // \Log::info("Processing booking: {$booking->guest_name} - {$booking->status}");
+                                    }
+                                @endphp
                                 @php
                                     // Real check-in/check-out dates (hotel format)
                                     $checkIn = $booking->check_in;
@@ -185,6 +197,12 @@
                                         $widthPercent = $dayBlocks * 100;
                                     @endphp
 
+                                    @php
+                                        // Don't apply additional opacity for cancelled/vanished bookings
+                                        // as their color already includes opacity
+                                        $applyOpacity = !in_array($booking->status, ['cancelled', 'vanished', 'deleted']);
+                                        $opacityStyle = $applyOpacity ? 'opacity: 0.92;' : '';
+                                    @endphp
                                     <div class="absolute rounded-xl text-white text-xs font-medium overflow-hidden hover:shadow-xl hover:opacity-100 transition-all flex items-center px-2 cursor-pointer z-10 max-sm:!top-[1.75rem]"
                                          style="left: {{ $leftPercent }}%;
                                                 width: {{ $widthPercent }}%;
@@ -193,7 +211,7 @@
                                                 margin-left: 2px;
                                                 margin-right: 2px;
                                                 background-color: {{ $booking->color }};
-                                                opacity: 0.92"
+                                                {{ $opacityStyle }}"
                                          @click="showBooking({{ $booking->id }})">
                                         @if($startsBeforePeriod)
                                             <span class="opacity-75 mr-1">◀</span>
@@ -201,6 +219,8 @@
                                         <span class="truncate text-lg flex-2">
                                             @if($booking->trashed())
                                                 <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">DELETED</span>
+                                            @elseif(in_array($booking->status, ['cancelled', 'vanished', 'deleted']))
+                                                <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">{{ strtoupper($booking->status) }}</span>
                                             @endif
                                             {{ $booking->guest_name }}
                                         </span>
@@ -325,12 +345,20 @@
                         <!-- Source + API Source -->
                         <div class="border-t pt-3">
                             <div class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Source:</span>
+                                <span class="font-medium text-gray-500">{{ __('Source:') }}</span>
                                 <span class="text-gray-900 ml-2" x-text="selectedBooking.source_name"></span>
                                 <span class="text-gray-900 ml-2">
                                     <span x-text="selectedBooking.raw_data?.api_source"></span>
                                     <span x-show="selectedBooking.raw_data?.api_ref" x-text="' ' + selectedBooking.raw_data?.api_ref"></span>
                                 </span>
+                            </div>
+                            <div class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">{{ __('Link:') }}</span>
+                                <span x-html="' ' + selectedBooking.ota_link" class="text-blue-600 hover:underline ml-2"></span>
+                            </div>
+                            <div class="text-sm mb-1">
+                                <span class="font-medium text-gray-500">{{ __('URL:') }}</span>
+                                <span x-text="' ' + selectedBooking.ota_url"></span>
                             </div>
                         </div>
 

@@ -122,8 +122,8 @@ class BookingMetadataParser
             "request" => "#f59e0b", // Orange - booking requests
             "new" => "#3b82f6", // Blue - new/pending bookings
             "confirmed" => "#10b981", // Green - confirmed bookings
-            "blocked" => "#0000080", // Black 50%
-            "unavailable" => "#0000080", // Black 50%
+            "blocked" => "#00000080", // Black 50%
+            "unavailable" => "#00000080", // Black 50%
         ];
 
         return $colors[$status] ?? "#888888";
