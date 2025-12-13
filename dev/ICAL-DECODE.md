@@ -9,6 +9,17 @@
 - ça permettra plus de flexibilité plus tard pour les recherches, filtres, tris, etc.
 - la table  booking ne doit contenir que les données essentielles pour les listes et les calendriers.
 
+## Import strategy
+
+La vérification de l'existence d'un booking se fait pour l'instant uniquement sur l'UID iCal, ce qui ne fonctionnera plus dès qu'on implémentera des API. On doit implémenter une stratégie plus flexible pour gérer les conflits et les doublons lors de l'importation des données.
+- Lorsqu'on trouve un élément distant, on doit créer un identifiant unique associé à la source et à l'événement.
+- l'id unique dépent de l'id du fournisseur, pas des dates ou du nom, ni à l'unit locale, qui peuvent tous changer
+- si il existe un événement local associé à cet identifiant, on le synchronise et on ajoute l'id source aux données locales
+- si il n'existe pas, on cherche un événement aux mêmes dates pour la même unit locale, et on sauve l'id source pour qu'à partir de là il se synchronise même si les détails du booking changent
+- comme l'importation consomme beaucoup de ressources et de temps, il faut l'implémenter de la manière la plus performante possible
+
+Avec ce système, la règle "vanished" actuellement en place ne pourra être appliquée que sur les importations iCal et uniquement si la source iCal est la source principale (la première source). Les API ont toujours un signalement des réservation annulées ou supprimées.
+
 ## Nomenclature
 
 - Bokit est un PMS (Property Management System)
@@ -22,10 +33,9 @@
 - Booking.com et Airbnb n'ont pas d'API publique pour l'instant. C'est encore à vérifier pour VRBO (Abritel/Expedia).
 
 ## Bugs
+- l'ajout d'une rangée pour la property est utile uniquement si elle contient plusieurs units. Si il n'y a qu'une seule unité, il faut afficher une seule rangée.
 - dans syncEventsToDatabase, les tests de statut sont fait sur les chaînes formattées pour l'affichage, ça va poser un problème à la traduction. Les statuts sauvés dans la db et utilisés pour tous les tests doivent être des slugs, ce n'est qu'à l'affichage qu'on les change en strings humaines.
 - la vérification si un événement a changé ne peut pas se faire sur l'état actuel de la db, car certaines données sont transformées avant d'être sauvegardées ou peuvent être modifiées. Il faut conserver un checksum des données sources à vérifier, et le comparer avec le checksum des nouvelles données sources. On ne calcule qu'une seule fois la valeur a comparer et on ne stocke qu'une seule simple chaîne pour les vérifications futures.
-- en corrigeant l'interprétation des status, les dates bloquées (unavailable) n'apparaissent plus. Elles doivent apparaître sur le calendrier.
-- l'ajout d'une rangée pour la property est utile uniquement si elle contient plusieurs units. Si il n'y a qu'une seule unité, il faut afficher une seule rangée.
 - REGRESSION: la vue par défaut affiche maintenant plus, ou moins qu'un mois, selon la largeur du viewport, elle doit afficher un mois entier, responsive pour entrer au minimum dans un viewport de 1280px.
 
 ## iCal Decode
