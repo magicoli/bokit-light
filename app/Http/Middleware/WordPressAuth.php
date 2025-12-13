@@ -7,14 +7,15 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class WordPressAuth
 {
     public function handle(Request $request, Closure $next)
     {
         // Verify WP_SITE_URL is configured
-        if (!Options::get('auth.wordpress.site_url')) {
-            abort(503, 'WordPress site URL not configured');
+        if (!Options::get("auth.wordpress.site_url")) {
+            abort(503, "WordPress site URL not configured");
         }
 
         // Check if user is already authenticated
@@ -32,36 +33,34 @@ class WordPressAuth
 
         // Show login form
         return response()->view("auth.login", [
-            'authMessage' => 'Use your WordPress credentials',
-            'authDetails' => Options::get('auth.wordpress.site_url'),
+            "authMessage" => "Use your WordPress credentials",
+            "authDetails" => Options::get("auth.wordpress.site_url"),
         ]);
     }
 
     private function authenticate(Request $request, Closure $next)
     {
-        $wpUrl = Options::get('auth.wordpress.site_url');
-        $requiredRole = Options::get('auth.wordpress.required_role', 'administrator');
+        $wpUrl = Options::get("auth.wordpress.site_url");
+        $requiredRole = Options::get(
+            "auth.wordpress.required_role",
+            "administrator",
+        );
 
         try {
             // Verify credentials via custom WP endpoint
-            \Log::info('WordPress auth attempt', [
-                'wp_url' => $wpUrl,
-                'username' => $request->username,
-                'endpoint' => $wpUrl . "/wp-json/bokit/v1/auth",
-            ]);
+            // Log::debug("WordPress auth attempt", [
+            //     "wp_url" => $wpUrl,
+            //     "username" => $request->username,
+            //     "endpoint" => $wpUrl . "/wp-json/bokit/v1/auth",
+            // ]);
 
             $response = Http::post($wpUrl . "/wp-json/bokit/v1/auth", [
                 "username" => $request->username,
                 "password" => $request->password,
             ]);
 
-            \Log::info('WordPress API response', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'successful' => $response->successful(),
-            ]);
-
             if ($response->successful()) {
+                Log::info("User {$request->username} authenticated");
                 $user = $response->json();
 
                 // Check if user has required role
@@ -72,16 +71,19 @@ class WordPressAuth
                     Session::put("wp_user", [
                         "id" => $user["id"],
                         "name" => $user["name"],
-                        "email" => $user["email"] ?? '',
+                        "email" => $user["email"] ?? "",
                         "roles" => $user["roles"],
                     ]);
 
                     return redirect("/");
                 }
 
-                \Log::warning('WordPress auth role check failed', [
-                    'required_role' => $requiredRole,
-                    'user_roles' => $user["roles"] ?? [],
+                Log::warning("WordPress auth role check failed", [
+                    "required_role" => $requiredRole,
+                    "user_roles" => $user["roles"] ?? [],
+                    "status" => $response->status(),
+                    "body" => $response->body(),
+                    "successful" => $response->successful(),
                 ]);
 
                 return back()->with(
@@ -91,9 +93,9 @@ class WordPressAuth
             }
 
             $error = $response->json();
-            \Log::error('WordPress auth failed', [
-                'status' => $response->status(),
-                'error' => $error,
+            Log::error("WordPress auth failed", [
+                "status" => $response->status(),
+                "error" => $error,
             ]);
 
             return back()->with(
@@ -101,9 +103,9 @@ class WordPressAuth
                 $error["message"] ?? "Invalid credentials",
             );
         } catch (\Exception $e) {
-            \Log::error('WordPress auth exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            Log::error("WordPress auth exception", [
+                "message" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
             ]);
 
             return back()->with(
