@@ -76,7 +76,7 @@ final class ErrorHandler
     /**
      * @throws NoTestCaseObjectOnCallStackException
      */
-    public function __invoke(int $errorNumber, string $errorString, string $errorFile, int $errorLine): false
+    public function __invoke(int $errorNumber, string $errorString, string $errorFile, int $errorLine): bool
     {
         $suppressed = (error_reporting() & ~self::INSUPPRESSIBLE_LEVELS) === 0;
 

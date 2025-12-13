@@ -24,3 +24,5 @@ tmp/
 *.sqlite*
 storage/**
 *~
+.env.testing
+test-results

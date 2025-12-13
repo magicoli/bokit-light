@@ -80,7 +80,7 @@ use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use PHPUnit\Metadata\InvalidAttributeException;
 use PHPUnit\Metadata\Metadata;
 use PHPUnit\Metadata\MetadataCollection;
-use PHPUnit\Metadata\Version\Requirement;
+use PHPUnit\Metadata\Version\ConstraintRequirement;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -275,7 +275,7 @@ final readonly class AttributeParser implements Parser
                     assert($attributeInstance instanceof RequiresPhp);
 
                     $result[] = Metadata::requiresPhpOnClass(
-                        Requirement::from(
+                        ConstraintRequirement::from(
                             $attributeInstance->versionRequirement(),
                         ),
                     );
@@ -289,7 +289,7 @@ final readonly class AttributeParser implements Parser
                     $versionRequirement = $attributeInstance->versionRequirement();
 
                     if ($versionRequirement !== null) {
-                        $versionConstraint = Requirement::from($versionRequirement);
+                        $versionConstraint = ConstraintRequirement::from($versionRequirement);
                     }
 
                     $result[] = Metadata::requiresPhpExtensionOnClass(
@@ -303,7 +303,7 @@ final readonly class AttributeParser implements Parser
                     assert($attributeInstance instanceof RequiresPhpunit);
 
                     $result[] = Metadata::requiresPhpunitOnClass(
-                        Requirement::from(
+                        ConstraintRequirement::from(
                             $attributeInstance->versionRequirement(),
                         ),
                     );
@@ -655,7 +655,7 @@ final readonly class AttributeParser implements Parser
                     assert($attributeInstance instanceof RequiresPhp);
 
                     $result[] = Metadata::requiresPhpOnMethod(
-                        Requirement::from(
+                        ConstraintRequirement::from(
                             $attributeInstance->versionRequirement(),
                         ),
                     );
@@ -669,7 +669,7 @@ final readonly class AttributeParser implements Parser
                     $versionRequirement = $attributeInstance->versionRequirement();
 
                     if ($versionRequirement !== null) {
-                        $versionConstraint = Requirement::from($versionRequirement);
+                        $versionConstraint = ConstraintRequirement::from($versionRequirement);
                     }
 
                     $result[] = Metadata::requiresPhpExtensionOnMethod(
@@ -683,7 +683,7 @@ final readonly class AttributeParser implements Parser
                     assert($attributeInstance instanceof RequiresPhpunit);
 
                     $result[] = Metadata::requiresPhpunitOnMethod(
-                        Requirement::from(
+                        ConstraintRequirement::from(
                             $attributeInstance->versionRequirement(),
                         ),
                     );
