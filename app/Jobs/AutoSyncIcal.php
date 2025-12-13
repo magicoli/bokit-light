@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\IcalSource;
-use App\Services\IcalParser;
+use App\Services\BookingSyncIcal;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class SyncIcalSources implements ShouldQueue
+class AutoSyncIcal implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -23,7 +23,7 @@ class SyncIcalSources implements ShouldQueue
         Log::info("[SyncJob] Starting iCal synchronization");
 
         try {
-            $parser = new IcalParser();
+            $parser = new BookingSyncIcal();
             $sources = IcalSource::with("unit.property")->enabled()->get();
 
             $totalStats = [

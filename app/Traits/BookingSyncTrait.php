@@ -22,7 +22,7 @@ trait BookingSyncTrait
             $stringParts[] = self::normalizeArgument($arg);
         }
 
-        return implode(':', $stringParts);
+        return implode(":", $stringParts);
     }
 
     /**
@@ -42,14 +42,14 @@ trait BookingSyncTrait
         }
 
         if (is_bool($arg)) {
-            return $arg ? '1' : '0';
+            return $arg ? "1" : "0";
         }
 
         if (is_array($arg)) {
             return md5(json_encode($arg));
         }
 
-        if (is_object($arg) && method_exists($arg, '__toString')) {
+        if (is_object($arg) && method_exists($arg, "__toString")) {
             return (string) $arg;
         }
 
@@ -67,19 +67,22 @@ trait BookingSyncTrait
         $controlString = $this->getControlString();
 
         // Try to find existing mapping
-        $mapping = \App\Models\SourceMapping::where('control_string', $controlString)->first();
+        $mapping = \App\Models\SourceMapping::where(
+            "control_string",
+            $controlString,
+        )->first();
 
         if ($mapping) {
-            return ['mapping' => $mapping, 'isNew' => false];
+            return ["mapping" => $mapping, "isNew" => false];
         }
 
         // Create new mapping
         $mapping = \App\Models\SourceMapping::create([
-            'booking_id' => $bookingId,
-            'control_string' => $controlString,
+            "booking_id" => $bookingId,
+            "control_string" => $controlString,
         ]);
 
-        return ['mapping' => $mapping, 'isNew' => true];
+        return ["mapping" => $mapping, "isNew" => true];
     }
 
     /**
@@ -92,22 +95,61 @@ trait BookingSyncTrait
         $controlString = $this->getControlString();
 
         // Priority 1: Direct mapping via control string (most efficient)
-        $mapping = \App\Models\SourceMapping::where('control_string', $controlString)->first();
+        $mapping = \App\Models\SourceMapping::where(
+            "control_string",
+            $controlString,
+        )->first();
 
         if ($mapping && $mapping->booking) {
             return [
-                'booking' => $mapping->booking,
-                'mapping' => $mapping,
-                'matchType' => 'direct_control_match'
+                "booking" => $mapping->booking,
+                "mapping" => $mapping,
+                "matchType" => "direct_control_match",
             ];
         }
 
         // Priority 2: Fallback to date/unit/email matching if needed
         // This would be implemented by specific sync classes
         return [
-            'booking' => null,
-            'mapping' => null,
-            'matchType' => 'no_match'
+            "booking" => null,
+            "mapping" => null,
+            "matchType" => "no_match",
         ];
+    }
+
+    /**
+     * Find bookings that should be checked for "vanished" status
+     * for this sync source
+     *
+     * @param array $currentEventIds Current event IDs that are still valid
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    protected function getVanishedBookings(
+        array $currentEventIds,
+    ): \Illuminate\Database\Eloquent\Builder {
+        // Build current control strings for this source
+        $currentControlStrings = [];
+        foreach ($currentEventIds as $eventId) {
+            $currentControlStrings[] = $this->calculateControlString(
+                $this->sourceType,
+                $this->sourceId,
+                $eventId,
+                $this->propertyId,
+            );
+        }
+
+        return \App\Models\SourceMapping::whereNotIn(
+            "control_string",
+            $currentControlStrings,
+        )->whereHas("booking", function ($query) {
+            $query
+                ->where("check_out", ">=", now()->format("Y-m-d"))
+                ->whereNotIn("status", [
+                    "cancelled",
+                    "cancelled_by_owner",
+                    "cancelled_by_guest",
+                    "vanished",
+                ]);
+        });
     }
 }

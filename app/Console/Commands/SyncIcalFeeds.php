@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\IcalParser;
+use App\Services\BookingSyncIcal;
 use App\Models\IcalSource;
 use Illuminate\Console\Command;
 
@@ -14,7 +14,7 @@ class SyncIcalFeeds extends Command
 
     protected $description = "Synchronize iCal feeds from external sources";
 
-    public function handle(IcalParser $parser): int
+    public function handle(BookingSyncIcal $parser): int
     {
         $this->info("🏖️  Starting Bokit calendar synchronization...");
         $this->newLine();
@@ -31,44 +31,52 @@ class SyncIcalFeeds extends Command
         $this->newLine();
 
         $totalStats = [
-            'total' => 0,
-            'new' => 0,
-            'updated' => 0,
-            'deleted' => 0,
-            'vanished' => 0,
+            "total" => 0,
+            "new" => 0,
+            "updated" => 0,
+            "deleted" => 0,
+            "vanished" => 0,
         ];
         $errors = 0;
 
         // Sync each source
         foreach ($sources as $source) {
-            $this->line(
-                "Syncing: <fg=cyan>{$source->fullname()}</>",
-            );
+            $this->line("Syncing: <fg=cyan>{$source->fullname()}</>");
 
             try {
                 $stats = $parser->syncSource($source);
-                
+
                 if (!($stats["success"] ?? false)) {
                     $errors++;
                     throw new \Exception($stats["error"] ?? "Unknown error");
                 }
-                
+
                 // Display per-source detailed stats (always show all)
                 $parts = [
-                    "Total: {$stats['total']}",
-                    ($stats['new'] > 0 ? "<fg=green>" : "") . "New: {$stats['new']}" . ($stats['new'] > 0 ? "</>" : ""),
-                    ($stats['updated'] > 0 ? "<fg=yellow>" : "") . "Updated: {$stats['updated']}" . ($stats['updated'] > 0 ? "</>" : ""),
-                    ($stats['deleted'] > 0 ? "<fg=red>" : "") . "Deleted: {$stats['deleted']}" . ($stats['deleted'] > 0 ? "</>" : ""),
-                    ($stats['vanished'] > 0 ? "<fg=magenta>" : "") . "Vanished: {$stats['vanished']}" . ($stats['vanished'] > 0 ? "</>" : ""),
+                    "Total: {$stats["total"]}",
+                    ($stats["new"] > 0 ? "<fg=green>" : "") .
+                    "New: {$stats["new"]}" .
+                    ($stats["new"] > 0 ? "</>" : ""),
+                    ($stats["updated"] > 0 ? "<fg=yellow>" : "") .
+                    "Updated: {$stats["updated"]}" .
+                    ($stats["updated"] > 0 ? "</>" : ""),
+                    ($stats["deleted"] > 0 ? "<fg=red>" : "") .
+                    "Deleted: {$stats["deleted"]}" .
+                    ($stats["deleted"] > 0 ? "</>" : ""),
+                    ($stats["vanished"] > 0 ? "<fg=magenta>" : "") .
+                    "Vanished: {$stats["vanished"]}" .
+                    ($stats["vanished"] > 0 ? "</>" : ""),
                 ];
-                
+
                 $this->line("  ✓ " . implode(", ", $parts));
-                
+
                 // Accumulate totals
-                foreach (['total', 'new', 'updated', 'deleted', 'vanished'] as $key) {
+                foreach (
+                    ["total", "new", "updated", "deleted", "vanished"]
+                    as $key
+                ) {
                     $totalStats[$key] += $stats[$key] ?? 0;
                 }
-                
             } catch (\Exception $e) {
                 $this->error("  ✗ Failed: {$e->getMessage()}");
                 $errors++;
@@ -79,11 +87,11 @@ class SyncIcalFeeds extends Command
 
         // Summary
         $this->info("Summary:");
-        $this->line("  Total bookings: <fg=cyan>{$totalStats['total']}</>");
-        $this->line("  New: <fg=green>{$totalStats['new']}</>");
-        $this->line("  Updated: <fg=yellow>{$totalStats['updated']}</>");
-        $this->line("  Deleted: <fg=red>{$totalStats['deleted']}</>");
-        $this->line("  Vanished: <fg=magenta>{$totalStats['vanished']}</>");
+        $this->line("  Total bookings: <fg=cyan>{$totalStats["total"]}</>");
+        $this->line("  New: <fg=green>{$totalStats["new"]}</>");
+        $this->line("  Updated: <fg=yellow>{$totalStats["updated"]}</>");
+        $this->line("  Deleted: <fg=red>{$totalStats["deleted"]}</>");
+        $this->line("  Vanished: <fg=magenta>{$totalStats["vanished"]}</>");
 
         if ($errors > 0) {
             $this->line("  Errors: <fg=red>{$errors}</>");

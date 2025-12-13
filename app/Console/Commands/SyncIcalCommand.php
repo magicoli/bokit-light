@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Services\IcalParser;
+use App\Services\BookingSyncIcal;
 use Illuminate\Console\Command;
 
 class SyncIcalCommand extends Command
 {
-    protected $signature = 'bokit:sync';
-    protected $description = 'Synchronize all iCal sources';
+    protected $signature = "bokit:sync";
+    protected $description = "Synchronize all iCal sources";
 
-    public function handle(IcalParser $parser)
+    public function handle(BookingSyncIcal $parser)
     {
-        $this->info('Starting iCal synchronization...');
+        $this->info("Starting iCal synchronization...");
 
         $results = $parser->syncAll();
 
@@ -20,15 +20,17 @@ class SyncIcalCommand extends Command
         $errors = 0;
 
         foreach ($results as $result) {
-            if ($result['success']) {
-                $total += $result['count'];
+            if ($result["success"]) {
+                $total += $result["count"];
             } else {
                 $errors++;
             }
         }
 
-        $this->info("Synced {$total} bookings from " . count($results) . " sources");
-        
+        $this->info(
+            "Synced {$total} bookings from " . count($results) . " sources",
+        );
+
         if ($errors > 0) {
             $this->warn("{$errors} sources failed");
         }

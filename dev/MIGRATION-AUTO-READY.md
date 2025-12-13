@@ -21,7 +21,7 @@
 
 **Services:**
 - `app/Services/BookingMetadataParser.php` - Parse DESCRIPTION iCal + couleurs status
-- `app/Services/IcalParser.php` - Synchronise iCal avec parsing métadonnées
+- `app/Services/BookingSyncIcal.php` - Synchronise iCal avec parsing métadonnées
 
 **Commandes:**
 - `app/Console/Commands/SyncIcalCommand.php` - Commande `php artisan bokit:sync`

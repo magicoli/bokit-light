@@ -27,7 +27,7 @@ Currently, iCal events with `SUMMARY:Unavailable` are filtered out and not displ
 
 **Implementation Notes:**
 - Extend `bookings` table with `type VARCHAR(20)` field ('booking', 'blocked', 'maintenance')
-- Update `IcalParser` to detect and categorize blocking patterns
+- Update `BookingSyncIcal` to detect and categorize blocking patterns
 - Calendar view should show blocked dates with visual distinction
 - See `dev/UNAVAILABLE.md` for detailed implementation plan
 
