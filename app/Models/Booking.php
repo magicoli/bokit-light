@@ -15,6 +15,7 @@ class Booking extends Model
     use SoftDeletes;
     protected $fillable = [
         "unit_id",
+        "property_id",
         "uid",
         "source_name",
         "status",
@@ -49,6 +50,124 @@ class Booking extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    /**
+     * Get the property that owns this booking
+     */
+    public function property(): BelongsTo
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    /**
+     * Find booking by source identifiers with priority order
+     *
+     * @param string $sourceType Type of source (ical, api, etc.)
+     * @param int $sourceId ID of the external source
+     * @param string $sourceEventId Event ID from the external source
+     * @param int $propertyId Property ID
+     * @param string|null $guestEmail Guest email for additional matching
+     * @param string $checkIn Check-in date
+     * @param string $checkOut Check-out date
+     * @param int $unitId Unit ID
+     * @return Booking|null
+     */
+    public static function findBySourceWithPriority(
+        string $sourceType,
+        int $sourceId,
+        string $sourceEventId,
+        int $propertyId,
+        ?string $guestEmail = null,
+        string $checkIn = null,
+        string $checkOut = null,
+        int $unitId = null,
+    ): ?Booking {
+        // Priority 1: Exact match on source identifiers (most efficient - uses composite index)
+        $booking = self::where("source_type", $sourceType)
+            ->where("source_id", $sourceId)
+            ->where("source_event_id", $sourceEventId)
+            ->first();
+
+        if ($booking) {
+            return $booking;
+        }
+
+        // Priority 2: Same dates, same unit, same email - definite match
+        if ($guestEmail && $checkIn && $checkOut && $unitId) {
+            $booking = self::where("unit_id", $unitId)
+                ->where("check_in", $checkIn)
+                ->where("check_out", $checkOut)
+                ->where(function ($query) use ($guestEmail) {
+                    $query
+                        ->whereJsonContains("raw_data->email", $guestEmail)
+                        ->orWhere("notes", "like", "%" . $guestEmail . "%");
+                })
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        // Priority 3: Same dates, same unit, no email - probable match
+        if ($checkIn && $checkOut && $unitId) {
+            $booking = self::where("unit_id", $unitId)
+                ->where("check_in", $checkIn)
+                ->where("check_out", $checkOut)
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        // Priority 4: Same dates but different unit - probably different booking
+        // Priority 5: Different emails - definitely different booking
+        // (These cases return null as they're not considered matches)
+
+        return null;
+    }
+
+    /**
+     * Update or create booking with source identifiers
+     *
+     * @param array $attributes
+     * @param array $values
+     * @return Booking
+     */
+    public static function updateOrCreateWithSource(
+        array $attributes,
+        array $values,
+    ): Booking {
+        // Extract source identifiers
+        $sourceType = $attributes["source_type"] ?? null;
+        $sourceId = $attributes["source_id"] ?? null;
+        $sourceEventId = $attributes["source_event_id"] ?? null;
+        $propertyId = $attributes["property_id"] ?? null;
+
+        if ($sourceType && $sourceId && $sourceEventId && $propertyId) {
+            // Try to find existing booking by source identifiers first
+            $existing = self::findBySourceWithPriority(
+                $sourceType,
+                $sourceId,
+                $sourceEventId,
+                $propertyId,
+                $values["raw_data"]["email"] ?? null,
+                $values["check_in"] ?? null,
+                $values["check_out"] ?? null,
+                $values["unit_id"] ?? null,
+            );
+
+            if ($existing) {
+                // Update existing booking
+                $existing->update($values);
+                return $existing;
+            }
+        }
+
+        // Create new booking
+        return self::create($values);
     }
 
     /**
@@ -212,5 +331,80 @@ class Booking extends Model
             $link = $url;
         }
         return Attribute::make(get: fn($value) => $link);
+    }
+
+    /**
+     * Get the property that owns this booking
+     */
+    public function property(): BelongsTo
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    /**
+     * Get all source mappings associated with this booking
+     */
+    public function sourceMappings()
+    {
+        return $this->hasMany(SourceMapping::class);
+    }
+
+    /**
+     * Find or create booking with source mapping using priority-based matching
+     *
+     * @param string $sourceType Type of source (ical, api, etc.)
+     * @param int $sourceId ID of the external source
+     * @param string $sourceEventId Event ID from the external source
+     * @param int $propertyId Property ID
+     * @param array $bookingData Booking data to create/update
+     * @return array ['booking' => Booking, 'isNew' => bool, 'mapping' => SourceMapping, 'matchType' => string]
+     */
+    public static function findOrCreateWithSourceMapping(
+        string $sourceType,
+        int $sourceId,
+        string $sourceEventId,
+        int $propertyId,
+        array $bookingData,
+    ): array {
+        // Use SourceMapping's priority-based matching
+        $result = SourceMapping::findBookingWithPriority(
+            $sourceType,
+            $sourceId,
+            $sourceEventId,
+            $propertyId,
+            $bookingData["raw_data"]["email"] ?? null,
+            $bookingData["check_in"] ?? null,
+            $bookingData["check_out"] ?? null,
+            $bookingData["unit_id"] ?? null,
+        );
+
+        $booking = $result["booking"];
+        $matchType = $result["matchType"];
+        $isNewBooking = false;
+
+        if ($booking) {
+            // Update existing booking
+            $booking->update($bookingData);
+        } else {
+            // Create new booking
+            $booking = self::create($bookingData);
+            $isNewBooking = true;
+        }
+
+        // Create or update source mapping
+        $mappingResult = SourceMapping::findOrCreateMapping(
+            $sourceType,
+            $sourceId,
+            $sourceEventId,
+            $propertyId,
+            $booking->id,
+        );
+
+        return [
+            "booking" => $booking,
+            "isNew" => $isNewBooking,
+            "mapping" => $mappingResult["mapping"],
+            "matchType" => $matchType,
+        ];
     }
 }

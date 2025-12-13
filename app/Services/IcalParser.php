@@ -10,6 +10,29 @@ use Illuminate\Support\Facades\Log;
 
 class IcalParser
 {
+    use \App\Traits\BookingSyncTrait;
+
+    protected $sourceType = "ical";
+    protected $sourceId;
+    protected $sourceEventId;
+    protected $propertyId;
+
+    /**
+     * Get the control string for this sync event
+     * Implements the required method from BookingSyncInterface
+     *
+     * @return string Control string for this event
+     */
+    public function getControlString(): string
+    {
+        return self::calculateControlString(
+            $this->sourceType,
+            $this->sourceId,
+            $this->sourceEventId,
+            $this->propertyId,
+        );
+    }
+
     /**
      * Sync all iCal sources
      */
@@ -247,47 +270,59 @@ class IcalParser
                 "deleted",
             ]);
 
-            // Get existing booking to compare for changes
-            $existing = Booking::where("uid", $event["UID"])
-                ->where("unit_id", $source->unit_id)
-                ->first();
+            // Prepare source identifiers for the new mapping system
+            $sourceType = "ical"; // For iCal sources
+            $sourceId = $source->id; // The iCal source ID
+            $sourceEventId = $event["UID"]; // The event UID from iCal
+            $propertyId = $source->unit->property->id; // The property ID
 
-            // Snapshot existing data for comparison (convert dates to strings)
-            $existingData = $existing
+            // Prepare booking data (without source identifiers - they go in source_events table)
+            $bookingData = [
+                "unit_id" => $source->unit_id,
+                "property_id" => $propertyId,
+                "uid" => $event["UID"],
+                "source_name" => $source->name ?? "undefined",
+                "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
+                "check_in" => $checkIn,
+                "check_out" => $checkOut,
+                "status" => $status,
+                "adults" => $adults,
+                "children" => $children,
+                "notes" => $parsed["notes"] ?: null,
+                "raw_data" => $parsed["metadata"],
+            ];
+
+            // Use the new source mapping system with priority-based matching
+            $result = Booking::findOrCreateWithSourceMapping(
+                $sourceType,
+                $sourceId,
+                $sourceEventId,
+                $propertyId,
+                $bookingData,
+            );
+
+            $booking = $result["booking"];
+            $isNewBooking = $result["isNew"];
+            $mapping = $result["mapping"];
+            $matchType = $result["matchType"];
+
+            // Get existing data for comparison if this is an existing booking
+            $existingData = !$isNewBooking
                 ? [
-                    "guest_name" => $existing->guest_name,
-                    "check_in" => $existing->check_in->format("Y-m-d"),
-                    "check_out" => $existing->check_out->format("Y-m-d"),
-                    "status" => $existing->status,
-                    "adults" => $existing->adults,
-                    "children" => $existing->children,
-                    "notes" => $existing->notes,
+                    "guest_name" => $booking->guest_name,
+                    "check_in" => $booking->check_in->format("Y-m-d"),
+                    "check_out" => $booking->check_out->format("Y-m-d"),
+                    "status" => $booking->status,
+                    "adults" => $booking->adults,
+                    "children" => $booking->children,
+                    "notes" => $booking->notes,
                 ]
                 : null;
-
-            // Create or update booking
-            $booking = Booking::updateOrCreate(
-                [
-                    "uid" => $event["UID"],
-                ],
-                [
-                    "unit_id" => $source->unit_id,
-                    "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
-                    "check_in" => $checkIn,
-                    "check_out" => $checkOut,
-                    "status" => $status,
-                    "adults" => $adults,
-                    "children" => $children,
-                    "notes" => $parsed["notes"] ?: null,
-                    "raw_data" => $parsed["metadata"],
-                    "source_name" => $source->name ?? "undefined",
-                ],
-            );
 
             // Track stats
             if ($isDeleted) {
                 $stats["deleted"]++;
-            } elseif ($booking->wasRecentlyCreated) {
+            } elseif ($isNewBooking) {
                 $stats["new"]++;
             } elseif (
                 $existingData &&
@@ -308,34 +343,67 @@ class IcalParser
         }
 
         // Detect vanished bookings (not in feed anymore)
-        // Only check for future/current bookings
-        // Special handling: unavailable bookings are deleted completely
-        // as they are typically auto-generated by availability rules
-        $bookingsToVanish = Booking::where("unit_id", $source->unit_id)
-            ->where("source_name", $source->name)
-            ->where("check_out", ">=", now()->format("Y-m-d"))
-            ->whereNotIn("uid", $feedUids)
-            ->whereNotIn("status", [
-                "cancelled",
-                "cancelled_by_owner",
-                "cancelled_by_guest",
-                "vanished",
-            ])
-            ->get();
+        // Only apply to iCal sources that are the primary source
+        // API sources should handle deletions through their own cancellation signals
+        $isPrimaryIcalSource = $this->isPrimaryIcalSource($source);
 
-        foreach ($bookingsToVanish as $booking) {
-            if ($booking->status === "unavailable") {
-                // Delete unavailable bookings completely
-                $booking->delete();
-                $stats["deleted"]++;
-            } else {
-                // Mark other bookings as vanished
-                $booking->update(["status" => "vanished"]);
-                $stats["vanished"]++;
+        if ($isPrimaryIcalSource) {
+            // Build current control strings for this source
+            $currentControlStrings = [];
+            foreach ($feedUids as $uid) {
+                $currentControlStrings[] = self::calculateControlString(
+                    "ical",
+                    $source->id,
+                    $uid,
+                    $source->unit->property->id,
+                );
             }
+
+            // Use the new SourceMapping system for efficient vanished detection
+            $sourceMappingsToCheck = \App\Models\SourceMapping::getBookingsForVanishedCheck(
+                $currentControlStrings,
+            );
+
+            // Process in chunks to avoid memory issues with large datasets
+            $sourceMappingsToCheck->chunk(100, function ($sourceMappings) use (
+                &$stats,
+            ) {
+                foreach ($sourceMappings as $sourceMapping) {
+                    $booking = $sourceMapping->booking;
+
+                    if ($booking) {
+                        if ($booking->status === "unavailable") {
+                            // Delete unavailable bookings completely
+                            $booking->delete();
+                            $stats["deleted"]++;
+                        } else {
+                            // Mark other bookings as vanished
+                            $booking->update(["status" => "vanished"]);
+                            $stats["vanished"]++;
+                        }
+
+                        // Clean up the source mapping
+                        $sourceMapping->delete();
+                    }
+                }
+            });
         }
 
         return $stats;
+    }
+
+    /**
+     * Check if the given iCal source is the primary source for its unit
+     *
+     * @param IcalSource $source
+     * @return bool
+     */
+    protected function isPrimaryIcalSource(IcalSource $source): bool
+    {
+        // For now, consider all iCal sources as primary since we don't have API sources yet
+        // When API sources are added, this method should check if this is the first/primary source
+        // For example: return $source->is_primary || $source->id === $this->getPrimarySourceId($source->unit_id);
+        return true;
     }
 
     /**
