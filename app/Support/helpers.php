@@ -10,7 +10,7 @@ if (!function_exists("options")) {
      * @param mixed $default
      * @return mixed
      */
-    function options(string $key = null, mixed $default = null): mixed
+    function options(?string $key, mixed $default = null): mixed
     {
         if ($key === null) {
             return new Options();
