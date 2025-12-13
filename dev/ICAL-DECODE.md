@@ -95,6 +95,6 @@ Avec ce système, la règle "vanished" actuellement en place ne pourra être app
     - "[AutoSync] Sync triggered..."
     - "[AutoSync] Sync job will run..."
     - [SyncJob] Synced .... {"success":true,"count":...}
-    - [IcalParser] ...
+    - [BookingSyncIcal] ...
 
 Ce serait bien de garder un historique des modifications dans une table séparée, succint (date, source/user, booking id, champs modifiés), pour permettre au moins de surveiller l'origine des modifications apportées aux réservations.

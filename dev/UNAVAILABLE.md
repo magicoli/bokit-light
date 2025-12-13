@@ -56,7 +56,7 @@ ALTER TABLE bookings ADD COLUMN type VARCHAR(20) DEFAULT 'booking';
 
 ### Phase 2: iCal Parsing
 
-Update `IcalParser::extractEvents()` to recognize blocking patterns:
+Update `BookingSyncIcal::extractEvents()` to recognize blocking patterns:
 
 ```php
 protected function extractEvents(VObject\Component\VCalendar $vcalendar): array
@@ -174,7 +174,7 @@ When implementing:
 
 ## Related Files
 
-- `app/Services/IcalParser.php` - Parsing logic
+- `app/Services/BookingSyncIcal.php` - Parsing logic
 - `app/Models/Booking.php` - Data model
 - `resources/views/dashboard.blade.php` - Display
 - `app/Http/Controllers/DashboardController.php` - Data loading

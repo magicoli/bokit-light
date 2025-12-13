@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Support\Options;
-use App\Jobs\SyncIcalSources;
+use App\Jobs\AutoSyncIcal;
 
 class AutoSync
 {
@@ -29,7 +29,7 @@ class AutoSync
 
             // Dispatch job to run AFTER the HTTP response is sent to the user
             // This is non-blocking for the user, WordPress-style!
-            SyncIcalSources::dispatchAfterResponse();
+            AutoSyncIcal::dispatchAfterResponse();
 
             Log::debug("[AutoSync] Sync job launched in background");
         }

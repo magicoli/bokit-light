@@ -8,7 +8,7 @@ use App\Support\Options;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class IcalParser
+class BookingSyncIcal
 {
     use \App\Traits\BookingSyncTrait;
 
@@ -63,7 +63,9 @@ class IcalParser
         try {
             $seededUrl = url()->query($source->url, ["seed" => $seed]);
 
-            Log::info("[IcalParser] Syncing source: {$source->fullname()}");
+            Log::info(
+                "[BookingSyncIcal] Syncing source: {$source->fullname()}",
+            );
 
             // Fetch iCal file with browser-like headers to avoid rate limiting
             $response = Http::timeout(30)
@@ -76,14 +78,17 @@ class IcalParser
 
             if (!$response->successful()) {
                 $message = "Failed to fetch {$source->fullname()}";
-                Log::error("[IcalParser] {$message} ({$response->status()})", [
-                    "url" => $seededUrl,
-                    "property_id" => $source->unit->property->id,
-                    "unit_id" => $source->unit->id,
-                    "source_id" => $source->id,
-                    "status" => $response->status(),
-                    "reason" => $response->reason(),
-                ]);
+                Log::error(
+                    "[BookingSyncIcal] {$message} ({$response->status()})",
+                    [
+                        "url" => $seededUrl,
+                        "property_id" => $source->unit->property->id,
+                        "unit_id" => $source->unit->id,
+                        "source_id" => $source->id,
+                        "status" => $response->status(),
+                        "reason" => $response->reason(),
+                    ],
+                );
                 return ["success" => false, "error" => $message];
             }
 
@@ -95,7 +100,7 @@ class IcalParser
             // Sync to database
             $stats = $this->syncEventsToDatabase($events, $source);
 
-            Log::info("[IcalParser] Synced {$source->fullname()}", [
+            Log::info("[BookingSyncIcal] Synced {$source->fullname()}", [
                 "success" => true,
                 "total" => $stats["total"],
                 "new" => $stats["new"],
@@ -114,7 +119,7 @@ class IcalParser
             ];
         } catch (\Exception $e) {
             $message = "Error syncing {$source->fullname()}";
-            Log::error("[IcalParser] {$message}", [
+            Log::error("[BookingSyncIcal] {$message}", [
                 "error" => $e->getMessage(),
                 "url" => $source->url,
                 "property_id" => $source->unit->property->id,
@@ -348,21 +353,8 @@ class IcalParser
         $isPrimaryIcalSource = $this->isPrimaryIcalSource($source);
 
         if ($isPrimaryIcalSource) {
-            // Build current control strings for this source
-            $currentControlStrings = [];
-            foreach ($feedUids as $uid) {
-                $currentControlStrings[] = self::calculateControlString(
-                    "ical",
-                    $source->id,
-                    $uid,
-                    $source->unit->property->id,
-                );
-            }
-
-            // Use the new SourceMapping system for efficient vanished detection
-            $sourceMappingsToCheck = \App\Models\SourceMapping::getBookingsForVanishedCheck(
-                $currentControlStrings,
-            );
+            // Use the trait method for vanished detection
+            $sourceMappingsToCheck = $this->getVanishedBookings($feedUids);
 
             // Process in chunks to avoid memory issues with large datasets
             $sourceMappingsToCheck->chunk(100, function ($sourceMappings) use (

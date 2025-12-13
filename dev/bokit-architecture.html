@@ -880,7 +880,8 @@
                         └── Middleware/ │ │ └── Authenticate.php
                         <span class="comment">// Auth basique</span> │ ├──
                         Models/ │ │ ├── Property.php │ │ ├── IcalSource.php │ │
-                        └── Booking.php │ └── Services/ │ ├── IcalParser.php
+                        └── Booking.php │ └── Services/ │ ├──
+                        BookingSyncIcal.php
                         <span class="comment">// Parsing iCal</span> │ └──
                         BookingNormalizer.php
                         <span class="comment">// Normalisation données</span>
@@ -935,7 +936,7 @@
                         <span class="keyword">use</span>
                         Illuminate\Console\Command;
                         <span class="keyword">use</span>
-                        App\Services\IcalParser;
+                        App\Services\BookingSyncIcal;
                         <span class="keyword">use</span> App\Models\IcalSource;
 
                         <span class="keyword">class</span> SyncIcalFeeds
@@ -948,7 +949,7 @@
                         >;
 
                         <span class="keyword">public function</span>
-                        handle(IcalParser $parser) { $sources =
+                        handle(BookingSyncIcal $parser) { $sources =
                         IcalSource::where(<span class="string"
                             >'sync_enabled'</span
                         >, <span class="keyword">true</span>)->get();
@@ -982,10 +983,10 @@
                         >)->hourly(); }
                     </div>
 
-                    <h3>Logique du service IcalParser (simplifié)</h3>
+                    <h3>Logique du service BookingSyncIcal (simplifié)</h3>
                     <div class="code-block">
                         <span class="comment"
-                            >// app/Services/IcalParser.php</span
+                            >// app/Services/BookingSyncIcal.php</span
                         >
 
                         <span class="keyword">namespace</span> App\Services;
@@ -996,7 +997,7 @@
                         <span class="keyword">use</span> App\Models\{IcalSource,
                         Booking};
 
-                        <span class="keyword">class</span> IcalParser {
+                        <span class="keyword">class</span> BookingSyncIcal {
                         <span class="keyword">public function</span>
                         syncSource(IcalSource $source) {
                         <span class="comment">// 1. Fetch le fichier iCal</span>
@@ -1230,7 +1231,9 @@
                         <h4>Backend (3-4h)</h4>
                         <ul>
                             <li>Models (Property, IcalSource, Booking)</li>
-                            <li>Service IcalParser (fetch + parse + upsert)</li>
+                            <li>
+                                Service BookingSyncIcal (fetch + parse + upsert)
+                            </li>
                             <li>Command SyncIcalFeeds</li>
                             <li>Config JSON loader</li>
                             <li>Routes pour dashboard + détails</li>

@@ -24,7 +24,7 @@ AutoSync Middleware (checks interval)
 Page Response Sent to User ← User gets page fast!
      |
      v
-SyncIcalSources Job Executes ← Happens after response
+AutoSyncIcal Job Executes ← Happens after response
      |
      v
 External iCal APIs Called
