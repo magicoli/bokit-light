@@ -1,9 +1,9 @@
 <?php
 
 $views_storage_path = storage_path("framework/views");
-if (!is_dir($views_storage_path)) {
-    mkdir($views_storage_path, 0755, true);
-}
+// if (!is_dir($views_storage_path)) {
+//     mkdir($views_storage_path, 0755, true);
+// }
 
 return [
     /*

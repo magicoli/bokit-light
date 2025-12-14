@@ -1,13 +1,13 @@
 <?php
 
 $private_storage_path = storage_path("app/private");
-if (!file_exists($private_storage_path)) {
-    mkdir($private_storage_path, 0755, true);
-}
+// if (!file_exists($private_storage_path)) {
+//     mkdir($private_storage_path, 0755, true);
+// }
 $public_storage_path = storage_path("app/public");
-if (!file_exists($public_storage_path)) {
-    mkdir($public_storage_path, 0755, true);
-}
+// if (!file_exists($public_storage_path)) {
+//     mkdir($public_storage_path, 0755, true);
+// }
 
 return [
     /*

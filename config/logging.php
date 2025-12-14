@@ -6,10 +6,10 @@ use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
 $logs_storage_path = storage_path("logs/laravel.log");
-if (!file_exists($logs_storage_path)) {
-    mkdir(dirname($logs_storage_path), 0755, true);
-    touch($logs_storage_path);
-}
+// if (!file_exists($logs_storage_path)) {
+//     mkdir(dirname($logs_storage_path), 0755, true);
+//     touch($logs_storage_path);
+// }
 
 return [
     /*

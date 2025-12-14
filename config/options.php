@@ -1,10 +1,10 @@
 <?php
 
-$path = env('OPTIONS_PATH', storage_path('options'));
+$path = env("OPTIONS_PATH", storage_path("options"));
 
-if (!is_dir($path)) {
-    mkdir($path, 0755, true);
-}
+// if (!is_dir($path)) {
+//     mkdir($path, 0755, true);
+// }
 
 return [
     /*
@@ -18,5 +18,5 @@ return [
     |
     */
 
-    'path' => $path,
+    "path" => $path,
 ];

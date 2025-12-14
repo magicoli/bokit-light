@@ -4,13 +4,13 @@ use Illuminate\Support\Str;
 
 $default_connection = env("DB_CONNECTION", "sqlite");
 $sqlite_storage_path = storage_path("database/default/database.sqlite");
-if (!is_dir(dirname($sqlite_storage_path))) {
-    mkdir(dirname($sqlite_storage_path), 0755, true);
-}
+// if (!is_dir(dirname($sqlite_storage_path))) {
+//     mkdir(dirname($sqlite_storage_path), 0755, true);
+// }
 
-if (!file_exists($sqlite_storage_path)) {
-    touch($sqlite_storage_path);
-}
+// if (!file_exists($sqlite_storage_path)) {
+//     touch($sqlite_storage_path);
+// }
 
 return [
     /*
