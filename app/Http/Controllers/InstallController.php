@@ -23,22 +23,22 @@ class InstallController extends Controller
             "title" => "Welcome",
             "view" => "welcome",
         ],
+        // 2 => [
+        //     "name" => "auth",
+        //     "title" => "Authentication",
+        //     "view" => "auth",
+        // ],
+        // 3 => [
+        //     "name" => "admin",
+        //     "title" => "First Administrator",
+        //     "view" => "admin",
+        // ],
         2 => [
-            "name" => "auth",
-            "title" => "Authentication",
-            "view" => "auth",
-        ],
-        3 => [
-            "name" => "admin",
-            "title" => "First Administrator",
-            "view" => "admin",
-        ],
-        4 => [
             "name" => "setup",
             "title" => "Configure Properties & Units",
             "view" => "setup",
         ],
-        5 => [
+        3 => [
             "name" => "complete",
             "title" => "Installation Complete",
             "view" => "complete",
@@ -175,60 +175,61 @@ class InstallController extends Controller
      */
     private function processAuth(Request $request)
     {
-        $authMethod = $request->input("auth_method", "none");
+        // $authMethod = $request->input("auth_method", "none");
 
         // Save auth method
+        $authMethod = "none";
         Options::set("auth.method", $authMethod);
+        return true;
+        // if ($authMethod === "wordpress") {
+        //     // Save WordPress-specific settings
+        //     $request->validate([
+        //         "wp_site_url" => "required|url",
+        //         "wp_required_role" => "required|string",
+        //     ]);
 
-        if ($authMethod === "wordpress") {
-            // Save WordPress-specific settings
-            $request->validate([
-                "wp_site_url" => "required|url",
-                "wp_required_role" => "required|string",
-            ]);
+        //     // Verify WordPress site is accessible and has Bokit plugin
+        //     $wpUrl = $request->input("wp_site_url");
+        //     try {
+        //         // Check if the Bokit API endpoint exists
+        //         $response = Http::timeout(5)->get(
+        //             $wpUrl . "/wp-json/bokit/v1/status",
+        //         );
+        //         if (!$response->successful()) {
+        //             throw new \Exception(
+        //                 "The Bokit WordPress plugin does not appear to be installed or active on this site. Please install and activate the plugin first.",
+        //             );
+        //         }
+        //     } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        //         throw new \Exception(
+        //             "Could not connect to the website. Please check the URL and ensure the site is online.",
+        //         );
+        //     } catch (\Exception $e) {
+        //         if (str_contains($e->getMessage(), "Bokit WordPress plugin")) {
+        //             throw $e;
+        //         }
+        //         throw new \Exception(
+        //             "Unable to verify the WordPress site. Please ensure the site is accessible and the Bokit plugin is installed.",
+        //         );
+        //     }
 
-            // Verify WordPress site is accessible and has Bokit plugin
-            $wpUrl = $request->input("wp_site_url");
-            try {
-                // Check if the Bokit API endpoint exists
-                $response = Http::timeout(5)->get(
-                    $wpUrl . "/wp-json/bokit/v1/status",
-                );
-                if (!$response->successful()) {
-                    throw new \Exception(
-                        "The Bokit WordPress plugin does not appear to be installed or active on this site. Please install and activate the plugin first.",
-                    );
-                }
-            } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                throw new \Exception(
-                    "Could not connect to the website. Please check the URL and ensure the site is online.",
-                );
-            } catch (\Exception $e) {
-                if (str_contains($e->getMessage(), "Bokit WordPress plugin")) {
-                    throw $e;
-                }
-                throw new \Exception(
-                    "Unable to verify the WordPress site. Please ensure the site is accessible and the Bokit plugin is installed.",
-                );
-            }
+        //     Options::set("auth.wordpress.site_url", $wpUrl);
+        //     Options::set(
+        //         "auth.wordpress.required_role",
+        //         $request->input("wp_required_role"),
+        //     );
 
-            Options::set("auth.wordpress.site_url", $wpUrl);
-            Options::set(
-                "auth.wordpress.required_role",
-                $request->input("wp_required_role"),
-            );
+        //     // Next step will be admin login (step 3)
+        //     return true;
+        // } else {
+        //     // No authentication = no admin user needed
+        //     // Skip step 3 (admin login) - jump directly to step 4 (setup)
+        //     Session::put("install_step", 4);
+        //     session()->save(); // Force session save
 
-            // Next step will be admin login (step 3)
-            return true;
-        } else {
-            // No authentication = no admin user needed
-            // Skip step 3 (admin login) - jump directly to step 4 (setup)
-            Session::put("install_step", 4);
-            session()->save(); // Force session save
-
-            // Return false to signal we've handled the step transition ourselves
-            return false;
-        }
+        //     // Return false to signal we've handled the step transition ourselves
+        //     return false;
+        // }
     }
 
     /**
@@ -238,11 +239,11 @@ class InstallController extends Controller
     {
         $authMethod = Options::get("auth.method");
 
-        if ($authMethod !== "wordpress") {
-            throw new \Exception(
-                "This step is only for WordPress authentication",
-            );
-        }
+        // if ($authMethod !== "wordpress") {
+        //     throw new \Exception(
+        //         "This step is only for WordPress authentication",
+        //     );
+        // }
 
         // WordPress authentication
         $request->validate([

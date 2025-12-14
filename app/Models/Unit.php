@@ -8,10 +8,8 @@ class Unit extends Model
 {
     protected $fillable = [
         "property_id",
-        "name",
         "slug",
-        "color",
-        "capacity",
+        "name",
         "is_active",
         "settings",
     ];
