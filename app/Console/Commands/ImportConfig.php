@@ -9,18 +9,21 @@ use Illuminate\Support\Facades\DB;
 
 class ImportConfig extends Command
 {
-    protected $signature = 'bokit:import-config {file? : JSON config file path}';
+    protected $signature = "bokit:import-config {file? : JSON config file path}";
 
-    protected $description = 'Import properties and iCal sources from JSON config';
+    protected $description = "Import properties and iCal sources from JSON config";
 
     public function handle(): int
     {
-        $filePath = $this->argument('file') ?? storage_path('config/properties.json');
+        $filePath =
+            $this->argument("file") ?? storage_path("config/properties.json");
 
         if (!file_exists($filePath)) {
             $this->error("Config file not found: {$filePath}");
             $this->newLine();
-            $this->info("Create a config file at {$filePath} or specify a different path.");
+            $this->info(
+                "Create a config file at {$filePath} or specify a different path.",
+            );
             return self::FAILURE;
         }
 
@@ -32,11 +35,11 @@ class ImportConfig extends Command
         $config = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error('Invalid JSON: ' . json_last_error_msg());
+            $this->error("Invalid JSON: " . json_last_error_msg());
             return self::FAILURE;
         }
 
-        if (!isset($config['properties'])) {
+        if (!isset($config["properties"])) {
             $this->error('Invalid config: missing "properties" key');
             return self::FAILURE;
         }
@@ -44,40 +47,41 @@ class ImportConfig extends Command
         DB::beginTransaction();
 
         try {
-            $stats = ['properties' => 0, 'sources' => 0];
+            $stats = ["properties" => 0, "sources" => 0];
 
-            foreach ($config['properties'] as $propertyData) {
+            foreach ($config["properties"] as $propertyData) {
                 // Create or update property
                 $property = Property::updateOrCreate(
-                    ['slug' => $propertyData['slug']],
+                    ["slug" => $propertyData["slug"]],
                     [
-                        'name' => $propertyData['name'],
-                        'color' => $propertyData['color'] ?? '#3B82F6',
-                        'capacity' => $propertyData['capacity'] ?? null,
-                        'is_active' => $propertyData['is_active'] ?? true,
-                        'settings' => $propertyData['settings'] ?? [],
-                    ]
+                        "name" => $propertyData["name"],
+                        "color" => $propertyData["color"] ?? "#3B82F6",
+                        // 'capacity' => $propertyData['capacity'] ?? null,
+                        "is_active" => $propertyData["is_active"] ?? true,
+                        "settings" => $propertyData["settings"] ?? [],
+                    ],
                 );
 
                 $this->line("✓ Property: <fg=cyan>{$property->name}</>");
-                $stats['properties']++;
+                $stats["properties"]++;
 
                 // Sync iCal sources
-                if (isset($propertyData['ical_sources'])) {
-                    foreach ($propertyData['ical_sources'] as $sourceData) {
+                if (isset($propertyData["ical_sources"])) {
+                    foreach ($propertyData["ical_sources"] as $sourceData) {
                         $source = IcalSource::updateOrCreate(
                             [
-                                'property_id' => $property->id,
-                                'url' => $sourceData['url'],
+                                "property_id" => $property->id,
+                                "url" => $sourceData["url"],
                             ],
                             [
-                                'name' => $sourceData['name'],
-                                'sync_enabled' => $sourceData['sync_enabled'] ?? true,
-                            ]
+                                "name" => $sourceData["name"],
+                                "sync_enabled" =>
+                                    $sourceData["sync_enabled"] ?? true,
+                            ],
                         );
 
                         $this->line("  → Source: {$source->name}");
-                        $stats['sources']++;
+                        $stats["sources"]++;
                     }
                 }
 
@@ -86,15 +90,14 @@ class ImportConfig extends Command
 
             DB::commit();
 
-            $this->info('✅ Import successful!');
-            $this->line("  Properties: {$stats['properties']}");
-            $this->line("  iCal sources: {$stats['sources']}");
+            $this->info("✅ Import successful!");
+            $this->line("  Properties: {$stats["properties"]}");
+            $this->line("  iCal sources: {$stats["sources"]}");
 
             return self::SUCCESS;
-
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->error('Import failed: ' . $e->getMessage());
+            $this->error("Import failed: " . $e->getMessage());
             return self::FAILURE;
         }
     }
