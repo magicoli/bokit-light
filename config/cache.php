@@ -3,9 +3,9 @@
 use Illuminate\Support\Str;
 
 $cache_data_storage_path = storage_path("framework/cache/data");
-if (!file_exists($cache_data_storage_path)) {
-    mkdir($cache_data_storage_path, 0755, true);
-}
+// if (!file_exists($cache_data_storage_path)) {
+//     mkdir($cache_data_storage_path, 0755, true);
+// }
 
 return [
     /*

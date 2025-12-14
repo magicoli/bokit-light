@@ -4,9 +4,9 @@ use Illuminate\Support\Str;
 
 $session_storage_path = storage_path("framework/sessions");
 
-if (!file_exists($session_storage_path)) {
-    mkdir($session_storage_path, 0755, true);
-}
+// if (!file_exists($session_storage_path)) {
+//     mkdir($session_storage_path, 0755, true);
+// }
 
 return [
     /*
