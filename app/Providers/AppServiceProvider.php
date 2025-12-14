@@ -67,11 +67,6 @@ class AppServiceProvider extends ServiceProvider
             Config::get("options.path"),
         ];
 
-        Log::debug(
-            "Creating storage structure with directories: " .
-                implode(", ", $directories),
-        );
-
         // Create directories
         foreach ($directories as $dir) {
             if (!empty($dir) && !is_dir($dir)) {
