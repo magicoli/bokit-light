@@ -1,0 +1,23 @@
+[
+    {
+        "name": "Admin User",
+        "email": "admin@example.com",
+        "password": "change-me-please",
+        "is_admin": true,
+        "roles": ["admin", "super_admin"]
+    },
+    {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "password": "secure-password-123",
+        "is_admin": false,
+        "roles": ["property_manager", "booking_manager"]
+    },
+    {
+        "name": "Jane Foe",
+        "email": "jane@example.com",
+        "password": "another-password-456",
+        "is_admin": false,
+        "roles": ["property_viewer"]
+    }
+]

@@ -33,6 +33,21 @@
                         <a href="{{ route('logout') }}" class="text-sm text-blue-600 hover:text-blue-800">
                             Logout
                         </a>
+                    @elseif(auth()->check())
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">
+                                {{ auth()->user()->name }}
+                            </span>
+                            @if(auth()->user()->isAdmin())
+                                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Admin</span>
+                            @endif
+                        </div>
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-sm text-blue-600 hover:text-blue-800">
+                                Logout
+                            </button>
+                        </form>
                     @endif
                     <span class="text-sm text-gray-500">
                         {{ now()->format('l, F j, Y') }}

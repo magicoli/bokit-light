@@ -64,13 +64,23 @@ class DashboardController extends Controller
         }
 
         // Load properties with their units and bookings
-        $properties = Property::with([
+        // Filter by user access if not admin
+        $query = Property::with([
             "units.bookings" => function ($query) use ($startDate, $endDate) {
                 $query
                     ->where("check_out", ">=", $startDate->format("Y-m-d"))
                     ->where("check_in", "<=", $endDate->format("Y-m-d"));
             },
-        ])->get();
+        ]);
+
+        // Filter properties for non-admin users
+        if (!auth()->user()->isAdmin()) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', auth()->id());
+            });
+        }
+
+        $properties = $query->get();
 
         return view("dashboard", [
             "view" => $view,
@@ -94,6 +104,11 @@ class DashboardController extends Controller
     public function booking($id)
     {
         $booking = \App\Models\Booking::with("unit.property")->findOrFail($id);
+
+        // Check if user has access to this booking's property
+        if (!auth()->user()->hasAccessTo($booking->unit->property)) {
+            abort(403, 'Access denied');
+        }
 
         return response()->json($booking);
 
