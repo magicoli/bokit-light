@@ -10,6 +10,29 @@ use Illuminate\Support\Facades\Log;
 
 class BookingSyncIcal
 {
+    use \App\Traits\BookingSyncTrait;
+
+    protected $sourceType = "ical";
+    protected $sourceId;
+    protected $sourceEventId;
+    protected $propertyId;
+
+    /**
+     * Get the control string for this sync event
+     * Implements the required method from BookingSyncInterface
+     *
+     * @return string Control string for this event
+     */
+    public function getControlString(): string
+    {
+        return self::calculateControlString(
+            $this->sourceType,
+            $this->sourceId,
+            $this->sourceEventId,
+            $this->propertyId,
+        );
+    }
+
     /**
      * Sync all iCal sources
      */
@@ -341,6 +364,20 @@ class BookingSyncIcal
         }
 
         return $stats;
+    }
+
+    /**
+     * Check if the given iCal source is the primary source for its unit
+     *
+     * @param IcalSource $source
+     * @return bool
+     */
+    protected function isPrimaryIcalSource(IcalSource $source): bool
+    {
+        // For now, consider all iCal sources as primary since we don't have API sources yet
+        // When API sources are added, this method should check if this is the first/primary source
+        // For example: return $source->is_primary || $source->id === $this->getPrimarySourceId($source->unit_id);
+        return true;
     }
 
     /**
