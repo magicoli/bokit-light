@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Middleware aliases
         $middleware->alias([
             "auth.wordpress" => \App\Http\Middleware\WordPressAuth::class,
+            "auth.laravel" => \App\Http\Middleware\LaravelAuth::class,
             "auth.none" => \App\Http\Middleware\NoAuth::class,
             "check.updates" => \App\Http\Middleware\CheckUpdates::class,
         ]);

@@ -28,10 +28,13 @@ $isInstalled = Options::get("install.complete", false);
 if ($isInstalled) {
     // Determine auth middleware based on options
     $authMethod = Options::get("auth.method", "none");
-    $authMiddleware =
-        $authMethod === "wordpress" ? "auth.wordpress" : "auth.none";
+    $authMiddleware = match($authMethod) {
+        "wordpress" => "auth.wordpress",
+        "laravel" => "auth.laravel",
+        default => "auth.none"
+    };
 
-    // Login/Logout routes (only for WordPress auth)
+    // Login/Logout routes
     if ($authMethod === "wordpress") {
         Route::post("/login", function () {
             // Handled by WordPressAuth middleware
@@ -40,6 +43,43 @@ if ($isInstalled) {
 
         Route::get("/logout", function () {
             session()->forget("wp_user");
+            return redirect("/");
+        })->name("logout");
+    } elseif ($authMethod === "laravel") {
+        Route::get("/login", function () {
+            return view("auth.login");
+        })->name("login");
+
+        Route::post("/login", function (\Illuminate\Http\Request $request) {
+            $credentials = $request->validate([
+                'username' => 'required|string',
+                'password' => 'required',
+            ]);
+
+            // Permet l'utilisation de username ou email
+            $loginField = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) 
+                ? 'email' 
+                : 'name';
+
+            $authCredentials = [
+                $loginField => $credentials['username'],
+                'password' => $credentials['password'],
+            ];
+
+            if (Auth::attempt($authCredentials)) {
+                $request->session()->regenerate();
+                return redirect()->intended('/');
+            }
+
+            return back()->withErrors([
+                'username' => 'The provided credentials do not match our records.',
+            ]);
+        });
+
+        Route::post("/logout", function () {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
             return redirect("/");
         })->name("logout");
     }
