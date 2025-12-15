@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Services\BookingMetadataParser;
 use Str;
@@ -335,6 +336,8 @@ class Booking extends Model
 
     /**
      * Get all source mappings associated with this booking
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function sourceMappings()
     {
@@ -369,7 +372,13 @@ class Booking extends Model
             $bookingData["check_out"] ?? null,
             $bookingData["unit_id"] ?? null,
         );
-
+        Log::debug("findOrCreateWithSourceMapping", [
+            "guest_name" => $bookingData["guest_name"] ?? "Unknown Guest",
+            "check_in" => $bookingData["check_in"] ?? null,
+            "check_out" => $bookingData["check_out"] ?? null,
+            "unit_id" => $bookingData["unit_id"] ?? null,
+            "result" => $result,
+        ]);
         $booking = $result["booking"];
         $matchType = $result["matchType"];
         $isNewBooking = false;
@@ -383,19 +392,10 @@ class Booking extends Model
             $isNewBooking = true;
         }
 
-        // Create or update source mapping
-        $mappingResult = SourceMapping::findOrCreateMapping(
-            $sourceType,
-            $sourceId,
-            $sourceEventId,
-            $propertyId,
-            $booking->id,
-        );
-
         return [
             "booking" => $booking,
             "isNew" => $isNewBooking,
-            "mapping" => $mappingResult["mapping"],
+            "mapping" => $result["mapping"],
             "matchType" => $matchType,
         ];
     }

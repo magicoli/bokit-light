@@ -18,89 +18,31 @@ class SourceMapping extends Model
     }
 
     /**
-     * Find booking by source identifiers with priority-based matching
+     * Find booking from event
+     * - using source control string if provided
+     * - or checkin, checkout and unit as fallback.
      *
-     * @param string $sourceType
-     * @param int $sourceId
-     * @param string $sourceEventId
-     * @param int $propertyId
-     * @param string|null $guestEmail
-     * @param string|null $checkIn
-     * @param string|null $checkOut
-     * @param int|null $unitId
-     * @return array ['booking' => Booking|null, 'mapping' => SourceMapping|null, 'matchType' => string]
+     * @param string $controlString
+     * @param array $eventData
+     * @return array [
+     *     'success' => bool,
+     *     'booking' => Booking|null,
+     *     'score' => float,
+     *     'error' => string|null,
+     * ]
      */
-    public static function findBookingWithPriority(
-        string $sourceType,
-        int $sourceId,
-        string $sourceEventId,
-        int $propertyId,
-        ?string $guestEmail = null,
-        ?string $checkIn = null,
-        ?string $checkOut = null,
-        ?int $unitId = null,
+    public static function findBookingFromEvent(
+        string $controlString,
+        array $eventData,
     ): array {
-        // Calculate the control value
-        $controlString = self::calculateControlString(
-            $sourceType,
-            $sourceId,
-            $sourceEventId,
-            $propertyId,
-        );
-
-        // Priority 1: Direct mapping via control string (most efficient)
-        $mapping = self::where("control_string", $controlString)->first();
-
-        if ($mapping && $mapping->booking) {
-            return [
-                "booking" => $mapping->booking,
-                "mapping" => $mapping,
-                "matchType" => "direct_control_match",
-            ];
-        }
-
-        // Priority 2: Same dates, same unit, same email - definite match
-        if ($guestEmail && $checkIn && $checkOut && $unitId) {
-            $booking = Booking::where("unit_id", $unitId)
-                ->where("check_in", $checkIn)
-                ->where("check_out", $checkOut)
-                ->where(function ($query) use ($guestEmail) {
-                    $query
-                        ->whereJsonContains("raw_data->email", $guestEmail)
-                        ->orWhere("notes", "like", "%" . $guestEmail . "%");
-                })
-                ->first();
-
-            if ($booking) {
-                return [
-                    "booking" => $booking,
-                    "mapping" => null,
-                    "matchType" => "date_unit_email_match",
-                ];
-            }
-        }
-
-        // Priority 3: Same dates, same unit, no email - probable match
-        if ($checkIn && $checkOut && $unitId) {
-            $booking = Booking::where("unit_id", $unitId)
-                ->where("check_in", $checkIn)
-                ->where("check_out", $checkOut)
-                ->first();
-
-            if ($booking) {
-                return [
-                    "booking" => $booking,
-                    "mapping" => null,
-                    "matchType" => "date_unit_match",
-                ];
-            }
-        }
-
         return [
+            "success" => false,
             "booking" => null,
-            "mapping" => null,
-            "matchType" => "no_match",
+            "score" => false,
+            "error" => "Not implemented",
         ];
+        // Implement logic to find booking from event data
+        // Return array ['booking' => Booking|null, 'mapping' => SourceMapping|null, 'matchType' => string]
     }
 
     /**
