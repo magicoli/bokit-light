@@ -55,10 +55,19 @@ class BookingSyncIcal
     {
         // Optional delay between requests (configurable via Options, default: 0)
         $delay = (int) Options::get("sync.request_delay", 0);
+        if (!is_numeric($delay)) {
+            Log::warning(
+                "BookingSyncIcal: sync request delay must be numeric",
+                [
+                    "provided" => $delay,
+                    "fallback" => 0,
+                ],
+            );
+        }
         if ($delay > 0) {
+            Log::debug("BookingSyncIcal: delaying request by {$delay} ms");
             usleep($delay * 1000); // Convert ms to microseconds
         }
-
         $seed = rand(1000, 9999);
         try {
             $seededUrl = url()->query($source->url, ["seed" => $seed]);
