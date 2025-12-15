@@ -57,35 +57,6 @@ trait BookingSyncTrait
     }
 
     /**
-     * Find or create a source mapping for this sync event
-     *
-     * @param int $bookingId Booking ID to map to
-     * @return array ['mapping' => SourceMapping, 'isNew' => bool]
-     */
-    protected function findOrCreateSourceMapping(int $bookingId): array
-    {
-        $controlString = $this->getControlString();
-
-        // Try to find existing mapping
-        $mapping = \App\Models\SourceMapping::where(
-            "control_string",
-            $controlString,
-        )->first();
-
-        if ($mapping) {
-            return ["mapping" => $mapping, "isNew" => false];
-        }
-
-        // Create new mapping
-        $mapping = \App\Models\SourceMapping::create([
-            "booking_id" => $bookingId,
-            "control_string" => $controlString,
-        ]);
-
-        return ["mapping" => $mapping, "isNew" => true];
-    }
-
-    /**
      * Find booking by control string with priority-based matching
      *
      * @return array ['booking' => Booking|null, 'mapping' => SourceMapping|null, 'matchType' => string]
