@@ -72,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
             if (!empty($dir) && !is_dir($dir)) {
                 try {
                     mkdir($dir, 0755, true);
-                    Log::notice("Created missing directory: {$dir}");
+                    Log::notice("Created directory {$dir}");
                 } catch (\Exception $e) {
                     Log::error(
                         "Failed to create directory {$dir}: {$e->getMessage()}",
@@ -92,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
                 try {
                     touch($file);
                     chmod($file, 0644);
-                    Log::notice("Created missing file: {$file}");
+                    Log::notice("Created file {$file}");
                 } catch (\Exception $e) {
                     Log::error(
                         "Failed to create file {$file}: {$e->getMessage()}",

@@ -3,7 +3,7 @@
 set -e
 
 # Ensure database directory exists
-mkdir -p storage/database/default
+mkdir -p storage/database
 
 # 1. Reset complet de la base
 php artisan migrate:fresh
