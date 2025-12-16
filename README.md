@@ -1,4 +1,6 @@
-# BOKIT: Bring On Kitsch. Island Time.
+# BOKIT - Booking Orchestration Kit
+
+**Bring On Kitsch Island Time.**
 
 Indie‑grade scheduling for serious sunshine.
 
