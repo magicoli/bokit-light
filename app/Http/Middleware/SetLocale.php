@@ -23,6 +23,7 @@ class SetLocale
             $locale = $request->session()->get('locale');
             if (in_array($locale, $this->supportedLocales)) {
                 app()->setLocale($locale);
+                \Carbon\Carbon::setLocale($locale);
                 return $next($request);
             }
         }
@@ -31,11 +32,13 @@ class SetLocale
         $browserLocale = $this->detectBrowserLocale($request);
         if ($browserLocale) {
             app()->setLocale($browserLocale);
+            \Carbon\Carbon::setLocale($browserLocale);
             return $next($request);
         }
 
         // 3. Fall back to default locale (en)
         app()->setLocale(config('app.locale'));
+        \Carbon\Carbon::setLocale(config('app.locale'));
         return $next($request);
     }
 

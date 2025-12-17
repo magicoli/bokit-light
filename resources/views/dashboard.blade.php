@@ -405,6 +405,7 @@ function calendar() {
     return {
         selectedBooking: null,
         baseUrl: '{{ url('/') }}',
+        locale: '{{ app()->getLocale() }}',
 
         async showBooking(bookingId) {
             try {
@@ -420,10 +421,10 @@ function calendar() {
             const parts = dateString.split(/[T ]/);
             const [year, month, day] = parts[0].split('-');
             const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            return date.toLocaleDateString('en-US', {
-                weekday: 'short',
+            // Use short numeric format: 12/17/2025 (en-US) or 17/12/2025 (fr-FR)
+            return date.toLocaleDateString(this.locale, {
                 year: 'numeric',
-                month: 'short',
+                month: 'numeric',
                 day: 'numeric'
             });
         },
