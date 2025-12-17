@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\UpdateController;
+use App\Http\Controllers\UserController;
 use App\Support\Options;
 use Illuminate\Support\Facades\Route;
 
@@ -104,6 +106,16 @@ if ($isInstalled) {
             DashboardController::class,
             "booking",
         ])->name("booking.show");
+        
+        // User settings
+        Route::get("/settings", [UserController::class, "settings"])->name(
+            "user.settings",
+        );
+        
+        // Admin settings (TODO: add admin-only middleware)
+        Route::get("/admin/settings", [AdminController::class, "settings"])->name(
+            "admin.settings",
+        );
     });
 } else {
     // If not installed, redirect everything to install
