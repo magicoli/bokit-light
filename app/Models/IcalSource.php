@@ -10,11 +10,12 @@ class IcalSource extends Model
     protected $fillable = [
         "unit_id",
         "name",
+        "type",
         "url",
         "sync_enabled",
         "last_synced_at",
         "last_sync_status",
-        "last_sync_error",
+        "last_error",
     ];
 
     protected $casts = [
@@ -46,7 +47,7 @@ class IcalSource extends Model
         $this->update([
             "last_synced_at" => now(),
             "last_sync_status" => "success",
-            "last_sync_error" => null,
+            "last_error" => null,
         ]);
     }
 
@@ -58,7 +59,7 @@ class IcalSource extends Model
         $this->update([
             "last_synced_at" => now(),
             "last_sync_status" => "error",
-            "last_sync_error" => $error,
+            "last_error" => $error,
         ]);
     }
 

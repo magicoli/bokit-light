@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Support\Options;
@@ -111,6 +112,14 @@ if ($isInstalled) {
         // Properties
         Route::get("/properties", [PropertyController::class, "index"])->name(
             "properties.index",
+        );
+        
+        // Units
+        Route::get("/units/{unit}/edit", [UnitController::class, "edit"])->name(
+            "units.edit",
+        );
+        Route::put("/units/{unit}", [UnitController::class, "update"])->name(
+            "units.update",
         );
         
         // User settings
