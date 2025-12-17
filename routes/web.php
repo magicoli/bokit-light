@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\UpdateController;
+use App\Http\Controllers\WelcomeController;
 use App\Support\Options;
 use Illuminate\Support\Facades\Route;
 
@@ -84,9 +85,21 @@ if ($isInstalled) {
         })->name("logout");
     }
 
+    // Welcome page (public, no auth required)
+    Route::get("/welcome", [WelcomeController::class, "index"])->name(
+        "welcome",
+    );
+
+    // Root route - redirects based on authentication
+    Route::get("/", function () {
+        return auth()->check() 
+            ? redirect()->route("dashboard")
+            : redirect()->route("welcome");
+    })->name("root");
+
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
-        Route::get("/", [DashboardController::class, "index"])->name(
+        Route::get("/dashboard", [DashboardController::class, "index"])->name(
             "dashboard",
         );
         Route::get("/booking/{id}", [

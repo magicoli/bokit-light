@@ -19,7 +19,7 @@
     <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center space-x-3">
+                <a href="{{ route('root') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
                     <h1 class="text-2xl font-bold text-gray-900">
                         🏖️ Bokit
                     </h1>
@@ -28,7 +28,7 @@
                             LOCAL
                         </span>
                     @endif
-                </div>
+                </a>
                 
                 <div class="flex items-center space-x-4">
                     @if(session()->has('wp_user'))
