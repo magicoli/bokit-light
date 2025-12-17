@@ -34,10 +34,10 @@ $isInstalled = Options::get("install.complete", false);
 if ($isInstalled) {
     // Determine auth middleware based on options
     $authMethod = Options::get("auth.method", "none");
-    $authMiddleware = match($authMethod) {
+    $authMiddleware = match ($authMethod) {
         "wordpress" => "auth.wordpress",
         "laravel" => "auth.laravel",
-        default => "auth.none"
+        default => "auth.none",
     };
 
     // Login/Logout routes
@@ -58,27 +58,31 @@ if ($isInstalled) {
 
         Route::post("/login", function (\Illuminate\Http\Request $request) {
             $credentials = $request->validate([
-                'username' => 'required|string',
-                'password' => 'required',
+                "username" => "required|string",
+                "password" => "required",
             ]);
 
             // Permet l'utilisation de username ou email
-            $loginField = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) 
-                ? 'email' 
-                : 'name';
+            $loginField = filter_var(
+                $credentials["username"],
+                FILTER_VALIDATE_EMAIL,
+            )
+                ? "email"
+                : "name";
 
             $authCredentials = [
-                $loginField => $credentials['username'],
-                'password' => $credentials['password'],
+                $loginField => $credentials["username"],
+                "password" => $credentials["password"],
             ];
 
             if (Auth::attempt($authCredentials)) {
                 $request->session()->regenerate();
-                return redirect()->intended('/dashboard');
+                return redirect()->intended("/dashboard");
             }
 
             return back()->withErrors([
-                'username' => 'The provided credentials do not match our records.',
+                "username" =>
+                    "The provided credentials do not match our records.",
             ]);
         });
 
@@ -99,6 +103,12 @@ if ($isInstalled) {
         "locale.change",
     );
 
+    // Public unit page (no auth required) - must be before auth routes
+    Route::get("/{property:slug}/{unit:slug}", [
+        UnitController::class,
+        "show",
+    ])->name("units.show");
+
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
         Route::get("/dashboard", [DashboardController::class, "index"])->name(
@@ -108,29 +118,38 @@ if ($isInstalled) {
             DashboardController::class,
             "booking",
         ])->name("booking.show");
-        
-        // Properties
+
+        // Properties list
         Route::get("/properties", [PropertyController::class, "index"])->name(
             "properties.index",
         );
-        
-        // Units
-        Route::get("/units/{unit}/edit", [UnitController::class, "edit"])->name(
-            "units.edit",
-        );
-        Route::put("/units/{unit}", [UnitController::class, "update"])->name(
-            "units.update",
-        );
-        
+
         // User settings
         Route::get("/settings", [UserController::class, "settings"])->name(
             "user.settings",
         );
-        
+
         // Admin settings (TODO: add admin-only middleware)
-        Route::get("/admin/settings", [AdminController::class, "settings"])->name(
-            "admin.settings",
-        );
+        Route::get("/admin/settings", [
+            AdminController::class,
+            "settings",
+        ])->name("admin.settings");
+
+        // Units (edit/update - must be before property show to avoid conflicts)
+        Route::get("/{property:slug}/{unit:slug}/edit", [
+            UnitController::class,
+            "edit",
+        ])->name("units.edit");
+        Route::put("/{property:slug}/{unit:slug}", [
+            UnitController::class,
+            "update",
+        ])->name("units.update");
+
+        // Property calendar (last, acts as catch-all for property slugs)
+        Route::get("/{property:slug}", [
+            PropertyController::class,
+            "show",
+        ])->name("property.show");
     });
 } else {
     // If not installed, redirect everything to install
