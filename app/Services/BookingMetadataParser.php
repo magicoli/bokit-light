@@ -116,13 +116,13 @@ class BookingMetadataParser
     {
         $status = strtolower($status ?? "");
         $colors = [
-            "cancelled" => "#88888880", // Gray 50%
-            "vanished" => "#88888880", // Gray 50%
+            "cancelled" => "#88888840", // Gray 50%
+            "vanished" => "#88888840", // Gray 50%
             "inquiry" => "#f59e0b80", // Orange 50%
-            "request" => "#f59e0b", // Orange - booking requests
+            "request" => "#f59e0bc0", // Orange - booking requests
             "new" => "#3b82f6", // Blue - new/pending bookings
             "confirmed" => "#10b981", // Green - confirmed bookings
-            "blocked" => "#00000080", // Black 50%
+            "blocked" => "#000000c0", // Black 50%
             "unavailable" => "#00000080", // Black 50%
         ];
 
