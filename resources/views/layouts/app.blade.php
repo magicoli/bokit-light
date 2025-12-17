@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +36,7 @@
                             {{ session('wp_user')['name'] }}
                         </span>
                         <a href="{{ route('logout') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                            Logout
+                            {{ __('app.logout') }}
                         </a>
                     @elseif(auth()->check())
                         <div class="flex items-center space-x-2">
@@ -44,16 +44,29 @@
                                 {{ auth()->user()->name }}
                             </span>
                             @if(auth()->user()->isAdmin())
-                                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Admin</span>
+                                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">{{ __('app.admin') }}</span>
                             @endif
                         </div>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
                             <button type="submit" class="text-sm text-blue-600 hover:text-blue-800">
-                                Logout
+                                {{ __('app.logout') }}
                             </button>
                         </form>
                     @endif
+                    
+                    <!-- Language switcher -->
+                    <div class="flex items-center space-x-1 border-l border-gray-300 pl-4">
+                        <a href="{{ route('locale.change', 'en') }}" 
+                           class="text-xs px-2 py-1 rounded {{ app()->getLocale() === 'en' ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
+                            EN
+                        </a>
+                        <a href="{{ route('locale.change', 'fr') }}" 
+                           class="text-xs px-2 py-1 rounded {{ app()->getLocale() === 'fr' ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
+                            FR
+                        </a>
+                    </div>
+                    
                     <span class="text-sm text-gray-500">
                         {{ now()->format('l, F j, Y') }}
                     </span>

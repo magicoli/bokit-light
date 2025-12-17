@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global middleware - always check if installed first
         $middleware->web(append: [
             \App\Http\Middleware\CheckInstalled::class,
+            \App\Http\Middleware\SetLocale::class,
         ]);
 
         // Middleware aliases
