@@ -68,7 +68,7 @@
                     </div>
                     
                     <span class="text-sm text-gray-500">
-                        {{ now()->format('l, F j, Y') }}
+                        {{ now()->isoFormat('dddd LL') }}
                     </span>
                 </div>
             </div>
