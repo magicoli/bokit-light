@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\UpdateController;
@@ -84,9 +85,13 @@ if ($isInstalled) {
         })->name("logout");
     }
 
+    // Home / About page (public, no auth required)
+    Route::get("/", [AboutController::class, "index"])->name("home");
+    Route::get("/about", [AboutController::class, "index"])->name("about");
+
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
-        Route::get("/", [DashboardController::class, "index"])->name(
+        Route::get("/dashboard", [DashboardController::class, "index"])->name(
             "dashboard",
         );
         Route::get("/booking/{id}", [
