@@ -8,7 +8,7 @@
         <h1 class="text-3xl font-bold text-gray-900">{{ __('app.properties') }}</h1>
         <p class="text-gray-600 mt-2">Manage your rental properties and units</p>
     </div>
-    
+
     @if($properties->isEmpty())
         <div class="bg-white rounded-lg shadow-sm p-8 text-center">
             <p class="text-gray-500">No properties configured yet</p>
@@ -20,20 +20,30 @@
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">
                         {{ $property->name }}
                     </h2>
-                    
+
                     @if($property->units->isEmpty())
                         <p class="text-sm text-gray-500">No units in this property</p>
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($property->units as $unit)
-                                <a href="{{ route('units.edit', [$property, $unit]) }}" 
+                                <a href="{{ route('units.show', [$property, $unit]) }}"
                                    class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer">
-                                    <h3 class="font-medium text-gray-900">{{ $unit->name }}</h3>
+                                    <div class="flex items-baseline gap-3">
+                                        <h3 class="font-medium text-gray-900">{{ $unit->name }}</h3>
+                                        @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
+                                        <span class="text-sm text-gray-500 unit-actions">
+                                            {{ __('app.view') }}
+                                            {{ __('app.edit') }}
+                                        </span>
+                                        @endif
+                                    </div>
+                                    @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
+                                    <p>
+                                        {{ $unit->description }}
+                                    </p>
+                                    @endif
                                     <p class="text-sm text-gray-500 mt-1">
                                         {{ $unit->icalSources->count() }} calendar source(s)
-                                    </p>
-                                    <p class="text-xs text-blue-600 mt-2">
-                                        Edit unit →
                                     </p>
                                 </a>
                             @endforeach
