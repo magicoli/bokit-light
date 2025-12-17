@@ -29,6 +29,10 @@ return [
     "edit" => "Modifier",
     "view" => "Voir",
     "calendar" => "Calendrier",
+    "view_calendar" => "Voir le calendrier",
+    "edit_property" => "Modifier la propriété",
+    "calendar_sources" => "source(s) de calendrier",
+    "no_units_in_property" => "Aucune unité dans cette propriété",
 
     // Common
     "loading" => "Chargement...",
