@@ -2,33 +2,36 @@
 
 return [
     // Navigation
-    'logout' => 'Logout',
-    'login' => 'Login',
-    'admin' => 'Admin',
-    'admin_settings' => 'Admin Settings',
-    'user_settings' => 'My Settings',
-    'properties' => 'Properties',
-    
+    "logout" => "Logout",
+    "login" => "Login",
+    "admin" => "Admin",
+    "admin_settings" => "Admin Settings",
+    "user_settings" => "My Settings",
+    "properties" => "Properties",
+
     // Dashboard
-    'dashboard' => 'Dashboard',
-    'booking' => 'Booking',
-    
+    "dashboard" => "Dashboard",
+    "booking" => "Booking",
+
     // About page
-    'about' => 'About',
-    'go_to_dashboard' => 'Go to Dashboard',
-    
+    "about" => "About",
+    "go_to_dashboard" => "Go to Dashboard",
+
     // Time
-    'today' => 'Today',
-    
+    "today" => "Today",
+
     // Units
-    'unit' => 'Unit',
-    'property' => 'Property',
-    'website' => 'Website',
-    'description' => 'Description',
-    'edit_unit' => 'Edit Unit',
-    
+    "unit" => "Unit",
+    "property" => "Property",
+    "website" => "Website",
+    "description" => "Description",
+    "edit_unit" => "Edit Unit",
+    "edit" => "Edit",
+    "view" => "View",
+    "calendar" => "Calendar",
+
     // Common
-    'loading' => 'Loading...',
-    'error' => 'Error',
-    'success' => 'Success',
+    "loading" => "Loading...",
+    "error" => "Error",
+    "success" => "Success",
 ];
