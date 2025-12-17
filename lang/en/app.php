@@ -3,9 +3,11 @@
 return [
     // Navigation
     'logout' => 'Logout',
+    'login' => 'Login',
     'admin' => 'Admin',
     'admin_settings' => 'Admin Settings',
     'user_settings' => 'My Settings',
+    'properties' => 'Properties',
     
     // Dashboard
     'dashboard' => 'Dashboard',

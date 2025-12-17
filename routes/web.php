@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Support\Options;
@@ -106,6 +107,11 @@ if ($isInstalled) {
             DashboardController::class,
             "booking",
         ])->name("booking.show");
+        
+        // Properties
+        Route::get("/properties", [PropertyController::class, "index"])->name(
+            "properties.index",
+        );
         
         // User settings
         Route::get("/settings", [UserController::class, "settings"])->name(
