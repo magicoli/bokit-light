@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Welcome to Bokit')
+@section('title', 'About Bokit')
 
 @section('content')
 <div class="max-w-4xl mx-auto">
