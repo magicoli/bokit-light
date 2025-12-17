@@ -19,10 +19,15 @@
     <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
+                <div class="flex items-center space-x-3">
                     <h1 class="text-2xl font-bold text-gray-900">
                         🏖️ Bokit
                     </h1>
+                    @if(app()->environment('local'))
+                        <span class="text-xs font-semibold bg-yellow-400 text-yellow-900 px-2 py-1 rounded">
+                            LOCAL
+                        </span>
+                    @endif
                 </div>
                 
                 <div class="flex items-center space-x-4">
