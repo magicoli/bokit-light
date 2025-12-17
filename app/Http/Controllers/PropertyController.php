@@ -27,4 +27,25 @@ class PropertyController extends Controller
             'properties' => $properties,
         ]);
     }
+    
+    /**
+     * Show single property calendar
+     */
+    public function show(Property $property)
+    {
+        // Check access: admin or user has access to the property
+        if (!auth()->user()->isAdmin()) {
+            $hasAccess = $property->users()
+                ->where('users.id', auth()->id())
+                ->exists();
+            
+            if (!$hasAccess) {
+                abort(403, 'You do not have access to this property.');
+            }
+        }
+        
+        // For now, redirect to dashboard with property filter
+        // TODO: Create dedicated property view with tabs (calendar/edit)
+        return redirect()->route('dashboard', ['property' => $property->slug]);
+    }
 }
