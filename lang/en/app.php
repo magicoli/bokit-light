@@ -29,6 +29,10 @@ return [
     "edit" => "Edit",
     "view" => "View",
     "calendar" => "Calendar",
+    "view_calendar" => "View Calendar",
+    "edit_property" => "Edit Property",
+    "calendar_sources" => "calendar source(s)",
+    "no_units_in_property" => "No units in this property",
 
     // Common
     "loading" => "Loading...",

@@ -103,12 +103,6 @@ if ($isInstalled) {
         "locale.change",
     );
 
-    // Public unit page (no auth required) - must be before auth routes
-    Route::get("/{property:slug}/{unit:slug}", [
-        UnitController::class,
-        "show",
-    ])->name("units.show");
-
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
         Route::get("/dashboard", [DashboardController::class, "index"])->name(
@@ -119,7 +113,7 @@ if ($isInstalled) {
             "booking",
         ])->name("booking.show");
 
-        // Properties list
+        // Properties list (specific route, must be before catch-all)
         Route::get("/properties", [PropertyController::class, "index"])->name(
             "properties.index",
         );
@@ -135,7 +129,7 @@ if ($isInstalled) {
             "settings",
         ])->name("admin.settings");
 
-        // Units (edit/update - must be before property show to avoid conflicts)
+        // Units (edit/update)
         Route::get("/{property:slug}/{unit:slug}/edit", [
             UnitController::class,
             "edit",
@@ -144,13 +138,18 @@ if ($isInstalled) {
             UnitController::class,
             "update",
         ])->name("units.update");
-
-        // Property calendar (last, acts as catch-all for property slugs)
-        Route::get("/{property:slug}", [
-            PropertyController::class,
-            "show",
-        ])->name("property.show");
     });
+    
+    // Public pages (no auth required - MUST be last as they are catch-all routes)
+    Route::get("/{property:slug}/{unit:slug}", [
+        UnitController::class,
+        "show",
+    ])->name("units.show");
+    
+    Route::get("/{property:slug}", [
+        PropertyController::class,
+        "show",
+    ])->name("property.show");
 } else {
     // If not installed, redirect everything to install
     Route::get("/{any}", function () {
