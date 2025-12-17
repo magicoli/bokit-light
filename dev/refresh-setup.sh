@@ -15,7 +15,8 @@ php artisan bokit:import-config
 php artisan bokit:sync
 
 # Cleanup: Remove old database location (only if it exists)
-if [ -f "database/database.sqlite" ]; then
-    echo "Removing old database location: database/database.sqlite"
-    rm database/database.sqlite
+if [ -f "database/default/database.sqlite" ]; then
+    echo "Removing old database location: database/default/database.sqlite"
+    rm database/default/database.sqlite
+    rmdir database/default
 fi

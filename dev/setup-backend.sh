@@ -30,15 +30,15 @@ rm .env.bak
 # 4. Ajouter la ligne DB_DATABASE après DB_CONNECTION
 if ! grep -q "DB_DATABASE=" .env; then
     sed -i.bak "/^DB_CONNECTION=sqlite/a\\
-DB_DATABASE=$(pwd)/database/database.sqlite
+DB_DATABASE=$(pwd)/database/default.sqlite
 " .env
     rm .env.bak
 fi
 
 # 5. Créer la base SQLite
-if [ ! -f database/database.sqlite ]; then
-    echo "💾 Création de database.sqlite..."
-    touch database/database.sqlite
+if [ ! -f database/default.sqlite ]; then
+    echo "💾 Création de default.sqlite..."
+    touch database/default.sqlite
 fi
 
 # 6. Générer la clé d'application si nécessaire
