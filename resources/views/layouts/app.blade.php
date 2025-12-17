@@ -39,20 +39,54 @@
                             {{ __('app.logout') }}
                         </a>
                     @elseif(auth()->check())
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-600">
-                                {{ auth()->user()->name }}
-                            </span>
-                            @if(auth()->user()->isAdmin())
-                                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">{{ __('app.admin') }}</span>
-                            @endif
-                        </div>
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" class="text-sm text-blue-600 hover:text-blue-800">
-                                {{ __('app.logout') }}
+                        <!-- Admin menu (visible only for admins) -->
+                        @if(auth()->user()->isAdmin())
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" 
+                                        @click.away="open = false"
+                                        class="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
+                                    <span class="px-2 py-1 rounded bg-red-100 text-red-800 font-semibold">{{ __('app.admin') }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div x-show="open" 
+                                     x-cloak
+                                     class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                                    <a href="{{ route('admin.settings') }}" 
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        {{ __('app.admin_settings') }}
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+                        
+                        <!-- User menu -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" 
+                                    @click.away="open = false"
+                                    class="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
+                                <span>{{ auth()->user()->name }}</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
                             </button>
-                        </form>
+                            <div x-show="open" 
+                                 x-cloak
+                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                                <a href="{{ route('user.settings') }}" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    {{ __('app.user_settings') }}
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        {{ __('app.logout') }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     @endif
                     
                     <!-- Language switcher -->

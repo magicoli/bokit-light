@@ -4,6 +4,8 @@ return [
     // Navigation
     'logout' => 'Déconnexion',
     'admin' => 'Admin',
+    'admin_settings' => 'Paramètres admin',
+    'user_settings' => 'Mes paramètres',
     
     // Dashboard
     'dashboard' => 'Tableau de bord',
