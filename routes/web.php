@@ -40,7 +40,7 @@ if ($isInstalled) {
     if ($authMethod === "wordpress") {
         Route::post("/login", function () {
             // Handled by WordPressAuth middleware
-            return redirect("/");
+            return redirect("/dashboard");
         })->middleware($authMiddleware);
 
         Route::get("/logout", function () {
@@ -70,7 +70,7 @@ if ($isInstalled) {
 
             if (Auth::attempt($authCredentials)) {
                 $request->session()->regenerate();
-                return redirect()->intended('/');
+                return redirect()->intended('/dashboard');
             }
 
             return back()->withErrors([
