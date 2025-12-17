@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="mb-6">
         <div class="flex items-baseline gap-3">
-            <span class="text-2xl text-gray-500">{{ $unit->property->name }}  /</span>
+            <span class="text-3xl">{{ $unit->property->name }}  /</span>
             <h1 class="text-3xl font-bold text-gray-900">{{ $unit->name }}</h1>
         </div>
     </div>
@@ -15,10 +15,14 @@
     <!-- Placeholder Content -->
     <div class="bg-white rounded-lg shadow-sm p-8 text-center">
        <div class="text-left">
-            <ul class="text-sm text-blue-800 space-y-1">
-                <li><strong>Property:</strong> {{ $unit->property->name }}</li>
-                <li><strong>Website:</strong> <a href="{{ $unit->property->settings['url'] ?? '' }}" class="text-blue-600 hover:underline" target="_blank">{{ $unit->property->settings['url'] ?? '' }}</a></li>
-                <li><strong>Description:</strong> {{ $unit->description }}</li>
+            <p>{{ $unit->description }}</p>
+            <p class="text-gray-500 border-t border-gray-200 pt-2 mt-4">
+                @if(!empty($unit->property->settings['url']))
+                Go to property website: <a class="text-blue-600 hover:underline" href="{{ $unit->property->settings['url'] }}" target="_blank">{{ $unit->property->name }}</a>
+                @else
+                {{ $unit->property->name }}
+                @endif
+            </p>
             </ul>
         </div>
 
