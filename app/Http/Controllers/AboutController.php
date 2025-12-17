@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
-class WelcomeController extends Controller
+class AboutController extends Controller
 {
     public function index()
     {
@@ -16,7 +15,7 @@ class WelcomeController extends Controller
 
 This is a Laravel-based calendar management application for vacation rental properties.';
 
-        return view('welcome', [
+        return view('about', [
             'readme' => $readmeContent,
         ]);
     }
