@@ -4,6 +4,8 @@ return [
     // Navigation
     'logout' => 'Logout',
     'admin' => 'Admin',
+    'admin_settings' => 'Admin Settings',
+    'user_settings' => 'My Settings',
     
     // Dashboard
     'dashboard' => 'Dashboard',
