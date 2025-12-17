@@ -18,9 +18,9 @@
             <p>{{ $unit->description }}</p>
             <p class="text-gray-500 border-t border-gray-200 pt-2 mt-4">
                 @if(!empty($unit->property->settings['url']))
-                Go to property website: <a class="text-blue-600 hover:underline" href="{{ $unit->property->settings['url'] }}" target="_blank">{{ $unit->property->name }}</a>
+                {{ __('app.website') }}: <a class="text-blue-600 hover:underline" href="{{ $unit->property->settings['url'] }}" target="_blank">{{ $unit->property->name }}</a>
                 @else
-                {{ $unit->property->name }}
+                {{ __('app.property') }}: {{ $unit->property->name }}
                 @endif
             </p>
             </ul>
@@ -33,7 +33,7 @@
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit Unit
+                {{ __('app.edit_unit') }}
             </a>
         </div>
         @endif

@@ -20,6 +20,13 @@ return [
     // Time
     'today' => 'Today',
     
+    // Units
+    'unit' => 'Unit',
+    'property' => 'Property',
+    'website' => 'Website',
+    'description' => 'Description',
+    'edit_unit' => 'Edit Unit',
+    
     // Common
     'loading' => 'Loading...',
     'error' => 'Error',
