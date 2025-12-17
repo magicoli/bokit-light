@@ -3,6 +3,7 @@
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\UpdateController;
 use App\Support\Options;
 use Illuminate\Support\Facades\Route;
@@ -88,6 +89,11 @@ if ($isInstalled) {
     // Home / About page (public, no auth required)
     Route::get("/", [AboutController::class, "index"])->name("home");
     Route::get("/about", [AboutController::class, "index"])->name("about");
+
+    // Locale switcher (public)
+    Route::get("/locale/{locale}", [LocaleController::class, "change"])->name(
+        "locale.change",
+    );
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
