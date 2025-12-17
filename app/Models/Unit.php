@@ -10,6 +10,7 @@ class Unit extends Model
         "property_id",
         "slug",
         "name",
+        "description",
         "is_active",
         "settings",
     ];

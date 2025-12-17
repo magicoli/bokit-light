@@ -26,7 +26,7 @@
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($property->units as $unit)
-                                <a href="{{ route('units.edit', $unit) }}" 
+                                <a href="{{ route('units.edit', [$property, $unit]) }}" 
                                    class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer">
                                     <h3 class="font-medium text-gray-900">{{ $unit->name }}</h3>
                                     <p class="text-sm text-gray-500 mt-1">
