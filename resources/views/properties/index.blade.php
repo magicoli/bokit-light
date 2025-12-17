@@ -26,26 +26,35 @@
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($property->units as $unit)
-                                <a href="{{ route('units.show', [$property, $unit]) }}"
-                                   class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer">
-                                    <div class="flex items-baseline gap-3">
-                                        <h3 class="font-medium text-gray-900">{{ $unit->name }}</h3>
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all">
+                                    <div class="flex items-baseline justify-between gap-3 mb-2">
+                                        <a href="{{ route('units.show', [$property, $unit]) }}" 
+                                           class="font-medium text-gray-900 hover:text-blue-600">
+                                            {{ $unit->name }}
+                                        </a>
                                         @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
-                                        <span class="text-sm text-gray-500 unit-actions">
-                                            {{ __('app.view') }}
-                                            {{ __('app.edit') }}
-                                        </span>
+                                        <div class="flex gap-2 text-xs">
+                                            <a href="{{ route('units.show', [$property, $unit]) }}" 
+                                               class="text-blue-600 hover:text-blue-800">
+                                                {{ __('app.view') }}
+                                            </a>
+                                            <span class="text-gray-300">|</span>
+                                            <a href="{{ route('units.edit', [$property, $unit]) }}" 
+                                               class="text-blue-600 hover:text-blue-800">
+                                                {{ __('app.edit') }}
+                                            </a>
+                                        </div>
                                         @endif
                                     </div>
-                                    @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
-                                    <p>
+                                    @if($unit->description)
+                                    <p class="text-sm text-gray-600 mb-2">
                                         {{ $unit->description }}
                                     </p>
                                     @endif
-                                    <p class="text-sm text-gray-500 mt-1">
+                                    <p class="text-sm text-gray-500">
                                         {{ $unit->icalSources->count() }} calendar source(s)
                                     </p>
-                                </a>
+                                </div>
                             @endforeach
                         </div>
                     @endif
