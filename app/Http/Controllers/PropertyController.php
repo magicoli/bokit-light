@@ -29,23 +29,16 @@ class PropertyController extends Controller
     }
     
     /**
-     * Show single property calendar
+     * Show single property (public page)
      */
     public function show(Property $property)
     {
-        // Check access: admin or user has access to the property
-        if (!auth()->user()->isAdmin()) {
-            $hasAccess = $property->users()
-                ->where('users.id', auth()->id())
-                ->exists();
-            
-            if (!$hasAccess) {
-                abort(403, 'You do not have access to this property.');
-            }
-        }
+        // Public page - no auth required
+        // Load units with their sources for authorized users
+        $property->load('units.icalSources');
         
-        // For now, redirect to dashboard with property filter
-        // TODO: Create dedicated property view with tabs (calendar/edit)
-        return redirect()->route('dashboard', ['property' => $property->slug]);
+        return view('properties.show', [
+            'property' => $property,
+        ]);
     }
 }
