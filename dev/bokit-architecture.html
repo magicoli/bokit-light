@@ -878,7 +878,7 @@
                         ├── database/ │ ├── migrations/ │ │ ├──
                         2024_xx_create_properties_table.php │ │ ├──
                         2024_xx_create_ical_sources_table.php │ │ └──
-                        2024_xx_create_bookings_table.php │ └── database.sqlite
+                        2024_xx_create_bookings_table.php │ └── default.sqlite
                         <span class="comment">// Base SQLite</span> ├──
                         resources/ │ └── views/ │ ├── layouts/ │ │ └──
                         app.blade.php
@@ -1172,7 +1172,7 @@
                         APP_NAME=Bokit APP_ENV=local APP_KEY=base64:...
                         APP_DEBUG=<span class="keyword">true</span>
                         APP_URL=http://bokit.local DB_CONNECTION=sqlite
-                        DB_DATABASE=/absolute/path/to/database/database.sqlite
+                        DB_DATABASE=/absolute/path/to/database/default.sqlite
 
                         <span class="comment"
                             ># Auth simple (à renforcer en prod)</span

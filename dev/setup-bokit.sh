@@ -20,15 +20,15 @@ if ! grep -q "APP_KEY=base64:" .env; then
 fi
 
 # 4. Créer la base SQLite si elle n'existe pas
-if [ ! -f database/database.sqlite ]; then
+if [ ! -f database/default.sqlite ]; then
     echo "💾 Création de la base de données SQLite..."
-    touch database/database.sqlite
+    touch database/default.sqlite
 fi
 
 # 5. Configuration de l'environnement pour SQLite
 echo "⚙️  Configuration de SQLite dans .env..."
 sed -i.bak 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-sed -i.bak 's|DB_DATABASE=.*|DB_DATABASE='$(pwd)'/database/database.sqlite|' .env
+sed -i.bak 's|DB_DATABASE=.*|DB_DATABASE='$(pwd)'/database/default.sqlite|' .env
 rm .env.bak
 
 echo "✅ Configuration terminée!"
