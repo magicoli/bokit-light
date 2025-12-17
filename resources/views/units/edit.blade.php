@@ -5,13 +5,13 @@
 @section('content')
 <div class="max-w-4xl mx-auto">
     <!-- Header -->
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <a href="{{ route('properties.index') }}" class="text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block">
-                ← Back to Properties
-            </a>
-            <h1 class="text-3xl font-bold text-gray-900">Edit Unit</h1>
-            <p class="text-gray-600 mt-1">{{ $unit->property->name }} / {{ $unit->name }}</p>
+    <div class="mb-6">
+        <a href="{{ route('properties.index') }}" class="text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block">
+            ← Back to Properties
+        </a>
+        <div class="flex items-baseline gap-3">
+            <h1 class="text-3xl font-bold text-gray-900">{{ $unit->property->name }} / {{ $unit->name }}</h1>
+            <span class="text-sm text-gray-500">Edit Unit</span>
         </div>
     </div>
 
@@ -24,7 +24,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('units.update', $unit) }}" class="bg-white rounded-lg shadow-sm p-6 space-y-6" x-data="unitForm()">
+    <form method="POST" action="{{ route('units.update', [$unit->property, $unit]) }}" class="bg-white rounded-lg shadow-sm p-6 space-y-6" x-data="unitForm()">
         @csrf
         @method('PUT')
 

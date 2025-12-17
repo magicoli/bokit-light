@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Property;
 use App\Models\Unit;
 use App\Models\IcalSource;
 use Illuminate\Http\Request;
@@ -9,10 +10,32 @@ use Illuminate\Http\Request;
 class UnitController extends Controller
 {
     /**
+     * Show the public unit page (placeholder)
+     */
+    public function show(Property $property, Unit $unit)
+    {
+        // Verify unit belongs to property
+        if ($unit->property_id !== $property->id) {
+            abort(404);
+        }
+        
+        // For now, show a simple placeholder page
+        // TODO: Implement full public unit page with booking calendar
+        return view('units.show', [
+            'unit' => $unit,
+        ]);
+    }
+    
+    /**
      * Show the form for editing the unit
      */
-    public function edit(Unit $unit)
+    public function edit(Property $property, Unit $unit)
     {
+        // Verify unit belongs to property
+        if ($unit->property_id !== $property->id) {
+            abort(404);
+        }
+        
         // Check access: admin or user has access to the unit's property
         if (!auth()->user()->isAdmin()) {
             $hasAccess = $unit->property->users()
@@ -34,8 +57,12 @@ class UnitController extends Controller
     /**
      * Update the unit and its sources
      */
-    public function update(Request $request, Unit $unit)
+    public function update(Request $request, Property $property, Unit $unit)
     {
+        // Verify unit belongs to property
+        if ($unit->property_id !== $property->id) {
+            abort(404);
+        }
         // Check access
         if (!auth()->user()->isAdmin()) {
             $hasAccess = $unit->property->users()
@@ -92,7 +119,7 @@ class UnitController extends Controller
         }
         
         return redirect()
-            ->route('units.edit', $unit)
+            ->route('units.edit', [$property, $unit])
             ->with('success', 'Unit updated successfully!');
     }
 }
