@@ -61,6 +61,12 @@
                             </div>
                         @endif
                         
+                        <!-- Properties menu (direct link for now) -->
+                        <a href="{{ route('properties.index') }}" 
+                           class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                            {{ __('app.properties') }}
+                        </a>
+                        
                         <!-- User menu -->
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" 
@@ -87,6 +93,11 @@
                                 </form>
                             </div>
                         </div>
+                    @else
+                        <!-- Login link for guests -->
+                        <a href="{{ route('login') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            {{ __('app.login') }}
+                        </a>
                     @endif
                     
                     <!-- Language switcher -->
