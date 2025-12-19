@@ -9,75 +9,65 @@
 @section('content')
 <div x-data="calendar()" x-cloak>
     <!-- Navigation Bar -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-4 mb-6">
-        <div class="flex items-center justify-between gap-2">
+    <div class="calendar-nav">
+        <div class="nav-controls">
             <!-- Left: Navigation + Today button -->
-            <div class="flex items-center space-x-1">
+            <div class="nav-left">
                 <a href="?date={{ $prevYear->format('Y-m-d') }}&view={{ $view }}"
-                   class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                   class="nav-button">
                     «
                 </a>
                 <a href="?date={{ $prevPeriod->format('Y-m-d') }}&view={{ $view }}"
-                   class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                   class="nav-button">
                     ‹
                 </a>
                 <a href="{{ $view !== 'month' ? route('calendar', ['view' => $view]) : route('calendar') }}"
-                   class="inline-flex items-center px-2 sm:px-3 py-2 border-2 border-blue-500 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50">
-                    <span class="hidden sm:inline">{{ __('app.today') }}</span>
-                    <span class="sm:hidden">🏠</span>
+                   class="nav-button today">
+                    <span class="text-desktop-only">{{ __('app.today') }}</span>
+                    <span class="text-mobile-only">🏠</span>
                 </a>
             </div>
 
             <!-- Center: Current period -->
-            <div class="flex flex-col items-center min-w-0 flex-1">
-                <h2 class="text-lg sm:text-2xl font-bold text-gray-900 truncate">
+            <div class="period">
+                <h2>
                     @if($view === 'week')
-                        {{ $startDate->format('M j') }} - {{ $endDate->format('j, Y') }}
+                        {{ $startDate->format('M j') }} - {{ $endDate->format('j') }}
                     @elseif($view === '2weeks')
                         {{ $startDate->format('M j') }} - {{ $endDate->format('j, Y') }}
                     @else
                         {{ $currentDate->format('F Y') }}
                     @endif
                 </h2>
-                <div class="text-xs text-gray-500 mt-1">
+                <div class="week-info">
                     @if($view === 'week')
-                        Week {{ $startDate->format('W') }}
-                    @elseif($view === '2weeks')
-                        Weeks {{ $startDate->format('W') }}-{{ $endDate->format('W') }}
+                        Week {{ $startDate->format('W Y') }}
                     @else
-                        @php
-                            $firstWeek = $startDate->format('W');
-                            $lastWeek = $endDate->format('W');
-                            // Handle year transition
-                            if ($lastWeek < $firstWeek) {
-                                $lastWeek = $endDate->copy()->endOfMonth()->format('W');
-                            }
-                        @endphp
-                        Weeks {{ $firstWeek }}-{{ $lastWeek }}
+                        Weeks {{ $startDate->format('W') }}-{{ $endDate->format('W') }}
                     @endif
                 </div>
             </div>
 
             <!-- Right: Period navigation + Year -->
-            <div class="flex items-center space-x-1">
+            <div class="nav-right">
                 @if($canNavigateForward)
                     <a href="?date={{ $nextPeriod->format('Y-m-d') }}&view={{ $view }}"
-                       class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                       class="nav-button">
                         ›
                     </a>
                 @else
-                    <span class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
+                    <span class="nav-button disabled">
                         ›
                     </span>
                 @endif
 
                 @if($canNavigateYearForward)
                     <a href="?date={{ $nextYear->format('Y-m-d') }}&view={{ $view }}"
-                       class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                       class="nav-button">
                         »
                     </a>
                 @else
-                    <span class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
+                    <span class="nav-button disabled">
                         »
                     </span>
                 @endif
@@ -86,25 +76,24 @@
     </div>
 
     <!-- Calendar Grid - Full width -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
-        <div class="inline-block min-w-full align-middle">
-            <table class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;">
+    <div class="calendar-wrapper">
+        <div class="calendar-table-container">
+            <table class="calendar-table">
                 <!-- Header: Day numbers and names -->
-                <thead class="bg-gray-50 sticky top-0 z-10">
+                <thead class="calendar-header">
                     <tr>
                         <!-- Unit column header -->
-                        <th scope="col" class="property-column sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r-2 border-gray-300 min-w-[100px] w-[120px] max-sm:hidden">
+                        <th scope="col" class="unit-column">
                             Unit
                         </th>
 
                         <!-- Day columns with vertical separators -->
                         @foreach($days as $day)
-                        <th scope="col" class="px-1 py-2 text-center min-w-[38px] border-r border-gray-200 relative
-                            {{ $day->isToday() ? 'bg-blue-50/50' : '' }}">
-                            <div class="text-xs font-medium text-gray-700">
+                        <th scope="col" class="day-column {{ $day->isToday() ? 'today' : '' }}">
+                            <div class="day-name">
                                 {{ $day->format('D') }}
                             </div>
-                            <div class="text-sm font-bold {{ $day->isToday() ? 'text-blue-600' : 'text-gray-900' }}">
+                            <div class="day-number {{ $day->isToday() ? 'today' : '' }}">
                                 {{ $day->format('j') }}
                             </div>
                         </th>
@@ -112,41 +101,41 @@
                     </tr>
                 </thead>
 
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="calendar-body">
                     @foreach($properties as $property)
                         <!-- Property Header Row -->
-                        <tr class="bg-gray-100 border-t-2 border-gray-300">
-                            <td class="property-column sticky left-0 z-10 bg-gray-100 px-4 py-2 border-r-2 border-gray-300 max-sm:hidden">
-                                <span class="font-bold text-gray-800 text-sm">{{ $property->name }}</span>
+                        <tr class="property-row">
+                            <td class="property-name">
+                                <span>{{ $property->name }}</span>
                             </td>
                             @foreach($days as $day)
-                            <td class="bg-gray-100 border-r border-gray-200"></td>
+                            <td class="property-spacer"></td>
                             @endforeach
                         </tr>
 
                         <!-- Units of this Property -->
                         @foreach($property->units as $unit)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="unit-row">
                             <!-- Unit name (sticky) -->
-                            <td class="property-column sticky left-0 z-10 bg-white px-4 py-3 border-r-2 border-gray-300 hover:bg-gray-50 max-sm:hidden">
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: {{ $unit->color }}"></div>
-                                    <span class="font-medium text-gray-900 text-sm whitespace-nowrap">{{ $unit->name }}</span>
+                            <td class="unit-cell">
+                                <div class="unit-info">
+                                    <div class="unit-color" style="background-color: {{ $unit->color }}"></div>
+                                    <span class="unit-name">{{ $unit->name }}</span>
                                 </div>
                             </td>
 
                             <!-- Day cells with bookings -->
                             @foreach($days as $dayIndex => $day)
-                            <td class="relative h-16 max-sm:h-20 px-0 border-r border-gray-200">
+                            <td class="day-cell">
                                 <!-- Unit label (mobile only) -->
                                 @if($dayIndex === 0)
-                                <div class="hidden max-sm:block absolute top-0.5 left-0.5 text-[0.6rem] font-semibold z-[5] px-1 py-0.5 rounded" style="background-color: {{ $unit->color }}; color: white; opacity: 0.9;">
+                                <div class="unit-label-mobile" style="background-color: {{ $unit->color }}; color: white; opacity: 0.9;">
                                     {{ $unit->name }}
                                 </div>
                                 @endif
                                 <!-- Background highlight for today (behind bookings) -->
                                 @if($day->isToday())
-                                <div class="absolute inset-0 bg-blue-50 opacity-40 pointer-events-none max-sm:!top-[1.75rem]"></div>
+                                <div class="today-highlight"></div>
                                 @endif
 
                                 <!-- Bookings overlapping this day -->
@@ -207,7 +196,7 @@
                                         $applyOpacity = !in_array($booking->status, ['cancelled', 'vanished', 'deleted']);
                                         $opacityStyle = $applyOpacity ? 'opacity: 0.92;' : '';
                                     @endphp
-                                    <div class="absolute rounded-xl text-white text-xs font-medium overflow-hidden hover:shadow-xl hover:opacity-100 transition-all flex items-center px-2 cursor-pointer z-10 max-sm:!top-[1.75rem]"
+                                    <div class="booking-block"
                                          style="left: {{ $leftPercent }}%;
                                                 width: {{ $widthPercent }}%;
                                                 top: 0.375rem;
@@ -218,18 +207,18 @@
                                                 {{ $opacityStyle }}"
                                          @click="showBooking({{ $booking->id }})">
                                         @if($startsBeforePeriod)
-                                            <span class="opacity-75 mr-1">◀</span>
+                                            <span class="continues">◀</span>
                                         @endif
-                                        <span class="truncate text-lg flex-2">
+                                        <span class="guest-name">
                                             @if($booking->trashed())
-                                                <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">DELETED</span>
+                                                <span class="status-badge">DELETED</span>
                                             @elseif(in_array($booking->status, ['cancelled', 'vanished', 'deleted']))
-                                                <span class="font-bold text-xs bg-black bg-opacity-50 px-1 rounded">{{ strtoupper($booking->status) }}</span>
+                                                <span class="status-badge">{{ strtoupper($booking->status) }}</span>
                                             @endif
                                             {{ $booking->guest_name }}
                                         </span>
                                         @if($endsAfterPeriod)
-                                            <span class="opacity-75 ms-auto mr-">▶</span>
+                                            <span class="extends">▶</span>
                                         @endif
                                     </div>
                                 @endif
@@ -248,121 +237,119 @@
     <div x-show="selectedBooking"
          x-cloak
          @click.self="selectedBooking = null"
-         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" @click.stop>
+         class="booking-modal-backdrop">
+        <div class="booking-modal" @click.stop>
             <template x-if="selectedBooking">
                 <div>
                     <!-- Title: Guest name -->
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-gray-900">
-                            <span x-show="selectedBooking.deleted_at" class="inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mr-2">DELETED</span>
+                    <div class="modal-header">
+                        <h3>
+                            <span x-show="selectedBooking.deleted_at" class="badge-deleted">DELETED</span>
                             <span x-text="selectedBooking.guest_name"></span>
                         </h3>
-                        <button @click="selectedBooking = null" class="text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button @click="selectedBooking = null" class="close-button">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
 
-                    <div class="space-y-3">
+                    <div class="modal-content">
                         <!-- Unit + Status -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <span class="text-sm font-medium text-gray-900" x-text="selectedBooking.unit?.name"></span>
+                        <div class="field-row">
+                            <div class="unit-info">
+                                <span class="unit-name" x-text="selectedBooking.unit?.name"></span>
                             </div>
-                            <span class="inline-flex items-center px-2 py-1 rounded text-white text-xs font-semibold"
+                            <span class="status-badge"
                                   :style="`background-color: ${selectedBooking.color}`"
                                   x-text="selectedBooking.status_label"></span>
                         </div>
 
                         <!-- Check-in / Check-out / Nights (une seule rangée) -->
-                        <div class="border-t pt-3">
-                            <div class="grid grid-cols-3 gap-4">
-                                <div>
-                                    <span class="text-xs font-medium text-gray-500 uppercase block">Check-in</span>
-                                    <div class="text-sm text-gray-900 font-semibold mt-1" x-text="formatDate(selectedBooking.check_in)"></div>
-                                </div>
-                                <div>
-                                    <span class="text-xs font-medium text-gray-500 uppercase block">Check-out</span>
-                                    <div class="text-sm text-gray-900 font-semibold mt-1" x-text="formatDate(selectedBooking.check_out)"></div>
-                                </div>
-                                <div>
-                                    <span class="text-xs font-medium text-gray-500 uppercase block">Nights</span>
-                                    <div class="text-sm text-gray-900 font-semibold mt-1" x-text="calculateNights(selectedBooking.check_in, selectedBooking.check_out)"></div>
-                                </div>
+                        <div class="dates-section">
+                            <div class="date-field">
+                                <label>Check-in</label>
+                                <div class="value" x-text="formatDate(selectedBooking.check_in)"></div>
+                            </div>
+                            <div class="date-field">
+                                <label>Check-out</label>
+                                <div class="value" x-text="formatDate(selectedBooking.check_out)"></div>
+                            </div>
+                            <div class="date-field">
+                                <label>Nights</label>
+                                <div class="value" x-text="calculateNights(selectedBooking.check_in, selectedBooking.check_out)"></div>
                             </div>
                         </div>
 
                         <!-- Guests / Adults / Children -->
-                        <div x-show="selectedBooking.raw_data?.guests || selectedBooking.adults || selectedBooking.children" class="border-t pt-3">
-                            <div x-show="selectedBooking.raw_data?.guests" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Guests:</span>
-                                <span class="text-gray-900 ml-2" x-text="selectedBooking.raw_data?.guests"></span>
+                        <div x-show="selectedBooking.raw_data?.guests || selectedBooking.adults || selectedBooking.children" class="detail-section">
+                            <div x-show="selectedBooking.raw_data?.guests" class="detail-line">
+                                <span class="label">Guests:</span>
+                                <span class="value" x-text="selectedBooking.raw_data?.guests"></span>
                             </div>
-                            <div x-show="selectedBooking.adults" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Adults:</span>
-                                <span class="text-gray-900 ml-2" x-text="selectedBooking.adults"></span>
+                            <div x-show="selectedBooking.adults" class="detail-line">
+                                <span class="label">Adults:</span>
+                                <span class="value" x-text="selectedBooking.adults"></span>
                             </div>
-                            <div x-show="selectedBooking.children" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Children:</span>
-                                <span class="text-gray-900 ml-2" x-text="selectedBooking.children"></span>
+                            <div x-show="selectedBooking.children" class="detail-line">
+                                <span class="label">Children:</span>
+                                <span class="value" x-text="selectedBooking.children"></span>
                             </div>
                         </div>
 
                         <!-- Phone / Mobile / Country / Arrival time -->
-                        <div>
-                            <div x-show="selectedBooking.raw_data?.phone" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Phone:</span>
-                                <a :href="'tel:' + selectedBooking.raw_data?.phone" class="text-blue-600 hover:underline ml-2" x-text="selectedBooking.raw_data?.phone"></a>
+                        <div class="detail-section">
+                            <div x-show="selectedBooking.raw_data?.phone" class="detail-line">
+                                <span class="label">Phone:</span>
+                                <a :href="'tel:' + selectedBooking.raw_data?.phone" class="link" x-text="selectedBooking.raw_data?.phone"></a>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.mobile" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Mobile:</span>
-                                <a :href="'tel:' + selectedBooking.raw_data?.mobile" class="text-blue-600 hover:underline ml-2" x-text="selectedBooking.raw_data?.mobile"></a>
+                            <div x-show="selectedBooking.raw_data?.mobile" class="detail-line">
+                                <span class="label">Mobile:</span>
+                                <a :href="'tel:' + selectedBooking.raw_data?.mobile" class="link" x-text="selectedBooking.raw_data?.mobile"></a>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.email" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Email:</span>
-                                <a :href="'mailto:' + selectedBooking.raw_data?.email" class="text-blue-600 hover:underline ml-2" x-text="selectedBooking.raw_data?.email"></a>
+                            <div x-show="selectedBooking.raw_data?.email" class="detail-line">
+                                <span class="label">Email:</span>
+                                <a :href="'mailto:' + selectedBooking.raw_data?.email" class="link" x-text="selectedBooking.raw_data?.email"></a>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.country" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Country:</span>
-                                <span class="text-gray-900 ml-2" x-text="selectedBooking.raw_data?.country"></span>
+                            <div x-show="selectedBooking.raw_data?.country" class="detail-line">
+                                <span class="label">Country:</span>
+                                <span class="value" x-text="selectedBooking.raw_data?.country"></span>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.arrival_time" class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">Arrival time:</span>
-                                <span class="text-gray-900 ml-2" x-text="selectedBooking.raw_data?.arrival_time"></span>
+                            <div x-show="selectedBooking.raw_data?.arrival_time" class="detail-line">
+                                <span class="label">Arrival time:</span>
+                                <span class="value" x-text="selectedBooking.raw_data?.arrival_time"></span>
                             </div>
                         </div>
 
                         <!-- Guest Comments -->
-                        <div x-show="selectedBooking.raw_data?.guest_comments" class="border-t pt-3">
-                            <span class="text-sm font-medium text-gray-500 block mb-2">Guest comments:</span>
-                            <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded whitespace-pre-wrap" x-text="selectedBooking.raw_data?.guest_comments"></div>
+                        <div x-show="selectedBooking.raw_data?.guest_comments" class="comments-section">
+                            <label>Guest comments:</label>
+                            <div class="comments-text" x-text="selectedBooking.raw_data?.guest_comments"></div>
                         </div>
 
                         <!-- Notes (unprocessed data) -->
-                        <div x-show="selectedBooking.notes" class="border-t pt-3">
-                            <span class="text-sm font-medium text-gray-500 block mb-2">Notes:</span>
-                            <div class="text-sm text-gray-700 bg-gray-50 p-3 rounded whitespace-pre-wrap" x-text="selectedBooking.notes"></div>
+                        <div x-show="selectedBooking.notes" class="comments-section">
+                            <label>Notes:</label>
+                            <div class="comments-text" x-text="selectedBooking.notes"></div>
                         </div>
 
                         <!-- Source + API Source -->
-                        <div class="border-t pt-3">
-                            <div class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">{{ __('Source:') }}</span>
-                                <span class="text-gray-900 ml-2" x-text="selectedBooking.source_name"></span>
-                                <span class="text-gray-900 ml-2">
+                        <div class="source-section">
+                            <div class="source-line">
+                                <span class="label">{{ __('Source:') }}</span>
+                                <span class="value" x-text="selectedBooking.source_name"></span>
+                                <span class="value">
                                     <span x-text="selectedBooking.raw_data?.api_source"></span>
                                     <span x-show="selectedBooking.raw_data?.api_ref" x-text="' ' + selectedBooking.raw_data?.api_ref"></span>
                                 </span>
                             </div>
-                            <div class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">{{ __('Link:') }}</span>
-                                <span x-html="' ' + selectedBooking.ota_link" class="text-blue-600 hover:underline ml-2"></span>
+                            <div class="source-line">
+                                <span class="label">{{ __('Link:') }}</span>
+                                <span x-html="' ' + selectedBooking.ota_link" class="link"></span>
                             </div>
-                            <div class="text-sm mb-1">
-                                <span class="font-medium text-gray-500">{{ __('URL:') }}</span>
-                                <span x-text="' ' + selectedBooking.ota_url"></span>
+                            <div class="source-line">
+                                <span class="label">{{ __('URL:') }}</span>
+                                <span class="value" x-text="' ' + selectedBooking.ota_url"></span>
                             </div>
                         </div>
 
