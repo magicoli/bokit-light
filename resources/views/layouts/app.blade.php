@@ -4,19 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Bokit - Calendar Manager')</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
+    <!-- App Styles -->
+    @vite('resources/css/app.css')
+    @yield('styles')
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+    @yield('scripts')
+
     <style>
         [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <nav class="nav-main">
         <div class="w-full px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <a href="{{ auth()->check() ? route('dashboard') : route('home') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
@@ -29,7 +34,7 @@
                         </span>
                     @endif
                 </a>
-                
+
                 <div class="flex items-center space-x-4">
                     @if(session()->has('wp_user'))
                         <span class="text-sm text-gray-600">
@@ -42,7 +47,7 @@
                         <!-- Admin menu (visible only for admins) -->
                         @if(auth()->user()->isAdmin())
                             <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" 
+                                <button @click="open = !open"
                                         @click.away="open = false"
                                         class="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
                                     <span class="px-2 py-1 rounded bg-red-100 text-red-800 font-semibold">{{ __('app.admin') }}</span>
@@ -50,26 +55,26 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
                                 </button>
-                                <div x-show="open" 
+                                <div x-show="open"
                                      x-cloak
                                      class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                                    <a href="{{ route('admin.settings') }}" 
+                                    <a href="{{ route('admin.settings') }}"
                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         {{ __('app.admin_settings') }}
                                     </a>
                                 </div>
                             </div>
                         @endif
-                        
+
                         <!-- Properties menu (direct link for now) -->
-                        <a href="{{ route('properties.index') }}" 
+                        <a href="{{ route('properties.index') }}"
                            class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
                             {{ __('app.properties') }}
                         </a>
-                        
+
                         <!-- User menu -->
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" 
+                            <button @click="open = !open"
                                     @click.away="open = false"
                                     class="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none">
                                 <span>{{ auth()->user()->name }}</span>
@@ -77,16 +82,16 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <div x-show="open" 
+                            <div x-show="open"
                                  x-cloak
                                  class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                                <a href="{{ route('user.settings') }}" 
+                                <a href="{{ route('user.settings') }}"
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     {{ __('app.user_settings') }}
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" 
+                                    <button type="submit"
                                             class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         {{ __('app.logout') }}
                                     </button>
@@ -99,19 +104,19 @@
                             {{ __('app.login') }}
                         </a>
                     @endif
-                    
+
                     <!-- Language switcher -->
                     <div class="flex items-center space-x-1 border-l border-gray-300 pl-4">
-                        <a href="{{ route('locale.change', 'en') }}" 
+                        <a href="{{ route('locale.change', 'en') }}"
                            class="text-xs px-2 py-1 rounded {{ app()->getLocale() === 'en' ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
                             EN
                         </a>
-                        <a href="{{ route('locale.change', 'fr') }}" 
+                        <a href="{{ route('locale.change', 'fr') }}"
                            class="text-xs px-2 py-1 rounded {{ app()->getLocale() === 'fr' ? 'bg-blue-100 text-blue-800 font-semibold' : 'text-gray-600 hover:bg-gray-100' }}">
                             FR
                         </a>
                     </div>
-                    
+
                     <span class="text-sm text-gray-500">
                         {{ now()->isoFormat('dddd LL') }}
                     </span>
@@ -119,7 +124,7 @@
             </div>
         </div>
     </nav>
-    
+
     <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
         @yield('content')
     </main>

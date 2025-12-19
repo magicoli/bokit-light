@@ -2,6 +2,10 @@
 
 @section('title', 'Calendar - Bokit')
 
+@section('styles')
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+@endsection
+
 @section('content')
 <div x-data="calendar()" x-cloak>
     <!-- Navigation Bar -->
