@@ -3,7 +3,7 @@
 @section('title', 'Calendar - Bokit')
 
 @section('styles')
-<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+@vite('resources/css/calendar.css')
 @endsection
 
 @section('content')
@@ -21,7 +21,7 @@
                    class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                     ‹
                 </a>
-                <a href="{{ $view !== 'month' ? route('dashboard', ['view' => $view]) : route('dashboard') }}"
+                <a href="{{ $view !== 'month' ? route('calendar', ['view' => $view]) : route('calendar') }}"
                    class="inline-flex items-center px-2 sm:px-3 py-2 border-2 border-blue-500 rounded-md text-sm font-medium text-blue-600 bg-white hover:bg-blue-50">
                     <span class="hidden sm:inline">{{ __('app.today') }}</span>
                     <span class="sm:hidden">🏠</span>

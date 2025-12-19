@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PropertyController;
@@ -44,7 +44,7 @@ if ($isInstalled) {
     if ($authMethod === "wordpress") {
         Route::post("/login", function () {
             // Handled by WordPressAuth middleware
-            return redirect("/dashboard");
+            return redirect("/calendar");
         })->middleware($authMiddleware);
 
         Route::get("/logout", function () {
@@ -77,7 +77,7 @@ if ($isInstalled) {
 
             if (Auth::attempt($authCredentials)) {
                 $request->session()->regenerate();
-                return redirect()->intended("/dashboard");
+                return redirect()->intended("/calendar");
             }
 
             return back()->withErrors([
@@ -105,11 +105,11 @@ if ($isInstalled) {
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
-        Route::get("/dashboard", [DashboardController::class, "index"])->name(
-            "dashboard",
+        Route::get("/calendar", [CalendarController::class, "index"])->name(
+            "calendar",
         );
         Route::get("/booking/{id}", [
-            DashboardController::class,
+            CalendarController::class,
             "booking",
         ])->name("booking.show");
 

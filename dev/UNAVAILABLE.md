@@ -108,7 +108,7 @@ protected function detectEventType(string $summary): string
 
 ### Phase 3: Calendar Display
 
-Update `dashboard.blade.php` to display blocked dates:
+Update `calendar.blade.php` to display blocked dates:
 
 ```php
 // In the day cell loop
@@ -176,8 +176,8 @@ When implementing:
 
 - `app/Services/BookingSyncIcal.php` - Parsing logic
 - `app/Models/Booking.php` - Data model
-- `resources/views/dashboard.blade.php` - Display
-- `app/Http/Controllers/DashboardController.php` - Data loading
+- `resources/views/calendar.blade.php` - Display
+- `app/Http/Controllers/CalendarController.php` - Data loading
 
 ## Questions to Answer
 

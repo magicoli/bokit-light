@@ -9,13 +9,13 @@ return [
     "user_settings" => "My Settings",
     "properties" => "Properties",
 
-    // Dashboard
-    "dashboard" => "Dashboard",
+    // Calendar
+    "calendar" => "Calendar",
     "booking" => "Booking",
 
     // About page
     "about" => "About",
-    "go_to_dashboard" => "Go to Dashboard",
+    "go_to_calendar" => "Go to Calendar",
 
     // Time
     "today" => "Today",
@@ -28,7 +28,6 @@ return [
     "edit_unit" => "Edit Unit",
     "edit" => "Edit",
     "view" => "View",
-    "calendar" => "Calendar",
     "view_calendar" => "View Calendar",
     "edit_property" => "Edit Property",
     "calendar_sources" => "calendar source(s)",

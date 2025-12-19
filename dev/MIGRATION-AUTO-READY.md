@@ -12,7 +12,7 @@
 
 **Contrôleurs:**
 - `app/Http/Controllers/UpdateController.php` - Page /update pour mode local
-- `app/Http/Controllers/DashboardController.php` - Calendrier + API booking
+- `app/Http/Controllers/CalendarController.php` - Calendrier + API booking
 
 **Modèles:**
 - `app/Models/Property.php` - Modèle Property avec relations
@@ -31,7 +31,7 @@
 
 ### Fichiers modifiés
 
-- `routes/web.php` - Ajout routes /update et DashboardController
+- `routes/web.php` - Ajout routes /update et CalendarController
 - `bootstrap/app.php` - Enregistrement middlewares (CheckUpdates, AutoSync)
 
 ## 🎯 Comment ça marche
@@ -49,7 +49,7 @@
 3. Liste des migrations à exécuter
 4. Clic "Run Update Now"
 5. Migration s'exécute
-6. Retour au dashboard
+6. Retour au calendar
 
 ## 🧪 Test (pour Oli)
 

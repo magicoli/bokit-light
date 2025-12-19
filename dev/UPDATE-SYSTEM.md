@@ -27,7 +27,7 @@ When pending migrations are detected:
    - "Run Update Now" button
 3. User clicks button → AJAX call to `/update/execute`
 4. Migrations run via `Artisan::call('migrate', ['--force' => true])`
-5. Success → "Continue to Dashboard" button appears
+5. Success → "Continue to Calendar" button appears
 6. User continues to app
 
 ### 3. Migration Files
@@ -144,7 +144,7 @@ This creates a single SQL dump of the entire schema, allowing you to delete old 
 2. New version deployed with migrations
 3. Next page load → redirected to `/update`
 4. Clicks "Run Update Now" → migrations execute
-5. Clicks "Continue to Dashboard" → back to normal
+5. Clicks "Continue to Calendar" → back to normal
 
 **Total time**: ~5-10 seconds
 
@@ -154,7 +154,7 @@ This creates a single SQL dump of the entire schema, allowing you to delete old 
 3. Opens app → redirected to `/update`
 4. Sees list of all pending updates
 5. Clicks "Run Update Now" → ALL migrations execute in order
-6. Continues to dashboard
+6. Continues to calendar
 
 **Total time**: ~10-30 seconds (depending on migrations)
 

@@ -51,7 +51,7 @@ class InstallController extends Controller
      */
     public function index()
     {
-        // If installation is already complete, redirect to dashboard
+        // If installation is already complete, redirect to calendar
         if (Options::get("install.complete", false)) {
             return redirect("/");
         }
@@ -415,7 +415,7 @@ class InstallController extends Controller
     }
 
     /**
-     * Mark installation as complete and redirect to dashboard
+     * Mark installation as complete and redirect to calendar
      */
     public function complete(Request $request)
     {
