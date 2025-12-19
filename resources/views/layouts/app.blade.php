@@ -35,15 +35,31 @@
                     @endif
                 </a>
 
-                <div class="flex items-center space-x-4">
-                    @if(session()->has('wp_user'))
-                        <span class="text-sm text-gray-600">
-                            {{ session('wp_user')['name'] }}
-                        </span>
-                        <a href="{{ route('logout') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                            {{ __('app.logout') }}
+                <div class="main-menu">
+                    <!-- About page -->
+                    <a href="{{ route('about') }}"
+                       class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                        {{ __('app.about') }}
+                    </a>
+
+                    <!-- Properties menu (direct link for now) -->
+                    @if(auth()->check())
+                        <!-- Dashboard menu (direct link for now) -->
+                        <a href="{{ route('dashboard') }}"
+                        class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                            {{ __('app.calendar') }}
                         </a>
-                    @elseif(auth()->check())
+
+                        <!-- Properties menu (direct link for now) -->
+                        <a href="{{ route('properties.index') }}"
+                        class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                            {{ __('app.properties') }}
+                        </a>
+                    @endif
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    @if(auth()->check())
                         <!-- Admin menu (visible only for admins) -->
                         @if(auth()->user()->isAdmin())
                             <div class="relative" x-data="{ open: false }">
@@ -65,12 +81,6 @@
                                 </div>
                             </div>
                         @endif
-
-                        <!-- Properties menu (direct link for now) -->
-                        <a href="{{ route('properties.index') }}"
-                           class="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
-                            {{ __('app.properties') }}
-                        </a>
 
                         <!-- User menu -->
                         <div class="relative" x-data="{ open: false }">
@@ -105,6 +115,10 @@
                         </a>
                     @endif
 
+                    <span class="text-sm text-gray-500">
+                        {{ now()->isoFormat('dddd LL') }}
+                    </span>
+
                     <!-- Language switcher -->
                     <div class="flex items-center space-x-1 border-l border-gray-300 pl-4">
                         <a href="{{ route('locale.change', 'en') }}"
@@ -117,9 +131,6 @@
                         </a>
                     </div>
 
-                    <span class="text-sm text-gray-500">
-                        {{ now()->isoFormat('dddd LL') }}
-                    </span>
                 </div>
             </div>
         </div>

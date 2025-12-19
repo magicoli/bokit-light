@@ -4,7 +4,6 @@
 
 @section('styles')
 @vite('resources/css/markdown.css')
-{{-- <link rel="stylesheet" href="{{ asset('css/markdown.css') }}"> --}}
 @endsection
 
 @section('scripts')
@@ -19,8 +18,8 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-sm p-8">
+<div class="main-content">
+    <div class="wrapper">
         <div id="readme-content" class="prose prose-slate max-w-none">
             <!-- Markdown contenzt will be rendered here -->
         </div>

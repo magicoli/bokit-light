@@ -14,5 +14,10 @@
 
 nav.nav-main {
     @apply bg-white shadow-sm border-b border-gray-200;
-    background: pink;
+}
+main > .main-content {
+    @apply max-w-4xl mx-auto;
+}
+main > .main-content > .wrapper {
+    @apply bg-white rounded-lg shadow-sm p-8;
 }
