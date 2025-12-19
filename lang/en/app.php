@@ -8,6 +8,7 @@ return [
     "admin_settings" => "Admin Settings",
     "user_settings" => "My Settings",
     "properties" => "Properties",
+    "language" => "Language",
 
     // Calendar
     "calendar" => "Calendar",
