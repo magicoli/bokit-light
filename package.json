@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "start": "vite build --watch",
         "build": "vite build",
-        "dev": "vite"
+        "dev": "concurrently \"npm:start\" \"symfony serve\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
