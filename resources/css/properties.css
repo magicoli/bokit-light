@@ -1,0 +1,336 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   PROPERTIES & UNITS STYLES
+   ============================================================================= */
+
+/* Container */
+.properties-container {
+    @apply max-w-6xl mx-auto;
+}
+
+.property-show-container {
+    @apply max-w-4xl mx-auto;
+}
+
+.unit-edit-container {
+    @apply max-w-4xl mx-auto;
+}
+
+/* Header */
+.properties-header {
+    @apply mb-6;
+
+    .title {
+        @apply text-3xl font-bold text-gray-900;
+    }
+
+    .subtitle {
+        @apply text-gray-600 mt-2;
+    }
+}
+
+.property-show-header {
+    @apply mb-6;
+
+    .header-row {
+        @apply flex items-baseline justify-between;
+    }
+
+    .title {
+        @apply text-3xl font-bold text-gray-900;
+    }
+
+    .actions {
+        @apply flex gap-3 text-sm;
+
+        .action-link {
+            @apply text-blue-600 hover:text-blue-800;
+        }
+
+        .separator {
+            @apply text-gray-300;
+        }
+    }
+
+    .website {
+        @apply text-gray-600 mt-2;
+
+        a {
+            @apply text-blue-600 hover:underline;
+        }
+    }
+}
+
+.unit-header {
+    @apply mb-6;
+
+    .back-link {
+        @apply text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block;
+    }
+
+    .title-row {
+        @apply flex items-baseline gap-3;
+    }
+
+    .title {
+        @apply text-3xl font-bold text-gray-900;
+    }
+
+    .subtitle {
+        @apply text-sm text-gray-500;
+    }
+}
+
+/* Alert */
+.alert-success {
+    @apply mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start;
+
+    .icon {
+        @apply w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0;
+    }
+
+    .message {
+        @apply text-sm text-green-700;
+    }
+}
+
+/* Empty state */
+.empty-state {
+    @apply bg-white rounded-lg shadow-sm p-8 text-center;
+
+    .message {
+        @apply text-gray-500;
+    }
+}
+
+/* Properties list */
+.properties-list {
+    @apply space-y-6;
+}
+
+/* Property card */
+.property-card {
+    @apply bg-white rounded-lg shadow-sm p-6;
+
+    .property-name {
+        @apply text-xl font-semibold text-gray-900 mb-4;
+    }
+
+    .no-units {
+        @apply text-sm text-gray-500;
+    }
+}
+
+/* Units grid */
+.units-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.units-grid-large {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* Unit card */
+.unit-card {
+    @apply border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all;
+
+    .unit-header {
+        @apply flex items-baseline justify-between gap-3 mb-2;
+    }
+
+    .unit-name {
+        @apply font-medium text-gray-900 hover:text-blue-600;
+    }
+
+    .unit-actions {
+        @apply flex gap-2 text-xs;
+
+        .action-link {
+            @apply text-blue-600 hover:text-blue-800;
+        }
+
+        .separator {
+            @apply text-gray-300;
+        }
+    }
+
+    .unit-description {
+        @apply text-sm text-gray-600 mb-2;
+    }
+
+    .unit-meta {
+        @apply text-sm text-gray-500;
+    }
+}
+
+/* Unit card large variant (for property show page) */
+.unit-card-large {
+    @apply bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-400 hover:shadow-md transition-all;
+
+    .unit-header {
+        @apply flex items-baseline justify-between gap-3 mb-3;
+    }
+
+    .unit-name {
+        @apply text-xl font-semibold text-gray-900 hover:text-blue-600;
+    }
+
+    .unit-actions {
+        @apply flex gap-2 text-xs;
+
+        .action-link {
+            @apply text-blue-600 hover:text-blue-800;
+        }
+
+        .separator {
+            @apply text-gray-300;
+        }
+    }
+
+    .unit-description {
+        @apply text-sm text-gray-600 mb-3;
+    }
+
+    .unit-footer {
+        @apply text-xs text-gray-500 border-t border-gray-200 pt-2;
+    }
+}
+
+/* =============================================================================
+   FORMS
+   ============================================================================= */
+
+/* Form container */
+.unit-form {
+    @apply bg-white rounded-lg shadow-sm p-6 space-y-6;
+}
+
+/* Form section */
+.form-section {
+    .section-header {
+        @apply flex items-center justify-between mb-4;
+    }
+
+    .section-title {
+        @apply text-lg font-semibold text-gray-900;
+    }
+
+    .add-button {
+        @apply px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+
+        svg {
+            @apply w-4 h-4 inline-block mr-1;
+        }
+    }
+}
+
+/* Form grid */
+.form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+/* Form field */
+.form-field {
+    .label {
+        @apply block text-sm font-medium text-gray-700 mb-1;
+
+        .required {
+            @apply text-red-500;
+        }
+    }
+
+    .input {
+        @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    }
+
+    .error {
+        @apply text-red-600 text-sm mt-1;
+    }
+}
+/* Calendar source item */
+.source-item {
+    @apply border border-gray-200 rounded-lg p-4 relative;
+
+    .remove-button {
+        @apply absolute top-3 right-3 text-gray-400 hover:text-red-600 transition-colors;
+
+        svg {
+            @apply w-5 h-5;
+        }
+    }
+
+    .source-grid {
+        @apply grid grid-cols-1 md:grid-cols-[150px_1fr] gap-3;
+    }
+
+    .last-sync {
+        @apply mt-2 text-xs text-gray-500;
+    }
+}
+
+/* Empty state for sources */
+.sources-empty {
+    @apply text-center py-8 text-gray-500;
+}
+
+/* Form actions */
+.form-actions {
+    @apply flex items-center justify-between pt-6 border-t border-gray-200;
+
+    .cancel-link {
+        @apply text-gray-600 hover:text-gray-800;
+    }
+
+    .submit-button {
+        @apply px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+    }
+}
+/* Unit show page */
+.unit-show-container {
+    @apply max-w-4xl mx-auto;
+}
+
+.unit-show-header {
+    @apply mb-6;
+
+    .title-row {
+        @apply flex items-baseline gap-3;
+    }
+
+    .property-name {
+        @apply text-3xl;
+    }
+
+    .unit-name {
+        @apply text-3xl font-bold text-gray-900;
+    }
+}
+
+.unit-content {
+    @apply bg-white rounded-lg shadow-sm p-8;
+
+    .description {
+        @apply text-left;
+    }
+
+    .property-info {
+        @apply text-gray-500 border-t border-gray-200 pt-2 mt-4;
+
+        a {
+            @apply text-blue-600 hover:underline;
+        }
+    }
+
+    .edit-action {
+        @apply mt-6;
+    }
+
+    .edit-button {
+        @apply inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+
+        svg {
+            @apply w-4 h-4 mr-2;
+        }
+    }
+}

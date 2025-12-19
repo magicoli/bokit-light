@@ -2,56 +2,60 @@
 
 @section('title', __('app.properties'))
 
+@section('styles')
+@vite('resources/css/properties.css')
+@endsection
+
 @section('content')
-<div class="max-w-6xl mx-auto">
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">{{ __('app.properties') }}</h1>
-        <p class="text-gray-600 mt-2">Manage your rental properties and units</p>
+<div class="properties-container">
+    <div class="properties-header">
+        <h1 class="title">{{ __('app.properties') }}</h1>
+        <p class="subtitle">Manage your rental properties and units</p>
     </div>
 
     @if($properties->isEmpty())
-        <div class="bg-white rounded-lg shadow-sm p-8 text-center">
-            <p class="text-gray-500">No properties configured yet</p>
+        <div class="empty-state">
+            <p class="message">No properties configured yet</p>
         </div>
     @else
-        <div class="space-y-6">
+        <div class="properties-list">
             @foreach($properties as $property)
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                <div class="property-card">
+                    <h2 class="property-name">
                         {{ $property->name }}
                     </h2>
 
                     @if($property->units->isEmpty())
-                        <p class="text-sm text-gray-500">No units in this property</p>
+                        <p class="no-units">No units in this property</p>
                     @else
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="units-grid">
                             @foreach($property->units as $unit)
-                                <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all">
-                                    <div class="flex items-baseline justify-between gap-3 mb-2">
+                                <div class="unit-card">
+                                    <div class="unit-header">
                                         <a href="{{ route('units.show', [$property, $unit]) }}" 
-                                           class="font-medium text-gray-900 hover:text-blue-600">
+                                           class="unit-name">
                                             {{ $unit->name }}
                                         </a>
                                         @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
-                                        <div class="flex gap-2 text-xs">
+                                        <div class="unit-actions">
                                             <a href="{{ route('units.show', [$property, $unit]) }}" 
-                                               class="text-blue-600 hover:text-blue-800">
+                                               class="action-link">
                                                 {{ __('app.view') }}
                                             </a>
-                                            <span class="text-gray-300">|</span>
+                                            <span class="separator">|</span>
                                             <a href="{{ route('units.edit', [$property, $unit]) }}" 
-                                               class="text-blue-600 hover:text-blue-800">
+                                               class="action-link">
                                                 {{ __('app.edit') }}
                                             </a>
                                         </div>
                                         @endif
                                     </div>
                                     @if($unit->description)
-                                    <p class="text-sm text-gray-600 mb-2">
+                                    <p class="unit-description">
                                         {{ $unit->description }}
                                     </p>
                                     @endif
-                                    <p class="text-sm text-gray-500">
+                                    <p class="unit-meta">
                                         {{ $unit->icalSources->count() }} calendar source(s)
                                     </p>
                                 </div>
