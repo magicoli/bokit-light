@@ -12,12 +12,110 @@
         "Noto Color Emoji";
 }
 
-nav.nav-main {
-    @apply bg-white shadow-sm border-b border-gray-200;
+/* =============================================================================
+   NAVIGATION
+   ============================================================================= */
+
+nav {
+    &.nav-main {
+        @apply bg-white shadow-sm border-b border-gray-200;
+    }
+
+    .nav-container {
+        @apply w-full px-4 sm:px-6 lg:px-8;
+    }
+
+    .nav-inner {
+        @apply flex justify-between h-16 items-center;
+    }
+
+    .nav-branding {
+        @apply flex items-center space-x-3 hover:opacity-80 transition-opacity;
+    }
+
+    .nav-logo {
+        @apply text-2xl font-bold text-gray-900;
+    }
+
+    .badge-env {
+        @apply text-xs font-semibold bg-yellow-400 text-yellow-900 px-2 py-1 rounded;
+    }
+
+    .main-menu {
+        @apply flex items-center space-x-1;
+    }
+
+    .nav-link {
+        @apply text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors;
+    }
+
+    .nav-actions {
+        @apply flex items-center space-x-4;
+    }
+
+    .dropdown {
+        @apply relative;
+    }
+
+    .dropdown-button {
+        @apply flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none;
+
+        svg {
+            @apply w-4 h-4;
+        }
+    }
+
+    .dropdown-menu {
+        @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200;
+    }
+
+    .dropdown-item {
+        @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100;
+    }
+
+    .dropdown-item-button {
+        @apply w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100;
+    }
+
+    .badge-admin {
+        @apply px-2 py-1 rounded bg-red-100 text-red-800 font-semibold;
+    }
+
+    .nav-login {
+        @apply text-sm text-blue-600 hover:text-blue-800 font-medium;
+    }
+
+    .nav-date {
+        @apply text-sm text-gray-500;
+    }
+
+    .locale-switcher {
+        @apply flex items-center space-x-1 border-l border-gray-300 pl-4;
+    }
+
+    .locale-link {
+        @apply text-xs px-2 py-1 rounded;
+
+        &.active {
+            @apply bg-blue-100 text-blue-800 font-semibold;
+        }
+
+        &:not(.active) {
+            @apply text-gray-600 hover:bg-gray-100;
+        }
+    }
 }
-main > .main-content {
-    @apply max-w-4xl mx-auto;
-}
-main > .main-content > .wrapper {
-    @apply bg-white rounded-lg shadow-sm p-8;
+
+/* =============================================================================
+   MAIN CONTENT
+   ============================================================================= */
+
+main {
+    > .main-content {
+        @apply max-w-4xl mx-auto;
+
+        > .wrapper {
+            @apply bg-white rounded-lg shadow-sm p-8;
+        }
+    }
 }
