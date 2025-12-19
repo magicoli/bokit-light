@@ -6,10 +6,10 @@ use App\Models\Property;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
-class DashboardController extends Controller
+class CalendarController extends Controller
 {
     /**
-     * Display the calendar dashboard
+     * Display the calendar
      */
     public function index(Request $request)
     {
@@ -75,14 +75,14 @@ class DashboardController extends Controller
 
         // Filter properties for non-admin users
         if (!auth()->user()->isAdmin()) {
-            $query->whereHas('users', function ($q) {
-                $q->where('users.id', auth()->id());
+            $query->whereHas("users", function ($q) {
+                $q->where("users.id", auth()->id());
             });
         }
 
         $properties = $query->get();
 
-        return view("dashboard", [
+        return view("calendar", [
             "view" => $view,
             "currentDate" => $currentDate,
             "startDate" => $startDate,
@@ -107,7 +107,7 @@ class DashboardController extends Controller
 
         // Check if user has access to this booking's property
         if (!auth()->user()->hasAccessTo($booking->unit->property)) {
-            abort(403, 'Access denied');
+            abort(403, "Access denied");
         }
 
         return response()->json($booking);

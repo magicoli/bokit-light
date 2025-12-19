@@ -9,13 +9,13 @@ return [
     "user_settings" => "Mes paramètres",
     "properties" => "Propriétés",
 
-    // Dashboard
-    "dashboard" => "Tableau de bord",
+    // Calendar
+    "calendar" => "Calendrier",
     "booking" => "Réservation",
 
     // About page
     "about" => "À propos",
-    "go_to_dashboard" => "Aller au tableau de bord",
+    "go_to_calendar" => "Aller au calendrier",
 
     // Time
     "today" => 'Aujourd\'hui',
@@ -28,7 +28,6 @@ return [
     "edit_unit" => 'Modifier l\'unité',
     "edit" => "Modifier",
     "view" => "Voir",
-    "calendar" => "Calendrier",
     "view_calendar" => "Voir le calendrier",
     "edit_property" => "Modifier la propriété",
     "calendar_sources" => "source(s) de calendrier",

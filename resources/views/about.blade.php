@@ -27,8 +27,8 @@
 
     @auth
     <div class="mt-6 text-center">
-        <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            {{ __('app.go_to_dashboard') }} →
+        <a href="{{ route('calendar') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            {{ __('app.go_to_calendar') }} →
         </a>
     </div>
     @endauth

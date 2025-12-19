@@ -57,7 +57,7 @@
             <div class="flex-1">
                 <h4 class="text-sm font-medium text-blue-900 mb-1">Next Steps</h4>
                 <p class="text-sm text-blue-700">
-                    Click the button below to access your dashboard and start managing your rental calendar.
+                    Click the button below to access your calendar and start managing your rental calendar.
                 </p>
             </div>
         </div>
@@ -65,7 +65,7 @@
 
     <div class="flex justify-center pt-4">
         <button onclick="completeInstallation()" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg">
-            Go to Dashboard
+            Go to Calendar
         </button>
     </div>
 </div>
@@ -75,7 +75,7 @@ async function completeInstallation() {
     const btn = event.target;
     btn.disabled = true;
     btn.textContent = 'Finalizing...';
-    
+
     try {
         const response = await fetch('/install/complete', {
             method: 'POST',
@@ -85,19 +85,19 @@ async function completeInstallation() {
                 'Accept': 'application/json',
             },
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.redirect) {
             window.location.href = data.redirect;
         } else {
             btn.disabled = false;
-            btn.textContent = 'Go to Dashboard';
+            btn.textContent = 'Go to Calendar';
             alert('An error occurred. Please refresh the page and try again.');
         }
     } catch (error) {
         btn.disabled = false;
-        btn.textContent = 'Go to Dashboard';
+        btn.textContent = 'Go to Calendar';
         alert('Network error: ' + error.message);
     }
 }

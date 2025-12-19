@@ -7,7 +7,7 @@
 ```
 public/css/
 ├── app.css (5.6 KB)        → Commun : navigation, forms, badges, layout
-├── dashboard.css (5.2 KB)  → Calendrier : header, grille, bookings
+├── calendar.css (5.2 KB)  → Calendrier : header, grille, bookings
 └── property.css (3.2 KB)   → Properties/Units : cartes, sources
 ```
 
@@ -41,8 +41,8 @@ public/css/
 ### Trois largeurs de contenu
 
 ```blade
-<!-- Full width (dashboard) -->
-<div class="content-full-width dashboard-page">
+<!-- Full width (calendar) -->
+<div class="content-full-width calendar-page">
     <!-- 100% width -->
 </div>
 
@@ -69,7 +69,7 @@ Structure du header :
         </div>
         
         <div class="nav-menu main-menu">
-            <a href="/dashboard" class="nav-link">Calendar</a>
+            <a href="/calendar" class="nav-link">Calendar</a>
             <a href="/properties" class="nav-link">Properties</a>
         </div>
         
@@ -82,12 +82,12 @@ Structure du header :
 
 **CSS automatique** : Pas de classes utilitaires nécessaires !
 
-## Dashboard
+## Calendar
 
 ### Header avec boutons carrés
 
 ```blade
-<div class="content-full-width dashboard-page">
+<div class="content-full-width calendar-page">
     <header>
         <div class="controls">
             <div class="nav-group">

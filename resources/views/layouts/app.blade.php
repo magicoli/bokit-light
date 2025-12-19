@@ -24,7 +24,7 @@
     <nav class="nav-main">
         <div class="nav-container">
             <div class="nav-inner">
-                <a href="{{ auth()->check() ? route('dashboard') : route('home') }}" class="nav-branding">
+                <a href="{{ auth()->check() ? route('calendar') : route('home') }}" class="nav-branding">
                     <h1 class="nav-logo">
                         🏖️ Bokit
                     </h1>
@@ -43,8 +43,8 @@
 
                     <!-- Properties menu (direct link for now) -->
                     @if(auth()->check())
-                        <!-- Dashboard menu (direct link for now) -->
-                        <a href="{{ route('dashboard') }}" class="nav-link">
+                        <!-- Calendar menu (direct link for now) -->
+                        <a href="{{ route('calendar') }}" class="nav-link">
                             {{ __('app.calendar') }}
                         </a>
 
