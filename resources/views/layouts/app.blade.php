@@ -25,7 +25,7 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#71b6ad">
+    <meta name="theme-color" content="#FDD389">
 
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
