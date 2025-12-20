@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bokit-v1';
+const CACHE_NAME = 'bokit-v{{ config("app.version") }}';
 const STATIC_ASSETS = [
     '/',
     '/images/logo.png',
