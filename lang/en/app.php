@@ -64,4 +64,5 @@ return [
     "loading" => "Loading...",
     "error" => "Error",
     "success" => "Success",
+    "remember_me" => "Remember me",
 ];

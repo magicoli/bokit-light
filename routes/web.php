@@ -83,8 +83,33 @@ if ($isInstalled) {
                 "password" => $credentials["password"],
             ];
 
-            if (Auth::attempt($authCredentials)) {
+            $remember = $request->boolean('remember');
+
+            if (Auth::attempt($authCredentials, $remember)) {
                 $request->session()->regenerate();
+                
+                // Set remember me cookie duration: 7 days (10080 minutes)
+                // The RenewRememberToken middleware will renew this on each visit
+                if ($remember) {
+                    $user = Auth::user();
+                    $minutes = 10080; // 7 days
+                    $recaller = Auth::guard()->getRecallerName();
+                    $token = $user->getRememberToken();
+                    $value = $user->id.'|'.$token.'|'.$user->password;
+                    
+                    cookie()->queue(
+                        $recaller,
+                        encrypt($value),
+                        $minutes,
+                        config('session.path'),
+                        config('session.domain'),
+                        config('session.secure'),
+                        config('session.http_only', true),
+                        false,
+                        config('session.same_site')
+                    );
+                }
+                
                 return redirect()->intended("/calendar");
             }
 
