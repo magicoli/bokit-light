@@ -4,23 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        @hasSection('title')
-            @yield('title') - {{ config('app.name', 'Bokit') }}
+        @php
+        if(app('request')->query('mode')) {
+            session()->put('isPWA', app('request')->query('mode') == 'standalone');
+        }
+        $isWPA = session('isPWA') ?? false;
+        $localTag = app()->environment('local') ? '(local)' : '';
+        @endphp
+        @if($isWPA)
+            {{ $localTag}}
+            @hasSection('title')
+                @yield('title')
+            @else
+                {{ __('app.slogan') }}
+            @endif
         @else
-            {{ config('app.name', 'Bokit') }} - {{ __('app.slogan') }}
+            @hasSection('title')
+                @yield('title') - {{ config('app.name', 'Bokit') }} {{ $localTag}}
+            @else
+                {{ config('app.name', 'Bokit') }} {{ $localTag}} - {{ __('app.slogan') }}
+            @endif
         @endif
     </title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#71b6ad">
-    
+
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Bokit">
     <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
