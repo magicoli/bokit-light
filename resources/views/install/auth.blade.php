@@ -5,9 +5,7 @@
 
 @section('content')
     <div class="text-center mb-6">
-        <div class="text-4xl mb-2">{{ config('app.logo') }}</div>
-        <h1 class="text-2xl font-bold">{{ config('app.name') }}</h1>
-        <p class="text-sm text-gray-500">{{ config('app.slogan') }}</p>
+        {!! appBrandingHtml() !!}
     </div>
 
     <div class="mb-8">
