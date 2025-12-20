@@ -89,7 +89,7 @@
 
                         <!-- Day columns with vertical separators -->
                         @foreach($days as $day)
-                        <th scope="col" class="day-column {{ $day->isToday() ? 'today' : '' }} {{ $day->isPast() ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}">
+                        <th scope="col" class="day-column {{ $day->isToday() ? 'today' : '' }} {{ $day->lt(today()) ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}">
                             <div class="day-name">
                                 {{ $day->format('D') }}
                             </div>
@@ -125,10 +125,10 @@
 
                             <!-- Day cells with bookings -->
                             @foreach($days as $dayIndex => $day)
-                            <td class="day-cell {{ $day->isPast() ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}">
+                            <td class="day-cell {{ $day->lt(today()) ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}">
                                 <!-- Unit label (mobile only) -->
                                 @if($dayIndex === 0)
-                                <div class="unit-label-mobile" style="background-color: {{ $unit->color }}; color: white; opacity: 0.9;">
+                                <div class="unit-label-mobile">
                                     {{ $unit->name }}
                                 </div>
                                 @endif

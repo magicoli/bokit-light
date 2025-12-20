@@ -145,10 +145,10 @@
 }
 
 .property-row {
-    @apply bg-gray-100 border-t-2 border-gray-300;
+    @apply bg-gray-300 border-t-2 border-gray-300;
 
     .property-name {
-        @apply sticky left-0 z-10 bg-gray-100 px-4 py-2 border-r-2 border-gray-300 font-bold text-gray-800 text-sm;
+        @apply sticky left-0 z-10 bg-gray-200 px-4 py-2 border-r-2 border-gray-300 font-bold text-gray-800 text-sm;
 
         @media (max-width: 639px) {
             @apply hidden;
@@ -156,7 +156,11 @@
     }
 
     .property-spacer {
-        @apply bg-gray-100 border-r border-gray-200;
+        @apply bg-gray-200 border-r border-gray-200;
+
+        &.weekend {
+            @apply bg-gray-200/50;
+        }
     }
 }
 
@@ -191,8 +195,21 @@
         @apply h-20;
     }
 
+    /* 3 niveaux de gris : passé (50) < weekend (100) */
+    &.past {
+        @apply bg-gray-100;
+    }
+
+    &.weekend {
+        @apply bg-gray-200/75;
+    }
+
     .unit-label-mobile {
-        @apply absolute top-0.5 left-0.5 text-[0.6rem] font-semibold z-[5] px-1 py-0.5 rounded;
+        @apply absolute left-2 top-1 text-xs font-semibold z-20 px-1.5 py-0.5 rounded shadow-sm bg-black/75 text-white;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
         @media (min-width: 640px) {
             @apply hidden;
@@ -200,11 +217,7 @@
     }
 
     .today-highlight {
-        @apply absolute inset-0 bg-blue-50 opacity-40 pointer-events-none;
-
-        @media (max-width: 639px) {
-            top: 1.75rem !important;
-        }
+        @apply absolute inset-0 bg-blue-200/50 pointer-events-none;
     }
 }
 
@@ -214,10 +227,6 @@
 
 .booking-block {
     @apply absolute rounded-xl text-white text-xs font-medium overflow-hidden hover:shadow-xl hover:opacity-100 transition-all flex items-center px-2 cursor-pointer z-10;
-
-    @media (max-width: 639px) {
-        top: 1.75rem !important;
-    }
 
     .continues {
         @apply opacity-75 mr-1;
