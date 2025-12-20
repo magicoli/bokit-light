@@ -1,7 +1,7 @@
 {
-    "name": "Bokit - Vacation Rental Calendar",
+    "name": "Bokit - Bring On Kitsch Island Time",
     "short_name": "Bokit",
-    "description": "Bring On Kitsch Island Time - Vacation rental calendar management",
+    "description": "Vacation rental Bookit Orchestration Kit",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
