@@ -1,6 +1,5 @@
 <div class="space-y-6">
     <div class="text-center mb-8">
-        <div class="text-5xl mb-3">{{ config('app.logo') }}</div>
         <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ config('app.name') }}</h2>
         <p class="text-gray-600">{{ config('app.slogan') }}</p>
     </div>

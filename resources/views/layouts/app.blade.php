@@ -57,9 +57,7 @@
             <div class="nav-inner">
                 <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
                     <h1 class="nav-branding">
-                        <div class="logo">
-                            <img src="{{ asset(config('app.logo', '/images/logo.png')) }}" alt="{{ config('app.name', 'Bokit') }}" class="logo-img">
-                        </div>
+                        <div class="w-12 h-12">{!! appLogoHtml("") !!}</div>
                         <div class="app-title">
                             {{ config('app.name', 'Bokit') }}
                         </div>

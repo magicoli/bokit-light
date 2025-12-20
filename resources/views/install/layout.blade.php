@@ -12,6 +12,7 @@
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="@yield('container-width', 'max-w-md') w-full">
             <div class="bg-white rounded-lg shadow-lg p-8">
+                {!! appBrandingHtml() !!}
                 @yield('content')
             </div>
         </div>
