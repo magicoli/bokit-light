@@ -1,7 +1,7 @@
 {
-    "name": "Bokit - Bring On Kitsch Island Time",
+    "name": "Bokit",
     "short_name": "Bokit",
-    "description": "Vacation rental Bookit Orchestration Kit",
+    "description": "Bookit Orchestration Kit",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

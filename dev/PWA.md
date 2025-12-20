@@ -22,7 +22,9 @@ Bokit is now a Progressive Web App, allowing users to install it as a native app
 ## Files
 
 - `public/manifest.json`: App metadata (name, icons, colors, display mode)
-- `public/sw.js`: Service Worker for caching strategy
+- `resources/views/sw.blade.php`: Service Worker template (version injected automatically)
+- `routes/web.php`: Route `/sw.js` that serves SW with correct headers
+- `config/app.php`: App version used for cache naming
 - `public/images/icons/`: App icons in various sizes
 - `resources/views/layouts/app.blade.php`: PWA meta tags and SW registration
 
@@ -52,17 +54,36 @@ Bokit is now a Progressive Web App, allowing users to install it as a native app
 
 ## Cache Management
 
-The Service Worker uses versioned caching (`bokit-v1`). When you update the SW:
-1. Increment the cache version (e.g., `bokit-v2`)
-2. Old caches are automatically deleted on activation
+The Service Worker uses **automatic versioned caching** based on `config('app.version')`.
+
+**How it works:**
+- Service Worker is generated dynamically via Laravel route `/sw.js`
+- Cache name is `bokit-v{{ app.version }}` (e.g., `bokit-v1.0.0`)
+- Old caches are automatically deleted when version changes
+
+**To trigger cache refresh:**
+1. Update `APP_VERSION` in `.env` or `config/app.php`
+2. Deploy the app
+3. Users' PWAs will automatically update on next visit
+
+No need to manually edit `CACHE_NAME` in multiple places!
 
 ## Updating the PWA
 
-When you deploy updates:
-1. Users will continue using cached version
-2. SW updates in background
-3. On next visit, new version is active
-4. Hard refresh (Cmd+Shift+R / Ctrl+Shift+F5) forces update
+**When you deploy updates:**
+1. **Without version bump**: HTML/data updates immediately, assets stay cached
+2. **With version bump**: Everything refreshes (HTML + all cached assets)
+
+**Timeline:**
+1. User opens app → new Service Worker downloads in background
+2. Service Worker activates immediately (`skipWaiting()` enabled)
+3. New cache replaces old cache automatically
+4. User sees updates without manual refresh
+
+**Best practice:**
+- **Patch changes** (bug fixes, text): bump patch version (1.0.0 → 1.0.1)
+- **Minor changes** (new features, CSS): bump minor version (1.0.1 → 1.1.0)
+- **Major changes** (redesign, structure): bump major version (1.1.0 → 2.0.0)
 
 ## Theme Color
 

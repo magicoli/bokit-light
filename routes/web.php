@@ -27,6 +27,14 @@ Route::post("/update/execute", [UpdateController::class, "execute"])->name(
     "update.execute",
 );
 
+// Service Worker (always accessible for PWA)
+Route::get('/sw.js', function () {
+    return response()
+        ->view('sw')
+        ->header('Content-Type', 'application/javascript')
+        ->header('Service-Worker-Allowed', '/');
+})->name('sw');
+
 // Check if installation is complete - single source of truth
 $isInstalled = Options::get("install.complete", false);
 
