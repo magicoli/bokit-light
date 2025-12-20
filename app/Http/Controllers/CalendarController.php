@@ -36,11 +36,9 @@ class CalendarController extends Controller
                 break;
             case "month":
             default:
-                $startDate = $currentDate
-                    ->copy()
-                    ->startOfMonth()
-                    ->startOfWeek();
-                $endDate = $currentDate->copy()->endOfMonth()->endOfWeek();
+                // Afficher uniquement les jours du mois en cours
+                $startDate = $currentDate->copy()->startOfMonth();
+                $endDate = $currentDate->copy()->endOfMonth();
                 $prevPeriod = $currentDate->copy()->subMonth();
                 $nextPeriod = $currentDate->copy()->addMonth();
                 break;

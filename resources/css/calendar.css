@@ -98,19 +98,6 @@
 .calendar-table {
     @apply min-w-full divide-y divide-gray-200;
     table-layout: fixed;
-    
-    /* À partir de 1280px, les colonnes doivent afficher tout le mois */
-    @media (min-width: 1280px) {
-        /* Calcul: (1280px - 120px colonne unit) / 31 jours = ~37.4px par jour */
-        /* On utilise width pour forcer l'affichage du mois complet */
-        width: 100%;
-    }
-    
-    /* Au-delà de 1980px, laisser les colonnes s'adapter librement */
-    @media (min-width: 1980px) {
-        table-layout: auto;
-    }
-}
 }
 
 /* =============================================================================
@@ -129,36 +116,10 @@
     }
 
     .day-column {
-        @apply px-1 py-2 text-center border-r border-gray-200 relative;
-        min-width: 38px;
-        
-        /* Pour 1280px: (1280 - 120) / 31 = 37.4px */
-        @media (min-width: 1280px) {
-            width: calc((100% - 120px) / 31);
-            max-width: calc((100% - 120px) / 31);
-        }
-        
-        /* Au-delà de 1980px, largeur flexible */
-        @media (min-width: 1980px) {
-            width: auto;
-            max-width: none;
-        }
+        @apply px-1 py-2 text-center min-w-[38px] border-r border-gray-200 relative;
 
         &.today {
             @apply bg-blue-50/50;
-        }
-
-        &.past {
-            @apply bg-gray-100;
-        }
-
-        &.weekend {
-            @apply bg-gray-50;
-        }
-
-        /* Weekend prend le dessus sur past */
-        &.weekend.past {
-            @apply bg-gray-100;
         }
 
         .day-name {
@@ -196,18 +157,6 @@
 
     .property-spacer {
         @apply bg-gray-100 border-r border-gray-200;
-
-        &.past {
-            @apply bg-gray-100;
-        }
-
-        &.weekend {
-            @apply bg-gray-50;
-        }
-
-        &.weekend.past {
-            @apply bg-gray-100;
-        }
     }
 }
 
@@ -226,7 +175,7 @@
         @apply flex items-center space-x-2;
 
         .unit-name {
-            @apply font-medium text-gray-900 text-sm whitespace-nowrap;
+            @apply font-medium text-gray-900 text-sm;
         }
     }
 }
@@ -240,18 +189,6 @@
 
     @media (max-width: 639px) {
         @apply h-20;
-    }
-
-    &.past {
-        @apply bg-gray-100;
-    }
-
-    &.weekend {
-        @apply bg-gray-50;
-    }
-
-    &.weekend.past {
-        @apply bg-gray-100;
     }
 
     .unit-label-mobile {
