@@ -30,19 +30,22 @@ nav {
     }
 
     .nav-branding {
-        @apply flex items-center space-x-3 hover:opacity-80 transition-opacity;
-    }
+        @apply flex items-center space-x-2 hover:opacity-80 transition-opacity;
 
-    .nav-logo {
-        @apply text-2xl font-bold text-gray-900;
-    }
+        /*.logo {
+        }*/
 
-    .badge-env {
-        @apply text-xs font-semibold bg-yellow-400 text-yellow-900 px-2 py-1 rounded;
+        .app-title {
+            @apply text-2xl font-semibold text-gray-900;
+        }
 
-        /* Sur mobile: version plus compacte */
-        @media (max-width: 767px) {
-            @apply text-[0.6rem] px-1.5 py-0.5;
+        .badge-env {
+            @apply text-xs font-semibold bg-yellow-400 text-yellow-900 px-2 py-1 rounded;
+
+            /* Sur mobile: version plus compacte */
+            @media (max-width: 767px) {
+                @apply text-[0.6rem] px-1.5 py-0.5;
+            }
         }
     }
 

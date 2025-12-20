@@ -1,12 +1,16 @@
 <?php
 
 return [
+    // App
+    "name" => "Bokit",
+    "slogan" => "Calendar Manager",
+
     // Navigation
     "logout" => "Logout",
     "login" => "Login",
     "admin" => "Admin",
     "admin_settings" => "Admin Settings",
-    "user_settings" => "My Settings",
+    "user_account" => "Account",
     "properties" => "Properties",
     "language" => "Language",
 
@@ -33,6 +37,28 @@ return [
     "edit_property" => "Edit Property",
     "calendar_sources" => "calendar source(s)",
     "no_units_in_property" => "No units in this property",
+    "no_properties_yet" => "No properties configured yet",
+    "no_units_yet" => "No units in this property",
+    "manage_properties_subtitle" => "Manage your rental properties and units",
+    "back_to_properties" => "Back to Properties",
+
+    // Unit Edit
+    "edit_unit_title" => "Edit Unit",
+    "basic_information" => "Basic Information",
+    "unit_name" => "Unit Name",
+    "slug" => "Slug",
+    "calendar_sources_title" => "Calendar Sources",
+    "add_source" => "Add Source",
+    "type" => "Type",
+    "url" => "URL",
+    "last_synced" => "Last synced",
+    "no_sources_configured" =>
+        "No calendar sources configured. Click \"Add Source\" to get started.",
+    "cancel" => "Cancel",
+    "save_changes" => "Save Changes",
+    "ical" => "iCal",
+    "beds24_coming_soon" => "Beds24 (coming soon)",
+    "required" => "required",
 
     // Common
     "loading" => "Loading...",

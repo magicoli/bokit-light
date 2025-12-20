@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('Edit Unit :name', ['name' => $unit->name]))
+@section('title', __('app.edit_unit_title') . ' - ' . $unit->name)
 
 @section('styles')
 @vite('resources/css/properties.css')
@@ -26,11 +26,11 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
     <!-- Header -->
     <div class="unit-header">
         <a href="{{ route('properties.index') }}" class="back-link">
-            ← Back to Properties
+            ← {{ __('app.back_to_properties') }}
         </a>
         <div class="title-row">
             <h1 class="title">{{ $unit->property->name }} / {{ $unit->name }}</h1>
-            <span class="subtitle">Edit Unit</span>
+            <span class="subtitle">{{ __('app.edit_unit_title') }}</span>
         </div>
     </div>
 
@@ -49,12 +49,12 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
 
         <!-- Basic Information -->
         <div class="form-section">
-            <h2 class="section-title">Basic Information</h2>
-
+            <h2 class="section-title">{{ __('app.basic_information') }}</h2>
+            
             <div class="form-grid">
                 <div class="form-field">
                     <label class="label">
-                        Unit Name <span class="required">*</span>
+                        {{ __('app.unit_name') }} <span class="required">*</span>
                     </label>
                     <input
                         type="text"
@@ -69,10 +69,10 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
                         <p class="error">{{ $message }}</p>
                     @enderror
                 </div>
-
+                
                 <div class="form-field">
                     <label class="label">
-                        Slug <span class="required">*</span>
+                        {{ __('app.slug') }} <span class="required">*</span>
                     </label>
                     <input
                         type="text"
@@ -93,24 +93,24 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
         <!-- Calendar Sources -->
         <div class="form-section">
             <div class="section-header">
-                <h2 class="section-title">Calendar Sources</h2>
-                <button
-                    type="button"
+                <h2 class="section-title">{{ __('app.calendar_sources_title') }}</h2>
+                <button 
+                    type="button" 
                     @click="addSource"
                     class="add-button"
                 >
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Source
+                    {{ __('app.add_source') }}
                 </button>
             </div>
-
+            
             <div class="space-y-3">
                 <template x-for="(source, index) in sources" :key="index">
                     <div class="source-item">
-                        <button
-                            type="button"
+                        <button 
+                            type="button" 
                             @click="removeSource(index)"
                             class="remove-button"
                             x-show="sources.length > 1"
@@ -119,24 +119,24 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
-
+                        
                         <input type="hidden" :name="`sources[${index}][id]`" x-model="source.id">
-
+                        
                         <div class="source-grid">
                             <div class="form-field">
-                                <label class="label">Type</label>
+                                <label class="label">{{ __('app.type') }}</label>
                                 <select
                                     :name="`sources[${index}][type]`"
                                     x-model="source.type"
                                     class="input"
                                 >
-                                    <option value="ical">iCal</option>
-                                    <option value="beds24" disabled>Beds24 (coming soon)</option>
+                                    <option value="ical">{{ __('app.ical') }}</option>
+                                    <option value="beds24" disabled>{{ __('app.beds24_coming_soon') }}</option>
                                 </select>
                             </div>
-
+                            
                             <div class="form-field">
-                                <label class="label">URL <span class="required">*</span></label>
+                                <label class="label">{{ __('app.url') }} <span class="required">*</span></label>
                                 <input
                                     type="url"
                                     :name="`sources[${index}][url]`"
@@ -147,17 +147,17 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
                                 >
                             </div>
                         </div>
-
+                        
                         <template x-if="source.last_sync_at">
                             <div class="last-sync">
-                                Last synced: <span x-text="source.last_sync_at"></span>
+                                {{ __('app.last_synced') }}: <span x-text="source.last_sync_at"></span>
                             </div>
                         </template>
                     </div>
                 </template>
-
+                
                 <div x-show="sources.length === 0" class="sources-empty">
-                    No calendar sources configured. Click "Add Source" to get started.
+                    {{ __('app.no_sources_configured') }}
                 </div>
             </div>
         </div>
@@ -165,13 +165,13 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
         <!-- Actions -->
         <div class="form-actions">
             <a href="{{ route('properties.index') }}" class="cancel-link">
-                Cancel
+                {{ __('app.cancel') }}
             </a>
-            <button
+            <button 
                 type="submit"
                 class="submit-button"
             >
-                Save Changes
+                {{ __('app.save_changes') }}
             </button>
         </div>
     </form>

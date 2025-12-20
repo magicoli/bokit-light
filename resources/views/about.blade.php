@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('About :name', ['name' => config('app.name')]))
+@section('title', __('app.about'))
 
 @section('styles')
 @vite('resources/css/markdown.css')

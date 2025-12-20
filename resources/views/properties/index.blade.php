@@ -10,12 +10,12 @@
 <div class="properties-container">
     <div class="properties-header">
         <h1 class="title">{{ __('app.properties') }}</h1>
-        <p class="subtitle">Manage your rental properties and units</p>
+        <p class="subtitle">{{ __('app.manage_properties_subtitle') }}</p>
     </div>
 
     @if($properties->isEmpty())
         <div class="empty-state">
-            <p class="message">No properties configured yet</p>
+            <p class="message">{{ __('app.no_properties_yet') }}</p>
         </div>
     @else
         <div class="properties-list">
@@ -26,7 +26,7 @@
                     </h2>
 
                     @if($property->units->isEmpty())
-                        <p class="no-units">No units in this property</p>
+                        <p class="no-units">{{ __('app.no_units_yet') }}</p>
                     @else
                         <div class="units-grid">
                             @foreach($property->units as $unit)
@@ -56,7 +56,7 @@
                                     </p>
                                     @endif
                                     <p class="unit-meta">
-                                        {{ $unit->icalSources->count() }} calendar source(s)
+                                        {{ $unit->icalSources->count() }} {{ __('app.calendar_sources') }}
                                     </p>
                                 </div>
                             @endforeach
