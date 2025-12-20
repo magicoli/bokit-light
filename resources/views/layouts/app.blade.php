@@ -7,10 +7,8 @@
         @php
         // Read PWA mode from cookie set by JavaScript
         $isPWA = request()->cookie('pwa_standalone') === '1';
-        $localTag = app()->environment('local') ? '(local)' : '';
         @endphp
         @if($isPWA)
-            {{ $localTag}}
             @hasSection('title')
                 @yield('title')
             @else
@@ -18,9 +16,9 @@
             @endif
         @else
             @hasSection('title')
-                @yield('title') - {{ config('app.name', 'Bokit') }} {{ $localTag}}
+                @yield('title') - {{ config('app.name', 'Bokit') }}
             @else
-                {{ config('app.name', 'Bokit') }} {{ $localTag}} - {{ __('app.slogan') }}
+                {{ config('app.name', 'Bokit') }} - {{ __('app.slogan') }}
             @endif
         @endif
     </title>
@@ -65,11 +63,6 @@
                         <div class="app-title">
                             {{ config('app.name', 'Bokit') }}
                         </div>
-                        @if(app()->environment('local'))
-                            <div class="badge-env">
-                                LOCAL
-                            </div>
-                        @endif
                     </h1>
                 </a>
 
