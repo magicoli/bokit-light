@@ -103,7 +103,12 @@
 
                 <tbody class="calendar-body">
                     @foreach($properties as $property)
-                        <!-- Property Header Row -->
+                        @php
+                            $isSingleUnit = $property->units->count() === 1;
+                        @endphp
+
+                        <!-- Property Header Row (only for multi-unit properties) -->
+                        @if(!$isSingleUnit)
                         <tr class="property-row">
                             <td class="property-name">
                                 <span>{{ $property->name }}</span>
@@ -112,12 +117,13 @@
                             <td class="property-spacer {{ $day->isPast() ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}"></td>
                             @endforeach
                         </tr>
+                        @endif
 
                         <!-- Units of this Property -->
                         @foreach($property->units as $unit)
-                        <tr class="unit-row">
+                        <tr class="{{ $isSingleUnit ? 'property-row' : '' }} unit-row">
                             <!-- Unit name (sticky) -->
-                            <td class="unit-cell">
+                            <td class="{{ $isSingleUnit ? 'property-name' : 'unit-cell' }}">
                                 <div class="unit-info">
                                     <span class="unit-name">{{ $unit->name }}</span>
                                 </div>
