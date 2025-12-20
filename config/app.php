@@ -31,7 +31,7 @@ return [
 
     "name" => env("APP_NAME", "Bokit"),
     "slogan" => env("APP_SLOGAN", "Bring On Kitsch Island Time"),
-    "logo" => env("APP_LOGO", "🏖️"),
+    "logo" => env("APP_LOGO", "/images/logo.png"),
 
     /*
     |--------------------------------------------------------------------------
