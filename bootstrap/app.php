@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\CheckInstalled::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\RenewRememberToken::class,
         ]);
 
         // Middleware aliases

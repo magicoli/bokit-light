@@ -65,4 +65,5 @@ return [
     "loading" => "Chargement...",
     "error" => "Erreur",
     "success" => "Succès",
+    "remember_me" => "Souviens-toi de moi",
 ];

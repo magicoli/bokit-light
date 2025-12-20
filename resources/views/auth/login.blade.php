@@ -54,6 +54,18 @@
                     required
                 >
             </div>
+            <div class="mb-6">
+                <label class="flex items-center">
+                    <input
+                        type="checkbox"
+                        name="remember"
+                        class="mr-2 leading-tight"
+                    >
+                    <span class="text-sm text-gray-700">
+                        {{ __('app.remember_me') }}
+                    </span>
+                </label>
+            </div>
             <div class="flex items-center justify-between">
                 <button
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
