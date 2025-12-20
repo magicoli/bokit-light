@@ -88,7 +88,7 @@
    ============================================================================= */
 
 .calendar-wrapper {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto;
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-hidden;
 }
 
 .calendar-table-container {

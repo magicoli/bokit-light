@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-wkkpWGUj.css",
+    "file": "assets/app-c-wzf1rc.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/calendar.css": {
-    "file": "assets/calendar-CJn6Q1hd.css",
+    "file": "assets/calendar-BFGEjZ8U.css",
     "src": "resources/css/calendar.css",
     "isEntry": true,
     "name": "calendar",
@@ -27,7 +27,7 @@
     ]
   },
   "resources/css/properties.css": {
-    "file": "assets/properties-CXh8838L.css",
+    "file": "assets/properties-CVIdlMWX.css",
     "src": "resources/css/properties.css",
     "isEntry": true,
     "name": "properties",

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Calendar - Bokit')
+@section('title', __('app.calendar'))
 
 @section('styles')
 @vite('resources/css/calendar.css')

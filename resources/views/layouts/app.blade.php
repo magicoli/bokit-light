@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Bokit - Calendar Manager')</title>
+    <title>
+        @hasSection('title')
+            @yield('title') - {{ config('app.name', 'Bokit') }}
+        @else
+            {{ config('app.name', 'Bokit') }} - {{ __('app.slogan') }}
+        @endif
+    </title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,15 +30,20 @@
     <nav class="nav-main" x-data="{ mobileMenuOpen: false }">
         <div class="nav-container">
             <div class="nav-inner">
-                <a href="{{ auth()->check() ? route('calendar') : route('home') }}" class="nav-branding">
-                    <h1 class="nav-logo">
-                        🏖️ Bokit
+                <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
+                    <h1 class="nav-branding">
+                        <div class="logo">
+                            {{ config('app.logo', '🏖️') }}
+                        </div>
+                        <div class="app-title">
+                            {{ config('app.name', 'Bokit') }}
+                        </div>
+                        @if(app()->environment('local'))
+                            <div class="badge-env">
+                                LOCAL
+                            </div>
+                        @endif
                     </h1>
-                    @if(app()->environment('local'))
-                        <span class="badge-env">
-                            LOCAL
-                        </span>
-                    @endif
                 </a>
 
                 <!-- Desktop menu -->
@@ -104,7 +115,7 @@
                                  x-cloak
                                  class="dropdown-menu">
                                 <a href="{{ route('user.settings') }}" class="dropdown-item">
-                                    {{ __('app.user_settings') }}
+                                    {{ __('app.user_account') }}
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
@@ -141,7 +152,7 @@
                  x-cloak
                  @click.away="mobileMenuOpen = false"
                  class="mobile-menu">
-                
+
                 <!-- Main navigation -->
                 <div class="menu-section main-nav">
                     <a href="{{ route('about') }}" class="nav-link">
@@ -164,7 +175,7 @@
                     <div class="menu-section">
                         <div class="menu-section-title">{{ auth()->user()->name }}</div>
                         <a href="{{ route('user.settings') }}" class="nav-link">
-                            {{ __('app.user_settings') }}
+                            {{ __('app.user_account') }}
                         </a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
