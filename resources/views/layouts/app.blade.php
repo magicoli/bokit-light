@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         @php
-        if(app('request')->query('mode')) {
-            session()->put('isPWA', app('request')->query('mode') == 'standalone');
-        }
-        $isWPA = session('isPWA') ?? false;
+        // Read PWA mode from cookie set by JavaScript
+        $isPWA = request()->cookie('pwa_standalone') === '1';
         $localTag = app()->environment('local') ? '(local)' : '';
         @endphp
-        @if($isWPA)
+        @if($isPWA)
             {{ $localTag}}
             @hasSection('title')
                 @yield('title')
