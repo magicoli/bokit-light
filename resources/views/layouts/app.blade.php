@@ -11,6 +11,19 @@
         @endif
     </title>
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#71b6ad">
+    
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Bokit">
+    <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -33,7 +46,7 @@
                 <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
                     <h1 class="nav-branding">
                         <div class="logo">
-                            {{ config('app.logo', '🏖️') }}
+                            <img src="{{ asset(config('app.logo', '/images/logo.png')) }}" alt="{{ config('app.name', 'Bokit') }}" class="logo-img">
                         </div>
                         <div class="app-title">
                             {{ config('app.name', 'Bokit') }}

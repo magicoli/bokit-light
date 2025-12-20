@@ -35,6 +35,10 @@ nav {
         /*.logo {
         }*/
 
+        .logo-img {
+            @apply w-12 h-12 object-contain;
+        }
+
         .app-title {
             @apply text-2xl font-semibold text-gray-900;
         }
