@@ -1,0 +1,50 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-wkkpWGUj.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/css/calendar.css": {
+    "file": "assets/calendar-CJn6Q1hd.css",
+    "src": "resources/css/calendar.css",
+    "isEntry": true,
+    "name": "calendar",
+    "names": [
+      "calendar.css"
+    ]
+  },
+  "resources/css/markdown.css": {
+    "file": "assets/markdown-BFM-9oZJ.css",
+    "src": "resources/css/markdown.css",
+    "isEntry": true,
+    "name": "markdown",
+    "names": [
+      "markdown.css"
+    ]
+  },
+  "resources/css/properties.css": {
+    "file": "assets/properties-CXh8838L.css",
+    "src": "resources/css/properties.css",
+    "isEntry": true,
+    "name": "properties",
+    "names": [
+      "properties.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-CAiCLEjY.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/units-edit.js": {
+    "file": "assets/units-edit-yhudZr4L.js",
+    "name": "units-edit",
+    "src": "resources/js/units-edit.js",
+    "isEntry": true
+  }
+}
