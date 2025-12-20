@@ -119,7 +119,6 @@
                             <!-- Unit name (sticky) -->
                             <td class="unit-cell">
                                 <div class="unit-info">
-                                    <div class="unit-color" style="background-color: {{ $unit->color }}"></div>
                                     <span class="unit-name">{{ $unit->name }}</span>
                                 </div>
                             </td>
