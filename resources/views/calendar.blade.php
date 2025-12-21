@@ -6,6 +6,10 @@
 @vite('resources/css/calendar.css')
 @endsection
 
+@php
+use App\Traits\TimezoneTrait;
+@endphp
+
 @section('content')
 <div x-data="calendar()" x-cloak>
     <!-- Navigation Bar -->
@@ -39,9 +43,6 @@
                 </div>
                 <h2>
                     @if($view === 'week' || $view === '2weeks')
-                        @php
-                            use App\Traits\TimezoneTrait;
-                        @endphp
                         <span class="hidden sm:hidden md:inline">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'long')) }}</span>
                         <span class="hidden sm:inline md:hidden">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'medium')) }}</span>
                         <span class="inline sm:hidden">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'short')) }}</span>
