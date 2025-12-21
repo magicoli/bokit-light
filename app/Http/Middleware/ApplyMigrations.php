@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use App\Support\Options;
 
-class CheckUpdates
+class ApplyMigrations
 {
     /**
      * Routes that should bypass the update check
@@ -34,12 +34,8 @@ class CheckUpdates
 
         // Check if migrations are pending
         if ($this->hasPendingMigrations()) {
-            // In local environment, redirect to /update page for manual confirmation
-            if (config("app.env") === "local") {
-                return redirect("/update");
-            }
-
-            // In production, run migrations automatically (silent update)
+            Log::notice("[AutoUpdate] Migrations are pending");
+            // Run migrations automatically (silent update)
             $this->runMigrationsAutomatically();
         }
 
@@ -62,14 +58,14 @@ class CheckUpdates
             Artisan::call("migrate", ["--force" => true]);
             $output = ob_get_clean();
 
-            Log::info("[AutoUpdate] Migrations completed successfully", [
+            Log::notice("[AutoUpdate] Migrations completed successfully", [
                 "output" => $output,
             ]);
 
-            // Store notification for admin
-            Options::set("admin.last_update", [
+            // Log successful migration for admin
+            Log::notice("[AutoUpdate] Database updated automatically", [
                 "timestamp" => now()->timestamp,
-                "message" => "Database updated automatically",
+                "output" => $output,
             ]);
         } catch (\Exception $e) {
             ob_end_clean(); // Clean buffer in case of error
