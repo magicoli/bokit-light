@@ -65,6 +65,8 @@ return [
     "error" => "Error",
     "success" => "Success",
     "remember_me" => "Remember me",
+    "week" => "Week",
+    "weeks" => "Weeks",
     
     // Admin Settings
     "admin_settings_description" => "Manage application settings and configuration",

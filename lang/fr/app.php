@@ -65,7 +65,9 @@ return [
     "loading" => "Chargement...",
     "error" => "Erreur",
     "success" => "Succès",
-    "remember_me" => "Souviens-toi de moi",
+    "remember_me" => "Rester connecté",
+    "week" => "Semaine",
+    "weeks" => "Semaines",
     
     // Admin Settings
     "admin_settings_description" => "Gérer les paramètres et la configuration de l'application",
