@@ -30,12 +30,12 @@ Route::post("/update/execute", [UpdateController::class, "execute"])->name(
 );
 
 // Service Worker (always accessible for PWA)
-Route::get('/sw.js', function () {
+Route::get("/sw.js", function () {
     return response()
-        ->view('sw')
-        ->header('Content-Type', 'application/javascript')
-        ->header('Service-Worker-Allowed', '/');
-})->name('sw');
+        ->view("sw")
+        ->header("Content-Type", "application/javascript")
+        ->header("Service-Worker-Allowed", "/");
+})->name("sw");
 
 // Check if installation is complete - single source of truth
 $isInstalled = Options::get("install.complete", false);
@@ -85,11 +85,11 @@ if ($isInstalled) {
                 "password" => $credentials["password"],
             ];
 
-            $remember = $request->boolean('remember');
+            $remember = $request->boolean("remember");
 
             if (Auth::attempt($authCredentials, $remember)) {
                 $request->session()->regenerate();
-                
+
                 // Set remember me cookie duration: 7 days (10080 minutes)
                 // The RenewRememberToken middleware will renew this on each visit
                 if ($remember) {
@@ -97,21 +97,21 @@ if ($isInstalled) {
                     $minutes = 10080; // 7 days
                     $recaller = Auth::guard()->getRecallerName();
                     $token = $user->getRememberToken();
-                    $value = $user->id.'|'.$token.'|'.$user->password;
-                    
+                    $value = $user->id . "|" . $token . "|" . $user->password;
+
                     cookie()->queue(
                         $recaller,
                         encrypt($value),
                         $minutes,
-                        config('session.path'),
-                        config('session.domain'),
-                        config('session.secure'),
-                        config('session.http_only', true),
+                        config("session.path"),
+                        config("session.domain"),
+                        config("session.secure"),
+                        config("session.http_only", true),
                         false,
-                        config('session.same_site')
+                        config("session.same_site"),
                     );
                 }
-                
+
                 return redirect()->intended("/calendar");
             }
 
@@ -150,7 +150,7 @@ if ($isInstalled) {
 
         // Properties list (specific route, must be before catch-all)
         Route::get("/properties", [PropertyController::class, "index"])->name(
-            "properties.index",
+            "properties",
         );
 
         // User settings
@@ -163,24 +163,43 @@ if ($isInstalled) {
             AdminController::class,
             "settings",
         ])->name("admin.settings");
-        
+
         Route::post("/admin/settings", [
             AdminController::class,
             "saveSettings",
         ])->name("admin.settings.save");
 
         // Pricing management
-        Route::get("/pricing", [PricingController::class, "index"])->name("pricing.index");
-        Route::post("/pricing", [PricingController::class, "store"])->name("pricing.store");
-        Route::put("/pricing/{rate}", [PricingController::class, "update"])->name("pricing.update");
-        Route::delete("/pricing/{rate}", [PricingController::class, "destroy"])->name("pricing.destroy");
-        
+        Route::get("/pricing", [PricingController::class, "index"])->name(
+            "pricing",
+        );
+        Route::post("/pricing", [PricingController::class, "store"])->name(
+            "pricing.store",
+        );
+        Route::put("/pricing/{rate}", [
+            PricingController::class,
+            "update",
+        ])->name("pricing.update");
+        Route::delete("/pricing/{rate}", [
+            PricingController::class,
+            "destroy",
+        ])->name("pricing.destroy");
+
         // Pricing calculator
-        Route::get("/pricing/calculator", [PricingController::class, "calculator"])->name("pricing.calculator");
-        Route::post("/pricing/calculate", [PricingController::class, "calculate"])->name("pricing.calculate");
+        Route::get("/pricing/calculator", [
+            PricingController::class,
+            "calculator",
+        ])->name("pricing.calculator");
+        Route::post("/pricing/calculate", [
+            PricingController::class,
+            "calculate",
+        ])->name("pricing.calculate");
 
         // API for reference rates
-        Route::get("/api/reference-rates/{propertyId}", [PricingController::class, "referenceRates"]);
+        Route::get("/api/reference-rates/{propertyId}", [
+            PricingController::class,
+            "referenceRates",
+        ]);
 
         // Units (edit/update)
         Route::get("/{property:slug}/{unit:slug}/edit", [
@@ -192,17 +211,16 @@ if ($isInstalled) {
             "update",
         ])->name("units.update");
     });
-    
+
     // Public pages (no auth required - MUST be last as they are catch-all routes)
     Route::get("/{property:slug}/{unit:slug}", [
         UnitController::class,
         "show",
     ])->name("units.show");
-    
-    Route::get("/{property:slug}", [
-        PropertyController::class,
-        "show",
-    ])->name("property.show");
+
+    Route::get("/{property:slug}", [PropertyController::class, "show"])->name(
+        "property.show",
+    );
 } else {
     // If not installed, redirect everything to install
     Route::get("/{any}", function () {

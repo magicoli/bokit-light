@@ -1,18 +1,15 @@
 @extends('layouts.app')
 
 @section('title', __('app.properties'))
+@section('subtitle', __('app.manage_properties_subtitle'))
 
 @section('styles')
+@vite('resources/css/forms.css')
 @vite('resources/css/properties.css')
 @endsection
 
 @section('content')
 <div class="properties-container">
-    <div class="properties-header">
-        <h1 class="title">{{ __('app.properties') }}</h1>
-        <p class="subtitle">{{ __('app.manage_properties_subtitle') }}</p>
-    </div>
-
     @if($properties->isEmpty())
         <div class="empty-state">
             <p class="message">{{ __('app.no_properties_yet') }}</p>
@@ -32,18 +29,18 @@
                             @foreach($property->units as $unit)
                                 <div class="unit-card">
                                     <div class="unit-header">
-                                        <a href="{{ route('units.show', [$property, $unit]) }}" 
+                                        <a href="{{ route('units.show', [$property, $unit]) }}"
                                            class="unit-name">
                                             {{ $unit->name }}
                                         </a>
                                         @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
                                         <div class="unit-actions">
-                                            <a href="{{ route('units.show', [$property, $unit]) }}" 
+                                            <a href="{{ route('units.show', [$property, $unit]) }}"
                                                class="action-link">
                                                 {{ __('app.view') }}
                                             </a>
                                             <span class="separator">|</span>
-                                            <a href="{{ route('units.edit', [$property, $unit]) }}" 
+                                            <a href="{{ route('units.edit', [$property, $unit]) }}"
                                                class="action-link">
                                                 {{ __('app.edit') }}
                                             </a>

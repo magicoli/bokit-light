@@ -23,7 +23,7 @@ class PropertyController extends Controller
         
         $properties = $query->get();
         
-        return view('properties.index', [
+        return view('properties', [
             'properties' => $properties,
         ]);
     }

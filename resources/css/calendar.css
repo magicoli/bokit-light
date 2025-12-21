@@ -4,6 +4,17 @@
    CALENDAR NAVIGATION
    ============================================================================= */
 
+main {
+    > * {
+        @apply max-w-none;
+    }
+}
+
+header {
+    @apply hidden;
+    background: lightgreen;
+}
+
 .text-mobile-only {
     @media (min-width: 640px) {
         @apply hidden;
