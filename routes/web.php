@@ -10,6 +10,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 use App\Support\Options;
 use Illuminate\Support\Facades\Route;
 
@@ -177,6 +178,9 @@ if ($isInstalled) {
         // Pricing calculator
         Route::get("/pricing/calculator", [PricingController::class, "calculator"])->name("pricing.calculator");
         Route::post("/pricing/calculate", [PricingController::class, "calculate"])->name("pricing.calculate");
+
+        // API for reference rates
+        Route::get("/api/reference-rates/{propertyId}", [PricingController::class, "referenceRates"]);
 
         // Units (edit/update)
         Route::get("/{property:slug}/{unit:slug}/edit", [

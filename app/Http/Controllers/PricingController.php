@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Rate;
+use App\Models\Coupon;
 use App\Models\Unit;
 use App\Models\Property;
 use App\Models\Booking;
 use App\Services\PricingCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class PricingController extends Controller
 {
@@ -20,15 +22,16 @@ class PricingController extends Controller
      */
     public function index()
     {
-        $rates = Rate::with(['unit', 'property'])
+        $rates = Rate::with(['unit', 'referenceRate', 'rateProperty'])
             ->orderBy('priority', 'desc')
             ->get();
 
         $properties = Property::all();
         $units = Unit::with('property')->get();
         $unitTypes = Unit::distinct()->pluck('unit_type')->filter();
+        $coupons = Coupon::active()->get();
 
-        return view('pricing.index', compact('rates', 'properties', 'units', 'unitTypes'));
+        return view('pricing.index', compact('rates', 'properties', 'units', 'unitTypes', 'coupons'));
     }
 
     /**
@@ -37,28 +40,42 @@ class PricingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'unit_id' => 'nullable|exists:units,id',
             'unit_type' => 'nullable|string|max:100',
-            'property_id' => 'nullable|exists:properties,id',
-            'base_amount' => 'required|numeric|min:0',
+            'property_id' => 'required|exists:properties,id',
+            'base_rate' => 'required|numeric|min:0',
+            'reference_rate_id' => 'nullable|exists:rates,id',
             'calculation_formula' => 'required|string|max:500',
             'is_active' => 'boolean',
-            'priority' => 'integer|min:0',
+            'priority' => 'in:high,normal,low',
+            'booking_from' => 'nullable|date',
+            'booking_to' => 'nullable|date|after_or_equal:booking_from',
+            'stay_from' => 'nullable|date',
+            'stay_to' => 'nullable|date|after_or_equal:stay_from',
         ]);
 
         // Ensure only one scope is set
         $scopes = array_filter([
             'unit_id' => $validated['unit_id'] ?? null,
             'unit_type' => $validated['unit_type'] ?? null,
-            'property_id' => $validated['property_id'] ?? null,
+            'coupon' => $validated['coupon'] ?? null,
         ]);
 
-        if (count($scopes) !== 1) {
+        if (count($scopes) > 1) {
             return back()->withErrors([
-                'scope' => 'Exactly one of unit, unit type, or property must be selected'
+                'scope' => 'Only one of unit, unit type, or coupon can be set'
             ]);
         }
+
+        // Handle coupon logic (convert to appropriate fields)
+        if (!empty($validated['coupon'])) {
+            // This will be implemented later
+            $validated['unit_type'] = $validated['coupon'];
+        }
+        
+        // Remove coupon field as it's not a DB column
+        unset($validated['coupon']);
 
         Rate::create($validated);
 
@@ -71,28 +88,15 @@ class PricingController extends Controller
     public function update(Request $request, Rate $rate)
     {
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|nullable|string|max:255',
             'unit_id' => 'nullable|exists:units,id',
             'unit_type' => 'nullable|string|max:100',
-            'property_id' => 'nullable|exists:properties,id',
-            'base_amount' => 'sometimes|required|numeric|min:0',
+            'base_rate' => 'sometimes|required|numeric|min:0',
+            'reference_rate_id' => 'nullable|exists:rates,id',
             'calculation_formula' => 'sometimes|required|string|max:500',
             'is_active' => 'sometimes|boolean',
-            'priority' => 'sometimes|integer|min:0',
+            'priority' => 'sometimes|in:high,normal,low',
         ]);
-
-        // Ensure only one scope is set
-        $scopes = array_filter([
-            'unit_id' => $validated['unit_id'] ?? $rate->unit_id,
-            'unit_type' => $validated['unit_type'] ?? $rate->unit_type,
-            'property_id' => $validated['property_id'] ?? $rate->property_id,
-        ]);
-
-        if (count($scopes) !== 1) {
-            return back()->withErrors([
-                'scope' => 'Exactly one of unit, unit type, or property must be selected'
-            ]);
-        }
 
         $rate->update($validated);
 
@@ -159,5 +163,25 @@ class PricingController extends Controller
                 'calculation' => 'Calculation failed: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * API endpoint for reference rates
+     */
+    public function referenceRates($propertyId): JsonResponse
+    {
+        $rates = Rate::with(['referenceRate'])
+            ->where('property_id', $propertyId)
+            ->orWhereNull('property_id')
+            ->get()
+            ->map(function ($rate) {
+                return [
+                    'id' => $rate->id,
+                    'display_name' => $rate->display_name,
+                    'base_rate' => $rate->base_rate,
+                ];
+            });
+
+        return response()->json($rates);
     }
 }
