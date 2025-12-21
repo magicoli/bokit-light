@@ -67,11 +67,13 @@ return [
     "remember_me" => "Remember me",
     "week" => "Week",
     "weeks" => "Weeks",
-    
+
     // Admin Settings
-    "admin_settings_description" => "Manage application settings and configuration",
+    "admin_settings_description" =>
+        "Manage application settings and configuration",
     "display_timezone" => "Display Timezone",
-    "display_timezone_help" => "All dates will be displayed in this timezone. Properties can override this individually.",
+    "display_timezone_help" =>
+        "Dates are displayed in this time zone by default. Properties or rental units may have a specific time zone that overrides this value.",
     "save_settings" => "Save Settings",
     "settings_saved" => "Settings saved successfully",
 ];

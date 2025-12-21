@@ -68,11 +68,13 @@ return [
     "remember_me" => "Rester connecté",
     "week" => "Semaine",
     "weeks" => "Semaines",
-    
+
     // Admin Settings
-    "admin_settings_description" => "Gérer les paramètres et la configuration de l'application",
+    "admin_settings_description" =>
+        "Gérer les paramètres et la configuration de l'application",
     "display_timezone" => "Fuseau horaire d'affichage",
-    "display_timezone_help" => "Toutes les dates seront affichées dans ce fuseau horaire. Les propriétés peuvent le surcharger individuellement.",
+    "display_timezone_help" =>
+        "Les dates sont affichées par défaut dans ce fuseau horaire. Les propriétés ou les unités louées peuvent avoir un fuseau horaire spécifique qui remplace cette valeur.",
     "save_settings" => "Enregistrer les paramètres",
     "settings_saved" => "Paramètres enregistrés avec succès",
 ];
