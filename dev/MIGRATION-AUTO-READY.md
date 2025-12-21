@@ -8,7 +8,7 @@
 - `database/migrations/2025_12_11_100000_add_status_to_bookings.php` - Ajoute colonne `status`
 
 **Middleware:**
-- `app/Http/Middleware/CheckUpdates.php` - Détecte et exécute migrations automatiquement avec backup
+- `app/Http/Middleware/ApplyMigrations.php` - Détecte et exécute migrations automatiquement avec backup
 
 **Contrôleurs:**
 - `app/Http/Controllers/UpdateController.php` - Page /update pour mode local
@@ -32,12 +32,12 @@
 ### Fichiers modifiés
 
 - `routes/web.php` - Ajout routes /update et CalendarController
-- `bootstrap/app.php` - Enregistrement middlewares (CheckUpdates, AutoSync)
+- `bootstrap/app.php` - Enregistrement middlewares (ApplyMigrations, AutoSync)
 
 ## 🎯 Comment ça marche
 
 ### Mode Production (automatique)
-1. Middleware `CheckUpdates` détecte migration pendante
+1. Middleware `ApplyMigrations` détecte migration pendante
 2. **Backup automatique** de la DB dans `storage/backups/`
 3. **Exécution automatique** de la migration
 4. Notification silencieuse stockée dans Options

@@ -6,9 +6,9 @@ Bokit uses a WordPress-style auto-update system where database migrations are au
 
 ## How It Works
 
-### 1. Migration Detection (`CheckUpdates` Middleware)
+### 1. Migration Detection (`ApplyMigrations` Middleware)
 
-The `CheckUpdates` middleware runs on every request (except `/install` and `/update` routes) and:
+The `ApplyMigrations` middleware runs on every request (except `/install` and `/update` routes) and:
 
 1. Checks if there are pending Laravel migrations
 2. Compares migration files in `database/migrations/` with the `migrations` table
@@ -85,7 +85,7 @@ return new class extends Migration
 ### Step 3: Test Locally
 
 The next time you load any page in the app:
-1. `CheckUpdates` middleware detects the new migration
+1. `ApplyMigrations` middleware detects the new migration
 2. You're redirected to `/update`
 3. Click "Run Update Now"
 4. Migration executes
@@ -125,7 +125,7 @@ This creates a single SQL dump of the entire schema, allowing you to delete old 
 ## Files
 
 ### Core Files
-- `app/Http/Middleware/CheckUpdates.php` - Detects pending migrations
+- `app/Http/Middleware/ApplyMigrations.php` - Detects pending migrations
 - `app/Http/Controllers/UpdateController.php` - Handles `/update` page and execution
 - `resources/views/update.blade.php` - Update page UI
 - `routes/web.php` - Routes for `/update` and `/update/execute`
@@ -197,7 +197,7 @@ This system is similar to WordPress plugin/theme updates:
 ```
 1. CheckInstalled (redirects to /install if needed)
 2. Auth (WordPress or None)
-3. CheckUpdates (redirects to /update if needed)
+3. ApplyMigrations (redirects to /update if needed)
 4. AutoSync (syncs iCal feeds)
 5. Route Controller
 ```

@@ -13,18 +13,20 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Global middleware - always check if installed first
-        $middleware->web(append: [
-            \App\Http\Middleware\CheckInstalled::class,
-            \App\Http\Middleware\SetLocale::class,
-            \App\Http\Middleware\RenewRememberToken::class,
-        ]);
+        $middleware->web(
+            append: [
+                \App\Http\Middleware\CheckInstalled::class,
+                \App\Http\Middleware\ApplyMigrations::class,
+                \App\Http\Middleware\SetLocale::class,
+                \App\Http\Middleware\RenewRememberToken::class,
+            ],
+        );
 
         // Middleware aliases
         $middleware->alias([
             "auth.wordpress" => \App\Http\Middleware\WordPressAuth::class,
             "auth.laravel" => \App\Http\Middleware\LaravelAuth::class,
             "auth.none" => \App\Http\Middleware\NoAuth::class,
-            "check.updates" => \App\Http\Middleware\CheckUpdates::class,
         ]);
 
         // Auto-sync iCal sources on page loads
