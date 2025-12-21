@@ -69,7 +69,7 @@ class InstallController extends Controller
             Session::forget("install_step");
         }
 
-        return view("install.index", [
+        return view("install", [
             "step" => $step,
             "stepNumber" => $currentStepNumber,
             "totalSteps" => count($this->steps),

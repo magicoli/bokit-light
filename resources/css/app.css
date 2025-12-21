@@ -17,6 +17,8 @@
    ============================================================================= */
 
 nav {
+    @apply sticky top-0 z-10;
+
     &.nav-main {
         @apply bg-white shadow-sm border-b border-gray-200;
     }
@@ -95,10 +97,10 @@ nav {
                     @apply hidden;
                 }
             }
-        }
 
-        .menu-section-title {
-            @apply text-xs font-semibold text-gray-500 uppercase mb-2;
+            .menu-title {
+                @apply text-xs font-semibold text-gray-500 uppercase mb-2;
+            }
         }
     }
 
@@ -220,18 +222,102 @@ nav {
 }
 
 /* =============================================================================
-   MAIN CONTENT
+   MAIN SECTIONS
    ============================================================================= */
 
-main {
-    @apply w-full;
+header {
+    .title {
+        @apply text-3xl font-bold text-gray-900;
+    }
+
+    .subtitle {
+        @apply text-gray-600 mt-2;
+    }
+}
+
+#content-wrapper {
+    @apply grid xl:grid-cols-12 gap-4;
+
+    > * {
+        @apply md:p-4;
+        /*padding: min(1rem, 2%);*/
+    }
+
+    sidebar {
+        @apply col-span-3;
+    }
+
+    main {
+        @apply col-span-6 space-y-4;
+    }
+
+    &:has(.content .calendar-wrapper) {
+        @apply xl:grid-cols-1  space-y-0;
+
+        sidebar {
+            @apply hidden;
+        }
+    }
+}
+
+footer {
+    @apply w-full mt-6 bg-gray-500;
     padding: min(1rem, 2%);
 
-    > .main-content {
-        @apply max-w-4xl mx-auto;
+    > * {
+        @apply container mx-auto;
+    }
+}
 
+main {
+    /* Header */
+
+    > .main-content {
         > .wrapper {
             @apply bg-white rounded-lg shadow-sm p-8;
         }
+    }
+}
+
+/**
+ * Hide elements with the x-cloak attribute until Alpine.js is loaded.
+ */
+[x-cloak] {
+    display: none !important;
+}
+
+.error {
+    @apply text-red-600 text-sm mt-1;
+}
+
+/* Hide default header if #main has a h1 element */
+#content-wrapper:has(.content header) {
+    header {
+        @apply hidden;
+        background: lightgreen;
+    }
+}
+
+.card {
+    @apply bg-white rounded-lg shadow-sm space-y-6 my-6;
+
+    > * {
+        @apply p-4;
+    }
+
+    .card-header {
+        @apply bg-gray-100 px-4 py-2 rounded-t-lg;
+    }
+
+    .card-body {
+        @apply p-4;
+    }
+
+    .card-footer {
+        @apply bg-gray-100 px-4 py-2 rounded-b-lg;
+    }
+
+    h2 {
+        @apply text-base/7 font-semibold text-gray-900;
     }
 }

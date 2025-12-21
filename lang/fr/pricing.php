@@ -1,0 +1,33 @@
+<?php
+
+return [
+    "title" => "Tarifs",
+    "menu" => "Tarifs",
+    "add_rate" => "Ajouter un tarif",
+    "pricing_settings" => "Réglages des tarifs",
+    "booking_date" => "Date de réservation",
+    "stay" => "Séjour",
+    "priority" => "Priorité",
+    "priority_high" => "Haute",
+    "priority_normal" => "Normale",
+    "priority_low" => "Basse",
+    "name_this_rate" => "Nommez ce tarif",
+    "name_this_rate_placeholder" =>
+        "Facultatif, ajouté au nom généré automatiquement",
+    "conditions" => "Conditions",
+    "conditions_placeholder" => "Pas encore implémenté",
+    "add_rate" => "Ajouter un tarif",
+    "current_rates" => "Tarifs actuels",
+    "no_rates_configured_yet" => "Aucun tarif configuré",
+    "base_rate" => "Tarif de base",
+    "reference_rate" => "Tarif de référence",
+    "calculation_formula" => "Formule de calcul",
+    "column_display_name" => "Nom d'affichage",
+    "column_scope" => "Portée",
+    "column_base_rate" => "Tarif de base",
+    "column_reference_rate" => "Tarif de référence",
+    "column_formula" => "Formule",
+    "column_priority" => "Priorité",
+    "column_enabled" => "Activé",
+    "column_actions" => "Actions",
+];

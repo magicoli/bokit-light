@@ -6,7 +6,7 @@
 <div class="container mx-auto p-4">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">{{ __('Pricing Calculator') }}</h1>
-        <a href="{{ route('pricing.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+        <a href="{{ route('pricing') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
             {{ __('Back to Rates') }}
         </a>
     </div>
@@ -24,7 +24,7 @@
             <p><strong>{{ __('Base Amount') }}:</strong> €{{ number_format(session('calculation')->base_amount, 2) }}</p>
             <p><strong>{{ __('Rate Used') }}:</strong> {{ session('calculation')->calculation_snapshot['rate_name'] }}</p>
             <p><strong>{{ __('Formula') }}:</strong> {{ session('calculation')->calculation_snapshot['formula'] }}</p>
-            
+
             @if(session('test_booking'))
                 <div class="mt-3">
                     <h4 class="font-semibold">{{ __('Test Booking Details') }}</h4>
@@ -48,10 +48,10 @@
 
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold mb-4">{{ __('Test Booking') }}</h2>
-        
+
         <form action="{{ route('pricing.calculate') }}" method="POST" class="space-y-4">
             @csrf
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">{{ __('Property') }}</label>
@@ -62,7 +62,7 @@
                         @endforeach
                     </select>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium mb-1">{{ __('Unit') }}</label>
                     <select name="unit_id" required class="w-full border rounded px-3 py-2">
@@ -79,7 +79,7 @@
                     <label class="block text-sm font-medium mb-1">{{ __('Check-in Date') }}</label>
                     <input type="date" name="check_in" required class="w-full border rounded px-3 py-2">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium mb-1">{{ __('Check-out Date') }}</label>
                     <input type="date" name="check_out" required class="w-full border rounded px-3 py-2">
@@ -91,7 +91,7 @@
                     <label class="block text-sm font-medium mb-1">{{ __('Adults') }}</label>
                     <input type="number" name="adults" min="1" value="2" required class="w-full border rounded px-3 py-2">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium mb-1">{{ __('Children') }}</label>
                     <input type="number" name="children" min="0" value="0" class="w-full border rounded px-3 py-2">
@@ -106,11 +106,11 @@
 
     <div class="bg-white rounded-lg shadow-md p-6 mt-6">
         <h2 class="text-xl font-semibold mb-4">{{ __('Available Rates') }}</h2>
-        
+
         @php
             $allRates = \App\Models\Rate::with(['unit', 'property'])->get();
         @endphp
-        
+
         @if($allRates->count() === 0)
             <p class="text-gray-500">{{ __('No rates configured yet') }}</p>
         @else

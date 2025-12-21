@@ -1,0 +1,28 @@
+<?php
+
+return [
+    "select_property" => "Select Property",
+    "unit" => "Unit",
+    "select_unit" => "Select Unit",
+    "any_unit" => "Any Unit",
+    "unit_type" => "Unit Type",
+    "select_unit_type" => "Select Unit Type",
+    "any_unit_type" => "Any Unit Type",
+    "select_reference_rate" => "Select parent rate",
+    "no_reference_rate" => "No parent rate",
+    "select_coupon" => "Select Coupon",
+    "any_coupon" => "Any Coupon",
+    "coupon" => "Coupon",
+    "allowed_variables" => "Allowed variables: :variables",
+    "enabled" => "Enabled",
+    "disabled" => "Disabled",
+    "starting_from" => "From",
+    "date_until" => "Until",
+    "date_from" => "From",
+    "date_to" => "To",
+    "save" => "Save",
+    "cancel" => "Cancel",
+    "reset" => "Reset",
+    "add_new_unit_type" => "Add new unit type",
+    "add_new_coupon" => "Add new coupon",
+];

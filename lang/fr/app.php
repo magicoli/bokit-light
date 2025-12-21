@@ -77,4 +77,5 @@ return [
         "Les dates sont affichées par défaut dans ce fuseau horaire. Les propriétés ou les unités louées peuvent avoir un fuseau horaire spécifique qui remplace cette valeur.",
     "save_settings" => "Enregistrer les paramètres",
     "settings_saved" => "Paramètres enregistrés avec succès",
+    "not_implemented" => "Non implémenté",
 ];

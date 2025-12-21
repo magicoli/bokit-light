@@ -76,4 +76,5 @@ return [
         "Dates are displayed in this time zone by default. Properties or rental units may have a specific time zone that overrides this value.",
     "save_settings" => "Save Settings",
     "settings_saved" => "Settings saved successfully",
+    "not_implemented" => "Not implemented",
 ];
