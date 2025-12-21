@@ -88,8 +88,8 @@ class PricingCalculator
      */
     private function buildVariables(Booking $booking, Rate $rate): array
     {
-        return [
-            'rate' => (float) $rate->base_amount,
+        $variables = [
+            'rate' => (float) $rate->base_rate,
             'booking_nights' => $booking->nights(),
             'guests' => ($booking->adults ?? 0) + ($booking->children ?? 0),
             'adults' => $booking->adults ?? 0,
@@ -99,6 +99,13 @@ class PricingCalculator
             'unit_id' => $booking->unit_id,
             'property_id' => $booking->property_id,
         ];
+
+        // Add reference rate if available
+        if ($rate->referenceRate) {
+            $variables['ref_rate'] = (float) $rate->referenceRate->base_rate;
+        }
+
+        return $variables;
     }
 
     /**
