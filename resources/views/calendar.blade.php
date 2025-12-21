@@ -38,10 +38,13 @@
                     @endif
                 </div>
                 <h2>
-                    @if($view === 'week')
-                        {{ ucfirst($startDate->translatedFormat('j M')) }} - {{ $endDate->translatedFormat('j') }}
-                    @elseif($view === '2weeks')
-                        {{ ucfirst($startDate->translatedFormat('j M')) }} - {{ $endDate->translatedFormat('j, Y') }}
+                    @if($view === 'week' || $view === '2weeks')
+                        @php
+                            use App\Traits\TimezoneTrait;
+                        @endphp
+                        <span class="hidden sm:hidden md:inline">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'long')) }}</span>
+                        <span class="hidden sm:inline md:hidden">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'medium')) }}</span>
+                        <span class="inline sm:hidden">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'short')) }}</span>
                     @else
                         {{ ucfirst($currentDate->translatedFormat('F Y')) }}
                     @endif

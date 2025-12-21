@@ -99,4 +99,77 @@ trait TimezoneTrait
 
         return $formatted;
     }
+
+    /**
+     * Format a date range intelligently based on context
+     *
+     * @param Carbon $start
+     * @param Carbon $end
+     * @param string|bool $format 'short', 'medium', 'long', or boolean (false=long, true=short)
+     * @return string
+     */
+    public static function dateRange($start, $end, $format = 'long'): string
+    {
+        // Handle boolean format
+        if (is_bool($format)) {
+            $format = $format ? 'short' : 'long';
+        }
+
+        $sameMonth = $start->month === $end->month && $start->year === $end->year;
+        $sameYear = $start->year === $end->year;
+
+        return match($format) {
+            'short' => self::dateRangeShort($start, $end, $sameMonth, $sameYear),
+            'medium' => self::dateRangeMedium($start, $end, $sameMonth, $sameYear),
+            default => self::dateRangeLong($start, $end, $sameMonth, $sameYear),
+        };
+    }
+
+    /**
+     * Short format: 21-28/12 or 29/12-04/01
+     */
+    private static function dateRangeShort($start, $end, $sameMonth, $sameYear): string
+    {
+        if ($sameMonth) {
+            // 21-28/12
+            return $start->translatedFormat('j') . '-' . $end->translatedFormat('j/m');
+        } else {
+            // 29/12-04/01
+            return $start->translatedFormat('j/m') . '-' . $end->translatedFormat('j/m');
+        }
+    }
+
+    /**
+     * Medium format: 21 - 28 Dec 2025 or 29 Dec 2025 - 4 Jan
+     */
+    private static function dateRangeMedium($start, $end, $sameMonth, $sameYear): string
+    {
+        if ($sameMonth) {
+            // 21 - 28 Dec 2025
+            return $start->translatedFormat('j') . ' - ' . $end->translatedFormat('j M Y');
+        } elseif ($sameYear) {
+            // 29 Dec 2025 - 4 Jan
+            return $start->translatedFormat('j M Y') . ' - ' . $end->translatedFormat('j M');
+        } else {
+            // 29 Dec 2025 - 4 Jan 2026
+            return $start->translatedFormat('j M Y') . ' - ' . $end->translatedFormat('j M Y');
+        }
+    }
+
+    /**
+     * Long format: 21 - 28 December 2025 or 29 December 2025 - 4 January 2026
+     */
+    private static function dateRangeLong($start, $end, $sameMonth, $sameYear): string
+    {
+        if ($sameMonth) {
+            // 21 - 28 December 2025
+            return $start->translatedFormat('j') . ' - ' . $end->translatedFormat('j F Y');
+        } elseif ($sameYear) {
+            // 29 December 2025 - 4 January
+            return $start->translatedFormat('j F Y') . ' - ' . $end->translatedFormat('j F');
+        } else {
+            // 29 December 2025 - 4 January 2026
+            return $start->translatedFormat('j F Y') . ' - ' . $end->translatedFormat('j F Y');
+        }
+    }
 }
