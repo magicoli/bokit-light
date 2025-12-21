@@ -32,7 +32,7 @@ class CalendarController extends Controller
         // Get date from request or use today in site timezone
         $dateParam = $request->get("date");
         $currentDate = $dateParam
-            ? Carbon::parse($dateParam)->timezone($tzString)
+            ? Carbon::parse($dateParam)
             : Carbon::now($tzString);
 
         // Calculate date range based on view type
