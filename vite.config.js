@@ -13,11 +13,7 @@ export default defineConfig({
                 "resources/js/units-edit.js",
                 "resources/css/markdown.css",
             ],
-            refresh: [
-                "resources/**",
-                "routes/**",
-                "app/View/**",
-            ],
+            refresh: ["resources/css/**", "resources/js/**"],
         }),
         tailwindcss(),
     ],
