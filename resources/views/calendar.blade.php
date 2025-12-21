@@ -42,15 +42,19 @@ use App\Traits\TimezoneTrait;
                     @endif
                 </div>
                 <h2>
-                    @if($view === 'week' || $view === '2weeks')
-                        <span class="hidden sm:hidden md:inline">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'long')) }}</span>
-                        <span class="hidden sm:inline md:hidden">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'medium')) }}</span>
-                        <span class="inline sm:hidden">{{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'short')) }}</span>
+                    @if($view === 'week')
+                        {{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'short')) }}
+                    @elseif($view === '2weeks')
+                        {{ ucfirst(TimezoneTrait::dateRange($startDate, $endDate, 'medium')) }}
                     @else
                         {{ ucfirst($currentDate->translatedFormat('F Y')) }}
                     @endif
                 </h2>
-                <div class="timezone">{{ $displayTimezone }}</div>
+                @if($view === 'week')
+                    <div class="timezone">{{ $displayTimezoneShort }}</div>
+                @else
+                    <div class="timezone">{{ $displayTimezone }}</div>
+                @endif
             </div>
 
             <!-- Right: Period navigation + Year -->
