@@ -65,4 +65,11 @@ return [
     "error" => "Error",
     "success" => "Success",
     "remember_me" => "Remember me",
+    
+    // Admin Settings
+    "admin_settings_description" => "Manage application settings and configuration",
+    "display_timezone" => "Display Timezone",
+    "display_timezone_help" => "All dates will be displayed in this timezone. Properties can override this individually.",
+    "save_settings" => "Save Settings",
+    "settings_saved" => "Settings saved successfully",
 ];

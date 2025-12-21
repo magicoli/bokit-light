@@ -66,4 +66,11 @@ return [
     "error" => "Erreur",
     "success" => "Succès",
     "remember_me" => "Souviens-toi de moi",
+    
+    // Admin Settings
+    "admin_settings_description" => "Gérer les paramètres et la configuration de l'application",
+    "display_timezone" => "Fuseau horaire d'affichage",
+    "display_timezone_help" => "Toutes les dates seront affichées dans ce fuseau horaire. Les propriétés peuvent le surcharger individuellement.",
+    "save_settings" => "Enregistrer les paramètres",
+    "settings_saved" => "Paramètres enregistrés avec succès",
 ];

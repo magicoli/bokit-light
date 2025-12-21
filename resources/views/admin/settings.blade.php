@@ -6,11 +6,58 @@
 <div class="max-w-4xl mx-auto">
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-900">{{ __('app.admin_settings') }}</h1>
-        <p class="text-gray-600 mt-2">Manage application settings and configuration</p>
+        <p class="text-gray-600 mt-2">{{ __('app.admin_settings_description') }}</p>
     </div>
     
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <p class="text-gray-500">Admin settings page - to be implemented</p>
-    </div>
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-6">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('admin.settings.save') }}" class="bg-white rounded-lg shadow-sm p-6">
+        @csrf
+
+        <!-- Display Timezone -->
+        <div class="mb-6">
+            <label for="display_timezone" class="block text-sm font-medium text-gray-700 mb-2">
+                {{ __('app.display_timezone') }}
+            </label>
+            <select name="display_timezone" id="display_timezone" 
+                    class="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                @php
+                    $currentTz = options('display.timezone', config('app.timezone', 'UTC'));
+                    $timezones = timezone_identifiers_list();
+                @endphp
+                @foreach($timezones as $timezone)
+                    <option value="{{ $timezone }}" {{ $timezone === $currentTz ? 'selected' : '' }}>
+                        {{ $timezone }}
+                    </option>
+                @endforeach
+            </select>
+            <p class="text-sm text-gray-500 mt-1">
+                {{ __('app.display_timezone_help') }}
+            </p>
+        </div>
+
+        <div class="flex justify-end">
+            <button type="submit" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                {{ __('app.save_settings') }}
+            </button>
+        </div>
+    </form>
 </div>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#display_timezone').select2({
+        placeholder: 'Search timezone...',
+        width: '100%'
+    });
+});
+</script>
 @endsection

@@ -30,7 +30,7 @@
     }
 
     .nav-left {
-        @apply flex items-center space-x-1;
+        @apply flex items-center gap-1;
     }
 
     .nav-button {
@@ -63,23 +63,24 @@
     }
 
     .period {
-        @apply flex flex-col items-center min-w-0 flex-1;
+        @apply flex flex-wrap justify-center items-baseline gap-x-2 mx-auto;
 
         h2 {
-            @apply text-lg font-bold text-gray-900 truncate;
+            @apply text-lg font-bold text-gray-900 truncate m-0 p-0;
 
             @media (min-width: 640px) {
                 @apply text-2xl;
             }
         }
 
+        .timezone,
         .week-info {
-            @apply text-xs text-gray-500 mt-1;
+            @apply text-xs text-gray-500 m-0 p-0 truncate;
         }
     }
 
     .nav-right {
-        @apply flex items-center space-x-1;
+        @apply flex items-center gap-1;
     }
 }
 
@@ -157,6 +158,10 @@
         @media (max-width: 639px) {
             @apply hidden;
         }
+
+        .timezone {
+            @apply text-gray-500 text-xs font-normal;
+        }
     }
 
     .property-spacer {
@@ -184,6 +189,10 @@
 
         .unit-name {
             @apply font-medium text-gray-900 text-sm;
+        }
+
+        .timezone {
+            @apply text-gray-500 text-xs font-normal;
         }
     }
 }
@@ -217,6 +226,10 @@
 
         @media (min-width: 640px) {
             @apply hidden;
+        }
+
+        .timezone {
+            @apply text-gray-500 text-xs font-normal;
         }
     }
 

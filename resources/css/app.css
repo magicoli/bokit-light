@@ -224,6 +224,9 @@ nav {
    ============================================================================= */
 
 main {
+    @apply w-full;
+    padding: min(1rem, 2%);
+
     > .main-content {
         @apply max-w-4xl mx-auto;
 
