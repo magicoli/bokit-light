@@ -6,6 +6,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\PricingController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
@@ -166,6 +167,16 @@ if ($isInstalled) {
             AdminController::class,
             "saveSettings",
         ])->name("admin.settings.save");
+
+        // Pricing management
+        Route::get("/pricing", [PricingController::class, "index"])->name("pricing.index");
+        Route::post("/pricing", [PricingController::class, "store"])->name("pricing.store");
+        Route::put("/pricing/{rate}", [PricingController::class, "update"])->name("pricing.update");
+        Route::delete("/pricing/{rate}", [PricingController::class, "destroy"])->name("pricing.destroy");
+        
+        // Pricing calculator
+        Route::get("/pricing/calculator", [PricingController::class, "calculator"])->name("pricing.calculator");
+        Route::post("/pricing/calculate", [PricingController::class, "calculate"])->name("pricing.calculate");
 
         // Units (edit/update)
         Route::get("/{property:slug}/{unit:slug}/edit", [

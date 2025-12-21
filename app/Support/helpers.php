@@ -29,7 +29,6 @@ if (!function_exists("isLocal")) {
     function isLocal(): bool
     {
         if (env("APP_ENV") === "local") {
-            error_log("DEBUG: Application is running in local environment");
             return true;
         }
 
@@ -45,7 +44,6 @@ if (!function_exists("isLocal")) {
 
         foreach ($localIps as $localIp) {
             if (ip2long($ip) === ip2long($localIp)) {
-                error_log("DEBUG: Application IP matches local IP: $ip");
                 return true;
             }
         }
