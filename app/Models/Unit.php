@@ -16,11 +16,13 @@ class Unit extends Model
         "description",
         "is_active",
         "settings",
+        "unit_type",
     ];
 
     protected $casts = [
         "is_active" => "boolean",
         "settings" => "array",
+        "unit_type" => "string",
     ];
 
     /**
