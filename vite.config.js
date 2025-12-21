@@ -8,10 +8,10 @@ export default defineConfig({
             input: [
                 "resources/css/app.css",
                 "resources/css/calendar.css",
+                "resources/css/markdown.css",
                 "resources/css/properties.css",
                 "resources/js/app.js",
                 "resources/js/units-edit.js",
-                "resources/css/markdown.css",
             ],
             refresh: ["resources/css/**", "resources/js/**"],
         }),
