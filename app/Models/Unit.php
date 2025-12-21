@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Model;
 
 class Unit extends Model
 {
+    use TimezoneTrait;
+
     protected $fillable = [
         "property_id",
         "slug",

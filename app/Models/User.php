@@ -2,24 +2,27 @@
 
 namespace App\Models;
 
+use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
+    use TimezoneTrait;
+
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'auth_provider',
-        'auth_provider_id',
-        'is_admin',
-        'roles',
+        "name",
+        "email",
+        "password",
+        "auth_provider",
+        "auth_provider_id",
+        "is_admin",
+        "roles",
     ];
 
     protected $casts = [
-        'is_admin' => 'boolean',
-        'roles' => 'array',
+        "is_admin" => "boolean",
+        "roles" => "array",
     ];
 
     /**
@@ -27,8 +30,8 @@ class User extends Authenticatable
      */
     public function properties()
     {
-        return $this->belongsToMany(Property::class, 'property_user')
-            ->withPivot('role')
+        return $this->belongsToMany(Property::class, "property_user")
+            ->withPivot("role")
             ->withTimestamps();
     }
 
@@ -37,7 +40,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->is_admin || $this->hasRole('admin');
+        return $this->is_admin || $this->hasRole("admin");
     }
 
     /**
@@ -101,7 +104,7 @@ class User extends Authenticatable
         }
 
         $propertyUser = $this->properties()
-            ->where('properties.id', $property->id)
+            ->where("properties.id", $property->id)
             ->first();
 
         if (!$propertyUser) {
@@ -124,7 +127,7 @@ class User extends Authenticatable
         }
 
         $propertyUser = $this->properties()
-            ->where('properties.id', $property->id)
+            ->where("properties.id", $property->id)
             ->first();
 
         if (!$propertyUser) {

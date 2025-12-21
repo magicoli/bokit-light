@@ -30,6 +30,13 @@
 
             <!-- Center: Current period -->
             <div class="period">
+                <div class="week-info">
+                    @if($view === 'week')
+                        Week {{ $startDate->format('W Y') }}
+                    @else
+                        Weeks {{ $startDate->format('W') }}-{{ $endDate->format('W') }}
+                    @endif
+                </div>
                 <h2>
                     @if($view === 'week')
                         {{ $startDate->format('M j') }} - {{ $endDate->format('j') }}
@@ -39,13 +46,7 @@
                         {{ $currentDate->format('F Y') }}
                     @endif
                 </h2>
-                <div class="week-info">
-                    @if($view === 'week')
-                        Week {{ $startDate->format('W Y') }}
-                    @else
-                        Weeks {{ $startDate->format('W') }}-{{ $endDate->format('W') }}
-                    @endif
-                </div>
+                <div class="timezone">{{ $displayTimezone }}</div>
             </div>
 
             <!-- Right: Period navigation + Year -->
@@ -112,6 +113,9 @@
                         <tr class="property-row">
                             <td class="property-name">
                                 <span>{{ $property->name }}</span>
+                                @if($property->timezone() !== $displayTimezone)
+                                    <span class="timezone">{{ $property->timezone(true) }}</span>
+                                @endif
                             </td>
                             @foreach($days as $day)
                             <td class="property-spacer {{ $day->isPast() ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}"></td>
@@ -126,6 +130,9 @@
                             <td class="{{ $isSingleUnit ? 'property-name' : 'unit-cell' }}">
                                 <div class="unit-info">
                                     <span class="unit-name">{{ $unit->name }}</span>
+                                    @if($unit->timezone() !== $property->timezone())
+                                        <span class="timezone">{{ $unit->timezone(true) }}</span>
+                                    @endif
                                 </div>
                             </td>
 
@@ -136,6 +143,9 @@
                                 @if($dayIndex === 0)
                                 <div class="unit-label-mobile">
                                     {{ $unit->name }}
+                                    @if($unit->timezone() !== $property->timezone())
+                                        <span class="timezone">({{ $unit->timezone(true) }})</span>
+                                    @endif
                                 </div>
                                 @endif
                                 <!-- Background highlight for today (behind bookings) -->

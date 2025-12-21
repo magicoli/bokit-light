@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\TimezoneTrait;
 use App\Models\Property;
+use App\Support\Options;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CalendarController extends Controller
 {
+    use TimezoneTrait;
+
     /**
      * Display the calendar
      */
@@ -16,9 +20,20 @@ class CalendarController extends Controller
         // Get view type from request (default: month)
         $view = $request->get("view", "month");
 
-        // Get date from request or use today
+        // Get site default timezone (used for calendar navigation)
+        // Each unit displays in its own timezone
+        // TODO:
+        // - first fetch properties and units to display
+        // - if all properties use the same timezone, use it as main timezone
+        // - otherwise, use the first property's timezone as main timezone
+        $tzString = self::defaultTimezone();
+        $tzShort = self::timezoneShort($tzString);
+
+        // Get date from request or use today in site timezone
         $dateParam = $request->get("date");
-        $currentDate = $dateParam ? Carbon::parse($dateParam) : Carbon::now();
+        $currentDate = $dateParam
+            ? Carbon::parse($dateParam)->timezone($tzString)
+            : Carbon::now($tzString);
 
         // Calculate date range based on view type
         switch ($view) {
@@ -71,7 +86,6 @@ class CalendarController extends Controller
             },
         ]);
 
-        // Filter properties for non-admin users
         if (!auth()->user()->isAdmin()) {
             $query->whereHas("users", function ($q) {
                 $q->where("users.id", auth()->id());
@@ -93,6 +107,8 @@ class CalendarController extends Controller
             "canNavigateForward" => $canNavigateForward,
             "canNavigateYearForward" => $canNavigateYearForward,
             "properties" => $properties,
+            "displayTimezone" => $tzString,
+            "displayTimezoneShort" => $tzShort,
         ]);
     }
 

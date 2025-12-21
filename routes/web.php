@@ -161,6 +161,11 @@ if ($isInstalled) {
             AdminController::class,
             "settings",
         ])->name("admin.settings");
+        
+        Route::post("/admin/settings", [
+            AdminController::class,
+            "saveSettings",
+        ])->name("admin.settings.save");
 
         // Units (edit/update)
         Route::get("/{property:slug}/{unit:slug}/edit", [
