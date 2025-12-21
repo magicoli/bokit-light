@@ -32,18 +32,18 @@
             <div class="period">
                 <div class="week-info">
                     @if($view === 'week')
-                        Week {{ $startDate->format('W Y') }}
+                        {{ __('app.week') }} {{ $startDate->translatedFormat('W Y') }}
                     @else
-                        Weeks {{ $startDate->format('W') }}-{{ $endDate->format('W') }}
+                        {{ __('app.weeks') }} {{ $startDate->translatedFormat('W') }}-{{ $endDate->translatedFormat('W') }}
                     @endif
                 </div>
                 <h2>
                     @if($view === 'week')
-                        {{ $startDate->format('M j') }} - {{ $endDate->format('j') }}
+                        {{ ucfirst($startDate->translatedFormat('j M')) }} - {{ $endDate->translatedFormat('j') }}
                     @elseif($view === '2weeks')
-                        {{ $startDate->format('M j') }} - {{ $endDate->format('j, Y') }}
+                        {{ ucfirst($startDate->translatedFormat('j M')) }} - {{ $endDate->translatedFormat('j, Y') }}
                     @else
-                        {{ $currentDate->format('F Y') }}
+                        {{ ucfirst($currentDate->translatedFormat('F Y')) }}
                     @endif
                 </h2>
                 <div class="timezone">{{ $displayTimezone }}</div>
@@ -92,10 +92,10 @@
                         @foreach($days as $day)
                         <th scope="col" class="day-column {{ $day->isToday() ? 'today' : '' }} {{ $day->lt(today()) ? 'past' : '' }} {{ $day->isWeekend() ? 'weekend' : '' }}">
                             <div class="day-name">
-                                {{ $day->format('D') }}
+                                {{ $day->translatedFormat('D') }}
                             </div>
                             <div class="day-number {{ $day->isToday() ? 'today' : '' }}">
-                                {{ $day->format('j') }}
+                                {{ $day->translatedFormat('j') }}
                             </div>
                         </th>
                         @endforeach
