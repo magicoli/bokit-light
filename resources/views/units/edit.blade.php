@@ -9,49 +9,18 @@
 @endsection
 
 @section('scripts')
-<script>
-// Initialize sources data for Alpine
-window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($source) {
-    return [
-        'id' => $source->id,
-        'type' => $source->type,
-        'url' => $source->url,
-        'last_sync_at' => $source->last_synced_at ? $source->last_synced_at->diffForHumans() : null,
-    ];
-})->values()) !!};
-</script>
 @vite('resources/js/units-edit.js')
 @endsection
 
 @section('content')
-<div class="unit-edit-container">
-    <!-- Header -->
-    <div class="unit-header">
-        <a href="{{ route('properties') }}" class="back-link">
-            ← {{ __('app.back_to_properties') }}
-        </a>
-        <div class="title-row">
-            <h1 class="title">{{ $unit->property->name }} / {{ $unit->name }}</h1>
-            <span class="subtitle">{{ __('app.edit_unit_title') }}</span>
-        </div>
-    </div>
-
-    @if(session('success'))
-        <div class="alert-success">
-            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            <p class="message">{{ session('success') }}</p>
-        </div>
-    @endif
-
-    <form method="POST" action="{{ route('units.update', [$unit->property, $unit]) }}" class="unit-form" x-data="unitForm()">
+    <form id="unit-edit-form" method="POST" action="{{ route('units.update', [$unit->property, $unit]) }}" class=""
+          data-sources="{{ $unit->icalSources->toJson() }}">
         @csrf
         @method('PUT')
-
+    <div class="card">
+        <h2 class="title">{{ __('app.basic_information') }}</h2>
         <!-- Basic Information -->
         <div class="section">
-            <h2 class="title">{{ __('app.basic_information') }}</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="form-field">
@@ -92,80 +61,99 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
             </div>
         </div>
 
+            <h2 class="title">{{ __('app.calendar_sources_title') }}</h2>
         <!-- Calendar Sources -->
-        <div class="section">
-            <div class="header">
-                <h2 class="title">{{ __('app.calendar_sources_title') }}</h2>
-                <button
-                    type="button"
-                    @click="addSource"
-                    class="add-button"
-                >
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    {{ __('app.add_source') }}
-                </button>
-            </div>
+        <div class="section p-0 m-0">
 
-            <div class="space-y-3">
-                <template x-for="(source, index) in sources" :key="index">
-                    <div class="source-item">
-                        <button
-                            type="button"
-                            @click="removeSource(index)"
-                            class="remove-button"
-                            x-show="sources.length > 1"
-                        >
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-
-                        <input type="hidden" :name="`sources[${index}][id]`" x-model="source.id">
-
-                        <div class="source-grid">
-                            <div class="form-field">
-                                <label class="label">{{ __('app.type') }}</label>
+            <!-- Table -->
+            <table class="sources-table m-0">
+                <thead>
+                    <tr>
+                        <th class="w-auto">{{ __('app.type') }}</th>
+                        <th class="w-full">{{ __('app.url') }}</th>
+                        <th class="w-auto"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="(source, index) in sources" :key="index">
+                        <tr>
+                            <td>
+                                <input type="hidden" :name="`sources[${index}][id]`" x-model="source.id">
                                 <select
                                     :name="`sources[${index}][type]`"
                                     x-model="source.type"
-                                    class="input"
+                                    class="input w-full"
                                 >
                                     <option value="ical">{{ __('app.ical') }}</option>
                                     <option value="beds24" disabled>{{ __('app.beds24_coming_soon') }}</option>
                                 </select>
-                            </div>
-
-                            <div class="form-field">
-                                <label class="label">{{ __('app.url') }} <span class="required">*</span></label>
+                            </td>
+                            <td>
+                                <div class="flex">
                                 <input
                                     type="url"
                                     :name="`sources[${index}][url]`"
                                     x-model="source.url"
-                                    class="input"
+                                    class="input flex-grow"
                                     placeholder="https://calendar.example.com/my-unit.ics"
                                     required
                                 >
-                            </div>
-                        </div>
+                                </div>
+                            </td>
+                            <td>
+                                <button
+                                    type="button icon-button"
+                                    @click="removeSource(index)"
+                                    class="text-gray-400 hover:text-red-600 transition-colors border-0 border-transparent"
+                                    x-show="sources.length > 1"
+                                    title="{{ __('app.delete') }}"
+                                >
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
 
-                        <template x-if="source.last_sync_at">
-                            <div class="last-sync">
+                        <tr x-show="source.last_sync_at" class="bg-gray-50">
+                            <td colspan="3" class="px-4 py-2 text-xs text-gray-500">
                                 {{ __('app.last_synced') }}: <span x-text="source.last_sync_at"></span>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+                    <tr>
+                        <td colspan="3 text-right">
+                            <div class="flex justify-space-between">
+                            <button type="button" @click="addSource" class="add-button ms-auto">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                {{ __('app.add_source') }}
+                            </button>
                             </div>
-                        </template>
-                    </div>
-                </template>
+                        </td>
+                    </tr>
+            </table>
 
-                <div x-show="sources.length === 0" class="sources-empty">
-                    {{ __('app.no_sources_configured') }}
-                </div>
+            <!-- Empty state -->
+            <div x-show="sources.length === 0" class="sources-empty">
+                {{ __('app.no_sources_configured') }}
             </div>
         </div>
 
+        <template x-if="source.last_sync_at">
+            <div class="last-sync">
+                {{ __('app.last_synced') }}: <span x-text="source.last_sync_at"></span>
+            </div>
+        </template>
+
+        <div x-show="sources.length === 0" class="sources-empty">
+            {{ __('app.no_sources_configured') }}
+        </div>
+
         <!-- Actions -->
-        <div class="form-actions">
+        <div class="card-footer form-actions">
             <a href="{{ route('properties') }}" class="cancel-link">
                 {{ __('app.cancel') }}
             </a>
@@ -176,6 +164,6 @@ window.unitSourcesData = {!! json_encode($unit->icalSources->map(function($sourc
                 {{ __('app.save_changes') }}
             </button>
         </div>
+    </div>
     </form>
-</div>
 @endsection
