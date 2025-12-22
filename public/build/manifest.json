@@ -46,7 +46,7 @@
     ]
   },
   "resources/css/properties.css": {
-    "file": "assets/properties-CcjbPhzn.css",
+    "file": "assets/properties-BUoHFgIE.css",
     "src": "resources/css/properties.css",
     "isEntry": true,
     "name": "properties",
@@ -83,7 +83,7 @@
     "isEntry": true
   },
   "resources/js/units-edit.js": {
-    "file": "assets/units-edit-yhudZr4L.js",
+    "file": "assets/units-edit-phz4tBgq.js",
     "name": "units-edit",
     "src": "resources/js/units-edit.js",
     "isEntry": true
