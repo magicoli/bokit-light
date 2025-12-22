@@ -52,8 +52,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const referenceRateSelect = document.getElementById("reference_rate_select");
 
     if (!propertySelect || !unitSelect || !unitTypeSelect || !couponSelect || !referenceRateSelect) {
-        console.error("Required form elements not found");
+        console.error("Required form elements not found", {
+            propertySelect: !!propertySelect,
+            unitSelect: !!unitSelect,
+            unitTypeSelect: !!unitTypeSelect,
+            couponSelect: !!couponSelect,
+            referenceRateSelect: !!referenceRateSelect
+        });
         return;
+    }
+
+    // Load data from data attributes
+    if (propertySelect.dataset.units) {
+        try {
+            allUnits = JSON.parse(propertySelect.dataset.units);
+        } catch (e) {
+            console.error('Error parsing units data:', e);
+        }
+    }
+    if (propertySelect.dataset.coupons) {
+        try {
+            allCoupons = JSON.parse(propertySelect.dataset.coupons);
+        } catch (e) {
+            console.error('Error parsing coupons data:', e);
+        }
     }
 
     // Store default text for reference rates

@@ -90,7 +90,10 @@
             <div class="field-row">
                 <fieldset class="field">
                     <label>{{ __('app.property') }}*</label>
-                    <select name="property_id" x-model="hasProperty" id="property_id" class="input" required>
+                    <select name="property_id" x-model="hasProperty" id="property_select" class="input" required
+                        data-units="{{ $units->toJson() }}"
+                        data-coupons="{{ $coupons->toJson() }}"
+                    >
                         <option value="">{{ __('forms.select_property') }}</option>
                         @foreach($properties as $property)
                             <option value="{{ $property->id }}">{{ $property->name }}</option>
