@@ -47,7 +47,7 @@ form {
     /* Form section */
 
     .field-row {
-        @apply flex items-start gap-x-4;
+        @apply flex flex-row flex-wrap items-start gap-x-4;
     }
 
     .input-group {

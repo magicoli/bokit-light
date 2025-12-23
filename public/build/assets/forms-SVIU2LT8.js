@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll("[data-alpine-date]").forEach(e=>{e.classList.contains("relative")||e.classList.add("relative"),e.addEventListener("focus",()=>{e.type="date"}),e.addEventListener("blur",()=>{e.value||(e.type="text")}),e.addEventListener("input",()=>{}),e.addEventListener("change",()=>{})})});

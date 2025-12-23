@@ -49,17 +49,13 @@
     @yield('scripts')
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <div class="page-layout">
     <nav class="nav-main" x-data="{ mobileMenuOpen: false }">
     @include('nav.main')
     </nav>
 
     <div id="content-wrapper">
-        <sidebar>
-            {{-- Not implemented yet --}}
-        </sidebar>
-
-
-        <main id="main" class="">
+        <main id="main" class="main-column">
             <header class="header">
                 <h1 class="title">@yield('title')</h1>
                 <p class="subtitle">@yield('subtitle')</p>
@@ -74,14 +70,28 @@
                 @yield('content')
             </div>
         </main>
+
+        <sidebar class="sidebar left-sidebar">
+            <div class="card">
+                <h2 class="card-title">Sidebar</h2>
+                <p class="card-text">This is the left sidebar.</p>
+            </div>
+            {{-- Not implemented yet --}}
+        </sidebar>
+
         <sidebar class="sidebar right-sidebar">
+            <div class="card">
+                <h2 class="card-title">Sidebar</h2>
+                <p class="card-text">This is the right sidebar.</p>
+            </div>
             {{-- Not implemented yet --}}
         </sidebar>
     </div>
 
-    <footer class="footer hidden">
+    <footer class="footer">
         <p class="copyright">&copy; {{ date('Y') }} {{ config('app.name', 'Bokit') }}</p>
     </footer>
+    </div>
 
     <!-- PWA Service Worker Registration -->
     <script>
