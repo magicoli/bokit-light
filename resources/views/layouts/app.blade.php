@@ -45,10 +45,8 @@
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    @yield('scripts')
 
-    <style>
-    </style>
+    @yield('scripts')
 </head>
 <body class="bg-gray-50 min-h-screen">
     <nav class="nav-main" x-data="{ mobileMenuOpen: false }">

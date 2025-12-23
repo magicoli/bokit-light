@@ -172,22 +172,42 @@
                 </fieldset>
             </div>
 
+            <div id="test" class="field-row">
+                <fieldset>
+                    <label>{{ __('A text field before') }}</label>
+                    <input name="test_field_before" type="text" class="w-full">
+                </fieldset>
+                <fieldset>
+                <label>{{ __('Test dates') }}</label>
+                <div class="input-group">
+                    <input data-alpine-date name="start_date" placeholder="YYYY-MM-DD" size="10" />
+                    <input data-alpine-date name="end_date" placeholder="YYYY-MM-DD" size="10" />
+
+                </div>
+                </fieldset>
+
+                <fieldset>
+                <label>{{ __('Text field after') }}</label>
+                    <input type="text" name="test_field_after">
+                </fieldset>
+            </div>
+
             <div id="row-allowed-dates" x-show="hasProperty" class="field-row">
                 <fieldset class="field">
                     <label>{{ __('pricing.booking_date') }}</label>
                     <div class="input-group">
-                        <input type="date" name="booking_from" class="input">
+                        <input data-alpine-date name="booking_from" size="10" class="input" placeholder="{{ __('forms.date_from') }}">
                         -
-                        <input type="date" name="booking_to" class="input">
+                        <input data-alpine-date type="text" name="booking_to" size="10" class="input" placeholder="{{ __('forms.date_to') }}">
                     </div>
                 </fieldset>
 
                 <fieldset class="field">
                     <label>{{ __('pricing.stay') }}</label>
                     <div class="input-group">
-                        <input type="date" name="stay_from" class="input">
+                        <input data-alpine-date name="stay_from" size="10" class="input" placeholder="{{ __('forms.date_from') }}">
                         -
-                        <input type="date" name="stay_to" class="input">
+                        <input data-alpine-date name="stay_to" size="10" class="input" placeholder="{{ __('forms.date_to') }}">
                     </div>
                 </fieldset>
             </div>
@@ -200,9 +220,6 @@
                 <fieldset class="field">
                     <label>{{ __('pricing.priority') }}</label>
                     <select name="priority">
-                        <option value="high">{{ __('High') }}</option>
-                        <option value="normal" selected>{{ __('Normal') }}</option>
-                        <option value="low">{{ __('Low') }}</option>
                         <option value="high">{{ __('pricing.priority_high') }}</option>
                         <option value="normal" selected>{{ __('pricing.priority_normal') }}</option>
                         <option value="low">{{ __('pricing.priority_low') }}</option>
@@ -225,7 +242,10 @@
                 </small>
             </fieldset>
 
-            <div id="row-buttons" x-show="hasProperty" class="field-row">
+            <div id="row-buttons" zzzx-show="hasProperty" class="field-row">
+                <button type="reset" class="reset-button">
+                    {{ __('forms.reset') }}
+                </button>
                 <button type="submit" class="submit-button btn btn-blue ms-auto">
                     {{ __('forms.save') }}
                 </button>
@@ -235,4 +255,5 @@
     </div>
 
 </div>
+
 @endsection
