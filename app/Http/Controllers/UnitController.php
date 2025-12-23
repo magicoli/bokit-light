@@ -104,7 +104,7 @@ class UnitController extends Controller
                             "url" => $sourceData["url"],
                             "name" =>
                                 parse_url($sourceData["url"], PHP_URL_HOST) ??
-                                "External Calendar",
+                                __("app.external_calendar"),
                         ]);
                         $keepIds[] = $source->id;
                     } else {
@@ -114,7 +114,7 @@ class UnitController extends Controller
                             "url" => $sourceData["url"],
                             "name" =>
                                 parse_url($sourceData["url"], PHP_URL_HOST) ??
-                                "External Calendar",
+                                __("app.external_calendar"),
                         ]);
                         $keepIds[] = $source->id;
                     }

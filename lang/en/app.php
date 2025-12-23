@@ -77,4 +77,5 @@ return [
     "save_settings" => "Save Settings",
     "settings_saved" => "Settings saved successfully",
     "not_implemented" => "Not implemented",
+    "external_calendar" => "External Calendar",
 ];

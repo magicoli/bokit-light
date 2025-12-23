@@ -22,8 +22,8 @@
         <!-- Basic Information -->
         <div class="section">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-field">
+            <div class="field-row">
+                <fieldset class="flex-grow">
                     <label class="label">
                         {{ __('app.unit_name') }} <span class="required">*</span>
                     </label>
@@ -31,7 +31,7 @@
                         type="text"
                         name="name"
                         value="{{ old('name', $unit->name) }}"
-                        class="input"
+                        class="w-full"
                         required
                         @input="updateSlug"
                         x-ref="nameInput"
@@ -39,9 +39,9 @@
                     @error('name')
                         <p class="error">{{ $message }}</p>
                     @enderror
-                </div>
+                </fieldset>
 
-                <div class="form-field">
+                <fieldset class="flex-1">
                     <label class="label">
                         {{ __('app.slug') }} <span class="required">*</span>
                     </label>
@@ -49,7 +49,7 @@
                         type="text"
                         name="slug"
                         value="{{ old('slug', $unit->slug) }}"
-                        class="input"
+                        class="w-full"
                         required
                         x-ref="slugInput"
                         @input="manuallyEdited = true"
@@ -57,7 +57,7 @@
                     @error('slug')
                         <p class="error">{{ $message }}</p>
                     @enderror
-                </div>
+                </fieldset>
             </div>
         </div>
 
