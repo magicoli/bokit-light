@@ -17,8 +17,6 @@
    ============================================================================= */
 
 nav {
-    @apply sticky top-0 z-10;
-
     &.nav-main {
         @apply bg-white shadow-sm border-b border-gray-200;
     }
@@ -221,6 +219,23 @@ nav {
     }
 }
 
+.page-layout {
+    @apply flex flex-col w-full min-h-screen;
+
+    > * {
+        @apply flex-none;
+    }
+    nav {
+        @apply sticky top-0 z-10;
+    }
+    footer {
+        @apply sticky bottom-0 z-10;
+    }
+    > #content-wrapper {
+        @apply grow;
+    }
+}
+
 /* =============================================================================
    MAIN SECTIONS
    ============================================================================= */
@@ -236,19 +251,43 @@ header {
 }
 
 #content-wrapper {
-    @apply grid xl:grid-cols-12 gap-4;
+    /*@apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 p-0 xl:p-4 xl:gap-4 space-x-0 space-y-0;*/
+    @apply grid grid-flow-row-dense grid-cols-1 bg-gray-100;
+    @apply md:grid-cols-2;
+    @apply lg:grid-cols-4;
+    @apply 2xl:grid-cols-5;
 
     > * {
-        @apply md:p-4;
-        /*padding: min(1rem, 2%);*/
+        @apply py-4 md:p-4;
     }
 
     sidebar {
-        @apply col-span-3;
+        @apply lg:h-fit 2xl:h-full;
+        @apply p-4;
+        @apply bg-gray-700 text-gray-200;
+
+        &.left-sidebar {
+            @apply lg:order-1;
+        }
+
+        &.right-sidebar {
+            @apply lg:order-3;
+        }
     }
 
     main {
-        @apply col-span-6 space-y-4;
+        @apply col-span-1;
+        @apply md:col-span-2;
+        @apply lg:col-span-3 lg:order-2 lg:row-span-10;
+        @apply 2xl:col-span-3 2xl:row-span-1;
+    }
+
+    :first-child {
+        @apply mt-0;
+    }
+
+    :last-child {
+        @apply mb-0;
     }
 
     &:has(.content .calendar-wrapper) {
@@ -261,8 +300,7 @@ header {
 }
 
 footer {
-    @apply w-full mt-6 bg-gray-500;
-    padding: min(1rem, 2%);
+    @apply w-full bg-gray-500 text-white p-4;
 
     > * {
         @apply container mx-auto;

@@ -172,26 +172,6 @@
                 </fieldset>
             </div>
 
-            <div id="test" class="field-row">
-                <fieldset>
-                    <label>{{ __('A text field before') }}</label>
-                    <input name="test_field_before" type="text" class="w-full">
-                </fieldset>
-                <fieldset>
-                <label>{{ __('Test dates') }}</label>
-                <div class="input-group">
-                    <input data-alpine-date name="start_date" placeholder="YYYY-MM-DD" size="10" />
-                    <input data-alpine-date name="end_date" placeholder="YYYY-MM-DD" size="10" />
-
-                </div>
-                </fieldset>
-
-                <fieldset>
-                <label>{{ __('Text field after') }}</label>
-                    <input type="text" name="test_field_after">
-                </fieldset>
-            </div>
-
             <div id="row-allowed-dates" x-show="hasProperty" class="field-row">
                 <fieldset class="field">
                     <label>{{ __('pricing.booking_date') }}</label>
