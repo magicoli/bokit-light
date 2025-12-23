@@ -28,4 +28,5 @@ return [
     "high" => "Haute",
     "normal" => "Normale",
     "low" => "Basse",
+    "unit_updated_successfully" => "Unité mise à jour avec succès",
 ];

@@ -25,4 +25,5 @@ return [
     "reset" => "Reset",
     "add_new_unit_type" => "Add new unit type",
     "add_new_coupon" => "Add new coupon",
+    "unit_updated_successfully" => "Unit updated successfully",
 ];
