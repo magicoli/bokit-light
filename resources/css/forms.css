@@ -23,7 +23,7 @@ form {
     }
     /* Fix select height issue */
     select {
-        @apply bg-white;
+        @apply bg-white h-10;
     }
 
     button,

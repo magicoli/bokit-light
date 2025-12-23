@@ -78,4 +78,5 @@ return [
     "save_settings" => "Enregistrer les paramètres",
     "settings_saved" => "Paramètres enregistrés avec succès",
     "not_implemented" => "Non implémenté",
+    "external_calendar" => "Calendrier externe",
 ];
