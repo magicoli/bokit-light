@@ -17,8 +17,6 @@
 
     <!-- Rates List -->
     <div class="card pricing-list">
-        <h2 class="card-header">{{ __('pricing.current_rates') }}</h2>
-
         @if($rates->count() === 0)
             <p>{{ __('pricing.no_rates_configured_yet') }}</p>
         @else
