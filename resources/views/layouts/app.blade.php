@@ -48,49 +48,41 @@
 
     @yield('scripts')
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="@yield('body-class')">
     <div class="page-layout">
-    <nav class="nav-main" x-data="{ mobileMenuOpen: false }">
-    @include('nav.main')
-    </nav>
+        <nav class="nav-main" x-data="{ mobileMenuOpen: false }">
+        @include('nav.main')
+        </nav>
 
-    <div id="content-wrapper">
-        <main id="main" class="main-column">
-            <header class="header">
-                <h1 class="title">@yield('title')</h1>
-                <p class="subtitle">@yield('subtitle')</p>
-            </header>
+        <div id="content-wrapper">
+            <main id="main" class="main-column">
+                <header class="header">
+                    <h1 class="title">@yield('title')</h1>
+                    <p class="subtitle">@yield('subtitle')</p>
+                </header>
 
-            @if(session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                <div class="content">
+                    @yield('content')
                 </div>
-            @endif
-            <div class="content">
-                @yield('content')
-            </div>
-        </main>
+            </main>
 
-        <sidebar class="sidebar left-sidebar">
-            <div class="card">
-                <h2 class="card-title">Sidebar</h2>
-                <p class="card-text">This is the left sidebar.</p>
-            </div>
-            {{-- Not implemented yet --}}
-        </sidebar>
+            <sidebar class="sidebar left-sidebar">
+                @yield('sidebar-left')
+            </sidebar>
 
-        <sidebar class="sidebar right-sidebar">
-            <div class="card">
-                <h2 class="card-title">Sidebar</h2>
-                <p class="card-text">This is the right sidebar.</p>
-            </div>
-            {{-- Not implemented yet --}}
-        </sidebar>
-    </div>
+            <sidebar class="sidebar right-sidebar">
+                @yield('sidebar-right')
+            </sidebar>
+        </div>
 
-    <footer class="footer">
-        <p class="copyright">&copy; {{ date('Y') }} {{ config('app.name', 'Bokit') }}</p>
-    </footer>
+        <footer class="footer">
+            <p class="copyright">&copy; {{ date('Y') }} {{ config('app.name', 'Bokit') }}</p>
+        </footer>
     </div>
 
     <!-- PWA Service Worker Registration -->

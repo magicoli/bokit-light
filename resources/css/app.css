@@ -12,6 +12,26 @@
         "Noto Color Emoji";
 }
 
+.page-layout {
+    @apply flex flex-col w-full min-h-screen;
+
+    > * {
+        @apply flex-none;
+    }
+    nav {
+        @apply sticky top-0 z-10;
+    }
+    footer {
+        &:not(:has(*)) {
+            @apply hidden;
+        }
+        @apply sticky bottom-0 z-10;
+    }
+    > #content-wrapper {
+        @apply grow;
+    }
+}
+
 /* =============================================================================
    NAVIGATION
    ============================================================================= */
@@ -22,6 +42,7 @@ nav {
     }
 
     .nav-container {
+        /*@apply container mx-auto;*/
         @apply w-full px-4 sm:px-6 lg:px-8;
     }
 
@@ -219,30 +240,16 @@ nav {
     }
 }
 
-.page-layout {
-    @apply flex flex-col w-full min-h-screen;
-
-    > * {
-        @apply flex-none;
-    }
-    nav {
-        @apply sticky top-0 z-10;
-    }
-    footer {
-        @apply sticky bottom-0 z-10;
-    }
-    > #content-wrapper {
-        @apply grow;
-    }
-}
-
 /* =============================================================================
    MAIN SECTIONS
    ============================================================================= */
 
 header {
+    h1,
     .title {
         @apply text-3xl font-bold text-gray-900;
+        @apply lg:max-lg:px-4;
+        /*@apply 2xl:px-0;*/
     }
 
     .subtitle {
@@ -251,20 +258,43 @@ header {
 }
 
 #content-wrapper {
+    @apply bg-gray-100;
     /*@apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 p-0 xl:p-4 xl:gap-4 space-x-0 space-y-0;*/
-    @apply grid grid-flow-row-dense grid-cols-1 bg-gray-100;
-    @apply md:grid-cols-2;
-    @apply lg:grid-cols-4;
-    @apply 2xl:grid-cols-5;
+
+    main:not(:has(sidebar *)) {
+        @apply container max-w-6xl mx-auto;
+    }
+
+    &:has(sidebar *) {
+        @apply md:bg-gray-700;
+        @apply grid grid-flow-row-dense grid-cols-1;
+        @apply md:grid-cols-2;
+        @apply lg:grid-cols-4;
+        @apply 2xl:grid-cols-5;
+
+        main {
+            @apply col-span-1;
+            @apply md:col-span-2;
+            @apply lg:col-span-3 lg:order-2 lg:row-span-10;
+            @apply 2xl:row-span-1;
+        }
+    }
 
     > * {
         @apply py-4 md:p-4;
+
+        &:not(.card) {
+            @apply p-4;
+        }
     }
 
     sidebar {
-        @apply lg:h-fit 2xl:h-full;
-        @apply p-4;
-        @apply bg-gray-700 text-gray-200;
+        &:not(:has(*)) {
+            @apply hidden;
+        }
+
+        @apply lg:h-fit;
+        @apply 2xl:h-full;
 
         &.left-sidebar {
             @apply lg:order-1;
@@ -276,10 +306,10 @@ header {
     }
 
     main {
-        @apply col-span-1;
-        @apply md:col-span-2;
-        @apply lg:col-span-3 lg:order-2 lg:row-span-10;
-        @apply 2xl:col-span-3 2xl:row-span-1;
+        @apply bg-gray-100;
+        &:has(.content .calendar-wrapper) {
+            @apply max-w-none;
+        }
     }
 
     :first-child {
@@ -291,16 +321,21 @@ header {
     }
 
     &:has(.content .calendar-wrapper) {
-        @apply xl:grid-cols-1  space-y-0;
+        @apply grid-cols-1 lg:grid-cols-2 space-y-0;
 
+        main {
+            @apply col-span-1;
+            @apply md:col-span-2;
+        }
         sidebar {
             @apply hidden;
+            @apply order-3;
         }
     }
 }
 
 footer {
-    @apply w-full bg-gray-500 text-white p-4;
+    @apply w-full bg-gray-800 text-gray-300 p-4;
 
     > * {
         @apply container mx-auto;
@@ -313,6 +348,10 @@ main {
     > .main-content {
         > .wrapper {
             @apply bg-white rounded-lg shadow-sm p-8;
+
+            h1 {
+                @apply text-2xl font-bold text-gray-900;
+            }
         }
     }
 }
@@ -332,19 +371,20 @@ main {
 #content-wrapper:has(.content header) {
     header {
         @apply hidden;
-        background: lightgreen;
     }
 }
 
 .card {
-    @apply bg-white rounded-lg shadow-sm space-y-6 my-6;
+    @apply bg-white shadow-sm space-y-6 my-6;
+    @apply md:rounded-lg;
 
     > * {
         @apply p-4;
     }
 
     .card-header {
-        @apply bg-gray-100 px-4 py-2 rounded-t-lg;
+        @apply bg-gray-300/75 px-4 py-2;
+        @apply md:rounded-t-lg;
     }
 
     .card-body {
@@ -352,7 +392,8 @@ main {
     }
 
     .card-footer {
-        @apply bg-gray-100 px-4 py-2 rounded-b-lg;
+        @apply bg-gray-100 px-4 py-2;
+        @apply md:rounded-b-lg;
     }
 
     h2 {
