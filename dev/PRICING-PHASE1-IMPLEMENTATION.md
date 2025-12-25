@@ -1,7 +1,7 @@
-# Pricing System Implementation - Phase 1
+# Rates System Implementation - Phase 1
 
 ## Overview
-Phase 1 implementation provides basic pricing functionality with formula-based calculations and rate prioritization.
+Phase 1 implementation provides basic rates functionality with formula-based calculations and rate prioritization.
 
 ## Components Implemented
 
@@ -15,7 +15,7 @@ Phase 1 implementation provides basic pricing functionality with formula-based c
 - `is_active`, `priority`: Rate selection criteria
 - `settings`: JSON configuration
 
-#### Pricing Calculations Table
+#### Rates Calculations Table
 - Stores calculation results for audit trail
 - Contains calculation snapshot for debugging
 - Links to booking records
@@ -31,11 +31,11 @@ Phase 1 implementation provides basic pricing functionality with formula-based c
 - Relationships with Unit and Property
 - Validation ensures exactly one scope is set
 
-#### PricingCalculation Model
-- Audit trail for pricing decisions
+#### RatesCalculation Model
+- Audit trail for rates decisions
 - Stores calculation variables and results
 
-### 3. Pricing Calculator Service
+### 3. Rates Calculator Service
 
 #### Core Features
 - Rate discovery with priority: unit > unit_type > property
@@ -109,7 +109,7 @@ Phase 1 implementation provides basic pricing functionality with formula-based c
 // Weekend surcharge
 '(booking_nights * rate) + (weekend_nights * rate * 0.2)'
 
-// Guest-based pricing
+// Guest-based rates
 'booking_nights * (rate + (guests > 2 ? (guests - 2) * 20 : 0))'
 ```
 
@@ -144,7 +144,7 @@ PUT /api/rates/123
 ## Channel Manager Compatibility
 
 ### OTA Integration Ready
-- Flexible formula system matches various pricing models
+- Flexible formula system matches various rates models
 - Unit type categorization aligns with common OTA structures
 - Priority system handles multiple rate tiers
 - JSON settings accommodate platform-specific fields
@@ -216,7 +216,7 @@ PUT /api/rates/123
 
 ## Conclusion
 
-Phase 1 provides a solid, production-ready pricing foundation that:
+Phase 1 provides a solid, production-ready rates foundation that:
 - Handles immediate rate calculation needs
 - Supports OTA integration patterns
 - Maintains performance and auditability

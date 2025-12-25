@@ -6,19 +6,19 @@ use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PricingCalculation extends Model
+class RatesCalculation extends Model
 {
     use TimezoneTrait;
 
     protected $fillable = [
-        'booking_id',
-        'total_amount',
-        'base_amount',
-        'calculation_snapshot',
+        "booking_id",
+        "total_amount",
+        "base_amount",
+        "calculation_snapshot",
     ];
 
     protected $casts = [
-        'calculation_snapshot' => 'array',
+        "calculation_snapshot" => "array",
     ];
 
     /**

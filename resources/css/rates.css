@@ -1,0 +1,4 @@
+/* Rates form specific styles */
+/* Don't: include generic styles that could be useful outside rates scope */
+/* Don't: include generic form styles that could be useful outside rates scope */
+/* Only: include styles that could only be usefull to in the rates/rates context */

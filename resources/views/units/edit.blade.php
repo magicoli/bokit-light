@@ -22,7 +22,7 @@
         <!-- Basic Information -->
         <div class="section">
 
-            <div class="field-row">
+            <div class="fields-row">
                 <fieldset class="flex-grow">
                     <label class="label">
                         {{ __('app.unit_name') }} <span class="required">*</span>

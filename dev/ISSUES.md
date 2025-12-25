@@ -49,13 +49,13 @@ Currently, iCal events with `SUMMARY:Unavailable` are filtered out and not displ
 - [ ] Edit booking details (guest name, dates, notes)
 - [ ] Delete bookings
 - [ ] Mark bookings as confirmed/pending
-- [ ] Add pricing information
+- [ ] Add rates information
 
 #### 4. Reporting & Analytics
 **Status:** Not started
 
 - [ ] Occupancy rate by unit/property
-- [ ] Revenue tracking (requires pricing data)
+- [ ] Revenue tracking (requires rates data)
 - [ ] Export to CSV/Excel
 - [ ] Calendar heatmap view
 - [ ] Booking source statistics

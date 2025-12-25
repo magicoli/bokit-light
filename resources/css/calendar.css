@@ -308,7 +308,7 @@ header {
         @apply space-y-3;
     }
 
-    .field-row {
+    .fields-row {
         @apply flex items-center justify-between;
 
         .unit-info {

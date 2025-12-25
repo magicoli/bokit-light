@@ -1,6 +1,7 @@
 <?php
 
 return [
+    "select" => "Sélectionner",
     "select_property" => "Sélectionner une propriété",
     "select_unit" => "Sélectionner une unité",
     "any_unit" => "Toutes unités",
@@ -29,4 +30,9 @@ return [
     "normal" => "Normale",
     "low" => "Basse",
     "unit_updated_successfully" => "Unité mise à jour avec succès",
+    "no_items" => "Aucun élément à afficher",
+    "actions" => "Actions",
+    "edit" => "Modifier",
+    "delete" => "Supprimer",
+    "confirm_delete" => "Êtes-vous sûr de vouloir supprimer cet élément ?",
 ];

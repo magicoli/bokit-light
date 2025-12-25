@@ -13,9 +13,6 @@ return new class extends Migration
             if (!Schema::hasColumn('rates', 'reference_rate_id')) {
                 $table->foreignId('reference_rate_id')->nullable()->constrained('rates')->onDelete('set null');
             }
-            if (!Schema::hasColumn('rates', 'priority')) {
-                $table->string('priority')->default('normal');
-            }
             if (!Schema::hasColumn('rates', 'booking_from')) {
                 $table->date('booking_from')->nullable();
             }
@@ -31,10 +28,8 @@ return new class extends Migration
             if (!Schema::hasColumn('rates', 'conditions')) {
                 $table->json('conditions')->nullable();
             }
-            
-            // Rename base_amount to base_rate if needed
-            if (Schema::hasColumn('rates', 'base_amount')) {
-                $table->renameColumn('base_amount', 'base_rate');
+            if (!Schema::hasColumn('rates', 'coupon_code')) {
+                $table->string('coupon_code')->nullable();
             }
         });
 
@@ -54,11 +49,6 @@ return new class extends Migration
                 $table->index(['property_id', 'is_active']);
             });
         }
-
-        // Update existing data to set default values for new columns
-        \Illuminate\Support\Facades\DB::table('rates')
-            ->whereNull('priority')
-            ->update(['priority' => 'normal']);
     }
 
     public function down(): void
@@ -67,12 +57,12 @@ return new class extends Migration
             $table->dropForeign(['reference_rate_id']);
             $table->dropColumn([
                 'reference_rate_id',
-                'priority',
                 'booking_from',
                 'booking_to', 
                 'stay_from',
                 'stay_to',
-                'conditions'
+                'conditions',
+                'coupon_code'
             ]);
         });
 

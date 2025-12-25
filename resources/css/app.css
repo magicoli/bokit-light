@@ -367,6 +367,50 @@ main {
     @apply text-red-600 text-sm mt-1;
 }
 
+.notices {
+    @apply space-y-4 my-4 text-center;
+
+    .notice {
+        @apply p-2 items-center leading-none lg:rounded-full flex lg:inline-flex;
+        @apply bg-gray-300 border border-gray-500;
+
+        .tag {
+            @apply flex rounded-full uppercase px-2 py-1 text-xs font-bold mr-3;
+        }
+        .message {
+            @apply font-semibold mr-2 text-left flex-auto;
+        }
+
+        &.notice-error {
+            @apply bg-red-100 border-red-500 border-2;
+            .tag {
+                @apply bg-red-500 text-white;
+            }
+        }
+
+        &.notice-success {
+            @apply bg-green-100 border-green-500 border-2;
+            .tag {
+                @apply bg-green-500 text-white;
+            }
+        }
+
+        &.notice-warning {
+            @apply bg-yellow-100 border-yellow-500 border-2;
+            .tag {
+                @apply bg-yellow-500 text-white;
+            }
+        }
+
+        &.notice-info {
+            @apply bg-blue-100 border-blue-500 border-2;
+            .tag {
+                @apply bg-blue-500 text-white;
+            }
+        }
+    }
+}
+
 /* Hide default header if #main has a h1 element */
 #content-wrapper:has(.content header) {
     header {

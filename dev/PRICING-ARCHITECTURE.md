@@ -1,39 +1,39 @@
-# Pricing System Architecture
+# Rates System Architecture
 
 ## Overview
-This document outlines the pricing system architecture for Bokit Light, designed to handle complex pricing scenarios while maintaining flexibility for future enhancements.
+This document outlines the rates system architecture for Bokit Light, designed to handle complex rates scenarios while maintaining flexibility for future enhancements.
 
 ## Current State Analysis
 - **Booking Model**: Already has `price` and `commission` fields (decimal:2)
 - **Unit Model**: Has `settings` JSON field for configuration
 - **Property Model**: Has `settings` JSON field for configuration
-- **Database**: Ready for pricing extensions
+- **Database**: Ready for rates extensions
 
 ## Proposed Architecture
 
-### 1. Core Pricing Models
+### 1. Core Rates Models
 
 #### Rate
-- Base pricing entity
+- Base rates entity
 - Can be attached to Unit or Property
 - Supports different calculation methods
 
 #### RateRule  
-- Conditional pricing rules
+- Conditional rates rules
 - Flexible condition system
 - Priority-based evaluation
 
-#### PricingComponent
-- Modular pricing elements (base rate, taxes, fees, discounts)
+#### RatesComponent
+- Modular rates elements (base rate, taxes, fees, discounts)
 - Composable calculation pipeline
 
-#### PricingCalculation
+#### RatesCalculation
 - Stores calculation results
-- Audit trail for pricing decisions
+- Audit trail for rates decisions
 
 ### 2. Calculation Engine
 
-#### PricingCalculator
+#### RatesCalculator
 - Main calculation service
 - Orchestrates component calculations
 - Caching and optimization
@@ -90,10 +90,10 @@ This document outlines the pricing system architecture for Bokit Light, designed
 ```sql
 rates (id, unit_id, property_id, name, base_amount, calculation_method, is_active, priority, settings)
 rate_rules (id, rate_id, name, conditions, calculation_adjustment, priority, is_active)
-pricing_components (id, booking_id, component_type, amount, calculation_details, created_at)
+rates_components (id, booking_id, component_type, amount, calculation_details, created_at)
 taxes (id, name, rate, calculation_method, is_inclusive, applies_to, conditions)
 fees (id, name, amount, calculation_method, applies_to, conditions)
-pricing_calculations (id, booking_id, total_amount, base_amount, tax_amount, fee_amount, calculation_snapshot)
+rates_calculations (id, booking_id, total_amount, base_amount, tax_amount, fee_amount, calculation_snapshot)
 ```
 
 ### Supporting Tables
@@ -104,14 +104,14 @@ booking_payments (id, booking_id, amount, payment_date, method, status)
 
 ## Implementation Phases
 
-### Phase 1: Base Pricing (Current Sprint)
+### Phase 1: Base Rates (Current Sprint)
 1. **Rate Model**: Basic rate configuration
-2. **PricingCalculator**: Simple per-night calculation
+2. **RatesCalculator**: Simple per-night calculation
 3. **Booking Integration**: Price calculation on booking save
 4. **Basic UI**: Rate management interface
 
 ### Phase 2: Advanced Rules
-1. **RateRule Model**: Conditional pricing
+1. **RateRule Model**: Conditional rates
 2. **ConditionEvaluator**: Rule processing
 3. **CalculationMethods**: Multiple calculation strategies
 4. **Rule UI**: Visual rule builder
@@ -133,7 +133,7 @@ booking_payments (id, booking_id, amount, payment_date, method, status)
 ### 1. Flexibility
 - Strategy pattern for calculation methods
 - Rule-based condition system
-- Composable pricing components
+- Composable rates components
 
 ### 2. Performance
 - Calculation caching
@@ -152,22 +152,22 @@ booking_payments (id, booking_id, amount, payment_date, method, status)
 
 ## API Design
 
-### Pricing Endpoints
+### Rates Endpoints
 ```
 GET /api/units/{id}/rates
 POST /api/units/{id}/rates
 PUT /api/rates/{id}
 DELETE /api/rates/{id}
 
-GET /api/bookings/{id}/pricing
+GET /api/bookings/{id}/rates
 POST /api/bookings/{id}/recalculate
-GET /api/bookings/{id}/pricing-breakdown
+GET /api/bookings/{id}/rates-breakdown
 ```
 
 ### Calculation Endpoints
 ```
-POST /api/pricing/calculate
-GET /api/pricing/preview
+POST /api/rates/calculate
+GET /api/rates/preview
 ```
 
 ## Testing Strategy
@@ -178,13 +178,13 @@ GET /api/pricing/preview
 - Component calculations
 
 ### Integration Tests  
-- End-to-end pricing scenarios
+- End-to-end rates scenarios
 - Database interactions
 - API endpoints
 
 ### Performance Tests
 - Large dataset calculations
-- Concurrent pricing requests
+- Concurrent rates requests
 - Cache efficiency
 
 ## Migration Strategy
@@ -202,19 +202,19 @@ GET /api/pricing/preview
 ## Future Considerations
 
 ### Advanced Features
-- Dynamic pricing (demand-based)
-- Seasonal pricing automation
-- Competitive pricing analysis
+- Dynamic rates (demand-based)
+- Seasonal rates automation
+- Competitive rates analysis
 - Machine learning optimization
 
 ### Integration Points
-- Channel manager pricing sync
+- Channel manager rates sync
 - Accounting system integration
 - Revenue management tools
-- Third-party pricing engines
+- Third-party rates engines
 
 ## Conclusion
 
-This architecture provides a solid foundation for current pricing needs while being flexible enough to accommodate future requirements. The modular design allows for incremental development and testing, reducing risk and ensuring faster delivery of functional features.
+This architecture provides a solid foundation for current rates needs while being flexible enough to accommodate future requirements. The modular design allows for incremental development and testing, reducing risk and ensuring faster delivery of functional features.
 
-The phased approach ensures we can deliver value quickly while building toward a more comprehensive pricing system.
+The phased approach ensures we can deliver value quickly while building toward a more comprehensive rates system.

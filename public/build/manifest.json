@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-00cAPft8.css",
+    "file": "assets/app-C6_3gah3.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/calendar.css": {
-    "file": "assets/calendar-B64FHhVW.css",
+    "file": "assets/calendar-krDFHG4P.css",
     "src": "resources/css/calendar.css",
     "isEntry": true,
     "name": "calendar",
@@ -18,7 +18,7 @@
     ]
   },
   "resources/css/forms.css": {
-    "file": "assets/forms-BA5Z53zG.css",
+    "file": "assets/forms-DUu8qnfB.css",
     "src": "resources/css/forms.css",
     "isEntry": true,
     "name": "forms",
@@ -35,18 +35,8 @@
       "markdown.css"
     ]
   },
-  "resources/css/pricing.css": {
-    "file": "assets/pricing-tn0RQdqM.css",
-    "src": "resources/css/pricing.css",
-    "isEntry": true,
-    "name": "units",
-    "names": [
-      "pricing.css",
-      "units.css"
-    ]
-  },
   "resources/css/properties.css": {
-    "file": "assets/properties-CVxJClIt.css",
+    "file": "assets/properties-CkPO1kx-.css",
     "src": "resources/css/properties.css",
     "isEntry": true,
     "name": "properties",
@@ -54,13 +44,23 @@
       "properties.css"
     ]
   },
-  "resources/css/units.css": {
-    "file": "assets/pricing-tn0RQdqM.css",
-    "src": "resources/css/pricing.css",
+  "resources/css/rates.css": {
+    "file": "assets/rates-tn0RQdqM.css",
+    "src": "resources/css/rates.css",
     "isEntry": true,
     "name": "units",
     "names": [
-      "pricing.css",
+      "rates.css",
+      "units.css"
+    ]
+  },
+  "resources/css/units.css": {
+    "file": "assets/rates-tn0RQdqM.css",
+    "src": "resources/css/rates.css",
+    "isEntry": true,
+    "name": "units",
+    "names": [
+      "rates.css",
       "units.css"
     ]
   },
@@ -76,10 +76,10 @@
     "src": "resources/js/forms.js",
     "isEntry": true
   },
-  "resources/js/pricing.js": {
-    "file": "assets/pricing-C2vunhNs.js",
-    "name": "pricing",
-    "src": "resources/js/pricing.js",
+  "resources/js/rates.js": {
+    "file": "assets/rates-C2vunhNs.js",
+    "name": "rates",
+    "src": "resources/js/rates.js",
     "isEntry": true
   },
   "resources/js/units-edit.js": {
