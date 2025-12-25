@@ -7,6 +7,18 @@
 @vite('resources/css/rates.css')
 @endsection
 
+@section('scripts')
+@vite('resources/js/rates.js')
+<script>
+// Pass data to JavaScript
+window.ratesFormData = {
+    units: @json($units),
+    coupons: @json($coupons),
+    unitTypes: @json($allUnitTypes)
+};
+</script>
+@endsection
+
 @section('content')
 <div class="main-content">
     <!-- Rates List -->
@@ -19,11 +31,6 @@
         <h2 class="card-header">{{ __('rates.add_rate') }}</h2>
         @php
             $propertyOptions = $properties->pluck('name', 'id')->toArray();
-            $priorityOptions = [
-                'high' => __('rates.priority_high'),
-                'normal' => __('rates.priority_normal'),
-                'low' => __('rates.priority_low'),
-            ];
         @endphp
         {!! \App\Models\Rate::form(route('rates.store'))
             ->fieldOptions('property_id', $propertyOptions)

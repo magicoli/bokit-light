@@ -192,10 +192,10 @@ if ($isInstalled) {
             "calculate",
         ])->name("rates.calculate");
 
-        // API for reference rates
-        Route::get("/api/reference-rates/{propertyId}", [
+        // API for parent rates
+        Route::get("/api/parent-rates/{propertyId}", [
             RatesController::class,
-            "referenceRates",
+            "parentRates",
         ]);
 
         // Units (edit/update)

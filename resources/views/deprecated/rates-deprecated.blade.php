@@ -50,12 +50,12 @@ use App\Forms\Form;
                         </div>
 
                         <div class="rate-amount">
-                            {{ __('rates.base_rate') }}: €{{ number_format($rate->base_rate, 2) }}
+                            {{ __('rates.base_rate') }}: {{ number_format($rate->base_rate, 2) }}
                         </div>
 
                         @if($rate->referenceRate)
                             <div class="rate-amount">
-                                {{ __('rates.reference_rate') }}: €{{ number_format($rate->referenceRate->base_rate, 2) }}
+                                {{ __('rates.reference_rate') }}: {{ number_format($rate->referenceRate->base_rate, 2) }}
                             </div>
                         @endif
 

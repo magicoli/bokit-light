@@ -20,8 +20,8 @@
     @if(session('calculation'))
         <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
             <h3 class="font-bold">{{ __('Calculation Result') }}</h3>
-            <p><strong>{{ __('Total Price') }}:</strong> €{{ number_format(session('calculation')->total_amount, 2) }}</p>
-            <p><strong>{{ __('Base Amount') }}:</strong> €{{ number_format(session('calculation')->base_amount, 2) }}</p>
+            <p><strong>{{ __('Total Price') }}:</strong> {{ number_format(session('calculation')->total_amount, 2) }}</p>
+            <p><strong>{{ __('Base Amount') }}:</strong> {{ number_format(session('calculation')->base_amount, 2) }}</p>
             <p><strong>{{ __('Rate Used') }}:</strong> {{ session('calculation')->calculation_snapshot['rate_name'] }}</p>
             <p><strong>{{ __('Formula') }}:</strong> {{ session('calculation')->calculation_snapshot['formula'] }}</p>
 
@@ -129,7 +129,7 @@
                                         Property: {{ $rate->property->name }}
                                     @endif
                                 </p>
-                                <p class="text-sm"><strong>Base:</strong> €{{ number_format($rate->base_amount, 2) }}</p>
+                                <p class="text-sm"><strong>Base:</strong> {{ number_format($rate->base_amount, 2) }}</p>
                                 <p class="text-sm"><strong>Formula:</strong> <code class="bg-gray-100 px-1 py-0.5 text-xs rounded">{{ $rate->calculation_formula }}</code></p>
                             </div>
                             <div class="text-right">

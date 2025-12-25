@@ -20,8 +20,8 @@ class Rate extends Model
         "unit_type",
         "unit_id",
         "coupon_code",
-        "base_rate",
-        "reference_rate_id",
+        "base",
+        "parent_rate_id",
         "calculation_formula",
         "priority",
         "is_active",
@@ -44,7 +44,7 @@ class Rate extends Model
     ];
 
     /**
-     * Boot method - auto-generate slug
+     * Boot method - auto-generate slug and setup observers
      */
     protected static function boot()
     {
@@ -55,6 +55,33 @@ class Rate extends Model
                 $rate->slug = \Illuminate\Support\Str::slug(
                     ($rate->name ?: "rate") . "-" . uniqid(),
                 );
+            }
+
+            // If parent_rate_id is set, copy parent's base
+            if ($rate->parent_rate_id) {
+                $parent = Rate::find($rate->parent_rate_id);
+                if ($parent) {
+                    $rate->base = $parent->base;
+                }
+            }
+        });
+
+        static::updating(function ($rate) {
+            // If parent_rate_id changed, update base
+            if ($rate->isDirty("parent_rate_id") && $rate->parent_rate_id) {
+                $parent = Rate::find($rate->parent_rate_id);
+                if ($parent) {
+                    $rate->base = $parent->base;
+                }
+            }
+        });
+
+        static::updated(function ($rate) {
+            // If base changed, update all child rates
+            if ($rate->isDirty("base")) {
+                Rate::where("parent_rate_id", $rate->id)->update([
+                    "base" => $rate->base,
+                ]);
             }
         });
     }
@@ -72,8 +99,8 @@ class Rate extends Model
             "unit_type" => "nullable|string|max:100",
             "unit_id" => "nullable|exists:units,id",
             "coupon_code" => "nullable|string|max:100",
-            "base_rate" => "{$sometimes}required|numeric|min:0",
-            "reference_rate_id" => "nullable|exists:rates,id",
+            "base" => "{$sometimes}required|numeric|min:0",
+            "parent_rate_id" => "nullable|exists:rates,id",
             "calculation_formula" => "{$sometimes}required|string|max:500",
             "priority" => "nullable|in:high,normal,low",
             "is_active" => "nullable|boolean",
@@ -98,21 +125,50 @@ class Rate extends Model
                         "type" => "select",
                         "label" => __("app.property"),
                         "required" => true,
+                        "placeholder" => __("rates.select_a_property"),
                     ],
                     "unit_type" => [
                         "type" => "select",
-                        "label" => __("forms.unit_type"),
-                        "required" => false,
+                        "label" => __("rates.scope_type"),
+                        "placeholder" => __("rates.all_types"),
+                        "attributes" => [
+                            "data-add-new" => "unit_type",
+                        ],
                     ],
                     "unit_id" => [
                         "type" => "select",
-                        "label" => __("forms.unit"),
-                        "required" => false,
+                        "label" => __("app.unit"),
+                        "placeholder" => __("rates.all_units"),
                     ],
                     "coupon_code" => [
                         "type" => "select",
-                        "label" => __("forms.coupon"),
-                        "required" => false,
+                        "label" => __("rates.scope_coupon"),
+                        "placeholder" => __("rates.no_coupon"),
+                        "attributes" => [
+                            "data-add-new" => "coupon",
+                        ],
+                    ],
+                    "suffix" => [
+                        "label" => __("rates.scope_suffix"),
+                        "placeholder" => __("rates.optional_suffix"),
+                    ],
+                    "priority" => [
+                        "type" => "select",
+                        "label" => __("rates.priority"),
+                        "default" => "normal",
+                        "placeholder" => __("rates.select_priority"),
+                    ],
+                    "name" => [
+                        "type" => "text",
+                        "label" => __("rates.internal_name"),
+                        "attributes" => [
+                            "placeholder" => __(
+                                "rates.name_this_rate_placeholder",
+                            ),
+                            "readonly" => true,
+                            "class" => "w-full",
+                        ],
+                        "class" => "flex-1",
                     ],
                 ],
             ],
@@ -120,28 +176,35 @@ class Rate extends Model
             "pricing-row" => [
                 "type" => "fields-row",
                 "items" => [
-                    "base_rate" => [
+                    "base" => [
                         "type" => "number",
-                        "label" => __("rates.base_rate"),
+                        "label" => __("rates.base"),
                         "required" => true,
                         "attributes" => [
                             "step" => "0.01",
-                            "suffix" => $unit_currency ?? "EUR", // Not yet implemented
+                            "id" => "base",
                         ],
                     ],
-                    "reference_rate_id" => [
+                    "parent_rate_id" => [
                         "type" => "select",
-                        "label" => __("rates.reference_rate"),
-                        "required" => false,
+                        "label" => __("rates.parent_rate"),
+                        "placeholder" => __("rates.no_parent_rate"),
+                        "attributes" => [
+                            "id" => "parent_rate_id",
+                        ],
                     ],
                     "calculation_formula" => [
                         "type" => "text",
                         "label" => __("rates.calculation_formula"),
                         "required" => true,
-                        "default" => "booking_nights * base_rate",
+                        "description" =>
+                            "Allowed tags: base, parent_rate, booking_nights, guests, adults, children",
+                        "default" => "base * booking_nights",
+                        "placeholder" => "base * booking_nights",
                         "attributes" => [
-                            "placeholder" => "booking_nights * base_rate",
+                            "class" => "w-full",
                         ],
+                        "class" => "flex-auto",
                     ],
                 ],
             ],
@@ -149,58 +212,16 @@ class Rate extends Model
             "dates" => [
                 "type" => "fields-row",
                 "items" => [
-                    "booking_from" => [
-                        "type" => "date",
-                        "label" =>
-                            __("rates.booking_date") .
-                            " " .
-                            __("forms.date_from"),
-                        "required" => false,
-                        "default" => "",
+                    "booking" => [
+                        "type" => "date-range",
+                        "label" => __("rates.booking_date"),
                         "attributes" => [
                             "autocomplete" => "off",
                         ],
                     ],
-                    "booking_to" => [
-                        "type" => "date",
-                        "label" => __("forms.date_to"),
-                        "required" => false,
-                        "default" => "",
-                        "attributes" => [
-                            "autocomplete" => "off",
-                        ],
-                    ],
-                    "stay_from" => [
-                        "type" => "date",
-                        "label" =>
-                            __("rates.stay") . " " . __("forms.date_from"),
-                        "required" => false,
-                    ],
-                    "stay_to" => [
-                        "type" => "date",
-                        "label" => __("forms.date_to"),
-                        "required" => false,
-                    ],
-                ],
-            ],
-
-            "config-row" => [
-                "type" => "fields-row",
-                "items" => [
-                    "priority" => [
-                        "type" => "select",
-                        "label" => __("rates.priority"),
-                        "required" => false,
-                    ],
-                    "name" => [
-                        "type" => "text",
-                        "label" => __("rates.name_this_rate"),
-                        "required" => false,
-                        "attributes" => [
-                            "placeholder" => __(
-                                "rates.name_this_rate_placeholder",
-                            ),
-                        ],
+                    "stay" => [
+                        "type" => "date-range",
+                        "label" => __("rates.stay"),
                     ],
                 ],
             ],
@@ -214,11 +235,53 @@ class Rate extends Model
     {
         return [
             "display_name" => ["label" => __("rates.column_display_name")],
-            "base_rate" => [
-                "label" => __("rates.column_base_rate"),
-                "format" => "currency",
+            "base" => [
+                "label" => __("rates.column_base"),
+                "format" => "custom",
+                "formatter" => function ($rate) {
+                    $display = number_format($rate->base, 2);
+                    if ($rate->parent_rate_id && $rate->parentRate) {
+                        $display .=
+                            ' <span class="parent_rate">(' .
+                            $rate->parentRate->display_name .
+                            ")</span>";
+                    }
+                    return $display;
+                },
             ],
             "calculation_formula" => ["label" => __("rates.column_formula")],
+            "booking_dates" => [
+                "label" => __("rates.column_booking"),
+                "format" => "custom",
+                "formatter" => function ($rate) {
+                    if (!$rate->booking_from && !$rate->booking_to) {
+                        return "-";
+                    }
+                    $from = $rate->booking_from
+                        ? $rate->booking_from->format("Y-m-d")
+                        : "...";
+                    $to = $rate->booking_to
+                        ? $rate->booking_to->format("Y-m-d")
+                        : "...";
+                    return "{$from} → {$to}";
+                },
+            ],
+            "stay_dates" => [
+                "label" => __("rates.column_stay"),
+                "format" => "custom",
+                "formatter" => function ($rate) {
+                    if (!$rate->stay_from && !$rate->stay_to) {
+                        return "-";
+                    }
+                    $from = $rate->stay_from
+                        ? $rate->stay_from->format("Y-m-d")
+                        : "...";
+                    $to = $rate->stay_to
+                        ? $rate->stay_to->format("Y-m-d")
+                        : "...";
+                    return "{$from} → {$to}";
+                },
+            ],
             "priority" => ["label" => __("rates.column_priority")],
             "is_active" => [
                 "label" => __("rates.column_enabled"),
@@ -242,9 +305,9 @@ class Rate extends Model
         return $this->belongsTo(Unit::class);
     }
 
-    public function referenceRate(): BelongsTo
+    public function parentRate(): BelongsTo
     {
-        return $this->belongsTo(Rate::class, "reference_rate_id");
+        return $this->belongsTo(Rate::class, "parent_rate_id");
     }
 
     public function rateProperty(): BelongsTo
@@ -257,6 +320,12 @@ class Rate extends Model
      */
     public function getDisplayNameAttribute(): string
     {
+        // If name is set, use it (it's the calculated name from the form)
+        if ($this->name) {
+            return $this->name;
+        }
+
+        // Otherwise, build it from parts
         $parts = [];
 
         if ($this->rateProperty) {
@@ -273,10 +342,6 @@ class Rate extends Model
 
         if ($this->coupon_code) {
             $parts[] = "Coupon: {$this->coupon_code}";
-        }
-
-        if ($this->name) {
-            $parts[] = $this->name;
         }
 
         return implode(" - ", $parts) ?: "Rate #{$this->id}";

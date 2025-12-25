@@ -24,8 +24,8 @@ class DataList
     private function loadColumnsFromModel(): void
     {
         $modelClass = get_class($this->model);
-        
-        if (method_exists($modelClass, 'listColumns')) {
+
+        if (method_exists($modelClass, "listColumns")) {
             $this->columns = $modelClass::listColumns();
         }
     }
@@ -51,15 +51,26 @@ class DataList
     /**
      * Format value based on column configuration
      */
-    private function formatValue($value, array $column): string
-    {
-        $format = $column['format'] ?? 'text';
-        
-        return match($format) {
-            'boolean' => $value ? '✓' : '✗',
-            'currency' => number_format($value, 2) . ' €',
-            'date' => $value ? $value->format('Y-m-d') : '',
-            'datetime' => $value ? $value->format('Y-m-d H:i') : '',
+    private function formatValue(
+        $item,
+        string $columnKey,
+        array $column,
+    ): string {
+        $format = $column["format"] ?? "text";
+
+        // Custom formatter
+        if ($format === "custom" && isset($column["formatter"])) {
+            return (string) $column["formatter"]($item);
+        }
+
+        // Get value from item
+        $value = $item->$columnKey ?? null;
+
+        return match ($format) {
+            "boolean" => $value ? "✓" : "✗",
+            "currency" => number_format($value, 2),
+            "date" => $value ? $value->format("Y-m-d") : "",
+            "datetime" => $value ? $value->format("Y-m-d H:i") : "",
             default => (string) $value,
         };
     }
@@ -70,14 +81,20 @@ class DataList
     public function render(): string
     {
         if (!$this->items) {
-            throw new \RuntimeException('Items must be set before rendering. Use list($items, ...)');
+            throw new \RuntimeException(
+                'Items must be set before rendering. Use list($items, ...)',
+            );
         }
-        
-        return view('components.data-list', [
-            'items' => $this->items,
-            'columns' => $this->columns,
-            'routePrefix' => $this->routePrefix,
-            'formatValue' => fn($value, $column) => $this->formatValue($value, $column),
+
+        return view("components.data-list", [
+            "items" => $this->items,
+            "columns" => $this->columns,
+            "routePrefix" => $this->routePrefix,
+            "formatValue" => fn(
+                $item,
+                $columnKey,
+                $column,
+            ) => $this->formatValue($item, $columnKey, $column),
         ])->render();
     }
 }
