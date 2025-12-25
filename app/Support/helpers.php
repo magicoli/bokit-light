@@ -91,3 +91,37 @@ function appBrandingHtml(): string
         config("app.slogan", "Your Ultimate Platform"),
     );
 }
+
+if (!function_exists("notice")) {
+    function notice($message, $tag = "info")
+    {
+        $notices = session()->get("notices", []);
+        $notices[] = [
+            "message" => $message ?: __("notice.no_message"),
+            "tag" => $tag,
+        ];
+        session()->flash("notices", $notices);
+    }
+}
+
+function get_notices()
+{
+    $notices = session()->get("notices", []);
+    $html = "";
+    if (!empty($notices)) {
+        foreach ($notices as $notice) {
+            $tag = $notice["tag"] ?? "info";
+            $html .= sprintf(
+                '<div class="notice notice-%s" role="alert">
+                    <span class="tag">%s</span>
+                    <span class="message">%s</span>
+                </div>',
+                $tag,
+                ucfirst(str_replace("notice.", "", __("notice.$tag"))),
+                $notice["message"],
+            );
+        }
+        $html = sprintf('<div class="notices">%s</div>', $html);
+    }
+    return $html;
+}

@@ -27,8 +27,8 @@
                             {{ __('app.properties') }}
                         </a>
                         @if(auth()->user()->isAdmin())
-                        <a href="{{ route('pricing') }}" class="nav-link">
-                            {{ __('pricing.menu') }}
+                        <a href="{{ route('rates') }}" class="nav-link">
+                            {{ __('rates.menu') }}
                         </a>
                         @endif
                     @endif

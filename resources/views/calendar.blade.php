@@ -279,7 +279,7 @@ use App\Traits\TimezoneTrait;
 
                     <div class="modal-content">
                         <!-- Unit + Status -->
-                        <div class="field-row">
+                        <div class="fields-row">
                             <div class="unit-info">
                                 <span class="unit-name" x-text="selectedBooking.unit?.name"></span>
                             </div>

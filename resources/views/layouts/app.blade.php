@@ -61,11 +61,17 @@
                     <p class="subtitle">@yield('subtitle')</p>
                 </header>
 
+                {{-- session('success') is Deprecated, use notices instead, kept only until old code using is updated --}}
                 @if(session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
                 @endif
+                {{-- end of session('success') deprecated code --}}
+
+                <!-- Flash notices -->
+                {!! get_notices() !!}
+
                 <div class="content">
                     @yield('content')
                 </div>

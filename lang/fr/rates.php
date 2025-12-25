@@ -4,7 +4,7 @@ return [
     "title" => "Tarifs",
     "menu" => "Tarifs",
     "add_rate" => "Ajouter un tarif",
-    "pricing_settings" => "Réglages des tarifs",
+    "rates_settings" => "Réglages des tarifs",
     "booking_date" => "Date de réservation",
     "stay" => "Séjour",
     "priority" => "Priorité",
@@ -30,4 +30,9 @@ return [
     "column_priority" => "Priorité",
     "column_enabled" => "Activé",
     "column_actions" => "Actions",
+    "section_scope" => "Portée du tarif",
+    "section_scope_desc" => "Définir à quelle propriété, type d'unité, unité ou coupon ce tarif s'applique",
+    "section_pricing" => "Tarification",
+    "section_dates" => "Restrictions de dates",
+    "section_config" => "Configuration",
 ];

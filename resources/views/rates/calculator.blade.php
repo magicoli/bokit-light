@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', __('Pricing Calculator'))
+@section('title', __('Rates Calculator'))
 
 @section('content')
 <div class="container mx-auto p-4">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">{{ __('Pricing Calculator') }}</h1>
-        <a href="{{ route('pricing') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+        <h1 class="text-2xl font-bold">{{ __('Rates Calculator') }}</h1>
+        <a href="{{ route('rates') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
             {{ __('Back to Rates') }}
         </a>
     </div>
@@ -49,7 +49,7 @@
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold mb-4">{{ __('Test Booking') }}</h2>
 
-        <form action="{{ route('pricing.calculate') }}" method="POST" class="space-y-4">
+        <form action="{{ route('rates.calculate') }}" method="POST" class="space-y-4">
             @csrf
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

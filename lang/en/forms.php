@@ -1,6 +1,7 @@
 <?php
 
 return [
+    "select" => "Select",
     "select_property" => "Select Property",
     "unit" => "Unit",
     "select_unit" => "Select Unit",
@@ -26,4 +27,9 @@ return [
     "add_new_unit_type" => "Add new unit type",
     "add_new_coupon" => "Add new coupon",
     "unit_updated_successfully" => "Unit updated successfully",
+    "no_items" => "No items to display",
+    "actions" => "Actions",
+    "edit" => "Edit",
+    "delete" => "Delete",
+    "confirm_delete" => "Are you sure you want to delete this item?",
 ];

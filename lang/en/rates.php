@@ -1,10 +1,10 @@
 <?php
 
 return [
-    "title" => "Pricing",
-    "menu" => "Pricing",
+    "title" => "Rates",
+    "menu" => "Rates",
     "add_rate" => "Add Rate",
-    "pricing_settings" => "Pricing Management",
+    "rates_settings" => "Rates Management",
     "booking_date" => "Booking Date",
     "stay" => "Stay",
     "priority" => "Priority",
@@ -29,4 +29,9 @@ return [
     "column_priority" => "Priority",
     "column_enabled" => "Enabled",
     "column_actions" => "Actions",
+    "section_scope" => "Rate Scope",
+    "section_scope_desc" => "Define which property, unit type, unit, or coupon this rate applies to",
+    "section_pricing" => "Pricing",
+    "section_dates" => "Date Restrictions",
+    "section_config" => "Configuration",
 ];

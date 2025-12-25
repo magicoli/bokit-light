@@ -6,7 +6,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PropertyController;
-use App\Http\Controllers\PricingController;
+use App\Http\Controllers\RatesController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
@@ -169,35 +169,32 @@ if ($isInstalled) {
             "saveSettings",
         ])->name("admin.settings.save");
 
-        // Pricing management
-        Route::get("/pricing", [PricingController::class, "index"])->name(
-            "pricing",
+        // Rates management
+        Route::get("/rates", [RatesController::class, "index"])->name("rates");
+        Route::post("/rates", [RatesController::class, "store"])->name(
+            "rates.store",
         );
-        Route::post("/pricing", [PricingController::class, "store"])->name(
-            "pricing.store",
+        Route::put("/rates/{rate}", [RatesController::class, "update"])->name(
+            "rates.update",
         );
-        Route::put("/pricing/{rate}", [
-            PricingController::class,
-            "update",
-        ])->name("pricing.update");
-        Route::delete("/pricing/{rate}", [
-            PricingController::class,
+        Route::delete("/rates/{rate}", [
+            RatesController::class,
             "destroy",
-        ])->name("pricing.destroy");
+        ])->name("rates.destroy");
 
-        // Pricing calculator
-        Route::get("/pricing/calculator", [
-            PricingController::class,
+        // Rates calculator
+        Route::get("/rates/calculator", [
+            RatesController::class,
             "calculator",
-        ])->name("pricing.calculator");
-        Route::post("/pricing/calculate", [
-            PricingController::class,
+        ])->name("rates.calculator");
+        Route::post("/rates/calculate", [
+            RatesController::class,
             "calculate",
-        ])->name("pricing.calculate");
+        ])->name("rates.calculate");
 
         // API for reference rates
         Route::get("/api/reference-rates/{propertyId}", [
-            PricingController::class,
+            RatesController::class,
             "referenceRates",
         ]);
 
