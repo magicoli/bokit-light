@@ -23,7 +23,7 @@ class RatesController extends Controller
     public function index()
     {
         try {
-            $rates = Rate::with(["unit", "referenceRate", "rateProperty"])
+            $rates = Rate::with(["unit", "parentRate", "rateProperty"])
                 ->orderBy("priority", "desc")
                 ->get();
 
@@ -37,8 +37,28 @@ class RatesController extends Controller
             }
             
             $properties = $query->get();
+            
+            // Get all units and coupons for dynamic select population
+            $units = Unit::with('property')->get();
+            $coupons = Coupon::where('is_active', true)->get();
+            
+            // Get unique unit types from both units table and rates table
+            $unitTypesFromUnits = $units->pluck('unit_type')->filter()->unique()->values();
+            $unitTypesFromRates = Rate::whereNotNull('unit_type')
+                ->distinct()
+                ->pluck('unit_type')
+                ->filter()
+                ->unique();
+            $allUnitTypes = $unitTypesFromUnits->merge($unitTypesFromRates)->unique()->sort()->values();
+            
+            // Prepare priority options
+            $priorityOptions = [
+                'high' => __('rates.priority_high'),
+                'normal' => __('rates.priority_normal'),
+                'low' => __('rates.priority_low'),
+            ];
 
-            return view("rates", compact("rates", "properties"));
+            return view("rates", compact("rates", "properties", "units", "coupons", "allUnitTypes", "priorityOptions"));
         } catch (\Exception $e) {
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
                 "trace" => $e->getTraceAsString(),
@@ -217,12 +237,12 @@ class RatesController extends Controller
     }
 
     /**
-     * API endpoint for reference rates
+     * API endpoint for parent rates (potential parent rates for a property)
      */
-    public function referenceRates($propertyId): JsonResponse
+    public function parentRates($propertyId): JsonResponse
     {
         try {
-            $rates = Rate::with(["referenceRate"])
+            $rates = Rate::with(["parentRate"])
                 ->where("property_id", $propertyId)
                 ->orWhereNull("property_id")
                 ->get()
@@ -230,7 +250,7 @@ class RatesController extends Controller
                     return [
                         "id" => $rate->id,
                         "display_name" => $rate->display_name,
-                        "base_rate" => $rate->base_rate,
+                        "base" => $rate->base,
                     ];
                 });
 
@@ -242,7 +262,7 @@ class RatesController extends Controller
             
             return response()->json(
                 [
-                    "error" => "Failed to fetch reference rates",
+                    "error" => "Failed to fetch parent rates",
                     "message" => $e->getMessage(),
                 ],
                 500,

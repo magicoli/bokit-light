@@ -5,7 +5,7 @@
         <thead class="card-header">
             <tr>
                 @foreach($columns as $columnName => $column)
-                    <th>{{ $column['label'] ?? ucfirst(str_replace('_', ' ', $columnName)) }}</th>
+                    <th>{!! $column['label'] ?? ucfirst(str_replace('_', ' ', $columnName)) !!}</th>
                 @endforeach
             </tr>
         </thead>
@@ -14,11 +14,7 @@
                 <tr>
                     @foreach($columns as $columnName => $column)
                         <td>
-                            @if(isset($item->$columnName))
-                                {{ $formatValue($item->$columnName, $column) }}
-                            @else
-                                <span class="na">—</span>
-                            @endif
+                            {!! $formatValue($item, $columnName, $column) !!}
                         </td>
                     @endforeach
                 </tr>
