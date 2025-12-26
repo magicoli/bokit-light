@@ -1,8 +1,11 @@
+{{-- @pushOnce does not work here for @vite css --}}
+{{-- @section does not work here for @vite css --}}
+@vite('resources/css/rates-widget.css')
+
 <div class="rate-widget">
     <form method="POST" action="{{ route('rates.calculate') }}" class="calculator-form">
         @csrf
-
-        <div class="fields-row">
+        <div class="fields-row search-form">
             <fieldset class="form-field field-date field-check_in">
                 <label for="calc_check_in">{{ __('app.check_in') }}</label>
                 <input type="date" name="check_in" id="calc_check_in" value="{{ old('check_in', request('check_in', now()->addDay()->format('Y-m-d'))) }}" required>
@@ -23,22 +26,27 @@
                 <input type="number" name="children" id="calc_children" value="{{ old('children', request('children', 0)) }}" min="0">
             </fieldset>
 
-            <fieldset class="form-field field-submit">
-                <label>&nbsp;</label>
-                <button type="submit" class="btn btn-primary">{{ __('rates.calculate') }}</button>
-            </fieldset>
+        </div>
+        <div class="button-group">
+            <button type="button" class="btn btn-secondary" onclick="this.form.reset(); window.location.href = window.location.pathname;">{{ __('app.clear') }}</button>
+            <button type="submit" class="btn btn-primary">{{ __('rates.search') }}</button>
         </div>
     </form>
+
+    @if($errors->has('calculation'))
+        <div class="notices">
+            @foreach($errors->get('calculation') as $error)
+                <div class="notice notice-warning">
+                    <span class="tag">&nbsp;&nbsp;</span>
+                    <span class="message">{{ $error }}</span>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     @if(session('calculation_results'))
         @php
             $results = session('calculation_results');
-
-            if (empty($results)) {
-                $listData = [];
-            } else {
-                $listData = $results;
-            }
 
             $listColumns = [
                 'unit_name' => ['label' => __('app.unit')],
@@ -60,7 +68,7 @@
             ];
         @endphp
 
-        {!! (new \App\Support\DataList($listData))
+        {!! (new \App\Support\DataList($results))
             ->columns($listColumns)
             ->groupBy('property_name')
             ->render() !!}

@@ -471,3 +471,7 @@ main {
         @apply hidden;
     }
 }
+
+.button-group {
+    @apply flex gap-4;
+}

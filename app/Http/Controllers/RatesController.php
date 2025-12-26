@@ -263,6 +263,13 @@ class RatesController extends Controller
                 return strcmp($a['unit_name'], $b['unit_name']);
             });
             
+            // If no results, return with error message
+            if (empty($results)) {
+                return back()
+                    ->withErrors(['calculation' => __('rates.no_results')])
+                    ->withInput();
+            }
+            
             return back()
                 ->with('calculation_results', $results)
                 ->withInput();

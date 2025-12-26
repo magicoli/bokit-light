@@ -31,16 +31,17 @@ These features provide a viable calendar management solution that can be deploye
 - ✅ Rate calculator widget with container queries
 - ✅ DataList grouping by property
 - ✅ Responsive display (mobile/desktop)
+- ✅ Add clear/reset form button (reset the values to defaults and clears the results)
+- ✅ Display message when no units available for the request
+- ✅ Fix resources/views/rates/calculator.blade.php: obsolete or to update with proper localization and semantic classes?
 
 **Remaining Work**:
-- 🔧 Add clear/reset form button (reset the values to defaults and clears the results)
-- 🔧 Display message when no units available for the request
-- 🔧 Fix parent_rate calculation bug
-- 🔧 Implement unit combinations (multi-unit bookings in same property for large groups)
-- 🔧 Implement rate variations system (seasonal rates, promotions)
+- [ ] Fix parent_rate calculation bug
+- [ ] Implement unit combinations (multi-unit bookings in same property for large groups)
+- [ ] Implement rate variations system (seasonal rates, promotions)
   - Apply formula to any "base" rate regardless of scope
   - Avoid duplicating variations for each rate
-- 🔧 Property access control in calculator
+- [ ] Property access control in calculator
   - **Admin interface**: Respect user permissions (admin sees all, restricted users see authorized properties only)
   - **Public widget**: URL-based filtering (custom domain or path prefix)
     - Example: `mosaiques.bokit.click` or `bokit.click/mosaiques/` → only units from "mosaiques" property

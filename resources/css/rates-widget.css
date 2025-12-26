@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+.rate-widget {
+    container-type: inline-size;
+    @apply space-y-6;
+
+    form.calculator-form {
+        @apply mx-auto my-0 flex justify-center flex-wrap items-baseline-last gap-8;
+
+        > * {
+            @apply h-fit my-0 w-fit;
+        }
+    }
+}

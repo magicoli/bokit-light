@@ -82,4 +82,5 @@ return [
     "settings_saved" => "Settings saved successfully",
     "not_implemented" => "Not implemented",
     "external_calendar" => "External Calendar",
+    "clear" => "Clear",
 ];

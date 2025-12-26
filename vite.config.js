@@ -11,6 +11,7 @@ export default defineConfig({
                 "resources/css/forms.css",
                 "resources/css/markdown.css",
                 "resources/css/rates.css",
+                "resources/css/rates-widget.css",
                 "resources/css/properties.css",
                 "resources/css/units.css",
                 "resources/js/app.js",

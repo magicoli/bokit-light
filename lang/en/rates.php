@@ -61,10 +61,12 @@ return [
     "name_auto_generated" => "Name is generated automatically based on scope",
     "test_calculator" => "Test Rates",
     "calculate" => "Calculate",
+    "search" => "Search",
     "calculation_results" => "Calculation Results",
     "no_matching_units" => "No units match the criteria",
     "rate_used" => "Rate Used",
     "nights" => "Nights",
     "price_per_night" => "Price/Night",
     "total" => "Total",
+    "no_results" => "No results. Try adjusting your search criteria",
 ];
