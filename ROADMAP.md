@@ -34,9 +34,10 @@ These features provide a viable calendar management solution that can be deploye
 - ✅ Add clear/reset form button (reset the values to defaults and clears the results)
 - ✅ Display message when no units available for the request
 - ✅ Fix resources/views/rates/calculator.blade.php: obsolete or to update with proper localization and semantic classes?
+- ✅ Fix parent_rate calculation bug
 
 **Remaining Work**:
-- [ ] Fix parent_rate calculation bug
+- [ ] Fix date-range: when start is set, to must be set to minimum start +1, like implemented for rate search
 - [ ] Implement unit combinations (multi-unit bookings in same property for large groups)
 - [ ] Implement rate variations system (seasonal rates, promotions)
   - Apply formula to any "base" rate regardless of scope
