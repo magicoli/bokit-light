@@ -68,6 +68,7 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
 # Database Safety (CRITICAL)
 - **NEVER use `php artisan migrate:fresh` or `migrate:refresh`** - these commands destroy all data
 - **NEVER use `php artisan migrate`** to run new migrations - the app executes migrations automatically, never interfere, only let the user verify migrations are executed automatically
+- **ALWAYS use `php artisan make:migration` to create new migrations** - this is the Laravel standard and ensures proper timestamp formatting
 - If database reset is truly needed, ask for explicit confirmation and warn about data loss
 - This rule overrides any suggestions in DEVELOPERS.md which is written for human developers who understand the consequences
 

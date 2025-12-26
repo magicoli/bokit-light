@@ -1,225 +1,317 @@
-# Rates System Implementation - Phase 1
+# Rate System - Current Implementation
 
 ## Overview
-Phase 1 implementation provides basic rates functionality with formula-based calculations and rate prioritization.
 
-## Components Implemented
+This document describes the **current implementation** of Bokit's rate calculation system. This is a living document reflecting the actual codebase, not a proposal.
 
-### 1. Database Schema
+**Last Updated:** 2025-12-26  
+**Status:** Partially complete - core functionality working, variations and combinations pending
+
+## Current Architecture
+
+### Database Schema
 
 #### Rates Table
-- `name`, `slug`: Rate identification
-- `unit_id`, `unit_type`, `property_id`: Rate scope (mutually exclusive)
-- `base_amount`: Base rate value
-- `calculation_formula`: Mathematical formula (e.g., 'booking_nights * rate')
-- `is_active`, `priority`: Rate selection criteria
-- `settings`: JSON configuration
 
-#### Rates Calculations Table
-- Stores calculation results for audit trail
-- Contains calculation snapshot for debugging
-- Links to booking records
+```sql
+CREATE TABLE rates (
+    id INTEGER PRIMARY KEY,
+    property_id INTEGER,           -- Scope: property-level rate
+    unit_type VARCHAR(50),         -- Scope: unit type rate  
+    unit_id INTEGER,               -- Scope: specific unit rate
+    
+    parent_rate_id INTEGER,        -- Hierarchical rates (variations)
+    
+    name VARCHAR(255),             -- Display name (nullable)
+    slug VARCHAR(255),             -- URL-friendly identifier (nullable)
+    
+    base DECIMAL(10,2) NOT NULL,   -- Base rate amount
+    formula TEXT,                  -- Calculation formula
+    
+    priority INTEGER,              -- Selection priority (nullable)
+    is_active BOOLEAN DEFAULT 1,   -- Active status
+    
+    settings JSON,                 -- Additional configuration
+    
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    
+    -- Constraints
+    CHECK ((property_id IS NOT NULL) + (unit_type IS NOT NULL) + (unit_id IS NOT NULL) = 1)
+    FOREIGN KEY (parent_rate_id) REFERENCES rates(id) ON DELETE CASCADE
+);
+```
 
-#### Units Table Update
-- Added `unit_type` field for categorization
-- Simple string field (no separate model needed)
+**Key Fields:**
+- `base` - Base rate value (renamed from `base_amount`)
+- `parent_rate_id` - Links to parent rate for variations
+- One of `property_id`, `unit_type`, or `unit_id` must be set (mutually exclusive)
 
-### 2. Models
+#### Units Table (Capacity Fields)
 
-#### Rate Model
-- Scopes: `active()`, `forUnit()`, `forUnitType()`, `forProperty()`
-- Relationships with Unit and Property
-- Validation ensures exactly one scope is set
+```sql
+ALTER TABLE units ADD COLUMN bedrooms INTEGER;
+ALTER TABLE units ADD COLUMN max_guests INTEGER;
+```
 
-#### RatesCalculation Model
-- Audit trail for rates decisions
-- Stores calculation variables and results
+Enables capacity-based filtering in rate calculator.
 
-### 3. Rates Calculator Service
+### Models
 
-#### Core Features
-- Rate discovery with priority: unit > unit_type > property
-- Formula evaluation with safety checks
-- Variable substitution for calculations
-- Automatic recalculation on booking changes
+#### Rate Model (`app/Models/Rate.php`)
 
-#### Available Variables
-- `rate`: Base amount
-- `booking_nights`: Number of nights
-- `guests`, `adults`, `children`: Guest counts
-- `check_in`, `check_out`: Dates
-- `unit_id`, `property_id`: References
-
-#### Formula Examples
-- `'booking_nights * rate'` (standard per-night)
-- `'booking_nights * guests * rate'` (per-night per-guest)
-- `'booking_nights * adults * rate'` (per-night per-adult)
-- `'rate'` (flat fee)
-
-### 4. Integration
-
-#### Booking Observer
-- Automatic calculation on booking creation
-- Recalculation on relevant field changes
-- Error logging without blocking operations
-
-#### API Endpoints
-- Full CRUD for rates management
-- Rate listing with filters
-- Property/unit scoped queries
-
-## Rate Priority System
-
-### Selection Logic
-1. **Unit Rate**: Highest priority, most specific
-2. **Unit Type Rate**: Medium priority, shared by type
-3. **Property Rate**: Lowest priority, default for property
-
-### Resolution Order
+**Scopes:**
 ```php
-// Unit: "Studio Apartment", Type: "Studio", Property: "Beach Hotel"
-// Rates configured:
-// - Property rate: $100/night
-// - Studio type rate: $80/night  
-// - Specific unit rate: $120/night
-
-// Result: $120/night (unit rate takes priority)
+Rate::active()           // is_active = 1
+Rate::forUnit($unitId)   // unit_id = $unitId
+Rate::forUnitType($type) // unit_type = $type
+Rate::forProperty($id)   // property_id = $id
 ```
 
-## Formula System
-
-### Safety Features
-- Variable replacement validation
-- Character filtering (numbers, operators only)
-- Parse error handling
-- Result type validation
-
-### Mathematical Operations
-- Addition: `+`
-- Subtraction: `-`
-- Multiplication: `*`
-- Division: `/`
-- Parentheses: `()` for order of operations
-
-### Advanced Examples
+**Relationships:**
 ```php
-// Minimum charge
-'booking_nights * rate > 50 ? booking_nights * rate : 50'
-
-// Weekend surcharge
-'(booking_nights * rate) + (weekend_nights * rate * 0.2)'
-
-// Guest-based rates
-'booking_nights * (rate + (guests > 2 ? (guests - 2) * 20 : 0))'
+$rate->property()     // BelongsTo Property
+$rate->unit()         // BelongsTo Unit
+$rate->parentRate()   // BelongsTo Rate (parent)
+$rate->children()     // HasMany Rate (variations)
 ```
 
-## API Usage
-
-### Create Rates
-```http
-POST /api/rates
-{
-    "name": "Studio Rate",
-    "unit_type": "studio",
-    "base_amount": 80.00,
-    "calculation_formula": "booking_nights * rate",
-    "is_active": true
-}
+**Model Events:**
+```php
+// When parent rate base changes, sync to children
+static::updating(function ($rate) {
+    if ($rate->isDirty('base') && !$rate->parent_rate_id) {
+        $rate->children()->update(['base' => $rate->base]);
+    }
+});
 ```
 
-### List Rates
-```http
-GET /api/rates?property_id=1&unit_id=5
+**Validation:**
+- Exactly one scope field (property_id, unit_type, unit_id) must be set
+- Children cannot have other children (max 2 levels)
+- Formula syntax validation
+
+### Rate Calculator Service
+
+**Not yet implemented as separate service class**
+
+Currently logic is in `RatesController::calculate()`.
+
+**Future:** Extract to `app/Services/RateCalculator.php` for reusability.
+
+### Calculation Logic
+
+#### Priority System
+
+Rates are selected using scope-based priority:
+
+1. **Unit-specific** (highest priority)
+2. **Unit type**
+3. **Property-wide** (lowest priority)
+
+```php
+// Pseudocode
+$rate = Rate::forUnit($unitId)->first() 
+     ?? Rate::forUnitType($unit->unit_type)->first()
+     ?? Rate::forProperty($unit->property_id)->first();
 ```
 
-### Update Rates
-```http
-PUT /api/rates/123
-{
-    "base_amount": 85.00,
-    "calculation_formula": "booking_nights * adults * rate"
-}
+#### Formula Evaluation
+
+**Available Variables:**
+- `base` - Base rate from database
+- `nights` - Number of nights (check_out - check_in)
+- `guests` - Total guest count
+- `adults` - Adult count
+- `children` - Children count
+
+**Example Formulas:**
+```php
+'base * nights'                    // Simple nightly rate
+'base * nights * 0.9'              // 10% discount
+'base * nights + (guests * 10)'    // Base + per-guest fee
 ```
 
-## Channel Manager Compatibility
+**Evaluation:**
+```php
+// In controller (simplified)
+$variables = compact('base', 'nights', 'guests', 'adults', 'children');
+$formula = str_replace(array_keys($variables), array_values($variables), $rate->formula);
+$total = eval("return $formula;");
+```
 
-### OTA Integration Ready
-- Flexible formula system matches various rates models
-- Unit type categorization aligns with common OTA structures
-- Priority system handles multiple rate tiers
-- JSON settings accommodate platform-specific fields
+**Security:** Formula evaluation uses whitelisted variables only, no user input.
 
-### Common OTA Patterns
-- **Booking.com**: Per-night per-room
-- **Airbnb**: Per-night with guest variations
-- **Beds24**: Custom formulas supported
-- **Lodgify**: Rate-based with supplements
+### Parent Rate Architecture (Variations)
 
-## Testing Scenarios
+**Concept:** Base rates can have "variations" that inherit and modify the base.
 
-### Basic Functionality
-1. Create property rate → Verify unit bookings use property rate
-2. Add unit type rate → Verify units of that type use type rate
-3. Add unit-specific rate → Verify that unit uses specific rate
+**Example:**
+```
+Base Rate: "Summer Nights" (base: 100, formula: 'base * nights')
+  ├─ Variation: "Long Stay Discount" (base: 100, formula: 'base * nights * 0.85')
+  └─ Variation: "Early Bird" (base: 100, formula: 'base * nights * 0.90')
+```
 
-### Formula Testing
-1. Simple formula: `booking_nights * rate`
-2. Per-guest: `booking_nights * guests * rate`
-3. Per-adult: `booking_nights * adults * rate`
-4. Complex: `rate + (guests > 2 ? (guests - 2) * 20 : 0)`
+**Key Points:**
+- Parent `base` auto-syncs to children (via model events)
+- Children can override `formula` for different calculations
+- Maximum 2 levels (parent → child, no grandchildren)
+- Used for seasonal rates, promotions, discounts
 
-### Priority Testing
-1. All three rates exist → Unit rate selected
-2. Unit + property rates → Unit rate selected
-3. Type + property rates → Type rate selected
-4. Only property rate → Property rate selected
+**Current Status:** ✅ Architecture implemented, not yet exposed in UI
 
-## Migration Strategy
+## User Interface
 
-### Existing Data
-- `unit_type` field is nullable for backward compatibility
-- Current `price` values preserved during transition
-- Existing bookings get calculations on next update
+### Rate Calculator Widget
 
-### Deployment Steps
-1. Migration runs automatically (new tables, unit_type column)
-2. Observer registration in AppServiceProvider
-3. API routes available immediately
-4. UI components can be added progressively
+**Location:** `resources/views/components/rate-calculator.blade.php`
 
-## Performance Considerations
+**Features:**
+- Date range picker (check-in, check-out)
+- Guest count selectors (adults, children)
+- Capacity filtering (bedrooms, max guests)
+- Results grouped by property
+- Responsive column hiding (container queries)
 
-### Optimization Points
-- Rate queries use indexed columns
-- Formula evaluation is lightweight
-- Calculation snapshots stored for audit, not recomputation
-- Observer only triggers on relevant field changes
+**Result Columns:**
+- Unit name
+- Rate name (hidden on mobile)
+- Price per night
+- Total price
 
-### Caching Opportunities
-- Rate lookup results per unit/property
-- Formula compilation (future enhancement)
-- Pre-calculated seasonal rates (future)
+**DataList Integration:**
+```php
+{!! (new DataList($results))
+    ->groupBy('property_name')
+    ->columns([
+        'unit_name' => ['label' => __('rates.unit')],
+        'rate_name' => ['label' => __('rates.rate'), 'class' => 'mobile-hidden'],
+        'price_per_night' => ['label' => __('rates.price_per_night'), 'format' => 'currency'],
+        'total' => ['label' => __('rates.total'), 'format' => 'currency'],
+    ])
+    ->render() !!}
+```
 
-## Next Phase Preparation
+**Styling:** Uses container queries for responsive design (see `resources/css/rates.css`)
 
-### Extension Points
-- JSON `settings` field for advanced rules
-- Formula engine ready for conditionals
-- Priority system supports more tiers
-- Audit trail enables rate change tracking
+### Rate Management (Admin)
 
-### Phase 2 Foundations
-- Rate priority infrastructure ready
-- Formula evaluation system extensible
-- Rate scope validation implemented
-- Observer pattern in place for complex rules
+**Location:** `/rates`
 
-## Conclusion
+**Features:**
+- List all rates (DataList)
+- Create new rates
+- Edit existing rates
+- Scope selection (property/unit type/unit)
+- Formula builder
+- Parent rate selection (for variations)
 
-Phase 1 provides a solid, production-ready rates foundation that:
-- Handles immediate rate calculation needs
-- Supports OTA integration patterns
-- Maintains performance and auditability
-- Provides clear path for Phase 2 enhancements
+**Form Fields:**
+- Scope: Radio buttons (property, unit type, unit)
+- Name: Optional display name
+- Base: Required numeric value
+- Formula: Text input with variable reference
+- Parent Rate: Dropdown (optional)
+- Priority: Numeric (nullable)
+- Is Active: Checkbox
 
-The system is minimal yet complete, allowing rapid deployment while ensuring future compatibility.
+## Testing
+
+**Manual Testing:**
+1. Navigate to `/rates/calculator`
+2. Select dates and guests
+3. Verify results display correctly
+4. Test capacity filtering (units with insufficient bedrooms hidden)
+5. Test responsive behavior (hide Rate column on mobile)
+
+**Future:** Add automated tests for calculation logic.
+
+## Known Issues & Limitations
+
+### Current Limitations
+
+1. **No variations UI** - Parent rate architecture exists but no UI to create variations
+2. **No unit combinations** - Cannot calculate for multi-unit bookings
+3. **No access control** - All users see all properties in calculator
+4. **Simple formulas only** - No advanced conditions (date ranges, day of week)
+
+### Bugs to Fix
+
+1. **Parent rate base sync** - Model event might not trigger in all cases
+2. **No units message** - Calculator should display message when no units match criteria
+3. **Currency formatting** - Hardcoded to 2 decimals, should respect locale
+
+See [ISSUES.md](ISSUES.md) and [ROADMAP.md](../ROADMAP.md) for detailed tracking.
+
+## Development Notes
+
+### Adding New Variables
+
+To add a new formula variable:
+
+1. Add to calculation in `RatesController::calculate()`:
+```php
+$variables = [
+    'base' => $rate->base,
+    'nights' => $nights,
+    'new_var' => $someValue, // Add here
+];
+```
+
+2. Document in formula help text
+3. Update translations
+
+### Creating Variations
+
+**Current workflow (programmatic):**
+```php
+// Create base rate
+$base = Rate::create([
+    'property_id' => 1,
+    'base' => 100,
+    'formula' => 'base * nights',
+]);
+
+// Create variation
+$variation = Rate::create([
+    'property_id' => 1,
+    'parent_rate_id' => $base->id,
+    'base' => 100, // Inherited
+    'formula' => 'base * nights * 0.85', // Modified
+]);
+```
+
+**Future:** UI for variation creation in rate form.
+
+## Files Modified
+
+### Backend
+- `app/Models/Rate.php` - Model with parent rate relationship
+- `app/Http/Controllers/RatesController.php` - Calculation logic
+- `database/migrations/*_rename_base_rate_to_base.php` - Field rename
+- `database/migrations/*_add_bedrooms_and_max_guests.php` - Capacity fields
+
+### Frontend
+- `resources/views/components/rate-calculator.blade.php` - Calculator widget
+- `resources/views/rates/index.blade.php` - Rate management
+- `resources/views/rates/form.blade.php` - Create/edit form
+- `resources/css/rates.css` - Rate-specific styles
+
+### Translations
+- `lang/en/rates.php` - English strings
+- `lang/fr/rates.php` - French strings
+
+## Next Steps
+
+See [ROADMAP.md](../ROADMAP.md) Phase 1, Section 1 for planned enhancements:
+
+1. Fix parent_rate calculation bug
+2. Display message when no units available  
+3. Implement unit combinations (multi-unit bookings)
+4. Implement rate variations system (UI)
+5. Property access control in calculator
+
+---
+
+**Note:** This document reflects the actual implemented system. For proposed features, see ROADMAP.md.
