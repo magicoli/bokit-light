@@ -62,10 +62,13 @@ return [
         "Le nom est généré automatiquement en fonction de la portée",
     "test_calculator" => "Test des tarifs",
     "calculate" => "Calculer",
+    "search" => "Rechercher",
     "calculation_results" => "Résultats du Calcul",
     "no_matching_units" => "Aucun logement ne correspond aux critères",
     "rate_used" => "Tarif Utilisé",
     "nights" => "Nuits",
     "price_per_night" => "Prix/Nuit",
     "total" => "Total",
+    "no_results" =>
+        "Aucun résultat. Essayez d'ajuster vos critères de recherche.",
 ];
