@@ -65,6 +65,12 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
   ask for explicit confirmation. The confirmation must state the intended action and acknowledge potential impact.
 - If the user explicitly requested a change, treat that request as the confirmation for that specific change.
 
+# Database Safety (CRITICAL)
+- **NEVER use `php artisan migrate:fresh` or `migrate:refresh`** - these commands destroy all data
+- **NEVER use `php artisan migrate`** to run new migrations - the app executes migrations automatically, never interfere, only let the user verify migrations are executed automatically
+- If database reset is truly needed, ask for explicit confirmation and warn about data loss
+- This rule overrides any suggestions in DEVELOPERS.md which is written for human developers who understand the consequences
+
 # Short interactive checklist (apply automatically)
 1. If ambiguous → ask 1 short clarifying question.
 2. Answer the question first (1–2 lines).
@@ -78,17 +84,16 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
 - When unsure about style or conventions, run quick repo checks (lint, format, tests) silently and report only minimal discrepancies if relevant.
 
 # Git & commit behaviors
+- See [DEVELOPERS.md](DEVELOPERS.md) for commit message format and conventions
 - If the user asks to commit changes:
-  - Stage the files and create a local commit with a concise message derived from the actual git diff (subject uses `type(scope): short description`).
-  - Do NOT push; do not suggest pushing. Pushing is the user's responsibility.
-- Commit message rules:
-  - First line (subject): `type(scope): short summary` where `type` is one of: `fix`, `feat`, `chore`, `docs`, `test`, `perf`, `refactor`, `style`, `ci`, `build`, `revert`.
-  - Body: short bullets list summarizing the main changes; reference issue numbers if known. Do NOT use chat history or external conversation history to craft the commit message. Minor and cosmetic changes can be omitted from the message if they are not significant.
-  - For version bumps: create a commit whose subject is the version tag (e.g., `v1.2.3`) and include a concise list of main changes since the previous version in the commit body. Also create a tag with the version as tag name and the identical message.
+  - Stage the files and create a local commit with a concise message derived from the actual git diff
+  - Do NOT push; do not suggest pushing. Pushing is the user's responsibility
 - Before committing:
-  - Run `git status` and `git diff --staged` (or `git diff` for unstaged) and draft the commit message from the real diff; present the one-line subject to the user if they asked for review.
-- If git is unavailable or the repo is not a git repo, state that plainly and abort the commit action.
+  - Run `git status` and `git diff --staged` (or `git diff` for unstaged) and draft the commit message from the real diff
+  - Present the one-line subject to the user if they asked for review
+- If git is unavailable or the repo is not a git repo, state that plainly and abort the commit action
 
 # Notes
-- These rules override general assistant defaults for interactions in this workspace.
-- If the user later requests stricter safeguards, follow the new instruction.
+- These rules override general assistant defaults for interactions in this workspace
+- If the user later requests stricter safeguards, follow the new instruction
+- For project-specific conventions (code style, architecture, commit format, testing), see [DEVELOPERS.md](DEVELOPERS.md)
