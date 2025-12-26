@@ -15,6 +15,15 @@
             <p class="message">{{ __('app.no_properties_yet') }}</p>
         </div>
     @else
+        <!-- Rate Calculator Widget -->
+        <div class="card rate-calculator">
+            <div class="card-header">
+                <h3>{{ __('rates.test_calculator') }}</h3>
+            </div>
+            <div class="card-body">
+                @include('components.rate-calculator')
+            </div>
+        </div>
         <div class="properties-list">
             @foreach($properties as $property)
                 <div class="property-card">

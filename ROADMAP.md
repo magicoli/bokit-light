@@ -33,15 +33,20 @@ These features provide a viable calendar management solution that can be deploye
 - ✅ Responsive display (mobile/desktop)
 
 **Remaining Work**:
+- 🔧 Add clear/reset form button (reset the values to defaults and clears the results)
 - 🔧 Display message when no units available for the request
 - 🔧 Fix parent_rate calculation bug
-- 🔧 Implement unit combinations (multi-unit bookings for large groups)
+- 🔧 Implement unit combinations (multi-unit bookings in same property for large groups)
 - 🔧 Implement rate variations system (seasonal rates, promotions)
   - Apply formula to any "base" rate regardless of scope
   - Avoid duplicating variations for each rate
 - 🔧 Property access control in calculator
-  - Respect user permissions (admin sees all, restricted users see authorized properties only)
-  - Currently shows all properties regardless of user access
+  - **Admin interface**: Respect user permissions (admin sees all, restricted users see authorized properties only)
+  - **Public widget**: URL-based filtering (custom domain or path prefix)
+    - Example: `mosaiques.bokit.click` or `bokit.click/mosaiques/` → only units from "mosaiques" property
+    - Example: `mosaiques.bokit.click/moon` or `bokit.click/mosaiques/moon` → only "moon" unit
+    - Independent of user authentication status (works for anonymous users)
+  - Currently shows all properties regardless of user access or URL
 
 **Technical Details**:
 - Parent rate synchronization with model events
@@ -122,19 +127,24 @@ These features provide a viable calendar management solution that can be deploye
 ---
 
 ### 5. Embeddable Calendar Widget
-**Goal**: Display calendar on external websites (only for admin usage, same as current calendar but widget only and limited with rules, essentially limit to one property or limit to one user's rights through personal API key/Secret)
+**Goal**: Display calendar on external websites with URL-based property/unit filtering
 
 **Requirements**:
 - JavaScript snippet for embedding
 - Responsive display (mobile/desktop) (already covered by current layout)
-- ~~No Customizable styling (at this stage)~~
+- URL-based filtering for multi-tenant support:
+  - Custom domain: `property-name.bokit.click` → only that property
+  - Path prefix: `bokit.click/property-name/` → only that property
+  - Specific unit: `property-name.bokit.click/unit-name` → only that unit
+  - Independent of user authentication (works for anonymous visitors)
 - Exact same display and rules as internal calendar, to avoid developing specific views for this fast solution
 
 **Technical Approach**:
-- prefer direct html over or js generated content iframe or shadow DOM for style isolation
-- Public API endpoint for calendar data
+- Prefer direct HTML over iframe or shadow DOM for style isolation
+- Public API endpoint for calendar data with property/unit slug filtering
 - CORS configuration
 - CDN-friendly (cacheable assets)
+- Route pattern: `/{property-slug}` and `/{property-slug}/{unit-slug}`
 
 **Customization Options**:
 - NONE. Phase one only provides the calendar as-is.
