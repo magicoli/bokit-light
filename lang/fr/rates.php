@@ -40,7 +40,7 @@ return [
     "section_pricing" => "Tarification",
     "section_dates" => "Restrictions de dates",
     "section_config" => "Configuration",
-    
+
     // Placeholders
     "select_a_property" => "Sélectionnez une propriété",
     "all_types" => "Tous les types",
@@ -50,13 +50,22 @@ return [
     "select_priority" => "Sélectionnez la priorité",
     "no_reference_rate" => "Aucun tarif de référence",
     "no_parent_rate" => "Aucun tarif parent",
-    
+
     // Scope labels
     "scope_type" => "Type d'unité",
     "scope_coupon" => "Coupon",
     "scope_suffix" => "Suffixe",
-    
+
     // Other
     "allowed_variables" => "Variables autorisées",
-    "name_auto_generated" => "Le nom est généré automatiquement en fonction de la portée",
+    "name_auto_generated" =>
+        "Le nom est généré automatiquement en fonction de la portée",
+    "test_calculator" => "Test des tarifs",
+    "calculate" => "Calculer",
+    "calculation_results" => "Résultats du Calcul",
+    "no_matching_units" => "Aucun logement ne correspond aux critères",
+    "rate_used" => "Tarif Utilisé",
+    "nights" => "Nuits",
+    "price_per_night" => "Prix/Nuit",
+    "total" => "Total",
 ];

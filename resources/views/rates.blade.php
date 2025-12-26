@@ -1,3 +1,6 @@
+{{-- NEVER INCLUDE DIRECT JAVASCRIPT IN TEMPLATES, ALWAYS USE .js FILES --}}
+{{-- NEVER INCLUDE DIRECT CSS IN TEMPLATES, ALWAYS USE .css FILES --}}
+
 @extends('layouts.app')
 
 @section('title', __('rates.title'))
@@ -9,8 +12,10 @@
 
 @section('scripts')
 @vite('resources/js/rates.js')
+@vite('resources/js/rate-calculator.js')
+
 <script>
-// Pass data to JavaScript
+// TODO: this should be replaced by proper methods to follow the no javascript in templates rule
 window.ratesFormData = {
     units: @json($units),
     coupons: @json($coupons),
@@ -19,8 +24,21 @@ window.ratesFormData = {
 </script>
 @endsection
 
+@section('sidebar-left')
+<!-- Rate Calculator Widget -->
+<div class="card rate-calculator">
+    <div class="card-header">
+        <h3>{{ __('rates.test_calculator') }}</h3>
+    </div>
+    <div class="card-body">
+        @include('components.rate-calculator')
+    </div>
+</div>
+@endsection
+
 @section('content')
 <div class="main-content">
+
     <!-- Rates List -->
     <div class="card">
         {!! \App\Models\Rate::list($rates, 'rates')->render() !!}
