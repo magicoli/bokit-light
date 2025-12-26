@@ -1,61 +1,113 @@
-# Auto-Update System
+# Auto-Migration System
 
-## Architecture
+## Overview
 
-Bokit uses a WordPress-style auto-update system where database migrations are automatically detected and executed through the web interface. No terminal commands needed!
+Bokit uses an **automatic migration system** where database migrations are detected and executed automatically on application load, without any user interaction. This is a core design principle for a standalone web application that must work without terminal access.
+
+## Why Automatic Migrations?
+
+### Standalone Application Requirement
+
+Bokit is designed to be deployed anywhere - shared hosting, managed WordPress environments, simple VPS - places where users may not have SSH/terminal access or technical knowledge to run commands.
+
+**Key Principles:**
+- ✅ **Zero terminal dependency** - Everything must work through the web interface
+- ✅ **Self-healing** - App detects and fixes its own database state
+- ✅ **Production-safe** - No manual intervention means no human error
+- ✅ **User-agnostic** - Non-technical users can update by uploading files
+
+### Traditional Approach (What We Avoid)
+
+```bash
+# ❌ Requires terminal access
+ssh user@server
+cd /var/www/app
+php artisan migrate
+```
+
+This fails for:
+- Shared hosting users (no SSH)
+- Non-technical property managers
+- WordPress environments with restricted access
+- Managed hosting with limited shell access
+
+### Bokit Approach
+
+```
+1. Upload new code (rsync/FTP/git pull)
+2. Load any page
+3. ✅ Migrations run automatically
+```
+
+No commands. No terminal. No user action needed.
 
 ## How It Works
 
-### 1. Migration Detection (`ApplyMigrations` Middleware)
+### 1. Detection (`ApplyMigrations` Middleware)
 
-The `ApplyMigrations` middleware runs on every request (except `/install` and `/update` routes) and:
+The `ApplyMigrations` middleware runs on **every request** (except `/install`) and:
 
-1. Checks if there are pending Laravel migrations
-2. Compares migration files in `database/migrations/` with the `migrations` table
-3. If pending migrations found → redirects to `/update`
-4. Otherwise → allows request to continue normally
+1. Checks for pending migrations by comparing:
+   - Files in `database/migrations/`
+   - Records in `migrations` table
+2. If pending migrations found → **executes them immediately**
+3. Logs success/failure
+4. Request continues normally
 
-**Performance**: Very fast check - only reads file list and queries one database table.
+**Performance:** Fast check (~5-10ms) - only filesystem scan and one DB query.
 
-### 2. Update Page (`/update`)
+**Location:** `app/Http/Middleware/ApplyMigrations.php`
 
-When pending migrations are detected:
+### 2. Silent Execution
 
-1. User is redirected to `/update` page
-2. Page shows:
-   - List of pending migrations
-   - "Run Update Now" button
-3. User clicks button → AJAX call to `/update/execute`
-4. Migrations run via `Artisan::call('migrate', ['--force' => true])`
-5. Success → "Continue to Calendar" button appears
-6. User continues to app
+When migrations are detected:
+- They execute **immediately and silently**
+- No page redirect
+- No user confirmation
+- No "update available" message
 
-### 3. Migration Files
+**Why silent?**
+- Migrations are **required** database updates, not optional features
+- They must run before any code executes (code depends on DB structure)
+- Asking users to "confirm" is meaningless - they have no choice
+- Automatic execution = zero downtime, zero user confusion
 
-Laravel migrations live in `database/migrations/` with timestamp-based naming:
+### 3. Error Handling
 
-```
-database/migrations/
-  2025_12_11_100000_add_status_to_bookings.php
-  2025_12_11_110000_add_metadata_fields.php
-  ...
-```
+If a migration fails:
+- Error is caught and logged to `storage/logs/laravel.log`
+- Admin users see maintenance mode with error details
+- Regular users see generic maintenance message
+- Fix issue → reload page → migration retries
 
-Each migration has:
-- `up()` method: applies changes
-- `down()` method: reverts changes (for rollbacks)
+## Creating Migrations
 
-## Creating New Migrations
-
-### Step 1: Create Migration File
+### Always Use Laravel's Command
 
 ```bash
-# Naming format: YYYY_MM_DD_HHMMSS_description.php
-# Example:
+# ✅ CORRECT - Use Laravel's make:migration command
+php artisan make:migration add_price_to_bookings
+
+# Creates: database/migrations/2025_12_26_153045_add_price_to_bookings.php
+```
+
+**Never create manually:**
+```bash
+# ❌ WRONG - Manual creation
 touch database/migrations/2025_12_11_120000_add_price_to_bookings.php
 ```
 
-### Step 2: Write Migration Code
+**Why?**
+- Laravel generates proper timestamp (YYYY_MM_DD_HHMMSS)
+- Includes boilerplate `up()` and `down()` methods
+- Guarantees correct execution order
+- Prevents timestamp collisions
+
+**Historical Note:** Existing migrations have 4 different formats because they were created manually or by different assistants. All new migrations MUST use `php artisan make:migration`.
+
+### Migration Template
+
+Laravel generates this structure:
 
 ```php
 <?php
@@ -82,203 +134,178 @@ return new class extends Migration
 };
 ```
 
-### Step 3: Test Locally
+### Testing Migrations Locally
 
-The next time you load any page in the app:
-1. `ApplyMigrations` middleware detects the new migration
-2. You're redirected to `/update`
-3. Click "Run Update Now"
-4. Migration executes
-5. Continue to app
+**Development workflow:**
 
-### Step 4: Deploy
+```bash
+# 1. Create migration
+php artisan make:migration add_status_to_bookings
 
-Push to production and the same auto-update flow happens for your users!
+# 2. Edit the generated file
+# 3. Load any page in browser
+# 4. Migration runs automatically
+# 5. Verify in logs or database
+
+# Check migration status
+php artisan migrate:status
+```
+
+**Never run migrations manually:**
+```bash
+# ❌ NEVER DO THIS
+php artisan migrate
+```
+
+Let the application handle migrations automatically, just like production will.
+
+### Deploying Migrations
+
+**Production deployment:**
+
+```bash
+# 1. Upload new code (choose one method):
+rsync -av --exclude storage --exclude .env ./ user@server:/var/www/app/
+# OR
+git pull origin main
+
+# 2. That's it!
+# Next page load will detect and run migrations automatically
+```
 
 ## Migration Best Practices
 
-### DO:
-- ✅ Use descriptive migration names
-- ✅ Always provide `down()` method for rollbacks
-- ✅ Test migrations locally before deploying
-- ✅ Use transactions when modifying data
-- ✅ Make migrations idempotent (safe to run multiple times)
+### DO ✅
 
-### DON'T:
-- ❌ Delete migration files after they've been run
-- ❌ Modify migrations that have already been deployed
-- ❌ Use `php artisan migrate` manually (use web interface)
-- ❌ Skip the `down()` method
+- **Use `php artisan make:migration`** for all migrations
+- **Write descriptive names** - `add_price_to_bookings` not `update_bookings`
+- **Always include `down()` method** - for rollback capability
+- **Test locally first** - verify migration works before deploying
+- **Make idempotent** - safe to run multiple times (use `if (!Schema::hasColumn(...))`)
+- **Use transactions** - wrap data updates in `DB::transaction()`
+- **Keep focused** - one logical change per migration
 
-## Migration Squashing (Future)
+### DON'T ❌
 
-When you accumulate many migrations (e.g., 50+ files), Laravel provides a "squash" command:
+- **Never delete migrations** that have been run in production
+- **Never modify deployed migrations** - create new ones instead
+- **Never run `php artisan migrate` manually** - let app handle it
+- **Don't skip `down()` method** - required for proper rollbacks
+- **Don't use raw SQL** unless absolutely necessary - use Schema builder
+- **Don't assume order** - migrations should be independent
 
-```bash
-php artisan schema:dump
+## Architecture
+
+### Middleware Stack
+
+```
+Request
+  ↓
+ApplyMigrations ← Runs migrations if needed
+  ↓
+CheckInstalled ← Redirects to /install if not installed
+  ↓
+Auth ← Authentication check
+  ↓
+AutoSync ← iCal sync (dispatchAfterResponse)
+  ↓
+Route Controller
+  ↓
+Response
 ```
 
-This creates a single SQL dump of the entire schema, allowing you to delete old migrations while preserving the ability to create fresh databases.
+### Files & Directories
 
-**Note**: This is a manual operation for cleanup, not part of the auto-update flow.
+**Core Components:**
+- `app/Http/Middleware/ApplyMigrations.php` - Migration detection and execution
+- `app/Http/Controllers/UpdateController.php` - Error handling and logs (future use)
+- `database/migrations/*.php` - All migration files
 
-## Files
+**Database:**
+- `migrations` table - Tracks executed migrations (managed by Laravel)
 
-### Core Files
-- `app/Http/Middleware/ApplyMigrations.php` - Detects pending migrations
-- `app/Http/Controllers/UpdateController.php` - Handles `/update` page and execution
-- `resources/views/update.blade.php` - Update page UI
-- `routes/web.php` - Routes for `/update` and `/update/execute`
-- `bootstrap/app.php` - Registers `check.updates` middleware alias
+**Logs:**
+- `storage/logs/laravel.log` - Migration execution logs
 
-### Migration Files
-- `database/migrations/*.php` - All database migrations
+## Comparison to Manual Approach
 
-### Database Tables
-- `migrations` - Tracks which migrations have been run (managed by Laravel)
+| Aspect | Manual Migrations | Auto-Migrations |
+|--------|-------------------|-----------------|
+| Terminal required | YES ❌ | NO ✅ |
+| User action needed | YES ❌ | NO ✅ |
+| Works on shared hosting | NO ❌ | YES ✅ |
+| Deployment complexity | High ❌ | Low ✅ |
+| Error-prone | YES ❌ | NO ✅ |
+| Production-friendly | NO ❌ | YES ✅ |
+| Zero-downtime | NO ❌ | YES ✅ |
 
-## User Experience
+## Future: App Updates (Not Migrations)
 
-### Scenario 1: Regular User
-1. Opens app → loads normally (no updates pending)
-2. New version deployed with migrations
-3. Next page load → redirected to `/update`
-4. Clicks "Run Update Now" → migrations execute
-5. Clicks "Continue to Calendar" → back to normal
+**Current Status:** Not implemented
 
-**Total time**: ~5-10 seconds
+Migrations are **database updates** required by the code. They are automatic and mandatory.
 
-### Scenario 2: Multiple Updates
-1. User hasn't opened app in weeks
-2. Multiple migrations accumulated
-3. Opens app → redirected to `/update`
-4. Sees list of all pending updates
-5. Clicks "Run Update Now" → ALL migrations execute in order
-6. Continues to calendar
+**App updates** would be:
+- New feature releases
+- Optional upgrades
+- Version bumps (1.2.3 → 1.3.0)
+- Changelog display
+- User notification ("Update available")
 
-**Total time**: ~10-30 seconds (depending on migrations)
-
-## Error Handling
-
-### Migration Fails
-1. Error caught by `UpdateController::execute()`
-2. User sees error message with details
-3. "Run Update Now" button remains active
-4. User can retry or contact support
-
-### Recovery
-If a migration fails:
-1. Check logs: `storage/logs/laravel.log`
-2. Fix issue (code or database)
-3. User retries via web interface
-
-## Comparison to Manual Migrations
-
-| Aspect | Manual (❌) | Auto-Update (✅) |
-|--------|---------|------------|
-| Terminal access needed | YES | NO |
-| User intervention | YES | Minimal (1 click) |
-| Production-friendly | NO | YES |
-| Works on shared hosting | NO | YES |
-| Rollback support | Manual | Built-in |
-| User experience | Bad | Excellent |
-
-## WordPress Comparison
-
-This system is similar to WordPress plugin/theme updates:
-- Auto-detection of updates
-- One-click update via web interface
-- Graceful handling of errors
-- No server access required
-
-## Technical Details
-
-### Middleware Execution Order
-```
-1. CheckInstalled (redirects to /install if needed)
-2. Auth (WordPress or None)
-3. ApplyMigrations (redirects to /update if needed)
-4. AutoSync (syncs iCal feeds)
-5. Route Controller
-```
-
-### Migration Detection Algorithm
-```php
-function hasPendingMigrations(): bool {
-    $files = glob(database_path('migrations/*.php'));
-    $ran = DB::table('migrations')->pluck('migration')->toArray();
-    
-    foreach ($files as $file) {
-        $name = basename($file, '.php');
-        if (!in_array($name, $ran)) {
-            return true; // Found pending migration
-        }
-    }
-    
-    return false; // All migrations run
-}
-```
-
-**Performance**: O(n) where n = number of migration files. Typically <10ms.
-
-## Future Enhancements
-
-### Automatic Backups
-Before running migrations, automatically:
-1. Backup database to `storage/backups/`
-2. Run migrations
-3. If error → restore backup
-
-### Migration Changelog
-Store migration metadata:
-- Date/time run
-- User who triggered
-- Success/failure status
-- Execution time
-
-### Rollback UI
-Web interface for rolling back migrations:
-- `/update/rollback` page
-- Shows recent migrations
-- Click to rollback to specific point
-
-### Version Numbers
-Instead of checking migrations table, use semantic versioning:
-- Current: `Options::get('app.version')` = "1.2.3"
-- Check against hard-coded `APP_VERSION` constant
-- Cleaner UI: "Update to v1.3.0"
+This is separate from migrations and not yet implemented. Currently users update by:
+- `git pull` (developers)
+- `rsync` (production deployments)
+- Manual file upload (shared hosting)
 
 ## Debugging
 
-### Check Pending Migrations
+### Check Migration Status
+
 ```bash
-# Via Tinker
+# List all migrations and their status
+php artisan migrate:status
+
+# View migrations table
 php artisan tinker
->>> DB::table('migrations')->pluck('migration')->toArray();
+>>> DB::table('migrations')->get();
 ```
 
-### Force Run Update
+### View Logs
+
 ```bash
-# Via browser
-curl -X POST http://localhost:8080/update/execute \
-  -H "Content-Type: application/json" \
-  -H "X-CSRF-TOKEN: your-token"
+# Watch migration logs in real-time
+tail -f storage/logs/laravel.log | grep -i migration
 ```
 
-### Clear Migrations Table (Caution!)
-```bash
-php artisan tinker
->>> DB::table('migrations')->truncate();
-```
+### Common Issues
+
+**"Migration already ran but code expects it"**
+- Check `migrations` table has the migration record
+- Verify migration file exists in `database/migrations/`
+- Match filenames exactly
+
+**"Migration fails but keeps retrying"**
+- Fix the error in migration code or database
+- Reload page - migration will retry automatically
+- Check logs for specific error message
+
+**"Want to rollback a migration"**
+- Currently must do manually in development
+- Production: create new migration to reverse changes
+- Never modify deployed migrations
 
 ## Summary
 
-The auto-update system ensures:
-- ✅ No terminal access needed for updates
-- ✅ User-friendly one-click updates
-- ✅ Production-safe deployment
-- ✅ Graceful error handling
-- ✅ Laravel best practices
-- ✅ WordPress-style simplicity
+Bokit's automatic migration system ensures:
 
-Perfect for Oli's "application web autonome" requirement! 🎯
+- ✅ **Zero-touch deployment** - Upload code, migrations run automatically
+- ✅ **No terminal dependency** - Works on any hosting environment
+- ✅ **Production-safe** - Automatic execution eliminates human error
+- ✅ **Self-healing** - App maintains its own database state
+- ✅ **Laravel best practices** - Uses standard migration framework
+
+This design is essential for a standalone web application that must work everywhere, for everyone, without technical expertise.
+
+---
+
+**Last updated:** 2025-12-26

@@ -33,8 +33,8 @@ These features provide a viable calendar management solution that can be deploye
 - ✅ Responsive display (mobile/desktop)
 
 **Remaining Work**:
+- 🔧 Display message when no units available for the request
 - 🔧 Fix parent_rate calculation bug
-- 🔧 Display message when no units available
 - 🔧 Implement unit combinations (multi-unit bookings for large groups)
 - 🔧 Implement rate variations system (seasonal rates, promotions)
   - Apply formula to any "base" rate regardless of scope
