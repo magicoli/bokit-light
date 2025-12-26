@@ -2,20 +2,37 @@
 
 namespace App\Support;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class DataList
 {
-    private Model $model;
-    private ?Collection $items = null;
+    private ?Model $model = null;
+    private Collection $items;
     private ?string $routePrefix = null;
     private array $columns = [];
+    private ?string $groupBy = null;
 
-    public function __construct(Model $model)
+    /**
+     * Constructor accepts Model, Collection, or array
+     */
+    public function __construct(Model|Collection|array $data, ?string $routePrefix = null)
     {
-        $this->model = $model;
-        $this->loadColumnsFromModel();
+        // Handle different input types
+        if ($data instanceof Model) {
+            $this->model = $data;
+            $this->items = new Collection();
+            $this->loadColumnsFromModel();
+        } elseif ($data instanceof Collection) {
+            $this->items = $data;
+        } elseif (is_array($data)) {
+            $this->items = collect($data);
+        }
+
+        if ($routePrefix) {
+            $this->routePrefix = $routePrefix;
+        }
     }
 
     /**
@@ -23,6 +40,10 @@ class DataList
      */
     private function loadColumnsFromModel(): void
     {
+        if (!$this->model) {
+            return;
+        }
+
         $modelClass = get_class($this->model);
 
         if (method_exists($modelClass, "listColumns")) {
@@ -33,9 +54,18 @@ class DataList
     /**
      * Set items to display
      */
-    public function items(Collection $items): self
+    public function items(Collection|array $items): self
     {
-        $this->items = $items;
+        $this->items = $items instanceof Collection ? $items : collect($items);
+        return $this;
+    }
+
+    /**
+     * Set columns manually
+     */
+    public function columns(array $columns): self
+    {
+        $this->columns = $columns;
         return $this;
     }
 
@@ -45,6 +75,15 @@ class DataList
     public function routePrefix(string $prefix): self
     {
         $this->routePrefix = $prefix;
+        return $this;
+    }
+
+    /**
+     * Group results by a field
+     */
+    public function groupBy(string $field): self
+    {
+        $this->groupBy = $field;
         return $this;
     }
 
@@ -63,8 +102,14 @@ class DataList
             return (string) $column["formatter"]($item);
         }
 
-        // Get value from item
-        $value = $item->$columnKey ?? null;
+        // Get value from item (handle both objects and arrays)
+        if (is_object($item)) {
+            $value = $item->$columnKey ?? null;
+        } elseif (is_array($item)) {
+            $value = $item[$columnKey] ?? null;
+        } else {
+            $value = null;
+        }
 
         return match ($format) {
             "boolean" => $value ? "✓" : "✗",
@@ -80,16 +125,15 @@ class DataList
      */
     public function render(): string
     {
-        if (!$this->items) {
-            throw new \RuntimeException(
-                'Items must be set before rendering. Use list($items, ...)',
-            );
+        if ($this->items->isEmpty() && !$this->model) {
+            // No items and no model - can still render empty state
         }
 
         return view("components.data-list", [
             "items" => $this->items,
             "columns" => $this->columns,
             "routePrefix" => $this->routePrefix,
+            "groupBy" => $this->groupBy,
             "formatValue" => fn(
                 $item,
                 $columnKey,

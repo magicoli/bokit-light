@@ -16,6 +16,7 @@ export default defineConfig({
                 "resources/js/app.js",
                 "resources/js/forms.js",
                 "resources/js/rates.js",
+                "resources/js/rate-calculator.js",
                 "resources/js/units-edit.js",
             ],
             refresh: ["resources/css/**", "resources/js/**"],

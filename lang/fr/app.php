@@ -17,6 +17,10 @@ return [
     // Calendar
     "calendar" => "Calendrier",
     "booking" => "Réservation",
+    "check_in" => "Arrivée",
+    "check_out" => "Départ",
+    "adults" => "Adultes",
+    "children" => "Enfants",
 
     // About page
     "about" => "À propos",

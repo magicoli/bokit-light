@@ -17,6 +17,8 @@ class Unit extends Model
         "is_active",
         "settings",
         "unit_type",
+        "bedrooms",
+        "max_guests",
     ];
 
     protected $casts = [

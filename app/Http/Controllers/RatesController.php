@@ -179,18 +179,16 @@ class RatesController extends Controller
     }
 
     /**
-     * Calculate price for test booking
+     * Calculate price for test booking (widget)
      */
     public function calculate(Request $request)
     {
         try {
             $validated = $request->validate([
-                "property_id" => "required|exists:properties,id",
-                "unit_id" => "required|exists:units,id",
                 "check_in" => "required|date",
                 "check_out" => "required|date|after:check_in",
                 "adults" => "required|integer|min:1",
-                "children" => "integer|min:0",
+                "children" => "nullable|integer|min:0",
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
@@ -205,27 +203,70 @@ class RatesController extends Controller
         }
 
         try {
-            // Create test booking
-            $booking = new Booking([
-                "property_id" => $validated["property_id"],
-                "unit_id" => $validated["unit_id"],
-                "check_in" => $validated["check_in"],
-                "check_out" => $validated["check_out"],
-                "adults" => $validated["adults"],
-                "children" => $validated["children"] ?? 0,
-            ]);
+            $checkIn = \Carbon\Carbon::parse($validated["check_in"]);
+            $checkOut = \Carbon\Carbon::parse($validated["check_out"]);
+            $nights = $checkIn->diffInDays($checkOut);
+            $adults = $validated["adults"];
+            $children = $validated["children"] ?? 0;
+            $totalGuests = $adults + $children;
 
-            // Load relationships
-            $booking->unit = Unit::find($validated["unit_id"]);
-            $booking->property = Property::find($validated["property_id"]);
-
-            $calculation = $this->ratesCalculator->calculate($booking);
+            // Get all units
+            $units = Unit::with(['property'])->where('is_active', true)->get();
             
-            notice("Price calculated successfully", "success");
+            $results = [];
+            
+            foreach ($units as $unit) {
+                // Check max_guests capacity
+                if ($unit->max_guests && $totalGuests > $unit->max_guests) {
+                    continue; // Skip this unit
+                }
+                
+                // Find applicable rate
+                $rate = $this->findApplicableRateForUnit($unit, $checkIn, $checkOut);
+                
+                if (!$rate) {
+                    continue; // No rate found for this unit
+                }
+                
+                // Calculate price
+                $variables = [
+                    'base' => (float) $rate->base,
+                    'booking_nights' => $nights,
+                    'nights' => $nights,
+                    'guests' => $totalGuests,
+                    'adults' => $adults,
+                    'children' => $children,
+                ];
+                
+                $total = $this->evaluateFormula($rate->calculation_formula, $variables);
+                
+                // Simplify names: don't repeat property name if unit name = property name
+                $unitDisplayName = ($unit->name === $unit->property->name) 
+                    ? $unit->name 
+                    : $unit->name;
+                
+                $results[] = [
+                    'property_id' => $unit->property_id,
+                    'property_name' => $unit->property->name,
+                    'unit_name' => $unitDisplayName,
+                    'rate_name' => $rate->display_name,
+                    'nights' => $nights,
+                    'price_per_night' => $nights > 0 ? $total / $nights : 0,
+                    'total' => $total,
+                ];
+            }
+            
+            // Sort by property_name, then by unit_name
+            usort($results, function($a, $b) {
+                $propCompare = strcmp($a['property_name'], $b['property_name']);
+                if ($propCompare !== 0) return $propCompare;
+                return strcmp($a['unit_name'], $b['unit_name']);
+            });
             
             return back()
-                ->with("calculation", $calculation)
-                ->with("test_booking", $booking);
+                ->with('calculation_results', $results)
+                ->withInput();
+                
         } catch (\Exception $e) {
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
                 "trace" => $e->getTraceAsString(),
@@ -233,6 +274,74 @@ class RatesController extends Controller
             notice("Calculation failed: " . $e->getMessage(), "error");
             
             return back()->withInput();
+        }
+    }
+    
+    /**
+     * Find applicable rate for a unit
+     */
+    private function findApplicableRateForUnit($unit, $checkIn, $checkOut): ?Rate
+    {
+        $propertyId = $unit->property_id;
+        
+        // Try unit-specific rate first
+        $rate = Rate::where('is_active', true)
+            ->where('property_id', $propertyId)
+            ->where('unit_id', $unit->id)
+            ->orderBy('priority', 'desc')
+            ->first();
+            
+        if ($rate) {
+            return $rate;
+        }
+        
+        // Try unit type rate
+        if ($unit->unit_type) {
+            $rate = Rate::where('is_active', true)
+                ->where('property_id', $propertyId)
+                ->where('unit_type', $unit->unit_type)
+                ->orderBy('priority', 'desc')
+                ->first();
+                
+            if ($rate) {
+                return $rate;
+            }
+        }
+        
+        // Try property-wide rate
+        $rate = Rate::where('is_active', true)
+            ->where('property_id', $propertyId)
+            ->whereNull('unit_id')
+            ->whereNull('unit_type')
+            ->orderBy('priority', 'desc')
+            ->first();
+            
+        return $rate;
+    }
+    
+    /**
+     * Evaluate formula safely
+     */
+    private function evaluateFormula(string $formula, array $variables): float
+    {
+        $evaluatedFormula = $formula;
+        
+        foreach ($variables as $key => $value) {
+            if (is_numeric($value)) {
+                $evaluatedFormula = str_replace($key, $value, $evaluatedFormula);
+            }
+        }
+        
+        // Validate formula
+        if (!preg_match('/^[0-9+\-*\/\s().]+$/', $evaluatedFormula)) {
+            throw new \Exception("Invalid formula: {$evaluatedFormula}");
+        }
+        
+        try {
+            $result = eval("return {$evaluatedFormula};");
+            return (float) $result;
+        } catch (\ParseError $e) {
+            throw new \Exception("Formula error: {$e->getMessage()}");
         }
     }
 

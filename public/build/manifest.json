@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-C3mDkUwo.css",
+    "file": "assets/app-CU7DaJm_.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -45,22 +45,20 @@
     ]
   },
   "resources/css/rates.css": {
-    "file": "assets/rates-tn0RQdqM.css",
+    "file": "assets/rates-C9dKfnip.css",
     "src": "resources/css/rates.css",
     "isEntry": true,
-    "name": "units",
+    "name": "rates",
     "names": [
-      "rates.css",
-      "units.css"
+      "rates.css"
     ]
   },
   "resources/css/units.css": {
-    "file": "assets/rates-tn0RQdqM.css",
-    "src": "resources/css/rates.css",
+    "file": "assets/units-tn0RQdqM.css",
+    "src": "resources/css/units.css",
     "isEntry": true,
     "name": "units",
     "names": [
-      "rates.css",
       "units.css"
     ]
   },
@@ -74,6 +72,12 @@
     "file": "assets/forms-SVIU2LT8.js",
     "name": "forms",
     "src": "resources/js/forms.js",
+    "isEntry": true
+  },
+  "resources/js/rate-calculator.js": {
+    "file": "assets/rate-calculator-CeCdygoI.js",
+    "name": "rate-calculator",
+    "src": "resources/js/rate-calculator.js",
     "isEntry": true
   },
   "resources/js/rates.js": {

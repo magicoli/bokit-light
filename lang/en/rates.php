@@ -40,7 +40,7 @@ return [
     "section_pricing" => "Pricing",
     "section_dates" => "Date Restrictions",
     "section_config" => "Configuration",
-    
+
     // Placeholders
     "select_a_property" => "Select a property",
     "all_types" => "All types",
@@ -50,13 +50,21 @@ return [
     "select_priority" => "Select priority",
     "no_reference_rate" => "No reference rate",
     "no_parent_rate" => "No parent rate",
-    
+
     // Scope labels
     "scope_type" => "Unit Type",
     "scope_coupon" => "Coupon",
     "scope_suffix" => "Suffix",
-    
+
     // Other
     "allowed_variables" => "Allowed variables",
     "name_auto_generated" => "Name is generated automatically based on scope",
+    "test_calculator" => "Test Rates",
+    "calculate" => "Calculate",
+    "calculation_results" => "Calculation Results",
+    "no_matching_units" => "No units match the criteria",
+    "rate_used" => "Rate Used",
+    "nights" => "Nights",
+    "price_per_night" => "Price/Night",
+    "total" => "Total",
 ];

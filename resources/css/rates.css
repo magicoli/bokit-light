@@ -1,4 +1,16 @@
+@import "tailwindcss";
+
 /* Rates form specific styles */
 /* Don't: include generic styles that could be useful outside rates scope */
 /* Don't: include generic form styles that could be useful outside rates scope */
 /* Only: include styles that could only be usefull to in the rates/rates context */
+
+/* Parent rate indicator */
+.parent_rate {
+    @apply text-sm text-gray-700;
+}
+
+/* Property group header in calculator results */
+.property-group-header td {
+    @apply bg-gray-200 font-semibold;
+}

@@ -77,13 +77,13 @@
                 </div>
             </main>
 
-            <sidebar class="sidebar left-sidebar">
+            <aside class="sidebar sidebar-left">
                 @yield('sidebar-left')
-            </sidebar>
+            </aside>
 
-            <sidebar class="sidebar right-sidebar">
+            <aside class="sidebar right-sidebar">
                 @yield('sidebar-right')
-            </sidebar>
+            </aside>
         </div>
 
         <footer class="footer">

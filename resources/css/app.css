@@ -1,3 +1,14 @@
+/**
+ * PREFER TAILWIND UTILITY CLASSES WHENEVER POSSIBLE, AVOID DIRECT CSS RULES
+ *
+ * Tailwind breakpoints Memo:
+ * sm = 640px
+ * md = 768px
+ * lg = 1024px
+ * xl = 1280px
+ * 2xl = 1536px
+**/
+
 @import "tailwindcss";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -261,11 +272,11 @@ header {
     @apply bg-gray-100;
     /*@apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 p-0 xl:p-4 xl:gap-4 space-x-0 space-y-0;*/
 
-    main:not(:has(sidebar *)) {
+    main:not(:has(.sidebar *)) {
         @apply container max-w-6xl mx-auto;
     }
 
-    &:has(sidebar *) {
+    &:has(.sidebar *) {
         @apply md:bg-gray-700;
         @apply grid grid-flow-row-dense grid-cols-1;
         @apply md:grid-cols-2;
@@ -288,7 +299,9 @@ header {
         }
     }
 
-    sidebar {
+    .sidebar {
+        container-type: inline-size;
+
         &:not(:has(*)) {
             @apply hidden;
         }
@@ -296,7 +309,7 @@ header {
         @apply lg:h-fit;
         @apply 2xl:h-full;
 
-        &.left-sidebar {
+        &.sidebar-left {
             @apply lg:order-1;
         }
 
@@ -327,7 +340,7 @@ header {
             @apply col-span-1;
             @apply md:col-span-2;
         }
-        sidebar {
+        .sidebar {
             @apply hidden;
             @apply order-3;
         }
@@ -427,7 +440,7 @@ main {
     }
 
     .card-header {
-        @apply bg-gray-300/75 px-4 py-2;
+        @apply bg-gray-300/75 px-4 py-2 m-0;
         @apply md:rounded-t-lg;
     }
 
@@ -442,5 +455,19 @@ main {
 
     h2 {
         @apply text-base/7 font-semibold text-gray-900;
+    }
+}
+
+.mobile-hidden {
+    @apply max-sm:hidden;
+}
+/*..sidebar .mobile-hidden {
+    @apply hidden;
+}*/
+
+/* Hide mobile-hidden columns when container is smaller than Tailwind 'sm' (640px) */
+@container (max-width: 640px) {
+    .mobile-hidden {
+        @apply hidden;
     }
 }
