@@ -2,7 +2,9 @@
 @vite('resources/css/rates-widget.css')
 
 <div class="rate-widget">
-    {!! \App\Models\Rate::form('formBookWidget', route('rates.calculate'))->render() !!}
+    {!! \App\Models\Rate::form('formBookWidget', route('rates.calculate'))
+        ->submitButton(__('forms.search'))
+        ->render() !!}
 
     @if($errors->has('calculation'))
         <div class="notices">

@@ -12,6 +12,7 @@ class Form
     private array $fields = [];
     private array $fieldOptions = [];
     private $fieldsCallback;
+    private array $buttons = [];
 
     public function __construct(Model $model, $fieldsCallback, ?string $action = null)
     {
@@ -19,6 +20,15 @@ class Form
         $this->fieldsCallback = $fieldsCallback;
         $this->action = $action;
         $this->loadFields($fieldsCallback);
+        
+        // Default buttons: submit only
+        $this->buttons = [
+            'submit' => [
+                'label' => __('forms.save'),
+                'type' => 'submit',
+                'class' => 'button primary ms-auto'
+            ]
+        ];
     }
 
     /**
@@ -75,6 +85,52 @@ class Form
     }
 
     /**
+     * Set submit button label
+     */
+    public function submitButton(string $label): self
+    {
+        $this->buttons['submit']['label'] = $label;
+        return $this;
+    }
+
+    /**
+     * Set all buttons at once
+     * 
+     * @param array $buttons Format: ['submit' => ['label' => '...', 'type' => '...', 'class' => '...']]
+     */
+    public function buttons(array $buttons): self
+    {
+        $this->buttons = $buttons;
+        return $this;
+    }
+
+    /**
+     * Add a button
+     */
+    public function addButton(string $key, string $label, array $attributes = []): self
+    {
+        $this->buttons[$key] = array_merge([
+            'label' => $label,
+            'type' => 'button',
+            'class' => 'button'
+        ], $attributes);
+        return $this;
+    }
+
+    /**
+     * Add reset button
+     */
+    public function withReset(string $label = null): self
+    {
+        $this->buttons['reset'] = [
+            'label' => $label ?? __('forms.reset'),
+            'type' => 'reset',
+            'class' => 'button secondary'
+        ];
+        return $this;
+    }
+
+    /**
      * Render the form using Blade view
      */
     public function render(): string
@@ -99,6 +155,7 @@ class Form
             "model" => $this->model,
             "modelSlug" => $modelSlug,
             "callbackSlug" => $callbackSlug,
+            "buttons" => $this->buttons,
         ])->render();
     }
 }
