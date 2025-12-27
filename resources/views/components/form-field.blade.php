@@ -2,7 +2,8 @@
     $type = $field['type'] ?? 'text';
     $label = $field['label'] ?? null; // Label can be null for containers
     $default = $field['default'] ?? null;
-    $value = old($fieldName, $model->$fieldName ?? ($field['default'] ?? null));
+    $value = old($fieldName, $model->$fieldName ?? $default ?? null);
+    $value_only = old($fieldName, $model->$fieldName ?? null);
     $attributes = $field['attributes'] ?? [];
 
     $required = $field['required'] ?? false;
@@ -41,12 +42,10 @@
             break;
 
         case "date-range":
+            $attributes['flatpickr-mode'] = "range";
+        case "date":
             $type = "text";
-            $inputClass = trim("date-range-input flatpickr-input $fieldsetClass");
-            if($default) {
-                $attributes["defaultDate"] = is_array($default) ? json_encode($default) : $default;
-                $default = null;
-            }
+            $inputClass = trim("flatpickr-input $fieldsetClass");
             break;
 
         case "switch":
@@ -75,6 +74,8 @@
     }
 
     $attrs = array_to_attrs($attributes);
+    $default = sanitize_field_value($default);
+    $value = sanitize_field_value($value);
 @endphp
 
 @if($type === 'html')
@@ -99,7 +100,9 @@
         @endif
 
         @if(isset($field['items']) && is_array($field['items']))
-            {{-- <div class="items"> --}}
+            @if($type=="input-group")
+            <div class="items {{ $type }}-items">
+            @endif
             @foreach($field['items'] as $subKey => $subItem)
                 @include('components.form-field', [
                     'fieldName' => $subKey,
@@ -108,19 +111,23 @@
                     'fieldOptions' => $fieldOptions
                 ])
             @endforeach
-            {{-- </div> --}}
+            @if($type=="input-group")
+            </div>
+            @endif
         @endif
     </div>
 @else
     <fieldset class="{{ $fieldsetClass }}">
 
     {{-- ACTUAL FIELD RENDERING --}}
+    @if($label)
     <label for="{{ $fieldName }}">
         {{ $label }}
         @if($required)
             <span class="required">*</span>
         @endif
     </label>
+    @endif
 
     @if($type === 'select')
         <select

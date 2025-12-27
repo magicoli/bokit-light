@@ -138,6 +138,9 @@ function array_to_attrs($attributes)
             if (is_bool($attributes[$key])) {
                 return $attributes[$key] ? $key : "";
             }
+            if (is_array($attributes[$key]) || is_object($attributes[$key])) {
+                return addslashes(json_encode($attributes[$key]));
+            }
             return $key . '="' . sanitize_field_value($attributes[$key]) . '"';
         }, array_keys($attributes)),
     );
