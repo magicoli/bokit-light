@@ -13,10 +13,10 @@
         ])
     @endforeach
 
-    <div class="flex form-actions">
+    <div class="form-actions">
         @foreach($buttons as $key => $button)
-            <button 
-                type="{{ $button['type'] ?? 'button' }}" 
+            <button
+                type="{{ $button['type'] ?? 'button' }}"
                 class="{{ $button['class'] ?? 'button' }}"
                 @if(isset($button['attributes']))
                     {!! array_to_attrs($button['attributes']) !!}

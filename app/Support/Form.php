@@ -21,8 +21,13 @@ class Form
         $this->action = $action;
         $this->loadFields($fieldsCallback);
         
-        // Default buttons: submit only
+        // Default buttons: reset + submit
         $this->buttons = [
+            'reset' => [
+                'label' => __('forms.reset'),
+                'type' => 'reset',
+                'class' => 'button secondary'
+            ],
             'submit' => [
                 'label' => __('forms.save'),
                 'type' => 'submit',
@@ -118,7 +123,16 @@ class Form
     }
 
     /**
-     * Add reset button
+     * Remove reset button
+     */
+    public function withoutReset(): self
+    {
+        unset($this->buttons['reset']);
+        return $this;
+    }
+
+    /**
+     * Add/override reset button (already included by default)
      */
     public function withReset(string $label = null): self
     {
