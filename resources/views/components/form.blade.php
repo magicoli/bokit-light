@@ -14,6 +14,16 @@
     @endforeach
 
     <div class="flex form-actions">
-        <button type="submit" class="button primary ms-auto">{{ __('forms.save') }}</button>
+        @foreach($buttons as $key => $button)
+            <button 
+                type="{{ $button['type'] ?? 'button' }}" 
+                class="{{ $button['class'] ?? 'button' }}"
+                @if(isset($button['attributes']))
+                    {!! array_to_attrs($button['attributes']) !!}
+                @endif
+            >
+                {{ $button['label'] }}
+            </button>
+        @endforeach
     </div>
 </form>
