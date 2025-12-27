@@ -125,6 +125,8 @@ class Rate extends Model
      */
     public static function formEdit(): array
     {
+        $minimumStay = options("rates.default-stay", 3);
+        $defaultStay = options("rates.default-stay", 7);
         return [
             "scope" => [
                 "type" => "fields-row",
@@ -222,18 +224,22 @@ class Rate extends Model
                 "items" => [
                     "booking" => [
                         "type" => "date-range",
-                        "label" => __("rates.booking_date"),
+                        "label" => __("rates.booking"),
+                        "description" => __(
+                            "rates.date_of_the_booking_request",
+                        ),
                         "attributes" => [
-                            "min" => now()->format("Y-m-d"),
+                            // "min" => now()->format("Y-m-d"),
                             "autocomplete" => "off",
-                            "data-min-nights" => 0,
+                            "data-min-nights" => 0, // Booking dates can be single day
                         ],
                     ],
                     "stay" => [
                         "type" => "date-range",
                         "label" => __("rates.stay"),
+                        "description" => __("rates.dates_of_the_stay"),
                         "attributes" => [
-                            "min" => now()->format("Y-m-d"),
+                            // "min" => now()->format("Y-m-d"),
                             "data-min-nights" => options(
                                 "rates.minimum-stay",
                                 1,
@@ -252,21 +258,50 @@ class Rate extends Model
     {
         $minimumStay = options("rates.default-stay", 3);
         $defaultStay = options("rates.default-stay", 7);
-        $default = [
-            now()->addDay()->format("Y-m-d"),
-            now()->addDays($defaultStay)->format("Y-m-d"),
+        $defaultFrom = now()->addDay(1);
+        $defaultTo = now()->addDay($defaultStay + 1);
+        $defaultRange = [
+            $defaultFrom->format("Y-m-d"),
+            $defaultTo->format("Y-m-d"),
         ];
-        // $defaultRange = json_encode([$defaultFrom, $defaultTo]);
+        // $defaultRange = join(",", $defaultRange);
+        // $defaultRange = join(" to ", $defaultRange);
+        // $defaultRange = json_encode($defaultRange);
         return [
             "search-row" => [
                 "type" => "fields-row",
                 "items" => [
+                    "dates_debug" => [
+                        "type" => "input-group",
+                        "label" => "Debug standard dates",
+                        "items" => [
+                            "std_from" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_from"),
+                                "default" => $defaultFrom->format("Y-m-d"),
+                                "attributes" => [
+                                    "min" => "today",
+                                ],
+                            ],
+                            "std_to" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_to"),
+                                "default" => $defaultTo->format("Y-m-d"),
+                                "attributes" => [
+                                    "min" => now()->format("Y-m-d"),
+                                    "max" => $defaultTo
+                                        ->addDay(7)
+                                        ->format("Y-m-d"),
+                                ],
+                            ],
+                        ],
+                    ],
                     "dates" => [
                         "type" => "date-range",
                         "label" =>
                             __("app.check_in") . " - " . __("app.check_out"),
                         "required" => true,
-                        "default" => join(" to ", $default),
+                        "default" => $defaultRange,
                         "attributes" => [
                             // "min" => now()->format("Y-m-d"),
                             "data-min-nights" =>
