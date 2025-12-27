@@ -19,6 +19,8 @@ return [
     "booking" => "Réservation",
     "check_in" => "Arrivée",
     "check_out" => "Départ",
+    "from" => "Du",
+    "to" => "Au",
     "adults" => "Adultes",
     "children" => "Enfants",
 

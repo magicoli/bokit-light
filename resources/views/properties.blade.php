@@ -6,6 +6,7 @@
 @section('styles')
 @vite('resources/css/forms.css')
 @vite('resources/css/properties.css')
+@vite('resources/css/flatpickr.css')
 @endsection
 
 @section('sidebar-left')
@@ -76,4 +77,9 @@
         </div>
     @endif
 </div>
+@endsection
+
+@section('scripts')
+@vite('resources/js/flatpickr.js')
+@vite('resources/js/forms.js')
 @endsection

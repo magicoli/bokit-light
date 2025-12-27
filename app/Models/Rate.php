@@ -113,9 +113,17 @@ class Rate extends Model
     }
 
     /**
-     * Form fields structure (hierarchical - reflects HTML structure)
+     * Form layout for add rate (alias to formEdit)
      */
-    public static function formFields(): array
+    public static function formAdd(): array
+    {
+        return static::formEdit();
+    }
+
+    /**
+     * Form layout for edit rate
+     */
+    public static function formEdit(): array
     {
         return [
             "scope" => [
@@ -216,12 +224,71 @@ class Rate extends Model
                         "type" => "date-range",
                         "label" => __("rates.booking_date"),
                         "attributes" => [
+                            "min" => now()->format("Y-m-d"),
                             "autocomplete" => "off",
+                            "data-min-nights" => 0,
                         ],
                     ],
                     "stay" => [
                         "type" => "date-range",
                         "label" => __("rates.stay"),
+                        "attributes" => [
+                            "min" => now()->format("Y-m-d"),
+                            "data-min-nights" => options(
+                                "rates.minimum-stay",
+                                1,
+                            ),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Form layout for search/calculator widget
+     */
+    public static function formBookWidget(): array
+    {
+        $minimumStay = options("rates.default-stay", 3);
+        $defaultStay = options("rates.default-stay", 7);
+        $default = [
+            now()->addDay()->format("Y-m-d"),
+            now()->addDays($defaultStay)->format("Y-m-d"),
+        ];
+        // $defaultRange = json_encode([$defaultFrom, $defaultTo]);
+        return [
+            "search-row" => [
+                "type" => "fields-row",
+                "items" => [
+                    "dates" => [
+                        "type" => "date-range",
+                        "label" =>
+                            __("app.check_in") . " - " . __("app.check_out"),
+                        "required" => true,
+                        "default" => join(" to ", $default),
+                        "attributes" => [
+                            // "min" => now()->format("Y-m-d"),
+                            "data-min-nights" =>
+                                options("rates.minimum-stay", 1) ?? null,
+                        ],
+                    ],
+                    "adults" => [
+                        "type" => "number",
+                        "label" => __("app.adults"),
+                        "required" => true,
+                        "default" => 2,
+                        "attributes" => [
+                            "min" => 1,
+                        ],
+                    ],
+                    "children" => [
+                        "type" => "number",
+                        "label" => __("app.children"),
+                        "default" => 0,
+                        "attributes" => [
+                            "min" => 0,
+                        ],
                     ],
                 ],
             ],
@@ -289,8 +356,6 @@ class Rate extends Model
             ],
         ];
     }
-
-    // ... (rest of the file continues - relationships, accessors, etc.)
 
     /**
      * Relationships

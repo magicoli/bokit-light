@@ -125,3 +125,46 @@ function get_notices()
     }
     return $html;
 }
+
+function array_to_attrs($attributes)
+{
+    if (!is_array($attributes)) {
+        return "";
+    }
+
+    $attrs = join(
+        " ",
+        array_map(function ($key) use ($attributes) {
+            if (is_bool($attributes[$key])) {
+                return $attributes[$key] ? $key : "";
+            }
+            return $key . '="' . sanitize_field_value($attributes[$key]) . '"';
+        }, array_keys($attributes)),
+    );
+    return $attrs;
+}
+
+if (!function_exists("sanitize_field_value")) {
+    /**
+     * Sanitize field value for safe display
+     *
+     * @param mixed $value
+     * @return string
+     */
+    function sanitize_field_value($value): string
+    {
+        if (is_null($value)) {
+            return "";
+        }
+
+        if (is_array($value) || is_object($value)) {
+            return json_encode($value);
+        }
+
+        if (is_bool($value)) {
+            return $value ? "1" : "0";
+        }
+
+        return (string) $value;
+    }
+}

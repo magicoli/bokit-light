@@ -8,25 +8,42 @@ class Form
 {
     private Model $model;
     private ?string $action = null;
-    private string $method = 'POST';
+    private string $method = "POST";
     private array $fields = [];
     private array $fieldOptions = [];
+    private $fieldsCallback;
 
-    public function __construct(Model $model)
+    public function __construct(Model $model, $fieldsCallback, ?string $action = null)
     {
         $this->model = $model;
-        $this->loadFieldsFromModel();
+        $this->fieldsCallback = $fieldsCallback;
+        $this->action = $action;
+        $this->loadFields($fieldsCallback);
     }
 
     /**
-     * Load fields structure from model
+     * Load fields from callback
      */
-    private function loadFieldsFromModel(): void
+    private function loadFields($callback): void
     {
-        $modelClass = get_class($this->model);
-        
-        if (method_exists($modelClass, 'formFields')) {
-            $this->fields = $modelClass::formFields();
+        if (is_string($callback)) {
+            // Method on model class
+            $modelClass = get_class($this->model);
+            if (!method_exists($modelClass, $callback)) {
+                throw new \BadMethodCallException("Method {$callback} does not exist on {$modelClass}");
+            }
+            $this->fields = $modelClass::$callback();
+        } elseif (is_array($callback)) {
+            // [class, method] or [$object, method]
+            if (!is_callable($callback)) {
+                throw new \InvalidArgumentException('Array callback must be callable [class, method]');
+            }
+            $this->fields = call_user_func($callback);
+        } elseif (is_callable($callback)) {
+            // Direct callable/closure
+            $this->fields = $callback();
+        } else {
+            throw new \InvalidArgumentException('Fields callback must be a string method name, array [class, method], or callable');
         }
     }
 
@@ -63,15 +80,25 @@ class Form
     public function render(): string
     {
         if (!$this->action) {
-            throw new \RuntimeException('Form action must be set before rendering. Use form(route(...))');
+            throw new \RuntimeException(
+                "Form action must be set before rendering. Use form('method', route(...))",
+            );
         }
-        
-        return view('components.form', [
-            'action' => $this->action,
-            'method' => $this->method,
-            'fields' => $this->fields,
-            'fieldOptions' => $this->fieldOptions,
-            'model' => $this->model,
+
+        // Generate class names for styling
+        $modelSlug = strtolower(class_basename($this->model));
+        $callbackSlug = is_string($this->fieldsCallback) 
+            ? str_replace('_', '-', strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->fieldsCallback)))
+            : 'custom';
+
+        return view("components.form", [
+            "action" => $this->action,
+            "method" => $this->method,
+            "fields" => $this->fields,
+            "fieldOptions" => $this->fieldOptions,
+            "model" => $this->model,
+            "modelSlug" => $modelSlug,
+            "callbackSlug" => $callbackSlug,
         ])->render();
     }
 }
