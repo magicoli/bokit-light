@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-C20yFnXR.css",
+    "file": "assets/app-BdMk201l.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/calendar.css": {
-    "file": "assets/calendar-CmPJoemu.css",
+    "file": "assets/calendar-D6IeWvZs.css",
     "src": "resources/css/calendar.css",
     "isEntry": true,
     "name": "calendar",
@@ -17,8 +17,17 @@
       "calendar.css"
     ]
   },
+  "resources/css/flatpickr.css": {
+    "file": "assets/flatpickr-BtHri0Hq.css",
+    "src": "resources/css/flatpickr.css",
+    "isEntry": true,
+    "name": "flatpickr",
+    "names": [
+      "flatpickr.css"
+    ]
+  },
   "resources/css/forms.css": {
-    "file": "assets/forms-DvIo2HFS.css",
+    "file": "assets/forms-v5nmJ-LH.css",
     "src": "resources/css/forms.css",
     "isEntry": true,
     "name": "forms",
@@ -36,7 +45,7 @@
     ]
   },
   "resources/css/properties.css": {
-    "file": "assets/properties-BPKsNkYq.css",
+    "file": "assets/properties-BbXPnAQ3.css",
     "src": "resources/css/properties.css",
     "isEntry": true,
     "name": "properties",
@@ -45,7 +54,7 @@
     ]
   },
   "resources/css/rates-widget.css": {
-    "file": "assets/rates-widget-BHwpFFfn.css",
+    "file": "assets/rates-widget-C-jjfQ06.css",
     "src": "resources/css/rates-widget.css",
     "isEntry": true,
     "name": "rates-widget",
@@ -54,7 +63,7 @@
     ]
   },
   "resources/css/rates.css": {
-    "file": "assets/rates-Ca-eabmQ.css",
+    "file": "assets/rates-giX26DLi.css",
     "src": "resources/css/rates.css",
     "isEntry": true,
     "name": "rates",
@@ -77,16 +86,19 @@
     "src": "resources/js/app.js",
     "isEntry": true
   },
+  "resources/js/flatpickr.js": {
+    "file": "assets/flatpickr-AsjuQoDE.js",
+    "name": "flatpickr",
+    "src": "resources/js/flatpickr.js",
+    "isEntry": true,
+    "css": [
+      "assets/flatpickr-CksuuEqD.css"
+    ]
+  },
   "resources/js/forms.js": {
     "file": "assets/forms-SVIU2LT8.js",
     "name": "forms",
     "src": "resources/js/forms.js",
-    "isEntry": true
-  },
-  "resources/js/rate-calculator.js": {
-    "file": "assets/rate-calculator-CeCdygoI.js",
-    "name": "rate-calculator",
-    "src": "resources/js/rate-calculator.js",
     "isEntry": true
   },
   "resources/js/rates.js": {

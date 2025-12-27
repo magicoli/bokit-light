@@ -8,12 +8,13 @@
 @section('styles')
 @vite('resources/css/forms.css')
 @vite('resources/css/rates.css')
+@vite('resources/css/flatpickr.css')
 @endsection
 
 @section('scripts')
+@vite('resources/js/flatpickr.js')
 @vite('resources/js/forms.js')
 @vite('resources/js/rates.js')
-@vite('resources/js/rate-calculator.js')
 
 <script>
 // TODO: this should be replaced by proper methods to follow the no javascript in templates rule
@@ -51,7 +52,7 @@ window.ratesFormData = {
         @php
             $propertyOptions = $properties->pluck('name', 'id')->toArray();
         @endphp
-        {!! \App\Models\Rate::form(route('rates.store'))
+        {!! \App\Models\Rate::form('formAdd', route('rates.store'))
             ->fieldOptions('property_id', $propertyOptions)
             ->fieldOptions('priority', $priorityOptions)
             ->render() !!}

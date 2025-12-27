@@ -1,0 +1,14 @@
+/**
+ * Flatpickr Custom Styling
+ *
+ * Tailwind-inspired theme for Flatpickr date picker
+ */
+
+@import "tailwindcss";
+
+.date-range {
+    input,
+    .flatpickr-input {
+        /*@apply w-30;*/
+    }
+}

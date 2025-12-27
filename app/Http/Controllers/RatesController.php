@@ -92,6 +92,9 @@ class RatesController extends Controller
      */
     public function store(Request $request)
     {
+        // Debug: log POST data
+        Log::debug('Rate store POST data', $request->all());
+
         try {
             $validated = $request->validate(Rate::validationRules());
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -203,7 +206,19 @@ class RatesController extends Controller
      */
     public function calculate(Request $request)
     {
+        // Debug: log POST data
+        Log::debug('Rate calculate POST data', $request->all());
+
         try {
+            // Parse date range if provided as single field
+            if ($request->has('dates') && str_contains($request->dates, ' to ')) {
+                [$checkIn, $checkOut] = explode(' to ', $request->dates);
+                $request->merge([
+                    'check_in' => trim($checkIn),
+                    'check_out' => trim($checkOut),
+                ]);
+            }
+
             $validated = $request->validate([
                 "check_in" => "required|date",
                 "check_out" => "required|date|after:check_in",

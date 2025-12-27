@@ -8,15 +8,13 @@ trait FormTrait
 {
     /**
      * Get a form instance for this model
+     * 
+     * @param callable|string $fieldsCallback Method name or callable that returns form layout
+     * @param string|null $action Form action URL
+     * @return Form
      */
-    public static function form(?string $action = null): Form
+    public static function form($fieldsCallback, ?string $action = null): Form
     {
-        $form = new Form(new static());
-        
-        if ($action) {
-            $form->action($action);
-        }
-        
-        return $form;
+        return new Form(new static(), $fieldsCallback, $action);
     }
 }
