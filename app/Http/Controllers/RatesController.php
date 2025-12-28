@@ -81,7 +81,7 @@ class RatesController extends Controller
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
                 "trace" => $e->getTraceAsString(),
             ]);
-            notice($e->getMessage(), "error");
+            notice("Rate index failed: " . $e->getMessage(), "error");
 
             return back();
         }
@@ -93,7 +93,7 @@ class RatesController extends Controller
     public function store(Request $request)
     {
         // Debug: log POST data
-        Log::debug('Rate store POST data', $request->all());
+        Log::debug("Rate store POST data", $request->all());
 
         try {
             $validated = $request->validate(Rate::validationRules());
@@ -103,9 +103,7 @@ class RatesController extends Controller
                 "errors" => $e->validator->errors()->all(),
             ]);
 
-            // Display first validation error to user
-            $firstError = $e->validator->errors()->first();
-            notice($firstError, "error");
+            notice("Validation failed: " . $e->getMessage(), "error");
 
             return back()->withInput()->withErrors($e->validator);
         }
@@ -118,7 +116,7 @@ class RatesController extends Controller
                 "trace" => $e->getTraceAsString(),
             ]);
 
-            notice($e->getMessage(), "error");
+            notice("Creation failed: " . $e->getMessage(), "error");
 
             return back()->withInput();
         }
@@ -140,8 +138,10 @@ class RatesController extends Controller
                 "trace" => $e->getTraceAsString(),
             ]);
 
-            $firstError = $e->validator->errors()->first();
-            notice($firstError, "error");
+            notice(
+                "Rate update validation failed: " . $e->getMessage(),
+                "error",
+            );
 
             return back()->withInput()->withErrors($e->validator);
         }
@@ -153,7 +153,7 @@ class RatesController extends Controller
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
                 "trace" => $e->getTraceAsString(),
             ]);
-            notice($e->getMessage(), "error");
+            notice("Rate update failed: " . $e->getMessage(), "error");
 
             return back()->withInput();
         }
@@ -173,7 +173,7 @@ class RatesController extends Controller
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
                 "trace" => $e->getTraceAsString(),
             ]);
-            notice($e->getMessage(), "error");
+            notice("Rate deletion failed: " . $e->getMessage(), "error");
 
             return back();
         }
@@ -195,7 +195,7 @@ class RatesController extends Controller
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
                 "trace" => $e->getTraceAsString(),
             ]);
-            notice($e->getMessage(), "error");
+            notice("Calculator view failed: " . $e->getMessage(), "error");
 
             return back();
         }
@@ -207,15 +207,26 @@ class RatesController extends Controller
     public function calculate(Request $request)
     {
         // Debug: log POST data
-        Log::debug('Rate calculate POST data', $request->all());
+        Log::debug("Rate calculate POST data", $request->all());
 
         try {
-            // Parse date range if provided as single field
-            if ($request->has('dates') && str_contains($request->dates, ' to ')) {
-                [$checkIn, $checkOut] = explode(' to ', $request->dates);
+            // Map date range fields from flatpickr to model attributes
+            if ($request->has("dates_from") && $request->has("dates_to")) {
                 $request->merge([
-                    'check_in' => trim($checkIn),
-                    'check_out' => trim($checkOut),
+                    "check_in" => $request->dates_from,
+                    "check_out" => $request->dates_to,
+                ]);
+                Log::debug("Date mapping applied", [
+                    "dates_from" => $request->dates_from,
+                    "dates_to" => $request->dates_to,
+                    "check_in" => $request->check_in,
+                    "check_out" => $request->check_out,
+                ]);
+            } else {
+                Log::debug("Date mapping skipped - fields missing", [
+                    "has_dates_from" => $request->has("dates_from"),
+                    "has_dates_to" => $request->has("dates_to"),
+                    "all_input" => $request->all(),
                 ]);
             }
 
@@ -227,12 +238,14 @@ class RatesController extends Controller
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error(__METHOD__ . ":" . __LINE__ . " " . $e->getMessage(), [
-                "error" => $e->getMessage(),
                 "errors" => $e->validator->errors()->all(),
+                "input" => $request->all(),
             ]);
 
-            $firstError = $e->validator->errors()->first();
-            notice($firstError, "error");
+            notice(
+                "Calculator validation failed: " . $e->getMessage(),
+                "error",
+            );
 
             return back()->withInput()->withErrors($e->validator);
         }
@@ -287,8 +300,13 @@ class RatesController extends Controller
                     $rate->parentRate &&
                     str_contains($formula, "parent_rate")
                 ) {
-                    $parentFormula = "(" . $rate->parentRate->calculation_formula . ")";
-                    $formula = str_replace("parent_rate", $parentFormula, $formula);
+                    $parentFormula =
+                        "(" . $rate->parentRate->calculation_formula . ")";
+                    $formula = str_replace(
+                        "parent_rate",
+                        $parentFormula,
+                        $formula,
+                    );
                 }
 
                 $total = $this->evaluateFormula($formula, $variables);
@@ -339,7 +357,7 @@ class RatesController extends Controller
 
     /**
      * Find applicable rate for a unit with proper priority system
-     * 
+     *
      * Priority order (most specific to least specific):
      * 1. Scope: unit > unit_type > property
      * 2. Coupon (if provided)
@@ -351,101 +369,124 @@ class RatesController extends Controller
         $unit,
         $checkIn,
         $checkOut,
-        $couponCode = null
+        $couponCode = null,
     ): ?Rate {
         $propertyId = $unit->property_id;
         $bookingDate = now(); // When the booking is made
-        
+
         // Get all potentially applicable rates
         $rates = Rate::where("is_active", true)
             ->where("property_id", $propertyId)
             ->where(function ($query) use ($unit) {
                 // Scope: unit OR unit_type OR property-wide (both null)
                 $query->where("unit_id", $unit->id);
-                
+
                 if ($unit->unit_type) {
                     $query->orWhere("unit_type", $unit->unit_type);
                 }
-                
-                $query->orWhere(function($q) {
+
+                $query->orWhere(function ($q) {
                     $q->whereNull("unit_id")->whereNull("unit_type");
                 });
             })
             ->where(function ($query) use ($couponCode) {
                 // Coupon: matches provided coupon OR no coupon restriction
                 if ($couponCode) {
-                    $query->where("coupon_code", $couponCode)
-                          ->orWhereNull("coupon_code");
+                    $query
+                        ->where("coupon_code", $couponCode)
+                        ->orWhereNull("coupon_code");
                 } else {
                     $query->whereNull("coupon_code");
                 }
             })
             ->where(function ($query) use ($checkIn, $checkOut) {
                 // Stay dates: booking period overlaps with rate period OR no restriction
-                $query->where(function ($q) use ($checkIn, $checkOut) {
-                    $q->whereNull("stay_from")
-                      ->whereNull("stay_to");
-                })->orWhere(function ($q) use ($checkIn, $checkOut) {
-                    // Rate period must overlap with stay period
-                    $q->where(function ($sq) use ($checkIn) {
-                        $sq->whereNull("stay_from")
-                           ->orWhere("stay_from", "<=", $checkIn);
-                    })->where(function ($sq) use ($checkOut) {
-                        $sq->whereNull("stay_to")
-                           ->orWhere("stay_to", ">=", $checkOut);
+                $query
+                    ->where(function ($q) use ($checkIn, $checkOut) {
+                        $q->whereNull("stay_from")->whereNull("stay_to");
+                    })
+                    ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                        // Rate period must overlap with stay period
+                        $q->where(function ($sq) use ($checkIn) {
+                            $sq->whereNull("stay_from")->orWhere(
+                                "stay_from",
+                                "<=",
+                                $checkIn,
+                            );
+                        })->where(function ($sq) use ($checkOut) {
+                            $sq->whereNull("stay_to")->orWhere(
+                                "stay_to",
+                                ">=",
+                                $checkOut,
+                            );
+                        });
                     });
-                });
             })
             ->where(function ($query) use ($bookingDate) {
                 // Booking dates: booking date within allowed period OR no restriction
-                $query->where(function ($q) use ($bookingDate) {
-                    $q->whereNull("booking_from")
-                      ->whereNull("booking_to");
-                })->orWhere(function ($q) use ($bookingDate) {
-                    $q->where(function ($sq) use ($bookingDate) {
-                        $sq->whereNull("booking_from")
-                           ->orWhere("booking_from", "<=", $bookingDate);
-                    })->where(function ($sq) use ($bookingDate) {
-                        $sq->whereNull("booking_to")
-                           ->orWhere("booking_to", ">=", $bookingDate);
+                $query
+                    ->where(function ($q) use ($bookingDate) {
+                        $q->whereNull("booking_from")->whereNull("booking_to");
+                    })
+                    ->orWhere(function ($q) use ($bookingDate) {
+                        $q->where(function ($sq) use ($bookingDate) {
+                            $sq->whereNull("booking_from")->orWhere(
+                                "booking_from",
+                                "<=",
+                                $bookingDate,
+                            );
+                        })->where(function ($sq) use ($bookingDate) {
+                            $sq->whereNull("booking_to")->orWhere(
+                                "booking_to",
+                                ">=",
+                                $bookingDate,
+                            );
+                        });
                     });
-                });
             })
             ->get();
-        
+
         if ($rates->isEmpty()) {
             return null;
         }
-        
+
         // Sort by priority (most specific first)
         $sorted = $rates->sort(function ($a, $b) {
             // 1. Scope priority: unit > unit_type > property
             $aScope = $a->unit_id ? 3 : ($a->unit_type ? 2 : 1);
             $bScope = $b->unit_id ? 3 : ($b->unit_type ? 2 : 1);
-            if ($aScope !== $bScope) return $bScope - $aScope;
-            
+            if ($aScope !== $bScope) {
+                return $bScope - $aScope;
+            }
+
             // 2. Coupon: has coupon > no coupon
             $aCoupon = $a->coupon_code ? 1 : 0;
             $bCoupon = $b->coupon_code ? 1 : 0;
-            if ($aCoupon !== $bCoupon) return $bCoupon - $aCoupon;
-            
+            if ($aCoupon !== $bCoupon) {
+                return $bCoupon - $aCoupon;
+            }
+
             // 3. Stay dates: has dates > no dates
-            $aStay = ($a->stay_from || $a->stay_to) ? 1 : 0;
-            $bStay = ($b->stay_from || $b->stay_to) ? 1 : 0;
-            if ($aStay !== $bStay) return $bStay - $aStay;
-            
+            $aStay = $a->stay_from || $a->stay_to ? 1 : 0;
+            $bStay = $b->stay_from || $b->stay_to ? 1 : 0;
+            if ($aStay !== $bStay) {
+                return $bStay - $aStay;
+            }
+
             // 4. Booking dates: has dates > no dates
-            $aBooking = ($a->booking_from || $a->booking_to) ? 1 : 0;
-            $bBooking = ($b->booking_from || $b->booking_to) ? 1 : 0;
-            if ($aBooking !== $bBooking) return $bBooking - $aBooking;
-            
+            $aBooking = $a->booking_from || $a->booking_to ? 1 : 0;
+            $bBooking = $b->booking_from || $b->booking_to ? 1 : 0;
+            if ($aBooking !== $bBooking) {
+                return $bBooking - $aBooking;
+            }
+
             // 5. Priority field: high=3, normal=2, low=1
-            $priorityMap = ['high' => 3, 'normal' => 2, 'low' => 1];
+            $priorityMap = ["high" => 3, "normal" => 2, "low" => 1];
             $aPriority = $priorityMap[$a->priority] ?? 2;
             $bPriority = $priorityMap[$b->priority] ?? 2;
             return $bPriority - $aPriority;
         });
-        
+
         return $sorted->first();
     }
 
