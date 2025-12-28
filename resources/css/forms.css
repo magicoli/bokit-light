@@ -119,6 +119,7 @@ form {
         @apply w-30;
     }
 
+    .description,
     .field-description {
         @apply text-xs text-gray-600 mt-1;
 

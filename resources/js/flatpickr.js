@@ -24,26 +24,63 @@ const flatpickrConfig = {
     altFormat: currentLocale === "fr" ? "d/m/Y" : "m/d/Y", // Display format
 };
 
-export function initDatePickers(input, options = {}) {
-    document.querySelectorAll(".flatpickr-input").forEach((input) => {
-        const mode = input.getAttribute("flatpickr-mode") || "single";
+export function initDatePickers(picker, options = {}) {
+    document.querySelectorAll(".flatpickr-input").forEach((picker) => {
+        const mode = picker.getAttribute("flatpickr-mode") || "single";
+
+        // Parse default value (handles both strings and JSON arrays)
         const defaultValue =
-            input.getAttribute("value") ||
-            input.getAttribute("default") ||
+            picker.getAttribute("value") ||
+            picker.getAttribute("default") ||
             null;
-        var defaultDate = "";
-        try {
-            defaultDate = JSON.parse(defaultValue);
-        } catch {
-            defaultDate = defaultValue;
+        let defaultDate = null;
+        if (defaultValue) {
+            try {
+                defaultDate = JSON.parse(defaultValue);
+            } catch {
+                defaultDate = defaultValue;
+            }
         }
 
-        flatpickr(input, {
+        // Get minimum nights for range validation
+        const minimumStay = parseInt(picker.dataset.minimumStay) || 0;
+        flatpickr(picker, {
             ...flatpickrConfig,
             mode,
-            minDate: input.getAttribute("min") || null,
-            maxDate: input.getAttribute("max") || null,
+            minDate: picker.getAttribute("min") || null,
+            maxDate: picker.getAttribute("max") || null,
             defaultDate: defaultDate,
+            allowInvalidPreload: true,
+            onChange: function (selectedDates) {
+                if (selectedDates.length === 1) {
+                    // if (mode === "range") {
+                    switch (mode) {
+                        case "range":
+                            // Testing only: disabling past dates does not actually enforce minimum stay
+                            this.set(
+                                "minDate",
+                                new Date(selectedDates[0]),
+                                // new Date(selectedDates[0]).fp_incr(minimumStay),
+                            );
+                            // Alternative: use confirmDatePlugin()
+                            // Alternative: only visual, style invalid dates
+                            break;
+                        case "single":
+                            const toId = this.input.id.replace("_from", "_to");
+                            const toInput = document.getElementById(toId);
+                            if (toInput && toInput._flatpickr) {
+                                toInput._flatpickr.set(
+                                    "minDate",
+                                    new Date(selectedDates[0]).fp_incr(
+                                        minimumStay,
+                                    ),
+                                );
+                            }
+                            break;
+                        // Not relevant for "multiple" third mode
+                    }
+                }
+            },
         });
     });
 }

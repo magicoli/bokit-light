@@ -223,27 +223,47 @@ class Rate extends Model
                 "type" => "fields-row",
                 "items" => [
                     "booking" => [
-                        "type" => "date-range",
+                        "type" => "input-group",
                         "label" => __("rates.booking"),
                         "description" => __(
                             "rates.date_of_the_booking_request",
                         ),
-                        "attributes" => [
-                            // "min" => now()->format("Y-m-d"),
-                            "autocomplete" => "off",
-                            "data-min-nights" => 0, // Booking dates can be single day
+                        "items" => [
+                            "booking_from" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_from"),
+                                "attributes" => [
+                                    "min" => "today",
+                                ],
+                            ],
+                            "booking_to" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_to"),
+                                "attributes" => [
+                                    "min" => "today",
+                                ],
+                            ],
                         ],
                     ],
                     "stay" => [
-                        "type" => "date-range",
+                        "type" => "input-group",
                         "label" => __("rates.stay"),
                         "description" => __("rates.dates_of_the_stay"),
-                        "attributes" => [
-                            // "min" => now()->format("Y-m-d"),
-                            "data-min-nights" => options(
-                                "rates.minimum-stay",
-                                1,
-                            ),
+                        "items" => [
+                            "stay_from" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_from"),
+                                "attributes" => [
+                                    "min" => "today",
+                                ],
+                            ],
+                            "stay_to" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_to"),
+                                "attributes" => [
+                                    "min" => "today",
+                                ],
+                            ],
                         ],
                     ],
                 ],
@@ -256,46 +276,18 @@ class Rate extends Model
      */
     public static function formBookWidget(): array
     {
-        $minimumStay = options("rates.default-stay", 3);
         $defaultStay = options("rates.default-stay", 7);
-        $defaultFrom = now()->addDay(1);
-        $defaultTo = now()->addDay($defaultStay + 1);
+        $minDaysBefore = options("rates.mimum-before", 1);
         $defaultRange = [
-            $defaultFrom->format("Y-m-d"),
-            $defaultTo->format("Y-m-d"),
+            now()->addDay($minDaysBefore)->format("Y-m-d"),
+            now()
+                ->addDay($minDaysBefore + $defaultStay)
+                ->format("Y-m-d"),
         ];
-        // $defaultRange = join(",", $defaultRange);
-        // $defaultRange = join(" to ", $defaultRange);
-        // $defaultRange = json_encode($defaultRange);
         return [
             "search-row" => [
                 "type" => "fields-row",
                 "items" => [
-                    "dates_debug" => [
-                        "type" => "input-group",
-                        "label" => "Debug standard dates",
-                        "items" => [
-                            "std_from" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_from"),
-                                "default" => $defaultFrom->format("Y-m-d"),
-                                "attributes" => [
-                                    "min" => "today",
-                                ],
-                            ],
-                            "std_to" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_to"),
-                                "default" => $defaultTo->format("Y-m-d"),
-                                "attributes" => [
-                                    "min" => now()->format("Y-m-d"),
-                                    "max" => $defaultTo
-                                        ->addDay(7)
-                                        ->format("Y-m-d"),
-                                ],
-                            ],
-                        ],
-                    ],
                     "dates" => [
                         "type" => "date-range",
                         "label" =>
@@ -303,9 +295,37 @@ class Rate extends Model
                         "required" => true,
                         "default" => $defaultRange,
                         "attributes" => [
-                            // "min" => now()->format("Y-m-d"),
-                            "data-min-nights" =>
-                                options("rates.minimum-stay", 1) ?? null,
+                            "min" => now()
+                                ->addDay($minDaysBefore)
+                                ->format("Y-m-d"),
+                            "data-minimum-stay" => options(
+                                "rates.minimum-stay",
+                                3,
+                            ),
+                        ],
+                    ],
+                    "debug_dates" => [
+                        "type" => "input-group",
+                        "label" => __("rates.booking"),
+                        "description" => __(
+                            "rates.date_of_the_booking_request",
+                        ),
+                        "items" => [
+                            "debug_from" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_from"),
+                                "attributes" => [
+                                    "min" => "today",
+                                    "data-minimum-stay" => 3,
+                                ],
+                            ],
+                            "debug_to" => [
+                                "type" => "date",
+                                "placeholder" => __("forms.date_to"),
+                                "attributes" => [
+                                    "min" => "today",
+                                ],
+                            ],
                         ],
                     ],
                     "adults" => [
@@ -315,14 +335,19 @@ class Rate extends Model
                         "default" => 2,
                         "attributes" => [
                             "min" => 1,
+                            "size" => 3,
+                            "style" => "width: 5rem",
                         ],
                     ],
                     "children" => [
                         "type" => "number",
                         "label" => __("app.children"),
                         "default" => 0,
+                        "class" => "w-12",
                         "attributes" => [
                             "min" => 0,
+                            "size" => 3,
+                            "style" => "width: 5rem",
                         ],
                     ],
                 ],

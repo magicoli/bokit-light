@@ -95,10 +95,6 @@
             @endif
         @endif
 
-        @if($description)
-            <p class="section-description">{{ $description }}</p>
-        @endif
-
         @if(isset($field['items']) && is_array($field['items']))
             @if($type=="input-group")
             <div class="items {{ $type }}-items">
@@ -114,6 +110,10 @@
             @if($type=="input-group")
             </div>
             @endif
+        @endif
+
+        @if($description)
+            <p class="description">{{ $description }}</p>
         @endif
     </div>
 @else

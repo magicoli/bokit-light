@@ -33,7 +33,7 @@ const flatpickrConfig = {
  */
 export function initDateRangePicker(input, options = {}) {
     const {
-        minNights = parseInt(input.dataset.minNights) || 0,
+        minimumStay = parseInt(input.dataset.minimumStay) || 0,
         disable = [],
         onChange = null,
     } = options;
@@ -55,7 +55,7 @@ export function initDateRangePicker(input, options = {}) {
                 const daysDiff = Math.ceil(
                     (end - start) / (1000 * 60 * 60 * 24),
                 );
-                if (minNights > 0 && daysDiff < minNights) {
+                if (minimumStay > 0 && daysDiff < minimumStay) {
                     // Reset if less than minimum
                     rangePicker.clear();
                     return;
