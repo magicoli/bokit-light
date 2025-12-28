@@ -137,18 +137,18 @@ class Rate extends Model
                         "required" => true,
                         "placeholder" => __("rates.select_a_property"),
                     ],
-                    "unit_type" => [
-                        "type" => "select",
-                        "label" => __("rates.scope_type"),
-                        "placeholder" => __("rates.all_types"),
-                        "attributes" => [
-                            "data-add-new" => "unit_type",
-                        ],
-                    ],
                     "unit_id" => [
                         "type" => "select",
                         "label" => __("app.unit"),
                         "placeholder" => __("rates.all_units"),
+                    ],
+                    "unit_type" => [
+                        "type" => "select",
+                        "label" => __("rates.scope_type"),
+                        // "placeholder" => __("rates.all_types"), // disabled for debug
+                        "attributes" => [
+                            "data-add-new" => "unit_type",
+                        ],
                     ],
                     "coupon_code" => [
                         "type" => "select",
@@ -193,6 +193,7 @@ class Rate extends Model
                         "attributes" => [
                             "step" => "0.01",
                             "id" => "base",
+                            "size" => 5,
                         ],
                     ],
                     "parent_rate_id" => [
@@ -311,7 +312,7 @@ class Rate extends Model
                         "default" => 2,
                         "attributes" => [
                             "min" => 1,
-                            "size" => 3,
+                            "size" => 5,
                             // "style" => "width: 5rem",
                         ],
                     ],

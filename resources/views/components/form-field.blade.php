@@ -130,11 +130,20 @@
     @endif
 
     @if($type === 'select')
+        @php
+        $hasOptions = count($options) > 0;
+        $selectPlaceholder = $hasOptions ? $placeholder : __('forms.no_options');
+        $selectDisabled = !$hasOptions;
+        @endphp
         <select
             id="{{ $fieldName }}"
             name="{{ $fieldName }}"
+            placeholder="{{ $placeholder }}"
+            data-no-options-text="{{ __('forms.no_options') }}"
+            {{ $selectDisabled ? 'disabled' : '' }}
             {!! $attrs !!}
         >
+            <option value="">{{ $selectPlaceholder }}</option>
             @foreach($options as $optValue => $optLabel)
                 <option value="{{ $optValue }}" {{ old($fieldName, $value) == $optValue ? 'selected' : '' }}>
                     {{ $optLabel }}
