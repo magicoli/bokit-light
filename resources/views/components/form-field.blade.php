@@ -5,7 +5,6 @@
     $value = old($fieldName, $model->$fieldName ?? $default ?? null);
     $value_only = old($fieldName, $model->$fieldName ?? null);
     $attributes = $field['attributes'] ?? [];
-
     $required = $field['required'] ?? false;
     if($field['required'] ?? false) {
         $attributes['required'] = true;
@@ -23,6 +22,12 @@
     $options = $fieldOptions[$fieldName] ?? $field['options'] ?? [];
     $description = $field['description'] ?? null;
     $inputClass = trim("input-{$type} " . ($field['class'] ?? ''));
+
+    $fieldSize = $attributes['size'] ?? $field['size'] ?? null;
+    if($fieldSize) {
+        $inputClass .= " w-[{$fieldSize}rem]";
+    }
+
     $placeholder = $field['placeholder'] ?? $attributes['placeholder'] ?? null;
 
     $container = "input";

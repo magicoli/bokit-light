@@ -5,6 +5,16 @@ form {
     @apply space-y-4;
 
     fieldset {
+        /* Fieldset that fills remaining space in flex row */
+        &.grow,
+        &.autofill {
+            /*@apply flex-auto;*/
+            @apply grow;
+
+            > * {
+                @apply w-full;
+            }
+        }
     }
 
     label,
@@ -14,6 +24,12 @@ form {
         .required {
             @apply text-red-500;
         }
+    }
+
+    select {
+        @apply appearance-none; /* Disable default HTML to allow customization below */
+        /*@apply col-start-1 row-start-1 w-full;*/
+        /*@apply rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6;*/
     }
 
     input,
@@ -119,35 +135,16 @@ form {
         .input-group-items {
             @apply flex items-center gap-0;
 
-            /* For fieldsets containing inputs (normal input-groups) */
-            .input,
-            input,
-            select,
-            button {
-                @apply rounded-none;
-            }
-            fieldset:first-child > * {
-                @apply rounded-s-lg;
-            }
-            fieldset:last-child > * {
-                @apply rounded-e-lg;
-            }
-            fieldset:not(:last-child) > * {
-                @apply border-e-0;
+            fieldset:not(:first-child) > *,
+            select:not(:first-child),
+            button:not(:first-child) {
+                @apply border-s-0 rounded-s-none;
             }
 
-            /* For direct children (select + button) */
-            > select,
-            > button {
-                @apply rounded-none border-e-0;
-            }
-            > select:first-child,
-            > button:first-child {
-                @apply rounded-s-lg;
-            }
-            > select:last-child,
-            > button:last-child {
-                @apply rounded-e-lg border-e;
+            fieldset:not(:last-child) > *,
+            select:not(:last-child),
+            button:not(:last-child) {
+                @apply rounded-e-none;
             }
         }
     }
