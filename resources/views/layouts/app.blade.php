@@ -81,7 +81,7 @@
                 @yield('sidebar-left')
             </aside>
 
-            <aside class="sidebar right-sidebar">
+            <aside class="sidebar sidebar-right">
                 @yield('sidebar-right')
             </aside>
         </div>
