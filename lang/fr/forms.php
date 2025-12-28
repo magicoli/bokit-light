@@ -11,6 +11,6 @@ return [
     "create" => "Créer",
     "update" => "Mettre à jour",
     "no_options" => "Aucune option",
-    "date_from" => "De",
-    "date_to" => "À",
+    "date_from" => "Du",
+    "date_to" => "Au",
 ];

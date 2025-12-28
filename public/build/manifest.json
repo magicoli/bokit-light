@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BdMk201l.css",
+    "file": "assets/app-BdL49zl6.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/calendar.css": {
-    "file": "assets/calendar-D6IeWvZs.css",
+    "file": "assets/calendar-BYQVj-cu.css",
     "src": "resources/css/calendar.css",
     "isEntry": true,
     "name": "calendar",
@@ -18,7 +18,7 @@
     ]
   },
   "resources/css/flatpickr.css": {
-    "file": "assets/flatpickr-BtHri0Hq.css",
+    "file": "assets/flatpickr-DY5mrzBy.css",
     "src": "resources/css/flatpickr.css",
     "isEntry": true,
     "name": "flatpickr",
@@ -27,7 +27,7 @@
     ]
   },
   "resources/css/forms.css": {
-    "file": "assets/forms-B8swlQLy.css",
+    "file": "assets/forms-DfqRXIDk.css",
     "src": "resources/css/forms.css",
     "isEntry": true,
     "name": "forms",
@@ -45,7 +45,7 @@
     ]
   },
   "resources/css/properties.css": {
-    "file": "assets/properties-BbXPnAQ3.css",
+    "file": "assets/properties-BRxT14Hw.css",
     "src": "resources/css/properties.css",
     "isEntry": true,
     "name": "properties",
@@ -54,7 +54,7 @@
     ]
   },
   "resources/css/rates-widget.css": {
-    "file": "assets/rates-widget-Dn1_k_ov.css",
+    "file": "assets/rates-widget-Cvg8wujs.css",
     "src": "resources/css/rates-widget.css",
     "isEntry": true,
     "name": "rates-widget",
@@ -63,7 +63,7 @@
     ]
   },
   "resources/css/rates.css": {
-    "file": "assets/rates-giX26DLi.css",
+    "file": "assets/rates-Bxt3JXhc.css",
     "src": "resources/css/rates.css",
     "isEntry": true,
     "name": "rates",

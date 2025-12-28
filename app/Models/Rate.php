@@ -176,9 +176,8 @@ class Rate extends Model
                                 "rates.name_this_rate_placeholder",
                             ),
                             "readonly" => true,
-                            "class" => "w-full",
                         ],
-                        "class" => "flex-1",
+                        "fieldset_class" => "autofill",
                     ],
                 ],
             ],
@@ -193,7 +192,7 @@ class Rate extends Model
                         "attributes" => [
                             "step" => "0.01",
                             "id" => "base",
-                            "size" => 5,
+                            "size" => 7,
                         ],
                     ],
                     "parent_rate_id" => [
@@ -212,10 +211,7 @@ class Rate extends Model
                             "Allowed tags: base, parent_rate, booking_nights, guests, adults, children",
                         "default" => "base * booking_nights",
                         "placeholder" => "base * booking_nights",
-                        "attributes" => [
-                            "class" => "w-full",
-                        ],
-                        "class" => "flex-auto",
+                        "fieldset_class" => "autofill",
                     ],
                 ],
             ],
@@ -322,7 +318,7 @@ class Rate extends Model
                         "default" => 0,
                         "attributes" => [
                             "min" => 0,
-                            "size" => 3,
+                            "size" => 5,
                             // "style" => "width: 5rem",
                         ],
                     ],
