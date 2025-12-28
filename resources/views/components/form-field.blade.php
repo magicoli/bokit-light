@@ -80,7 +80,7 @@
 
 @if($type === 'html')
     {{-- HTML content type - special case with no wrapper --}}
-    <div name="{{ $fieldName }}" id="{{ $fieldName }}">
+    <div id="{{ $fieldName }}" name="{{ $fieldName }}">
         {!! $field['value'] ?? '' !!}
     </div>
 
@@ -117,7 +117,7 @@
         @endif
     </div>
 @else
-    <fieldset class="{{ $fieldsetClass }}">
+    <fieldset id="{{ $fieldName }}-fieldset" class="{{ $fieldsetClass }}">
 
     {{-- ACTUAL FIELD RENDERING --}}
     @if($label)
