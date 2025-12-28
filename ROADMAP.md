@@ -21,7 +21,7 @@ Bokit is a standalone vacation rental calendar management solution designed to b
 
 These features provide a viable calendar management solution that can be deployed standalone or integrated into existing websites.
 
-### 1. Rate Calculation System ⏳ IN PROGRESS
+### 1.1 Rate Calculation System ⏳ IN PROGRESS
 **Goal**: Calculate accurate prices for bookings based on flexible rate rules
 
 **Current Status**:
@@ -35,13 +35,9 @@ These features provide a viable calendar management solution that can be deploye
 - ✅ Display message when no units available for the request
 - ✅ Fix resources/views/rates/calculator.blade.php: obsolete or to update with proper localization and semantic classes?
 - ✅ Fix parent_rate calculation bug
+- ✅ Fix date-range: when start is set, to must be set to minimum start +1, like implemented for rate search (partially fixed, for separate date fields, won't fix now for date-range which requires more complicate development)
 
 **Remaining Work**:
-- [ ] Fix date-range: when start is set, to must be set to minimum start +1, like implemented for rate search
-- [ ] Implement unit combinations (multi-unit bookings in same property for large groups)
-- [ ] Implement rate variations system (seasonal rates, promotions)
-  - Apply formula to any "base" rate regardless of scope
-  - Avoid duplicating variations for each rate
 - [ ] Property access control in calculator
   - **Admin interface**: Respect user permissions (admin sees all, restricted users see authorized properties only)
   - **Public widget**: URL-based filtering (custom domain or path prefix)
@@ -49,6 +45,10 @@ These features provide a viable calendar management solution that can be deploye
     - Example: `mosaiques.bokit.click/moon` or `bokit.click/mosaiques/moon` → only "moon" unit
     - Independent of user authentication status (works for anonymous users)
   - Currently shows all properties regardless of user access or URL
+- [ ] Implement unit combinations (multi-unit bookings in same property for large groups)
+- [ ] Implement rate variations system (seasonal rates, promotions)
+  - Apply formula to any "base" rate regardless of scope
+  - Avoid duplicating variations for each rate
 
 **Technical Details**:
 - Parent rate synchronization with model events
@@ -58,7 +58,7 @@ These features provide a viable calendar management solution that can be deploye
 
 ---
 
-### 2. iCal Export
+### 1.2 iCal Export
 **Goal**: Export property calendars in iCal format for channel manager synchronization and calendar app subscription.
 
 **Requirements**:

@@ -30,8 +30,6 @@ class AutoSync
             // Dispatch job to run AFTER the HTTP response is sent to the user
             // This is non-blocking for the user, WordPress-style!
             AutoSyncIcal::dispatchAfterResponse();
-
-            Log::debug("[AutoSync] Sync job launched in background");
         }
 
         return $next($request);

@@ -29,29 +29,29 @@ const flatpickrConfig = {
  * Creates {fieldname}_from and {fieldname}_to hidden inputs with Y-m-d format
  */
 function createRangeHiddenInputs(pickerInstance, fromDate, toDate) {
-    const fieldName = pickerInstance.input.getAttribute('name') || 'dates';
-    const form = pickerInstance.input.closest('form');
+    const fieldName = pickerInstance.input.getAttribute("name") || "dates";
+    const form = pickerInstance.input.closest("form");
     if (!form) return;
 
     // Create or update {fieldname}_from
     let fromInput = form.querySelector(`input[name="${fieldName}_from"]`);
     if (!fromInput) {
-        fromInput = document.createElement('input');
-        fromInput.type = 'hidden';
+        fromInput = document.createElement("input");
+        fromInput.type = "hidden";
         fromInput.name = `${fieldName}_from`;
         form.appendChild(fromInput);
     }
-    fromInput.value = pickerInstance.formatDate(fromDate, 'Y-m-d');
+    fromInput.value = pickerInstance.formatDate(fromDate, "Y-m-d");
 
     // Create or update {fieldname}_to
     let toInput = form.querySelector(`input[name="${fieldName}_to"]`);
     if (!toInput) {
-        toInput = document.createElement('input');
-        toInput.type = 'hidden';
+        toInput = document.createElement("input");
+        toInput.type = "hidden";
         toInput.name = `${fieldName}_to`;
         form.appendChild(toInput);
     }
-    toInput.value = pickerInstance.formatDate(toDate, 'Y-m-d');
+    toInput.value = pickerInstance.formatDate(toDate, "Y-m-d");
 }
 
 export function initDatePickers(picker, options = {}) {
@@ -81,10 +81,14 @@ export function initDatePickers(picker, options = {}) {
             maxDate: picker.getAttribute("max") || null,
             defaultDate: defaultDate,
             allowInvalidPreload: true,
-            onReady: function(selectedDates) {
+            onReady: function (selectedDates) {
                 // Create hidden inputs for range mode with default dates
                 if (mode === "range" && selectedDates.length === 2) {
-                    createRangeHiddenInputs(this, selectedDates[0], selectedDates[1]);
+                    createRangeHiddenInputs(
+                        this,
+                        selectedDates[0],
+                        selectedDates[1],
+                    );
                 }
             },
             onChange: function (selectedDates) {
@@ -97,13 +101,14 @@ export function initDatePickers(picker, options = {}) {
                         // - use confirmDatePlugin()
                         // - only visual, style invalid dates
                         //// End of comments to keep
-                        
+
                         // When both dates are selected, create hidden inputs for form submission
                         if (selectedDates.length === 2) {
-                            console.log('Range dates selected:', selectedDates);
-                            console.log('Picker input name:', this.input.getAttribute('name'));
-                            console.log('Picker input form:', this.input.closest('form'));
-                            createRangeHiddenInputs(this, selectedDates[0], selectedDates[1]);
+                            createRangeHiddenInputs(
+                                this,
+                                selectedDates[0],
+                                selectedDates[1],
+                            );
                         }
                         break;
                     case "single":
