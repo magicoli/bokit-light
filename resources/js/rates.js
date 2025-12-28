@@ -17,10 +17,12 @@ window.updateSelectOptions = function (
     if (!select) return;
 
     const currentValue = select.value;
-    placeholder =
-        placeholder ||
-        select.querySelector('option[value=""]')?.textContent ||
-        "Select...";
+    
+    // Save existing placeholder BEFORE clearing
+    if (!placeholder) {
+        const emptyOption = select.querySelector('option[value=""]');
+        placeholder = emptyOption ? emptyOption.textContent : 'Select...';
+    }
 
     select.innerHTML = `<option value="">${placeholder}</option>`;
 
@@ -183,6 +185,19 @@ function addCustomOptionButtons() {
         const fieldset = select.closest("fieldset");
 
         if (fieldset && !fieldset.querySelector(".add-custom-btn")) {
+            // Add input-group class to fieldset
+            fieldset.classList.add("input-group");
+
+            // Wrap select + button in items div
+            const itemsDiv = document.createElement("div");
+            itemsDiv.className = "items";
+
+            // Move select into items div
+            const label = fieldset.querySelector("label");
+            select.parentNode.insertBefore(itemsDiv, select);
+            itemsDiv.appendChild(select);
+
+            // Create and add button
             const button = document.createElement("button");
             button.type = "button";
             button.className = "add-custom-btn";
@@ -190,7 +205,7 @@ function addCustomOptionButtons() {
             button.title = `Add custom ${type}`;
             button.onclick = () => addCustomOption(select.id, type);
 
-            select.after(button);
+            itemsDiv.appendChild(button);
         }
     });
 }

@@ -21,7 +21,7 @@ form {
     textarea,
     button,
     .input {
-        @apply w-auto px-4 py-2 border border-gray-300 rounded-lg;
+        @apply px-4 py-2 border border-gray-300 rounded-lg;
         @apply h-10;
         @apply bg-white h-10;
     }
@@ -112,16 +112,19 @@ form {
         .input-group-items {
             @apply flex items-center gap-0;
 
-            .input {
+            .input,
+            input,
+            select,
+            button {
                 @apply rounded-none;
             }
-            fieldset:first-child .input {
+            fieldset:first-child > * {
                 @apply rounded-s-lg;
             }
-            fieldset:last-child .input {
+            fieldset:last-child > * {
                 @apply rounded-e-lg;
             }
-            fieldset:not(:last-child) .input {
+            fieldset:not(:last-child) > * {
                 @apply border-e-0;
             }
         }
