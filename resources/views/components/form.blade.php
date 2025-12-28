@@ -1,4 +1,4 @@
-<form action="{{ $action }}" method="POST" class="form form-{{ $modelSlug }} form-{{ $callbackSlug }}">
+<form id="{{ $modelSlug }}-{{ $callbackSlug }}" action="{{ $action }}" method="POST" class="form form-{{ $modelSlug }} form-{{ $callbackSlug }}">
     @csrf
     @if($method !== 'POST')
         @method($method)

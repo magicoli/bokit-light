@@ -28,7 +28,7 @@ form {
 
     /* Number inputs are smaller by default */
     input[type="number"] {
-        @apply w-30;
+        /*@apply w-30;*/
     }
 
     .form-actions {
@@ -110,7 +110,20 @@ form {
 
         .items,
         .input-group-items {
-            @apply flex items-center gap-2;
+            @apply flex items-center gap-0;
+
+            .input {
+                @apply rounded-none;
+            }
+            fieldset:first-child .input {
+                @apply rounded-s-lg;
+            }
+            fieldset:last-child .input {
+                @apply rounded-e-lg;
+            }
+            fieldset:not(:last-child) .input {
+                @apply border-e-0;
+            }
         }
     }
 

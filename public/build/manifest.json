@@ -27,7 +27,7 @@
     ]
   },
   "resources/css/forms.css": {
-    "file": "assets/forms-DcwMvXat.css",
+    "file": "assets/forms-6BsAMsVM.css",
     "src": "resources/css/forms.css",
     "isEntry": true,
     "name": "forms",
@@ -87,7 +87,7 @@
     "isEntry": true
   },
   "resources/js/flatpickr.js": {
-    "file": "assets/flatpickr-CJo3WVfc.js",
+    "file": "assets/flatpickr-6lc7VUQv.js",
     "name": "flatpickr",
     "src": "resources/js/flatpickr.js",
     "isEntry": true,

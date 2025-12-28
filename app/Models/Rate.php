@@ -304,30 +304,6 @@ class Rate extends Model
                             ),
                         ],
                     ],
-                    "debug_dates" => [
-                        "type" => "input-group",
-                        "label" => __("rates.booking"),
-                        "description" => __(
-                            "rates.date_of_the_booking_request",
-                        ),
-                        "items" => [
-                            "debug_from" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_from"),
-                                "attributes" => [
-                                    "min" => "today",
-                                    "data-minimum-stay" => 3,
-                                ],
-                            ],
-                            "debug_to" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_to"),
-                                "attributes" => [
-                                    "min" => "today",
-                                ],
-                            ],
-                        ],
-                    ],
                     "adults" => [
                         "type" => "number",
                         "label" => __("app.adults"),
@@ -336,18 +312,17 @@ class Rate extends Model
                         "attributes" => [
                             "min" => 1,
                             "size" => 3,
-                            "style" => "width: 5rem",
+                            // "style" => "width: 5rem",
                         ],
                     ],
                     "children" => [
                         "type" => "number",
                         "label" => __("app.children"),
                         "default" => 0,
-                        "class" => "w-12",
                         "attributes" => [
                             "min" => 0,
                             "size" => 3,
-                            "style" => "width: 5rem",
+                            // "style" => "width: 5rem",
                         ],
                     ],
                 ],
