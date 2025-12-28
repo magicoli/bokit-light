@@ -24,6 +24,36 @@ const flatpickrConfig = {
     altFormat: currentLocale === "fr" ? "d/m/Y" : "m/d/Y", // Display format
 };
 
+/**
+ * Create or update hidden inputs for range date fields
+ * Creates {fieldname}_from and {fieldname}_to hidden inputs with Y-m-d format
+ */
+function createRangeHiddenInputs(pickerInstance, fromDate, toDate) {
+    const fieldName = pickerInstance.input.getAttribute('name') || 'dates';
+    const form = pickerInstance.input.closest('form');
+    if (!form) return;
+
+    // Create or update {fieldname}_from
+    let fromInput = form.querySelector(`input[name="${fieldName}_from"]`);
+    if (!fromInput) {
+        fromInput = document.createElement('input');
+        fromInput.type = 'hidden';
+        fromInput.name = `${fieldName}_from`;
+        form.appendChild(fromInput);
+    }
+    fromInput.value = pickerInstance.formatDate(fromDate, 'Y-m-d');
+
+    // Create or update {fieldname}_to
+    let toInput = form.querySelector(`input[name="${fieldName}_to"]`);
+    if (!toInput) {
+        toInput = document.createElement('input');
+        toInput.type = 'hidden';
+        toInput.name = `${fieldName}_to`;
+        form.appendChild(toInput);
+    }
+    toInput.value = pickerInstance.formatDate(toDate, 'Y-m-d');
+}
+
 export function initDatePickers(picker, options = {}) {
     document.querySelectorAll(".flatpickr-input").forEach((picker) => {
         const mode = picker.getAttribute("flatpickr-mode") || "single";
@@ -51,21 +81,33 @@ export function initDatePickers(picker, options = {}) {
             maxDate: picker.getAttribute("max") || null,
             defaultDate: defaultDate,
             allowInvalidPreload: true,
+            onReady: function(selectedDates) {
+                // Create hidden inputs for range mode with default dates
+                if (mode === "range" && selectedDates.length === 2) {
+                    createRangeHiddenInputs(this, selectedDates[0], selectedDates[1]);
+                }
+            },
             onChange: function (selectedDates) {
-                if (selectedDates.length === 1) {
-                    // if (mode === "range") {
-                    switch (mode) {
-                        case "range":
-                            // Testing only: disabling past dates does not actually enforce minimum stay
-                            this.set(
-                                "minDate",
-                                new Date(selectedDates[0]),
-                                // new Date(selectedDates[0]).fp_incr(minimumStay),
-                            );
-                            // Alternative: use confirmDatePlugin()
-                            // Alternative: only visual, style invalid dates
-                            break;
-                        case "single":
+                switch (mode) {
+                    case "range":
+                        //// Keep these comments for later:
+                        // Disabling invalid dates to enforce minimumStay does not work with data-range:
+                        // it breaks the selection as soon as one of the selected dates is disabled.
+                        // Alternative to explore:
+                        // - use confirmDatePlugin()
+                        // - only visual, style invalid dates
+                        //// End of comments to keep
+                        
+                        // When both dates are selected, create hidden inputs for form submission
+                        if (selectedDates.length === 2) {
+                            console.log('Range dates selected:', selectedDates);
+                            console.log('Picker input name:', this.input.getAttribute('name'));
+                            console.log('Picker input form:', this.input.closest('form'));
+                            createRangeHiddenInputs(this, selectedDates[0], selectedDates[1]);
+                        }
+                        break;
+                    case "single":
+                        if (selectedDates.length === 1) {
                             const toId = this.input.id.replace("_from", "_to");
                             const toInput = document.getElementById(toId);
                             if (toInput && toInput._flatpickr) {
@@ -76,9 +118,9 @@ export function initDatePickers(picker, options = {}) {
                                     ),
                                 );
                             }
-                            break;
-                        // Not relevant for "multiple" third mode
-                    }
+                        }
+                        break;
+                    // Other modes like "multiple" not implemented, not relevant for current usage
                 }
             },
         });
