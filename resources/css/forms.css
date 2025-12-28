@@ -26,12 +26,6 @@ form {
         }
     }
 
-    select {
-        @apply appearance-none; /* Disable default HTML to allow customization below */
-        /*@apply col-start-1 row-start-1 w-full;*/
-        /*@apply rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6;*/
-    }
-
     input,
     select,
     textarea,
@@ -40,6 +34,15 @@ form {
         @apply px-4 py-2 border border-gray-300 rounded-lg;
         @apply h-10;
         @apply bg-white h-10;
+    }
+
+    select {
+        @apply appearance-none; /* Disable default HTML to allow customization below */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1rem 1rem;
+        @apply pe-8; /* padding-end for dropdown arrow */
     }
 
     input,
