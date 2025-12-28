@@ -92,9 +92,6 @@ class RatesController extends Controller
      */
     public function store(Request $request)
     {
-        // Debug: log POST data
-        Log::debug("Rate store POST data", $request->all());
-
         try {
             $validated = $request->validate(Rate::validationRules());
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -206,27 +203,12 @@ class RatesController extends Controller
      */
     public function calculate(Request $request)
     {
-        // Debug: log POST data
-        Log::debug("Rate calculate POST data", $request->all());
-
         try {
             // Map date range fields from flatpickr to model attributes
             if ($request->has("dates_from") && $request->has("dates_to")) {
                 $request->merge([
                     "check_in" => $request->dates_from,
                     "check_out" => $request->dates_to,
-                ]);
-                Log::debug("Date mapping applied", [
-                    "dates_from" => $request->dates_from,
-                    "dates_to" => $request->dates_to,
-                    "check_in" => $request->check_in,
-                    "check_out" => $request->check_out,
-                ]);
-            } else {
-                Log::debug("Date mapping skipped - fields missing", [
-                    "has_dates_from" => $request->has("dates_from"),
-                    "has_dates_to" => $request->has("dates_to"),
-                    "all_input" => $request->all(),
                 ]);
             }
 

@@ -65,7 +65,6 @@ class BookingSyncIcal
             );
         }
         if ($delay > 0) {
-            Log::debug("BookingSyncIcal: delaying request by {$delay} ms");
             usleep($delay * 1000); // Convert ms to microseconds
         }
         $seed = rand(1000, 9999);
