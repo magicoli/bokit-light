@@ -17,14 +17,20 @@ window.updateSelectOptions = function (
     if (!select) return;
 
     const currentValue = select.value;
-    
-    // Save existing placeholder BEFORE clearing
-    if (!placeholder) {
-        const emptyOption = select.querySelector('option[value=""]');
-        placeholder = emptyOption ? emptyOption.textContent : 'Select...';
+
+    // Handle empty list: use no-options text and disable
+    if (items.length === 0) {
+        if (!placeholder) {
+            placeholder = select.dataset.noOptionsText || 'No options';
+        }
+        select.disabled = true;
+    } else {
+        select.disabled = false;
     }
 
-    select.innerHTML = `<option value="">${placeholder}</option>`;
+    if (placeholder) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+    }
 
     items.forEach((item) => {
         const option = document.createElement("option");
@@ -55,6 +61,19 @@ function addCustomOption(selectId, type) {
     const value = prompt(`Enter new ${label}:`);
 
     if (value && value.trim()) {
+        // Re-enable select if it was disabled
+        if (select.disabled) {
+            select.disabled = false;
+            // Restore original placeholder
+            const originalPlaceholder = select.getAttribute('placeholder');
+            if (originalPlaceholder) {
+                const emptyOption = select.querySelector('option[value=""]');
+                if (emptyOption) {
+                    emptyOption.textContent = originalPlaceholder;
+                }
+            }
+        }
+
         // Add option to select
         const option = document.createElement("option");
         option.value = value.trim();
@@ -223,6 +242,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const parentRateSelect = document.getElementById("parent_rate_id");
     const suffixField = document.getElementById("suffix");
 
+    // Store placeholders on page load (before any changes)
+    const placeholders = {};
+    ["unit_type", "unit_id", "coupon_code", "parent_rate_id"].forEach((id) => {
+        const select = document.getElementById(id);
+        if (select) {
+            // Read from select's placeholder attribute, not option text
+            placeholders[id] = select.getAttribute("placeholder");
+            // placeholders[id] =
+            //     select.getAttribute("placeholder") ||
+            //     select.dataset.placeholder ||
+            //     "Error placeholder set by JS";
+        }
+    });
+
     // Load data from window (passed by Blade)
     if (window.ratesFormData) {
         allUnits = window.ratesFormData.units || [];
@@ -246,12 +279,37 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!propertyId) {
             // Clear all dependent fields
             if (unitTypeSelect)
-                updateSelectOptions("unit_type", [], "value", "text");
-            if (unitSelect) updateSelectOptions("unit_id", [], "id", "name");
+                updateSelectOptions(
+                    "unit_type",
+                    [],
+                    "value",
+                    "text",
+                    placeholders.unit_type,
+                );
+            if (unitSelect)
+                updateSelectOptions(
+                    "unit_id",
+                    [],
+                    "id",
+                    "name",
+                    placeholders.unit_id,
+                );
             if (couponSelect)
-                updateSelectOptions("coupon_code", [], "code", "code");
+                updateSelectOptions(
+                    "coupon_code",
+                    [],
+                    "code",
+                    "code",
+                    placeholders.coupon_code,
+                );
             if (parentRateSelect)
-                updateSelectOptions("parent_rate_id", [], "id", "display_name");
+                updateSelectOptions(
+                    "parent_rate_id",
+                    [],
+                    "id",
+                    "display_name",
+                    placeholders.parent_rate_id,
+                );
             updateRateName();
             return;
         }
@@ -262,7 +320,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 value: type,
                 text: type,
             }));
-            updateSelectOptions("unit_type", unitTypeOptions, "value", "text");
+            updateSelectOptions(
+                "unit_type",
+                unitTypeOptions,
+                "value",
+                "text",
+                placeholders.unit_type,
+            );
         }
 
         // Update units
@@ -275,6 +339,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 propertyUnits,
                 "id",
                 (unit) => unit.name,
+                placeholders.unit_id,
             );
         }
 
@@ -289,6 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "code",
                 (coupon) =>
                     coupon.code + (coupon.name ? " - " + coupon.name : ""),
+                placeholders.coupon_code,
             );
         }
 
@@ -297,8 +363,15 @@ document.addEventListener("DOMContentLoaded", function () {
             fetch(`/api/parent-rates/${propertyId}`)
                 .then((response) => response.json())
                 .then((rates) => {
-                    // Clear existing options
-                    parentRateSelect.innerHTML = `<option value="">${parentRateSelect.querySelector('option[value=""]')?.textContent || "No parent rate"}</option>`;
+                    // Use stored placeholder or no-options text
+                    const placeholder = rates.length === 0 
+                        ? (parentRateSelect.dataset.noOptionsText || 'No options')
+                        : (placeholders.parent_rate_id || "Error placeholder set by JS");
+                    
+                    parentRateSelect.innerHTML = `<option value="">${placeholder}</option>`;
+                    
+                    // Disable if no options
+                    parentRateSelect.disabled = rates.length === 0;
 
                     // Add new options with data-base attribute
                     rates.forEach((rate) => {

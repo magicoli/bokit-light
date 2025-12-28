@@ -26,9 +26,16 @@ form {
         @apply bg-white h-10;
     }
 
-    /* Number inputs are smaller by default */
-    input[type="number"] {
-        /*@apply w-30;*/
+    input,
+    textarea {
+        &:not(.flatpickr-input):read-only {
+            @apply bg-gray-100;
+        }
+    }
+
+    &:disabled,
+    *:disabled {
+        @apply text-gray-400 bg-gray-100;
     }
 
     .form-actions {
@@ -112,6 +119,7 @@ form {
         .input-group-items {
             @apply flex items-center gap-0;
 
+            /* For fieldsets containing inputs (normal input-groups) */
             .input,
             input,
             select,
@@ -126,6 +134,20 @@ form {
             }
             fieldset:not(:last-child) > * {
                 @apply border-e-0;
+            }
+
+            /* For direct children (select + button) */
+            > select,
+            > button {
+                @apply rounded-none border-e-0;
+            }
+            > select:first-child,
+            > button:first-child {
+                @apply rounded-s-lg;
+            }
+            > select:last-child,
+            > button:last-child {
+                @apply rounded-e-lg border-e;
             }
         }
     }
@@ -154,12 +176,6 @@ form {
     .add-custom-btn {
         min-width: 2.5rem;
         height: 2.5rem;
-    }
-
-    /* Readonly fields */
-    input.readonly,
-    select.readonly {
-        @apply bg-gray-100 cursor-not-allowed opacity-60;
     }
 
     /* Remove focus background */

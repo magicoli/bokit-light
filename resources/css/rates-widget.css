@@ -8,7 +8,7 @@
         @apply mx-auto my-0 flex justify-center flex-wrap items-baseline-last gap-8;
 
         > * {
-            @apply h-fit my-0 w-fit;
+            @apply h-fit w-fit my-0;
         }
     }
 }
