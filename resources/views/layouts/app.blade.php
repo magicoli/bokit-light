@@ -40,7 +40,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- App Styles -->
-    {{-- @vite('resources/css/layout-flex.css') --}}
     @vite('resources/css/layout-grid.css')
     @vite('resources/css/app.css')
     @yield('styles')
@@ -52,51 +51,54 @@
 </head>
 <body class="@yield('body-class')">
     <div class="page-layout">
-        <nav class="nav-main" x-data="{ mobileMenuOpen: false }">
-        @include('nav.main')
+        {{-- Main navigation --}}
+        <nav x-data="{ mobileMenuOpen: false }">
+            @include('nav.main')
         </nav>
 
-        <div id="content-wrapper">
-            <main id="main" class="main-column">
-                <header class="header">
-                    <h1 class="title">@yield('title')</h1>
-                    <p class="subtitle">@yield('subtitle')</p>
-                </header>
-
-                {{-- session('success') is Deprecated, use notices instead, kept only until old code using is updated --}}
-                @if(session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
+        {{-- Page header (title, subtitle, breadcrumbs, etc.) --}}
+        <header>
+            @hasSection('header')
+                @yield('header')
+            @else
+                @hasSection('title')
+                    <h1>@yield('title')</h1>
                 @endif
-                {{-- end of session('success') deprecated code --}}
+                @hasSection('subtitle')
+                    <p class="subtitle">@yield('subtitle')</p>
+                @endif
+            @endif
+        </header>
 
-                <!-- Flash notices -->
-                {!! get_notices() !!}
-
-                <div class="content">
-                    @yield('content')
+        {{-- Main content area --}}
+        <main>
+            {{-- session('success') is Deprecated, use notices instead, kept only until old code using is updated --}}
+            @if(session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
                 </div>
-            </main>
+            @endif
+            {{-- end of session('success') deprecated code --}}
 
-            <aside class="sidebar sidebar-left">
-                @yield('sidebar-left')
-            </aside>
+            {{-- Flash notices --}}
+            {!! get_notices() !!}
 
-            <aside class="sidebar sidebar-right">
-                @yield('sidebar-right')
-                <div class="sidebar-item card">
-                    <h3 class="card-title">Recent Posts</h3>
-                    <ul class="card-body">
-                        <li><a href="#">Post Title</a></li>
-                        <li><a href="#">Another Post Title</a></li>
-                        <li><a href="#">Yet Another Post Title</a></li>
-                    </ul>
-                </div>
-            </aside>
-        </div>
+            {{-- Page content --}}
+            @yield('content')
+        </main>
 
-        <footer class="footer">
+        {{-- Left sidebar --}}
+        <aside id="sidebar-left">
+            @yield('sidebar-left')
+        </aside>
+
+        {{-- Right sidebar --}}
+        <aside id="sidebar-right">
+            @yield('sidebar-right')
+        </aside>
+
+        {{-- Footer --}}
+        <footer>
             <p class="copyright">&copy; {{ date('Y') }} {{ config('app.name', 'Bokit') }}</p>
         </footer>
     </div>
