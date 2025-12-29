@@ -40,6 +40,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- App Styles -->
+    {{-- @vite('resources/css/layout-flex.css') --}}
+    @vite('resources/css/layout-grid.css')
     @vite('resources/css/app.css')
     @yield('styles')
 

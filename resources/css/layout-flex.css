@@ -1,0 +1,115 @@
+/**
+ * PREFER TAILWIND UTILITY CLASSES WHENEVER POSSIBLE, AVOID DIRECT CSS RULES
+ *
+ * Tailwind breakpoints Memo:
+ * sm = 640px
+ * md = 768px
+ * lg = 1024px
+ * xl = 1280px
+ * 2xl = 1536px
+**/
+
+@import "tailwindcss";
+
+.page-layout {
+    @apply flex flex-col w-full min-h-screen;
+
+    > * {
+        @apply flex-none;
+    }
+    nav {
+        @apply sticky top-0 z-10;
+    }
+    footer {
+        &:not(:has(*)) {
+            @apply hidden;
+        }
+        @apply sticky bottom-0 z-10;
+    }
+    > #content-wrapper {
+        @apply grow;
+    }
+}
+
+#content-wrapper {
+    @apply bg-gray-100;
+    /*@apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 p-0 xl:p-4 xl:gap-4 space-x-0 space-y-0;*/
+
+    main:not(:has(.sidebar *)) {
+        @apply container max-w-6xl mx-auto;
+    }
+
+    &:has(.sidebar *) {
+        @apply md:bg-gray-700;
+        @apply grid grid-flow-row-dense grid-cols-1;
+        @apply md:grid-cols-2;
+        @apply lg:grid-cols-4;
+
+        &:has(.sidebar-left *):has(.sidebar-right *) {
+            @apply 2xl:grid-cols-5;
+        }
+
+        main {
+            @apply col-span-1;
+            @apply md:col-span-2;
+            @apply lg:col-span-3 lg:order-2 lg:row-span-10;
+            @apply 2xl:row-span-1;
+            @apply 2xl:max-w-none;
+        }
+    }
+
+    > * {
+        @apply py-4 md:p-4;
+
+        &:not(.card) {
+            @apply p-4;
+        }
+    }
+
+    .sidebar {
+        container-type: inline-size;
+
+        &:not(:has(*)) {
+            @apply hidden;
+        }
+
+        @apply lg:h-fit;
+        @apply 2xl:h-full;
+
+        &.sidebar-left {
+            @apply lg:order-1;
+        }
+
+        &.sidebar-right {
+            @apply lg:order-3;
+        }
+    }
+
+    main {
+        @apply bg-gray-100;
+        &:has(.content .calendar-wrapper) {
+            @apply max-w-none;
+        }
+    }
+
+    :first-child {
+        @apply mt-0;
+    }
+
+    :last-child {
+        @apply mb-0;
+    }
+
+    &:has(.content .calendar-wrapper) {
+        @apply grid-cols-1 lg:grid-cols-2 space-y-0;
+
+        main {
+            @apply col-span-1;
+            @apply md:col-span-2;
+        }
+        .sidebar {
+            @apply hidden;
+            @apply order-3;
+        }
+    }
+}

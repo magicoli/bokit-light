@@ -1,0 +1,18 @@
+/**
+ * PREFER TAILWIND UTILITY CLASSES WHENEVER POSSIBLE, AVOID DIRECT CSS RULES
+ *
+ * Tailwind breakpoints Memo:
+ * sm = 640px
+ * md = 768px
+ * lg = 1024px
+ * xl = 1280px
+ * 2xl = 1536px
+**/
+
+@import "tailwindcss";
+
+.page-layout {
+}
+
+#content-wrapper {
+}
