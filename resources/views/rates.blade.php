@@ -36,35 +36,26 @@ window.ratesFormData = {
         @include('components.rate-calculator')
     </div>
 </div>
+
+<!-- Add Rate Form -->
+<div class="card">
+    <h2 class="card-header">{{ __('rates.add_rate') }}</h2>
+    @php
+        $propertyOptions = $properties->pluck('name', 'id')->toArray();
+    @endphp
+    {!! \App\Models\Rate::form('formAdd', route('rates.store'))
+        ->fieldOptions('property_id', $propertyOptions)
+        ->fieldOptions('priority', $priorityOptions)
+        ->render() !!}
+</div>
 @endsection
 
 @section('sidebar-right')
-<!-- Dumb test section -->
-<div class="card">
-    <div class="card-header">
-        <h3>{{ __('rates.test_sidebar') }}</h3>
-    </div>
-    <div class="card-body">
-        <p>This is a test section for the sidebar.</p>
-    </div>
-</div>
 @endsection
 
 @section('content')
     <!-- Rates List -->
     <div class="card">
         {!! \App\Models\Rate::list($rates, 'rates')->render() !!}
-    </div>
-
-    <!-- Add Rate Form -->
-    <div class="card">
-        <h2 class="card-header">{{ __('rates.add_rate') }}</h2>
-        @php
-            $propertyOptions = $properties->pluck('name', 'id')->toArray();
-        @endphp
-        {!! \App\Models\Rate::form('formAdd', route('rates.store'))
-            ->fieldOptions('property_id', $propertyOptions)
-            ->fieldOptions('priority', $priorityOptions)
-            ->render() !!}
     </div>
 @endsection
