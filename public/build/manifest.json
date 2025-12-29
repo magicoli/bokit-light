@@ -45,13 +45,12 @@
     ]
   },
   "resources/css/layout-grid.css": {
-    "file": "assets/layout-grid-tn0RQdqM.css",
+    "file": "assets/layout-grid-B6V7i2ck.css",
     "src": "resources/css/layout-grid.css",
     "isEntry": true,
-    "name": "units",
+    "name": "layout-grid",
     "names": [
-      "layout-grid.css",
-      "units.css"
+      "layout-grid.css"
     ]
   },
   "resources/css/markdown.css": {
@@ -91,12 +90,11 @@
     ]
   },
   "resources/css/units.css": {
-    "file": "assets/layout-grid-tn0RQdqM.css",
-    "src": "resources/css/layout-grid.css",
+    "file": "assets/units-tn0RQdqM.css",
+    "src": "resources/css/units.css",
     "isEntry": true,
     "name": "units",
     "names": [
-      "layout-grid.css",
       "units.css"
     ]
   },
