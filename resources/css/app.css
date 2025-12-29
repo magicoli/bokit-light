@@ -235,38 +235,11 @@ nav {
    MAIN SECTIONS
    ============================================================================= */
 
-header {
-    h1,
-    .title {
-        @apply text-3xl font-bold text-gray-900;
-        @apply lg:max-lg:px-4;
-        /*@apply 2xl:px-0;*/
-    }
-
-    .subtitle {
-        @apply text-gray-600 mt-2;
-    }
-}
-
 footer {
     @apply w-full bg-gray-800 text-gray-300 p-4;
 
     > * {
         @apply container mx-auto;
-    }
-}
-
-main {
-    /* Header */
-
-    > .main-content {
-        > .wrapper {
-            @apply bg-white rounded-lg shadow-sm p-8;
-
-            h1 {
-                @apply text-2xl font-bold text-gray-900;
-            }
-        }
     }
 }
 
@@ -322,13 +295,6 @@ main {
                 @apply bg-blue-500 text-white;
             }
         }
-    }
-}
-
-/* Hide default header if #main has a h1 element */
-#content-wrapper:has(.content header) {
-    header {
-        @apply hidden;
     }
 }
 
