@@ -85,6 +85,14 @@
 
             <aside class="sidebar sidebar-right">
                 @yield('sidebar-right')
+                <div class="sidebar-item card">
+                    <h3 class="card-title">Recent Posts</h3>
+                    <ul class="card-body">
+                        <li><a href="#">Post Title</a></li>
+                        <li><a href="#">Another Post Title</a></li>
+                        <li><a href="#">Yet Another Post Title</a></li>
+                    </ul>
+                </div>
             </aside>
         </div>
 
