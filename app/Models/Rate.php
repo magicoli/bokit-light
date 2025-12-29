@@ -301,25 +301,31 @@ class Rate extends Model
                             ),
                         ],
                     ],
-                    "adults" => [
-                        "type" => "number",
-                        "label" => __("app.adults"),
-                        "required" => true,
-                        "default" => 2,
-                        "attributes" => [
-                            "min" => 1,
-                            "size" => 5,
-                            // "style" => "width: 5rem",
-                        ],
-                    ],
-                    "children" => [
-                        "type" => "number",
-                        "label" => __("app.children"),
-                        "default" => 0,
-                        "attributes" => [
-                            "min" => 0,
-                            "size" => 5,
-                            // "style" => "width: 5rem",
+                    "guest" => [
+                        "type" => "input-group",
+                        "label" => "",
+                        "items" => [
+                            "adults" => [
+                                "type" => "number",
+                                "label" => __("app.adults"),
+                                "required" => true,
+                                "default" => 2,
+                                "attributes" => [
+                                    "min" => 1,
+                                    "size" => 5,
+                                    // "style" => "width: 5rem",
+                                ],
+                            ],
+                            "children" => [
+                                "type" => "number",
+                                "label" => __("app.children"),
+                                "default" => 0,
+                                "attributes" => [
+                                    "min" => 0,
+                                    "size" => 5,
+                                    // "style" => "width: 5rem",
+                                ],
+                            ],
                         ],
                     ],
                 ],

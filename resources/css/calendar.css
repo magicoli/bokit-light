@@ -3,17 +3,18 @@
 /* Calendar special case: hide sidebars on large screens */
 #page-layout:has(.calendar-wrapper) {
     @media (min-width: 1024px) {
-        .sidebar {
+        .sidebar,
+        #sidebar-left,
+        #sidebar-right {
             @apply hidden;
         }
 
         #main-area {
+            @apply h-full;
             /* Full width layout for calendar */
-            grid-template-areas:
-                "nav"
-                "main"
-                "foot";
+            grid-template-areas: "main";
             grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
         }
     }
 }
@@ -22,11 +23,11 @@
    CALENDAR NAVIGATION
    ============================================================================= */
 
-main {
+/*main {
     > * {
         @apply max-w-none;
     }
-}
+}*/
 
 header {
     @apply hidden;

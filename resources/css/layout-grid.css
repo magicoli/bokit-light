@@ -15,7 +15,7 @@
 }
 
 #page-layout {
-    @apply grid min-h-screen w-full bg-gray-100;
+    @apply grid min-h-screen w-full;
 
     /* Simple 3-row layout: nav, main-area, footer */
     grid-template-areas:
@@ -33,16 +33,18 @@
     /* Grid area assignments */
     > nav {
         grid-area: nav;
-        @apply bg-gray-200;
+        @apply bg-gray-100;
         @apply sticky top-0 z-10;
     }
 
     > #main-area {
         grid-area: main-area;
+        /*@apply border border-amber-200; /* DEBUG */
         @apply grid gap-0;
 
         > * {
-            @apply py-4 md:p-4;
+            /*@apply py-4 md:p-4;*/
+            @apply py-4 p-4;
         }
 
         /* sm(640px): vertical stack */
@@ -53,53 +55,81 @@
         grid-template-columns: 1fr;
         grid-template-rows: 1fr auto auto;
 
-        /* md(768px): sidebars side-by-side below */
-        @media (min-width: 768px) {
-            grid-template-areas:
-                "main   main"
-                "sl     sr";
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto 1fr;
-        }
-
-        /*&:has(.sidebar *) {*/
-        /* lg(1024px): sidebars beside main */
-        @media (min-width: 1024px) {
-            grid-template-areas:
-                "sl     main"
-                "sr     main";
-            grid-template-columns: 350px 1fr;
-            grid-template-rows: auto 1fr;
-        }
-
-        /* 2xl(1536px): 3 columns */
-        @media (min-width: 1536px) {
-            grid-template-areas: "sl     main   sr";
-            grid-template-columns: 350px 1fr 350px;
-
-            /* Only left sidebar */
-            &:has(#sidebar-left *):not(:has(#sidebar-right *)) {
-                grid-template-areas: "sl     main";
-                grid-template-columns: 480px 1fr;
+        &:has(.sidebar *) {
+            /* md(768px): sidebars side-by-side below */
+            @media (min-width: 768px) {
+                grid-template-areas:
+                    "main   main"
+                    "sl     sr";
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto 1fr;
             }
 
-            /* Only right sidebar */
-            &:has(#sidebar-right *):not(:has(#sidebar-left *)) {
-                grid-template-areas: "main   sr";
-                grid-template-columns: 1fr 480px;
+            /* lg(1024px): sidebars beside main */
+            @media (min-width: 1024px) {
+                grid-template-areas:
+                    "sl     main"
+                    "sr     main";
+                grid-template-columns: 350px 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            /* 2xl(1536px): 3 columns */
+            @media (min-width: 1536px) {
+                grid-template-areas: "sl     main   sr";
+                grid-template-columns: 350px 1fr 350px;
+                grid-template-rows: 1fr;
+
+                /* Only left sidebar */
+                &:has(#sidebar-left *):not(:has(#sidebar-right *)) {
+                    grid-template-areas: "sl     main";
+                    grid-template-columns: 480px 1fr;
+                }
+
+                /* Only right sidebar */
+                &:has(#sidebar-right *):not(:has(#sidebar-left *)) {
+                    grid-template-areas: "main   sr";
+                    grid-template-columns: 1fr 480px;
+                }
+            }
+        }
+
+        /*:has(#sidebar-left *):not(:has(#sidebar-right *)) {
+            #sidebar-right {
+                @apply hidden;
+            }
+        }
+
+        :has(#sidebar-right *):not(:has(#sidebar-left *)) {
+            #sidebar-left {
+                @apply hidden;
+            }
+        }*/
+
+        &:not(:has(.sidebar *, .full-width *)) {
+            main {
+                @apply max-w-6xl mx-auto;
             }
         }
 
         > main {
-            @apply h-full;
+            grid-area: main;
+            /*@apply self-start;*/
             @media (min-width: 1536px) {
                 @apply max-w-none;
             }
         }
         /*}*/
 
+        > * > .wrapper {
+            /* Not implemented yet, would allow both fill height and sticky */
+            @apply 2xl:sticky 2xl:inset-y-16 2xl:h-fit;
+        }
+
         > main {
-            @apply bg-gray-100 space-y-8;
+            /*@apply border border-green-300; /* DEBUG */
+            @apply bg-gray-100;
+            @apply space-y-8;
 
             > header {
                 &:not(:has(*)) {
@@ -109,21 +139,21 @@
         }
 
         .sidebar {
-            @apply p-4 sticky inset-y-16;
+            @apply p-4;
+            @apply lg:h-fit;
+            /*@apply 2xl:sticky 2xl:inset-y-16;*/
 
-            /*&:not(:has(*)) {
+            &:not(:has(*)) {
                 @apply hidden;
-            }*/
-
-            @media (min-width: 1024px) {
-                @apply h-fit;
             }
 
             &#sidebar-left {
+                /*@apply border border-blue-300; /* DEBUG */
                 grid-area: sl;
             }
 
             &#sidebar-right {
+                /*@apply border border-red-300; /* DEBUG */
                 grid-area: sr;
             }
         }

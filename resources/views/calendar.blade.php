@@ -11,9 +11,9 @@ use App\Traits\TimezoneTrait;
 @endphp
 
 @section('content')
-<div x-data="calendar()" x-cloak>
+<div x-data="calendar()" class="full-width" x-cloak>
     <!-- Navigation Bar -->
-    <div class="calendar-nav">
+    <div class="calendar-nav my-auto">
         <div class="nav-controls">
             <!-- Left: Navigation + Today button -->
             <div class="nav-left">
