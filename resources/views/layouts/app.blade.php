@@ -50,52 +50,61 @@
     @yield('scripts')
 </head>
 <body class="@yield('body-class')">
-    <div class="page-layout">
+    <div id="page-layout">
         {{-- Main navigation --}}
         <nav x-data="{ mobileMenuOpen: false }">
             @include('nav.main')
         </nav>
 
-        {{-- Page header (title, subtitle, breadcrumbs, etc.) --}}
-        <header>
-            @hasSection('header')
-                @yield('header')
-            @else
-                @hasSection('title')
-                    <h1>@yield('title')</h1>
-                @endif
-                @hasSection('subtitle')
-                    <p class="subtitle">@yield('subtitle')</p>
-                @endif
-            @endif
-        </header>
+        {{-- Main area: header + content + sidebars --}}
+        <div id="main-area">
+            <main>
+                {{-- Page header (title, subtitle, breadcrumbs, etc.) --}}
+                <header>
+                    @if(!View::hasSection('title_display') || View::getSection('title_display') === 'default')
+                        {{-- Case 1: Standard display (default) --}}
+                        @hasSection('header')
+                            @yield('header')
+                        @else
+                            @hasSection('title')
+                                <h1>@yield('title')</h1>
+                            @endif
+                            @hasSection('subtitle')
+                                <p class="subtitle">@yield('subtitle')</p>
+                            @endif
+                        @endif
+                    @endif
+                    {{-- Cases 2 & 3: header is empty, hidden by CSS :not(:has(*)) --}}
+                </header>
 
-        {{-- Main content area --}}
-        <main>
-            {{-- session('success') is Deprecated, use notices instead, kept only until old code using is updated --}}
-            @if(session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
+                {{-- Flash notices --}}
+                {!! get_notices() !!}
+
+                {{-- Deprecated, use notices instead, kept only until old code using is updated --}}
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                {{-- end of session('success') deprecated code --}}
+
+                {{-- Main content area --}}
+                <div id="main-content">
+                    {{-- Page content --}}
+                    @yield('content')
                 </div>
-            @endif
-            {{-- end of session('success') deprecated code --}}
+            </main>
 
-            {{-- Flash notices --}}
-            {!! get_notices() !!}
+            {{-- Left sidebar --}}
+            <aside id="sidebar-left" class="sidebar">
+                @yield('sidebar-left')
+            </aside>
 
-            {{-- Page content --}}
-            @yield('content')
-        </main>
-
-        {{-- Left sidebar --}}
-        <aside id="sidebar-left">
-            @yield('sidebar-left')
-        </aside>
-
-        {{-- Right sidebar --}}
-        <aside id="sidebar-right">
-            @yield('sidebar-right')
-        </aside>
+            {{-- Right sidebar --}}
+            <aside id="sidebar-right" class="sidebar">
+                @yield('sidebar-right')
+            </aside>
+        </div>
 
         {{-- Footer --}}
         <footer>

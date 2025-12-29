@@ -18,11 +18,8 @@
 @endsection
 
 @section('content')
-<div class="main-content">
-    <div class="wrapper">
-        <div id="readme-content" class="prose prose-slate max-w-none">
-            <!-- Markdown contenzt will be rendered here -->
-        </div>
+    <div id="readme-content" class="prose prose-slate max-w-none">
+        <!-- Markdown contenzt will be rendered here -->
     </div>
 
     @auth
@@ -32,6 +29,4 @@
         </a>
     </div>
     @endauth
-</div>
-
 @endsection

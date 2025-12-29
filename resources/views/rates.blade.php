@@ -38,8 +38,19 @@ window.ratesFormData = {
 </div>
 @endsection
 
+@section('sidebar-right')
+<!-- Dumb test section -->
+<div class="card">
+    <div class="card-header">
+        <h3>{{ __('rates.test_sidebar') }}</h3>
+    </div>
+    <div class="card-body">
+        <p>This is a test section for the sidebar.</p>
+    </div>
+</div>
+@endsection
+
 @section('content')
-<div class="main-content">
     <!-- Rates List -->
     <div class="card">
         {!! \App\Models\Rate::list($rates, 'rates')->render() !!}
@@ -56,6 +67,4 @@ window.ratesFormData = {
             ->fieldOptions('priority', $priorityOptions)
             ->render() !!}
     </div>
-
-</div>
 @endsection

@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Calendar special case: hide sidebars on large screens */
+#page-layout:has(.calendar-wrapper) {
+    @media (min-width: 1024px) {
+        .sidebar {
+            @apply hidden;
+        }
+
+        #main-area {
+            /* Full width layout for calendar */
+            grid-template-areas:
+                "nav"
+                "main"
+                "foot";
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
 /* =============================================================================
    CALENDAR NAVIGATION
    ============================================================================= */
