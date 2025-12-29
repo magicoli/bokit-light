@@ -235,6 +235,15 @@ nav {
    MAIN SECTIONS
    ============================================================================= */
 
+#main-area {
+    header {
+        h1,
+        .page-title {
+            @apply text-3xl font-bold text-gray-900;
+        }
+    }
+}
+
 footer {
     @apply w-full bg-gray-800 text-gray-300 p-4;
 

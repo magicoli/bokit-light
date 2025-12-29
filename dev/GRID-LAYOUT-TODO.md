@@ -46,28 +46,47 @@ OLD:                          NEW:
 **Before anything else, test these pages:**
 
 1. **Dashboard** (`/`)
-   - [ ] Page loads
-   - [ ] Layout looks correct
-   - [ ] Sidebars display properly
+   - [x] Page loads
+   - [x] (needed adjustments) Layout looks correct
+   - [x] (needed adjustments) Sidebars display properly
+
+>   Note: the :not(:empty) condition does not work, as the element has to be totally empty, not even spaces, which is tricky with tailwind and an IDE that automatically reorganizes code. I used :has(*) and :has(:not(*)) instead.
+
+>   Note: the header was not placed correctly. It has to be in the main column above the main content. Which breaks the layout on 2 column views as header and sl are on the same row, followed by sr and main, so the header has the same height as the left sidebar.
+
+>   Note: the initial 3, 4, 5 columns system was designed for flex, to allow larger and narrower columns. Grid does not need this, as it can handle different column widths natively. So there is only 
+    - 1 column (mobile), everything stacked in original html order.
+    - 2 columns (tablet, small screen): one sidebar on the left or 2 sidebars in a row below main
+    - 3 columns (big screen): 2 sidebars
+
+>   Note: the whole page should not scroll nor have vertical scrollbar. Only  the sidebars and the main column should be scrollable.
 
 2. **Properties** (`/properties`)
-   - [ ] List view works
-   - [ ] Show view works
-   - [ ] No layout issues
+   - [x] List view works
+   - [-] (broken layout) Show view works
+   - [-] No layout issues
+   
+>   Note: the show view seems to add additional sidebars, which is probably only a margin due to max width set somewhere.
 
 3. **Rates** (`/rates`, `/rates/calculator`)
-   - [ ] Rates management works
-   - [ ] Calculator widget displays
-   - [ ] Form submission still works
+   - [x] Rates management works
+   - [x] Calculator widget displays
+   - [x] Form submission still works
+   
+>   Note: except for the header issue, everything works fine.
 
 4. **Calendar** (`/calendar`)
-   - [ ] Full-width layout (no sidebars)
-   - [ ] Calendar displays correctly
+   - [-] (not full width) Full-width layout (no sidebars)
+   - [x] Calendar displays correctly
+   
+>   Note: no sidebars but not full width, and margins are not even the same width.
 
 5. **Mobile/Responsive**
-   - [ ] Hamburger menu works
-   - [ ] Sidebars stack on mobile
-   - [ ] No horizontal scroll
+   - [x] Hamburger menu works
+   - [x] (*) Sidebars stack on mobile
+   - [x] No horizontal scroll
+   
+>   Note: oooh, we definitely need to add an anchor to the form action, it comes back to the top even when called from a form at the bottom of the page. This has to be done in Form class, it is a generic issue that could affect any future form.
 
 ---
 
@@ -78,15 +97,29 @@ Some templates might have `<header>` tags inside content. These will render TWIC
 
 **Fix:** Remove content headers or use `@section('header')` override
 
+>   Note: The occasionnal content header is needed for special titles like on the calendar page (not displayed the standard way for readability and layout  optimization). The template has to "declare" it shows its own title so the main layout can hide it, 
+    - either with the older method but without adding <header> in the content, to use has(main #content h1.page-title) header{ @apply hidden }
+    - either by declaring a variable from the template and check it from the layout (cleaner, but in this case, the header would be missing for accessibility)
+    - anyway, we might need both. Some page won't include a title in the content, but won't either want the main title to be displayed (e.g. home page, a map page, a promo page...). They would have a technical title (for <head><title>) but it shouldn't be displayed.
+
+TL;DR: 3 use cases:
+    - Standard: template sets the title, layout displays it.
+    - Calendar-like: templates includes the title in a non-standard way, sets the title for layout but layout only uses it for <head>
+    - Home-like: neither template or layout show the title, it's set in template only for <head> and does not appear anywhere on the page
+
 ### 2. Sidebar References
 Any CSS/JS using `.sidebar` class won't work. 
 
 **Fix:** Change to `#sidebar-left` or `#sidebar-right`
 
+>   I added back the .sidebar class in the layout, to allow simpler rules applying to any sidebar.
+
 ### 3. Content Wrapper
 Any code checking for `#content-wrapper` will fail.
 
-**Fix:** Update selectors to use `.page-layout` or main/header/aside directly
+**Fix:** Update selectors to use `#page-layout` or main/header/aside directly
+
+>   maybe `#page-layout` could be called `#wrapper` or `#page-wrapper`, isn't it more common?
 
 ---
 

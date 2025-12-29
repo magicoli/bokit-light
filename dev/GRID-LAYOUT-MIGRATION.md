@@ -74,7 +74,7 @@ Most templates will work as-is, but check for:
 
 3. **Content wrapper references**
    - OLD: `#content-wrapper`
-   - NEW: Use `.page-layout` or specific grid areas
+   - NEW: Use `#page-layout` or specific grid areas
 
 ### Known Templates (Priority Order)
 
@@ -98,7 +98,7 @@ Most templates will work as-is, but check for:
 ### CSS Class Cleanup
 
 Search for and update:
-- `.main-column` → Remove (obsolete)
+- `.main-area` → Remove (obsolete)
 - `.header` (when referring to page header) → Use `header` element
 - `.title` → Use `h1` directly
 - `.sidebar` class → Use `#sidebar-left` or `#sidebar-right` IDs

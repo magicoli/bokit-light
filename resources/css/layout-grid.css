@@ -10,150 +10,129 @@
 
 @import "tailwindcss";
 
-.page-layout {
+@layer utilities {
+    /* ... */
+}
+
+#page-layout {
     @apply grid min-h-screen w-full bg-gray-100;
-    
-    /* Mobile: vertical stack */
+
+    /* Simple 3-row layout: nav, main-area, footer */
     grid-template-areas:
         "nav"
-        "header"
-        "main"
-        "sl"
-        "sr"
+        "main-area"
         "foot";
-    grid-template-rows: auto auto 1fr auto auto auto;
+    grid-template-rows: auto 1fr auto;
     grid-template-columns: 1fr;
-    
-    /* Medium (768px): sidebars side-by-side under main */
+
+    /* md (768px): sidebars side-by-side under main */
     @media (min-width: 768px) {
         @apply bg-gray-700;
-        grid-template-areas:
-            "nav    nav"
-            "header header"
-            "main   main"
-            "sl     sr"
-            "foot   foot";
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto 1fr auto auto;
     }
-    
-    /* Large (1024px): 3 columns layout */
-    @media (min-width: 1024px) {
-        grid-template-areas:
-            "nav    nav    nav"
-            "header header header"
-            "sl     main   sr"
-            "foot   foot   foot";
-        grid-template-columns: 350px 1fr 350px;
-        grid-template-rows: auto auto 1fr auto;
-    }
-    
-    /* 2XL (1536px): 5 columns when both sidebars, otherwise 4 */
-    @media (min-width: 1536px) {
-        /* Default: 4 columns (handles one sidebar case) */
-        grid-template-areas:
-            "nav    nav    nav    nav"
-            "header header header header"
-            "sl     main   main   sr"
-            "foot   foot   foot   foot";
-        grid-template-columns: 350px 1fr 1fr 350px;
-        grid-template-rows: auto auto 1fr auto;
-        
-        /* Both sidebars present: 5 columns */
-        &:has(#sidebar-left:not(:empty)):has(#sidebar-right:not(:empty)) {
-            grid-template-areas:
-                "nav    nav    nav    nav    nav"
-                "header header header header header"
-                "sl     main   main   main   sr"
-                "foot   foot   foot   foot   foot";
-            grid-template-columns: 350px 1fr 1fr 1fr 350px;
-        }
-    }
-    
+
     /* Grid area assignments */
     > nav {
         grid-area: nav;
+        @apply bg-gray-200;
         @apply sticky top-0 z-10;
     }
-    
-    > header {
-        grid-area: header;
-        @apply bg-gray-100 px-4 py-6;
-        
-        /* Hide header if empty */
-        &:not(:has(*)) {
-            @apply hidden;
+
+    > #main-area {
+        grid-area: main-area;
+        @apply grid gap-0;
+
+        > * {
+            @apply py-4 md:p-4;
         }
-        
-        /* Page title styling */
-        h1 {
-            @apply text-3xl font-bold text-gray-900 mb-2;
+
+        /* sm(640px): vertical stack */
+        grid-template-areas:
+            "main"
+            "sl"
+            "sr";
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto auto;
+
+        /* md(768px): sidebars side-by-side below */
+        @media (min-width: 768px) {
+            grid-template-areas:
+                "main   main"
+                "sl     sr";
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr;
         }
-        
-        .subtitle {
-            @apply text-gray-600;
+
+        /*&:has(.sidebar *) {*/
+        /* lg(1024px): sidebars beside main */
+        @media (min-width: 1024px) {
+            grid-template-areas:
+                "sl     main"
+                "sr     main";
+            grid-template-columns: 350px 1fr;
+            grid-template-rows: auto 1fr;
         }
-    }
-    
-    > main {
-        grid-area: main;
-        @apply bg-gray-100 p-4;
-        
-        /* No sidebars: constrain width */
-        &:not(:has(~ #sidebar-left:not(:empty))):not(:has(~ #sidebar-right:not(:empty))) {
-            @apply container max-w-6xl mx-auto;
+
+        /* 2xl(1536px): 3 columns */
+        @media (min-width: 1536px) {
+            grid-template-areas: "sl     main   sr";
+            grid-template-columns: 350px 1fr 350px;
+
+            /* Only left sidebar */
+            &:has(#sidebar-left *):not(:has(#sidebar-right *)) {
+                grid-template-areas: "sl     main";
+                grid-template-columns: 480px 1fr;
+            }
+
+            /* Only right sidebar */
+            &:has(#sidebar-right *):not(:has(#sidebar-left *)) {
+                grid-template-areas: "main   sr";
+                grid-template-columns: 1fr 480px;
+            }
         }
-        
-        /* Calendar exception: full width */
-        &:has(.calendar-wrapper) {
-            @apply max-w-none;
-            
+
+        > main {
+            @apply h-full;
             @media (min-width: 1536px) {
                 @apply max-w-none;
             }
         }
-    }
-    
-    > #sidebar-left {
-        grid-area: sl;
-        @apply p-4;
-        
-        /* Hide if empty */
-        &:empty {
-            @apply hidden;
+        /*}*/
+
+        > main {
+            @apply bg-gray-100 space-y-8;
+
+            > header {
+                &:not(:has(*)) {
+                    @apply hidden;
+                }
+            }
         }
-        
-        @media (min-width: 1024px) {
-            @apply h-fit;
-        }
-        
-        @media (min-width: 1536px) {
-            @apply h-full;
-        }
-    }
-    
-    > #sidebar-right {
-        grid-area: sr;
-        @apply p-4;
-        
-        /* Hide if empty */
-        &:empty {
-            @apply hidden;
-        }
-        
-        @media (min-width: 1024px) {
-            @apply h-fit;
-        }
-        
-        @media (min-width: 1536px) {
-            @apply h-full;
+
+        .sidebar {
+            @apply p-4 sticky inset-y-16;
+
+            /*&:not(:has(*)) {
+                @apply hidden;
+            }*/
+
+            @media (min-width: 1024px) {
+                @apply h-fit;
+            }
+
+            &#sidebar-left {
+                grid-area: sl;
+            }
+
+            &#sidebar-right {
+                grid-area: sr;
+            }
         }
     }
-    
+
     > footer {
         grid-area: foot;
         @apply sticky bottom-0 z-10;
-        
+
         /* Hide footer if empty */
         &:not(:has(*)) {
             @apply hidden;
@@ -161,31 +140,22 @@
     }
 }
 
-/* Sidebar container query support */
+/* Container query support for sidebars */
 #sidebar-left,
 #sidebar-right {
     container-type: inline-size;
 }
 
 /* Reset margins for first/last children */
-main > :first-child,
-#sidebar-left > :first-child,
-#sidebar-right > :first-child {
-    @apply mt-0;
-}
+#main-area > header,
+#main-area > main,
+.sidebar,
+.card {
+    > :first-child {
+        @apply mt-0;
+    }
 
-main > :last-child,
-#sidebar-left > :last-child,
-#sidebar-right > :last-child {
-    @apply mb-0;
-}
-
-/* Calendar special case: hide sidebars */
-.page-layout:has(.calendar-wrapper) {
-    @media (min-width: 1024px) {
-        #sidebar-left,
-        #sidebar-right {
-            @apply hidden;
-        }
+    > :last-child {
+        @apply mb-0;
     }
 }
