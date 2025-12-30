@@ -4,7 +4,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -73,9 +72,9 @@ class AdminMenuService
             "type" => "core",
             "route" => "admin.dashboard",
             "title_key" => "admin.dashboard",
-            "icon" => "iconic-dashboard",
+            "icon" => "dashboard",
             "parent" => null,
-            "order" => 5,
+            "order" => 1,
         ];
 
         // Settings - admin only - check at MENU BUILD time
@@ -86,9 +85,9 @@ class AdminMenuService
                 "type" => "core",
                 "route" => "admin.settings",
                 "title_key" => "admin.general_settings",
-                "icon" => "iconic-settings-sliders",
+                "icon" => "settings-sliders",
                 "parent" => null,
-                "order" => 6,
+                "order" => 5,
             ];
         }
     }
@@ -220,17 +219,17 @@ class AdminMenuService
         // Get children for this item
         $itemChildren = $children[$item["resource_name"] ?? null] ?? [];
 
-        // Render icon if present (use Blade::render for dynamic components)
+        // Render icon using helper function
         $iconHtml = "";
         if ($icon = $item["icon"] ?? null) {
-            $iconHtml = "<x-{$icon} class='icon' />";
+            $iconHtml = icon($icon);
         }
 
         $html = sprintf(
             '<li class="menu-item">
                 <a href="%s" aria-current="%s">
-                    %s <!-- icon -->
-                    %s <!-- title -->
+                    <span class="icon">%s</span>
+                    <span class="title">%s</span>
                 </a>
                 %s <!-- children -->
             </li>',

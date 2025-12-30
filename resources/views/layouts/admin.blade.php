@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@vite('resources/css/admin.css')
 
 @section('sidebar-left')
     {{-- Admin menu for sidebar-left - DYNAMIC --}}

@@ -42,9 +42,6 @@
     <!-- App Styles -->
     @vite('resources/css/layout-grid.css')
     @vite('resources/css/app.css')
-    @if(str_contains(View::getSection('body-class', ''), 'admin'))
-        @vite('resources/css/admin.css')
-    @endif
     @yield('styles')
 
     <!-- Alpine.js -->
