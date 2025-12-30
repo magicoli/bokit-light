@@ -7,6 +7,7 @@ export default defineConfig({
         laravel({
             input: [
                 "resources/css/app.css",
+                "resources/css/admin.css",
                 "resources/css/calendar.css",
                 "resources/css/forms.css",
                 "resources/css/layout-flex.css",

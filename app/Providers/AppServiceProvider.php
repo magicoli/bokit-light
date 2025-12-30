@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register AdminMenuService as singleton
+        $this->app->singleton(\App\Services\AdminMenuService::class);
     }
 
     /**
@@ -23,6 +25,36 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->ensureConfigIsLoaded();
         $this->createStorageStructure();
+        $this->registerGates();
+    }
+
+    /**
+     * Register authorization gates
+     */
+    private function registerGates(): void
+    {
+        // Admin gate - full access to everything
+        Gate::define('admin', fn($user) => $user && $user->is_admin);
+
+        // Manage resource gate - admin or owner
+        Gate::define('manage-resource', function ($user, $resource) {
+            if (!$user) {
+                return false;
+            }
+            
+            // Admins can manage everything
+            if ($user->is_admin) {
+                return true;
+            }
+            
+            // Owner can manage their own resources
+            if (method_exists($resource, 'isOwnedBy')) {
+                return $resource->isOwnedBy($user);
+            }
+            
+            // Fallback to owner_id check
+            return isset($resource->owner_id) && $resource->owner_id === $user->id;
+        });
     }
 
     /**
