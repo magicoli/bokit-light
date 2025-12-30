@@ -171,3 +171,45 @@ if (!function_exists("sanitize_field_value")) {
         return (string) $value;
     }
 }
+
+if (!function_exists("icon")) {
+    /**
+     * Get icon HTML from SVG file
+     *
+     * Simple, unified way to get icons. Change one line to switch icon libraries.
+     *
+     * @param string $name Icon name (e.g., 'dashboard', 'settings-sliders')
+     * @param string $class CSS classes to add (default: 'w-4 h-4 inline')
+     * @return string HTML/SVG content or empty string if not found
+     *
+     * @example
+     *   icon('dashboard')
+     *   icon('settings-sliders', 'w-6 h-6')
+     */
+    function icon(string $name, string $class = "w-4 h-4 inline"): string
+    {
+        // Path to iconic SVG files
+        // Change this line to switch to another icon library
+        $path = base_path(
+            "vendor/itsmalikjones/blade-iconic/resources/svg/{$name}.svg",
+        );
+
+        if (!file_exists($path)) {
+            return "[$name]";
+        }
+
+        $svg = file_get_contents($path);
+
+        // Add class attribute to <svg> tag
+        if ($class && strpos($svg, "<svg") !== false) {
+            $svg = preg_replace(
+                "/<svg([^>]*)>/",
+                '<svg$1 class="' . htmlspecialchars($class) . '">',
+                $svg,
+                1,
+            );
+        }
+
+        return $svg;
+    }
+}

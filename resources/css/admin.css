@@ -34,6 +34,7 @@ body.admin {
 
 /* Admin sidebar menu */
 nav#admin-menu {
+    @apply text-gray-400;
     /* Styling handled by Tailwind in menu.blade.php */
     h3.menu-title {
         @apply p-4;
@@ -45,11 +46,28 @@ nav#admin-menu {
             @apply block;
 
             a {
-                @apply px-4 py-2;
-                @apply block w-full;
-
+                @apply block w-full flex flex-row gap-1 px-4 py-2;
+                .icon {
+                    @apply size-6;
+                    svg {
+                        @apply size-6;
+                    }
+                }
+                .title {
+                    @apply flex-grow;
+                }
                 &:hover {
-                    @apply underline underline-offset-8 decoration-2 text-pink-500;
+                    /*@apply underline underline-offset-8 decoration-2 text-pink-500;*/
+                    @apply text-gray-200;
+                }
+
+                &:active,
+                &[aria-current="page"] {
+                    @apply bg-pink-500 text-gray-700 rounded-s-2xl ml-2 pl-2;
+                }
+
+                &[aria-current="page"] {
+                    @apply bg-gray-100 text-gray-700;
                 }
             }
         }
