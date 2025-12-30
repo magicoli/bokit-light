@@ -5,6 +5,12 @@ return [
     "dashboard" => "Tableau de bord",
     "settings" => "Paramètres",
     "general_settings" => "Paramètres généraux",
+    
+    // Common actions
+    "list" => "Liste",
+    "add" => "Ajouter",
+    
+    // Resources
     "bookings" => "Réservations",
     "properties" => "Propriétés",
     "rental_units" => "Unités de location",
