@@ -158,16 +158,22 @@ if ($isInstalled) {
             "user.settings",
         );
 
-        // Admin settings (TODO: add admin-only middleware)
-        Route::get("/admin/settings", [
-            AdminController::class,
-            "settings",
-        ])->name("admin.settings");
+        // Admin routes (protected by admin middleware)
+        Route::middleware('admin')->group(function () {
+            Route::get("/admin", function () {
+                return view("admin.dashboard");
+            })->name("admin.dashboard");
 
-        Route::post("/admin/settings", [
-            AdminController::class,
-            "saveSettings",
-        ])->name("admin.settings.save");
+            Route::get("/admin/settings", [
+                AdminController::class,
+                "settings",
+            ])->name("admin.settings");
+
+            Route::post("/admin/settings", [
+                AdminController::class,
+                "saveSettings",
+            ])->name("admin.settings.save");
+        });
 
         // Rates management
         Route::get("/rates", [RatesController::class, "index"])->name("rates");

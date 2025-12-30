@@ -3,13 +3,22 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '09f62b99192d5ac83d2565d194928f4622f4d2cb',
+        'reference' => '4d42ffe320d6f29a460de8ac7079e3e2171e7835',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
+        'blade-ui-kit/blade-icons' => array(
+            'pretty_version' => '1.8.0',
+            'version' => '1.8.0.0',
+            'reference' => '7b743f27476acb2ed04cb518213d78abe096e814',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../blade-ui-kit/blade-icons',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'brianium/paratest' => array(
             'pretty_version' => 'v7.8.4',
             'version' => '7.8.4.0',
@@ -409,6 +418,15 @@
                 0 => 'v12.42.0',
             ),
         ),
+        'itsmalikjones/blade-iconic' => array(
+            'pretty_version' => '1.3.0',
+            'version' => '1.3.0.0',
+            'reference' => 'f46e05a4edf4e020971e687153d7a4e1e707aa40',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../itsmalikjones/blade-iconic',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'jean85/pretty-package-versions' => array(
             'pretty_version' => '2.1.1',
             'version' => '2.1.1.0',
@@ -436,7 +454,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '09f62b99192d5ac83d2565d194928f4622f4d2cb',
+            'reference' => '4d42ffe320d6f29a460de8ac7079e3e2171e7835',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

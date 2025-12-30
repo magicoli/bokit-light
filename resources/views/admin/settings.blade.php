@@ -1,24 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', __('app.admin_settings'))
+@section('title', __('admin.general_settings'))
 @section('body-class', 'admin admin-settings')
 
-@section('sidebar-left')
-    @include('admin.partials.menu')
-@endsection
-
 @section('content')
-<div class="prose max-w-4xl">
-    <h1>{{ __('app.admin_settings') }}</h1>
-    <p class="lead">{{ __('app.admin_settings_description') }}</p>
-</div>
-
-@if(session('success'))
-    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded my-6">
-        {{ session('success') }}
-    </div>
-@endif
-
 <form method="POST" action="{{ route('admin.settings.save') }}" class="bg-white rounded-lg shadow-sm p-6 max-w-4xl">
     @csrf
 
@@ -27,7 +12,7 @@
         <label for="display_timezone" class="block text-sm font-medium text-gray-700 mb-2">
             {{ __('app.display_timezone') }}
         </label>
-        <select name="display_timezone" id="display_timezone" 
+        <select name="display_timezone" id="display_timezone"
                 class="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             @php
                 $currentTz = options('display.timezone', config('app.timezone', 'UTC'));
@@ -45,7 +30,7 @@
     </div>
 
     <div class="flex justify-end">
-        <button type="submit" 
+        <button type="submit"
                 class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
             {{ __('app.save_settings') }}
         </button>

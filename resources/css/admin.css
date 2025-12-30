@@ -7,29 +7,59 @@
 
 /* Admin body classes for customization */
 body.admin {
+    #page-layout > #main-area .sidebar#sidebar-left {
+        @apply p-0;
+    }
+
     /* Reserved for future admin-specific styling */
+    /* Admin page-specific overrides */
+    &.admin-dashboard {
+        /* Dashboard-specific styles */
+    }
+
+    &.admin-settings {
+        /* Settings-specific styles */
+    }
+
+    /* Admin forms - extend forms.css */
+    &.admin form {
+        /* Admin-specific form overrides if needed */
+    }
+
+    /* Admin tables - extend DataList styles */
+    &.admin table {
+        /* Admin-specific table overrides if needed */
+    }
 }
 
 /* Admin sidebar menu */
-.admin-menu {
+nav#admin-menu {
     /* Styling handled by Tailwind in menu.blade.php */
-}
+    h3.menu-title {
+        @apply p-4;
+        @apply text-xs font-semibold text-gray-500 uppercase tracking-wider;
+    }
 
-/* Admin page-specific overrides */
-body.admin-dashboard {
-    /* Dashboard-specific styles */
-}
+    > ul.menu-list {
+        .menu-item {
+            @apply block;
 
-body.admin-settings {
-    /* Settings-specific styles */
-}
+            a {
+                @apply px-4 py-2;
+                @apply block w-full;
 
-/* Admin forms - extend forms.css */
-body.admin form {
-    /* Admin-specific form overrides if needed */
-}
+                &:hover {
+                    @apply underline underline-offset-8 decoration-2 text-pink-500;
+                }
+            }
+        }
 
-/* Admin tables - extend DataList styles */
-body.admin table {
-    /* Admin-specific table overrides if needed */
+        ul {
+            @apply ms-4;
+        }
+
+        .spacer {
+            @apply my-4;
+        }
+    }
 }

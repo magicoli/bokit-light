@@ -1,0 +1,51 @@
+{
+    "name": "itsmalikjones/blade-iconic",
+    "description": "A package to easily make use of Iconic icons in your Laravel Blade views",
+    "keywords": [
+        "Blade",
+        "Iconic",
+        "Laravel"
+    ],
+    "homepage": "https://github.com/itsmalikjones/blade-iconic",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/itsmalikjones/blade-iconic/issues",
+        "source": "https://github.com/itsmalikjones/blade-iconic"
+    },
+    "authors": [
+        {
+            "name": "Malik Alleyne-Jones",
+            "homepage": "https://twitter.com/ItsMalikJones"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0|^8.1",
+        "blade-ui-kit/blade-icons": "^1.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.15|^7.0|^8.0",
+        "phpunit/phpunit": "^9.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "ItsMalikJones\\BladeIconic\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ItsMalikJones\\BladeIconic\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ItsMalikJones\\BladeIconic\\BladeIconicServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
