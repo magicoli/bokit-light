@@ -103,39 +103,44 @@ trait AdminResourceTrait
         $children = [];
 
         if (in_array("list", $routes)) {
+            $routeName = "admin.{$resourceName}.index";
             $children[] = [
                 "label" => __("admin.list"),
-                "url" => route("admin.{$resourceName}.index"),
+                "url" => Route::has($routeName) ? route($routeName) : null,
                 "icon" => null,
+                "resource_name" => "{$resourceName}.list",
             ];
         }
 
         if (in_array("add", $routes)) {
+            $routeName = "admin.{$resourceName}.create";
             $children[] = [
                 "label" => __("admin.add"),
-                "url" => route("admin.{$resourceName}.create"),
+                "url" => Route::has($routeName) ? route($routeName) : null,
                 "icon" => null,
+                "resource_name" => "{$resourceName}.add",
             ];
         }
 
         if (in_array("settings", $routes)) {
+            $routeName = "admin.{$resourceName}.settings";
             $children[] = [
                 "label" => __("admin.settings"),
-                "url" => route("admin.{$resourceName}.settings"),
+                "url" => Route::has($routeName) ? route($routeName) : null,
                 "icon" => null,
+                "resource_name" => "{$resourceName}.settings",
             ];
         }
 
-        // Parent URL = first child URL (list by default)
-        $parentUrl = $children[0]["url"] ?? "#";
+        // Parent gets same URL as first child (typically list)
+        $parentUrl = $children[0]["url"] ?? null;
 
         return [
             "model_class" => static::class,
             "label" => $config["label"] ?? ucfirst($resourceName),
-            "icon" => $config["icon"] ?? "",
+            "icon" => $config["icon"] ?? null,
             "url" => $parentUrl,
             "order" => $config["order"] ?? 100,
-            "admin_only" => $config["admin_only"] ?? false,
             "resource_name" => $resourceName,
             "children" => $children,
         ];
@@ -192,10 +197,9 @@ trait AdminResourceTrait
     {
         return [
             "label" => ucfirst(static::getResourceName()),
-            "icon" => "",
+            "icon" => null,
             "routes" => ["list", "add", "edit", "settings"],
             "order" => 100,
-            "admin_only" => false,
         ];
     }
 }

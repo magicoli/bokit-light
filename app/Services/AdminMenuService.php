@@ -63,31 +63,32 @@ class AdminMenuService
 
     /**
      * Add core admin items (dashboard, settings)
-     * Check auth HERE so it happens at menu generation, not at route load
      */
     protected function addCoreItems(): void
     {
         // Dashboard - accessible to all admin middleware users
         $this->menuItems[] = [
-            "type" => "core",
-            "route" => "admin.dashboard",
-            "title_key" => "admin.dashboard",
+            "label" => __("admin.dashboard"),
+            "url" => Route::has("admin.dashboard")
+                ? route("admin.dashboard")
+                : null,
             "icon" => "dashboard",
-            "parent" => null,
             "order" => 1,
+            "resource_name" => "dashboard",
+            "children" => [],
         ];
 
-        // Settings - admin only - check at MENU BUILD time
-        // Use optional() to avoid errors if auth not ready yet
-        $user = optional(auth()->user());
-        if ($user && $user->is_admin) {
+        // Settings - admin only
+        if (user_can("manage", \App\Models\User::class)) {
             $this->menuItems[] = [
-                "type" => "core",
-                "route" => "admin.settings",
-                "title_key" => "admin.general_settings",
+                "label" => __("admin.general_settings"),
+                "url" => Route::has("admin.settings")
+                    ? route("admin.settings")
+                    : null,
                 "icon" => "settings-sliders",
-                "parent" => null,
                 "order" => 5,
+                "resource_name" => "settings",
+                "children" => [],
             ];
         }
     }
@@ -115,44 +116,15 @@ class AdminMenuService
                     try {
                         $config = $className::adminMenuConfig();
 
-                        // Check permissions
-                        if ($config["admin_only"] ?? false) {
-                            $user = optional(auth()->user());
-                            if (!$user || !$user->is_admin) {
-                                continue;
-                            }
+                        // Check permissions with user_can()
+                        if (!user_can("manage", $className)) {
+                            continue;
                         }
 
-                        // Add parent resource menu
-                        $resourceName = $config["resource_name"];
-                        $parentItem = [
-                            "type" => "resource",
-                            "route" => "admin.{$resourceName}.list",
-                            "title" => $config["label"],
-                            "icon" => $config["icon"] ?? null,
-                            "parent" => null,
-                            "order" => $config["order"] ?? 10,
-                            "resource_name" => $resourceName,
-                            "model_class" => $config["model_class"],
-                        ];
-
-                        $this->menuItems[] = $parentItem;
-
-                        // Add sub-menu items (list, add, settings)
-                        foreach ($config["routes"] as $routeType) {
-                            $routeName = "admin.{$resourceName}.{$routeType}";
-
-                            $this->menuItems[] = [
-                                "type" => "resource-sub",
-                                "route" => $routeName,
-                                "title_key" => "admin.{$routeType}",
-                                "icon" => null,
-                                "parent" => $resourceName,
-                                "order" => $config["order"] ?? 10,
-                            ];
-                        }
+                        // Add parent resource menu with children
+                        $this->menuItems[] = $config;
                     } catch (\Exception $e) {
-                        Log::error($e->getMessage());
+                        Log::error("AdminMenuService: " . $e->getMessage());
                     }
                 }
             }
@@ -203,41 +175,56 @@ class AdminMenuService
 
     public function menuItemHtml(array $item): string
     {
-        // if (!Route::has($item['route'])) return;
-        //
-        try {
-            $route = Route::has($item["route"]) ? route($item["route"]) : "#";
-            $active = request()->routeIs($item["route"]) ? "page" : "false";
-        } catch (Exception $e) {
-            $route = "#";
-            $active = "false";
+        // Get URL and determine classes
+        $url = $item["url"] ?? null;
+        $classes = ["menu-item"];
+
+        if (!$url) {
+            $classes[] = "disabled";
+            $classes[] = "not-found";
+            $url = "#";
+        }
+
+        // Check if current page
+        $isCurrent = false;
+        if ($url !== "#") {
+            try {
+                $currentUrl = request()->url();
+                $isCurrent = $url === $currentUrl;
+            } catch (\Exception $e) {
+                // Ignore
+            }
         }
 
         // Get title
-        $title = $item["title"] ?? __($item["title_key"] ?? "app.untitled");
+        $title = $item["label"] ?? __("app.untitled");
 
-        // Get children for this item
-        $itemChildren = $children[$item["resource_name"] ?? null] ?? [];
-
-        // Render icon using helper function
+        // Render icon only if present
         $iconHtml = "";
-        if ($icon = $item["icon"] ?? null) {
-            $iconHtml = icon($icon);
+        if (!empty($item["icon"])) {
+            $iconHtml = icon($item["icon"]);
+        }
+
+        // Render children recursively
+        $childrenHtml = "";
+        if (!empty($item["children"])) {
+            $childrenHtml = $this->menuListHtml($item["children"]);
         }
 
         $html = sprintf(
-            '<li class="menu-item">
+            '<li class="%s">
                 <a href="%s" aria-current="%s">
-                    <span class="icon">%s</span>
+                    %s
                     <span class="title">%s</span>
                 </a>
-                %s <!-- children -->
+                %s
             </li>',
-            $route,
-            $active,
-            $iconHtml,
-            $title,
-            empty($itemChildren) ? "" : $this->menuListHtml($itemChildren),
+            implode(" ", $classes),
+            htmlspecialchars($url),
+            $isCurrent ? "page" : "false",
+            $iconHtml ? '<span class="icon">' . $iconHtml . "</span>" : "",
+            htmlspecialchars($title),
+            $childrenHtml,
         );
 
         return $html;
