@@ -33,6 +33,6 @@ Route::middleware(["web", "admin"])
             "saveSettings",
         ])->name("settings.save");
 
-        // Dynamic resource routes will be registered by models using AdminResourceTrait
-        // Called from AppServiceProvider after auth is available
+        // Resource routes - Models using AdminResourceTrait
+        \App\Models\Booking::registerAdminRoutes();
     });

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\TimezoneTrait;
+use App\Traits\AdminResourceTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    use SoftDeletes, TimezoneTrait;
+    use SoftDeletes, TimezoneTrait, AdminResourceTrait;
 
     protected $fillable = [
         "unit_id",
@@ -344,4 +345,22 @@ class Booking extends Model
     {
         return $this->hasMany(SourceMapping::class);
     }
+
+    /**
+     * Admin resource configuration
+     *
+     * WE DO NOT IMPLEMENT YET,
+     * FIRST WE MAKE SURE THAT ANY MODEL WITH ONLY THE TRAIT ENABLED
+     * WILL BEHAVE PROPERLY
+     */
+    // public static function adminConfig(): array
+    // {
+    //     return [
+    //         'label' => __('admin.bookings'),
+    //         'icon' => 'calendar',
+    //         'routes' => ['list', 'add', 'settings'],
+    //         'order' => 10,
+    //         'admin_only' => false,
+    //     ];
+    // }
 }

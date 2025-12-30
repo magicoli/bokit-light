@@ -48,6 +48,10 @@ nav#admin-menu {
             a {
                 @apply block w-full flex flex-row gap-1 px-4 py-2;
                 .icon {
+                    &:empty,
+                    &:not(:has(*)) {
+                        @apply hidden;
+                    }
                     @apply size-6;
                     svg {
                         @apply size-6;
