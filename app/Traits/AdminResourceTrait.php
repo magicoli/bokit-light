@@ -36,57 +36,87 @@ trait AdminResourceTrait
     {
         $config = static::adminConfig();
         $resourceName = $config["resource_name"] ?? static::getResourceName();
-        $controllerClass = "App\Http\Controllers\AdminResourceController";
 
-        // List
+        // Index/List - main resource route
+        Route::get("/{$resourceName}", function () use ($resourceName) {
+            return app(
+                \App\Http\Controllers\AdminResourceController::class,
+            )->index($resourceName);
+        })->name("{$resourceName}.index");
+
+        // Explicit list route (same as index for now)
         if (in_array("list", $config["routes"] ?? [])) {
-            Route::get("/{$resourceName}", [$controllerClass, "index"])->name(
-                "{$resourceName}.index",
-            );
+            Route::get("/{$resourceName}/list", function () use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->list($resourceName);
+            })->name("{$resourceName}.list");
         }
 
         // Add
         if (in_array("add", $config["routes"] ?? [])) {
-            Route::get("/{$resourceName}/create", [
-                $controllerClass,
-                "create",
-            ])->name("{$resourceName}.create");
-            Route::post("/{$resourceName}", [$controllerClass, "store"])->name(
-                "{$resourceName}.store",
-            );
+            Route::get("/{$resourceName}/create", function () use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->create($resourceName);
+            })->name("{$resourceName}.create");
+            Route::post("/{$resourceName}", function () use ($resourceName) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->store(request(), $resourceName);
+            })->name("{$resourceName}.store");
         }
 
         // Edit
         if (in_array("edit", $config["routes"] ?? [])) {
-            Route::get("/{$resourceName}/{id}/edit", [
-                $controllerClass,
-                "edit",
-            ])->name("{$resourceName}.edit");
-            Route::put("/{$resourceName}/{id}", [
-                $controllerClass,
-                "update",
-            ])->name("{$resourceName}.update");
-            Route::delete("/{$resourceName}/{id}", [
-                $controllerClass,
-                "destroy",
-            ])->name("{$resourceName}.destroy");
+            Route::get("/{$resourceName}/{id}/edit", function ($id) use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->edit($resourceName, $id);
+            })->name("{$resourceName}.edit");
+            Route::put("/{$resourceName}/{id}", function ($id) use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->update(request(), $resourceName, $id);
+            })->name("{$resourceName}.update");
+            Route::delete("/{$resourceName}/{id}", function ($id) use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->destroy($resourceName, $id);
+            })->name("{$resourceName}.destroy");
         }
 
         // Settings
         if (in_array("settings", $config["routes"] ?? [])) {
-            Route::get("/{$resourceName}/settings", [
-                $controllerClass,
-                "settings",
-            ])->name("{$resourceName}.settings");
-            Route::post("/{$resourceName}/settings", [
-                $controllerClass,
-                "saveSettings",
-            ])->name("{$resourceName}.settings.save");
+            Route::get("/{$resourceName}/settings", function () use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->settings($resourceName);
+            })->name("{$resourceName}.settings");
+            Route::post("/{$resourceName}/settings", function () use (
+                $resourceName,
+            ) {
+                return app(
+                    \App\Http\Controllers\AdminResourceController::class,
+                )->saveSettings(request(), $resourceName);
+            })->name("{$resourceName}.settings.save");
         }
 
         // Custom routes
         if (isset($config["custom_routes"])) {
-            $config["custom_routes"]($resourceName, $controllerClass);
+            $config["custom_routes"]($resourceName);
         }
     }
 
@@ -103,7 +133,7 @@ trait AdminResourceTrait
         $children = [];
 
         if (in_array("list", $routes)) {
-            $routeName = "admin.{$resourceName}.index";
+            $routeName = "admin.{$resourceName}.list";
             $children[] = [
                 "label" => __("admin.list"),
                 "url" => Route::has($routeName) ? route($routeName) : null,
@@ -147,44 +177,9 @@ trait AdminResourceTrait
     }
 
     /**
-     * Scope query to current user's resources (unless admin)
-     */
-    public function scopeOwnedByCurrentUser(Builder $query): Builder
-    {
-        $user = auth()->user();
-
-        if (!$user) {
-            return $query->whereRaw("1 = 0"); // No results
-        }
-
-        if ($user->is_admin) {
-            return $query; // Admins see everything
-        }
-
-        // Owner-based filtering
-        return $query->where("owner_id", $user->id);
-    }
-
-    /**
-     * Check if resource is owned by user
-     */
-    public function isOwnedBy($user): bool
-    {
-        if (!$user) {
-            return false;
-        }
-
-        if ($user->is_admin) {
-            return true;
-        }
-
-        return $this->owner_id === $user->id;
-    }
-
-    /**
      * Get resource name (plural, lowercase)
      */
-    protected static function getResourceName(): string
+    public static function getResourceName(): string
     {
         $className = class_basename(static::class);
         return strtolower(str($className)->plural());

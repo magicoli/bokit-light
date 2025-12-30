@@ -67,12 +67,23 @@ nav#admin-menu {
 
                 &:active,
                 &[aria-current="page"] {
-                    @apply bg-pink-500 text-gray-700 rounded-s-2xl ml-2 pl-2;
+                    @apply rounded-s-2xl ml-2 pl-2;
                 }
 
-                &[aria-current="page"] {
+                &:active {
+                    @apply bg-pink-500  text-gray-700;
+                }
+            }
+
+            :has(a[aria-current="page"]):not(:has(li a[aria-current="page"])) {
+                > a[aria-current="page"] {
                     @apply bg-gray-100 text-gray-700;
                 }
+            }
+
+            li a:active,
+            li a[aria-current="page"] {
+                @apply rounded-s-2xl ml-0 pl-4;
             }
 
             /* Disabled/not-found menu items */

@@ -20,11 +20,11 @@ class AdminResourceController extends Controller
     {
         $className = Str::studly(Str::singular($resource));
         $modelClass = "App\\Models\\{$className}";
-        
+
         if (!class_exists($modelClass)) {
             abort(404, "Model {$modelClass} not found");
         }
-        
+
         return $modelClass;
     }
 
@@ -33,25 +33,27 @@ class AdminResourceController extends Controller
      */
     public function index(string $resource)
     {
+        // Index redirects to list by default
+        return $this->list($resource);
+    }
+
+    /**
+     * Show the form for creating a new resource
+     */
+    public function list(string $resource)
+    {
         $modelClass = $this->getModelClass($resource);
-        $model = new $modelClass;
-        
-        // Get items with optional owner scope
-        $query = $modelClass::query();
-        if (method_exists($model, 'scopeOwnedByCurrentUser')) {
-            $query->ownedByCurrentUser();
+
+        // Check permissions
+        if (!user_can("manage", $modelClass)) {
+            abort(403);
         }
-        
-        $items = $query->paginate(50);
-        
-        // Build DataList
-        $dataList = new DataList($model, "admin.{$resource}");
-        $dataList->items($items);
-        
-        return view('admin.resource.index', [
-            'resource' => $resource,
-            'dataList' => $dataList,
-            'items' => $items,
+
+        $model = new $modelClass();
+
+        return view("admin.resource.list", [
+            "resource" => $resource,
+            "model" => $model,
         ]);
     }
 
@@ -61,11 +63,17 @@ class AdminResourceController extends Controller
     public function create(string $resource)
     {
         $modelClass = $this->getModelClass($resource);
-        $model = new $modelClass;
-        
-        return view('admin.resource.create', [
-            'resource' => $resource,
-            'model' => $model,
+
+        // Check permissions
+        if (!user_can("manage", $modelClass)) {
+            abort(403);
+        }
+
+        $model = new $modelClass();
+
+        return view("admin.resource.create", [
+            "resource" => $resource,
+            "model" => $model,
         ]);
     }
 
@@ -75,12 +83,18 @@ class AdminResourceController extends Controller
     public function store(Request $request, string $resource)
     {
         $modelClass = $this->getModelClass($resource);
-        
+
+        // Check permissions
+        if (!user_can("manage", $modelClass)) {
+            abort(403);
+        }
+
         // TODO: Validation
         $item = $modelClass::create($request->all());
-        
-        return redirect()->route("admin.{$resource}.index")
-            ->with('success', __('Item created successfully'));
+
+        return redirect()
+            ->route("admin.{$resource}.index")
+            ->with("success", __("Item created successfully"));
     }
 
     /**
@@ -90,15 +104,15 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $model = $modelClass::findOrFail($id);
-        
-        // Check ownership
-        if (method_exists($model, 'isOwnedBy') && !$model->isOwnedBy(auth()->user())) {
+
+        // Check permissions
+        if (!user_can("edit", $model)) {
             abort(403);
         }
-        
-        return view('admin.resource.edit', [
-            'resource' => $resource,
-            'model' => $model,
+
+        return view("admin.resource.edit", [
+            "resource" => $resource,
+            "model" => $model,
         ]);
     }
 
@@ -109,17 +123,18 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $model = $modelClass::findOrFail($id);
-        
-        // Check ownership
-        if (method_exists($model, 'isOwnedBy') && !$model->isOwnedBy(auth()->user())) {
+
+        // Check permissions
+        if (!user_can("edit", $model)) {
             abort(403);
         }
-        
+
         // TODO: Validation
         $model->update($request->all());
-        
-        return redirect()->route("admin.{$resource}.index")
-            ->with('success', __('Item updated successfully'));
+
+        return redirect()
+            ->route("admin.{$resource}.index")
+            ->with("success", __("Item updated successfully"));
     }
 
     /**
@@ -129,16 +144,17 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $model = $modelClass::findOrFail($id);
-        
-        // Check ownership
-        if (method_exists($model, 'isOwnedBy') && !$model->isOwnedBy(auth()->user())) {
+
+        // Check permissions
+        if (!user_can("delete", $model)) {
             abort(403);
         }
-        
+
         $model->delete();
-        
-        return redirect()->route("admin.{$resource}.index")
-            ->with('success', __('Item deleted successfully'));
+
+        return redirect()
+            ->route("admin.{$resource}.index")
+            ->with("success", __("Item deleted successfully"));
     }
 
     /**
@@ -147,11 +163,17 @@ class AdminResourceController extends Controller
     public function settings(string $resource)
     {
         $modelClass = $this->getModelClass($resource);
-        $model = new $modelClass;
-        
-        return view('admin.resource.settings', [
-            'resource' => $resource,
-            'model' => $model,
+
+        // Check permissions
+        if (!user_can("manage", $modelClass)) {
+            abort(403);
+        }
+
+        $model = new $modelClass();
+
+        return view("admin.resource.settings", [
+            "resource" => $resource,
+            "model" => $model,
         ]);
     }
 
@@ -160,9 +182,17 @@ class AdminResourceController extends Controller
      */
     public function saveSettings(Request $request, string $resource)
     {
+        $modelClass = $this->getModelClass($resource);
+
+        // Check permissions
+        if (!user_can("manage", $modelClass)) {
+            abort(403);
+        }
+
         // TODO: Implement settings save
-        
-        return redirect()->route("admin.{$resource}.settings")
-            ->with('success', __('Settings saved successfully'));
+
+        return redirect()
+            ->route("admin.{$resource}.settings")
+            ->with("success", __("Settings saved successfully"));
     }
 }
