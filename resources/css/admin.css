@@ -74,6 +74,17 @@ nav#admin-menu {
                     @apply bg-gray-100 text-gray-700;
                 }
             }
+
+            /* Disabled/not-found menu items */
+            &.disabled,
+            &.not-found {
+                a {
+                    @apply opacity-50 cursor-not-allowed;
+                    &:hover {
+                        @apply text-gray-400;
+                    }
+                }
+            }
         }
 
         ul {

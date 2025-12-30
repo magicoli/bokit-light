@@ -213,3 +213,30 @@ if (!function_exists("icon")) {
         return $svg;
     }
 }
+
+if (!function_exists("user_can")) {
+    /**
+     * Check if current user has permission
+     *
+     * Alias for auth()->user()->can() that handles null user gracefully.
+     * This is the ONLY place where we check user permissions.
+     *
+     * @param string $ability Ability to check (e.g., 'manage', 'view', 'edit', 'delete')
+     * @param mixed $model Model class or instance to check against
+     * @return bool True if user has permission, false otherwise
+     *
+     * @example
+     *   user_can('manage', \App\Models\Booking::class)
+     *   user_can('edit', $booking)
+     */
+    function user_can(string $ability, mixed $model): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        return $user->can($ability, $model);
+    }
+}

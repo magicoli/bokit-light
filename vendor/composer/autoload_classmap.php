@@ -17,6 +17,7 @@ return array(
     'App\\Contracts\\BookingSyncInterface' => $baseDir . '/app/Contracts/BookingSyncInterface.php',
     'App\\Http\\Controllers\\AboutController' => $baseDir . '/app/Http/Controllers/AboutController.php',
     'App\\Http\\Controllers\\AdminController' => $baseDir . '/app/Http/Controllers/AdminController.php',
+    'App\\Http\\Controllers\\AdminResourceController' => $baseDir . '/app/Http/Controllers/AdminResourceController.php',
     'App\\Http\\Controllers\\CalendarController' => $baseDir . '/app/Http/Controllers/CalendarController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\InstallController' => $baseDir . '/app/Http/Controllers/InstallController.php',

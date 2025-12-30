@@ -55,6 +55,25 @@ class AppServiceProvider extends ServiceProvider
             // Fallback to owner_id check
             return isset($resource->owner_id) && $resource->owner_id === $user->id;
         });
+
+        // Manage gate - check if user can manage a model class
+        Gate::define('manage', function ($user, $modelClass) {
+            if (!$user) {
+                return false;
+            }
+            
+            // Admins can manage everything
+            if ($user->is_admin) {
+                return true;
+            }
+            
+            // Property managers can manage property-related resources
+            if ($user->role === 'property_manager') {
+                return true;
+            }
+            
+            return false;
+        });
     }
 
     /**

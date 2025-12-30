@@ -654,6 +654,7 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         'App\\Contracts\\BookingSyncInterface' => __DIR__ . '/../..' . '/app/Contracts/BookingSyncInterface.php',
         'App\\Http\\Controllers\\AboutController' => __DIR__ . '/../..' . '/app/Http/Controllers/AboutController.php',
         'App\\Http\\Controllers\\AdminController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminController.php',
+        'App\\Http\\Controllers\\AdminResourceController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminResourceController.php',
         'App\\Http\\Controllers\\CalendarController' => __DIR__ . '/../..' . '/app/Http/Controllers/CalendarController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\InstallController' => __DIR__ . '/../..' . '/app/Http/Controllers/InstallController.php',
