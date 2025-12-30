@@ -1,15 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Services\AdminMenuService;
 
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
 |--------------------------------------------------------------------------
 |
-| Admin routes are protected by 'admin' middleware.
-| Resources using AdminResourceTrait register their routes dynamically.
+| These routes are loaded by bootstrap/app.php with web middleware.
 |
 */
 
@@ -22,17 +20,16 @@ Route::middleware(["web", "admin"])
             return view("admin.dashboard");
         })->name("dashboard");
 
-        // General settings (admin only)
+        // General settings
         Route::get("/settings", function () {
             return view("admin.settings");
         })->name("settings");
 
-        // Save settings
         Route::post("/settings", [
             \App\Http\Controllers\AdminController::class,
             "saveSettings",
         ])->name("settings.save");
 
-        // Resource routes - Models using AdminResourceTrait
+        // Resource routes - auto-registered by models with AdminResourceTrait
         \App\Models\Booking::registerAdminRoutes();
     });
