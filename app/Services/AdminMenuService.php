@@ -3,94 +3,244 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Log;
 
 /**
  * AdminMenuService
- * 
- * Collects all models with AdminResourceTrait and provides menu configuration.
- * 
- * Models register themselves by having the trait.
- * No hardcoding in views - single source of truth.
+ *
+ * Single source of truth for ALL admin menu items.
+ * Returns unified array with dashboard, settings, and dynamic resources.
  */
 class AdminMenuService
 {
-    protected array $resources = [];
+    protected array $menuItems = [];
     protected bool $initialized = false;
-    
+
     /**
-     * Get all registered admin resources
+     * Get all menu items (unified structure)
+     */
+    public function getMenuItems(): array
+    {
+        if (!$this->initialized) {
+            $this->buildMenu();
+        }
+
+        // Sort by order (10 = default, gaps for future insertion)
+        usort($this->menuItems, fn($a, $b) => $a["order"] <=> $b["order"]);
+
+        return $this->menuItems;
+    }
+
+    /**
+     * Get resources only (for backwards compatibility)
      */
     public function getResources(): array
     {
         if (!$this->initialized) {
-            $this->discoverResources();
+            $this->buildMenu();
         }
-        
-        // Sort by order (primary sort key, with gaps for future insertion)
-        usort($this->resources, fn($a, $b) => $a['order'] <=> $b['order']);
-        
-        return $this->resources;
+
+        return array_filter(
+            $this->menuItems,
+            fn($item) => $item["type"] === "resource",
+        );
     }
-    
+
+    /**
+     * Build complete menu structure
+     */
+    protected function buildMenu(): void
+    {
+        $this->initialized = true;
+
+        // Core admin items (always present)
+        $this->addCoreItems();
+
+        // Discover dynamic resources from models
+        $this->discoverResources();
+    }
+
+    /**
+     * Add core admin items (dashboard, settings)
+     * Check auth HERE so it happens at menu generation, not at route load
+     */
+    protected function addCoreItems(): void
+    {
+        // Dashboard - accessible to all admin middleware users
+        $this->menuItems[] = [
+            "type" => "core",
+            "route" => "admin.dashboard",
+            "title_key" => "admin.dashboard",
+            "icon" => "iconic-dashboard",
+            "parent" => null,
+            "order" => 5,
+        ];
+
+        // Settings - admin only - check at MENU BUILD time
+        // Use optional() to avoid errors if auth not ready yet
+        $user = optional(auth()->user());
+        if ($user && $user->is_admin) {
+            $this->menuItems[] = [
+                "type" => "core",
+                "route" => "admin.settings",
+                "title_key" => "admin.general_settings",
+                "icon" => "iconic-settings-sliders",
+                "parent" => null,
+                "order" => 6,
+            ];
+        }
+    }
+
     /**
      * Discover all models with AdminResourceTrait
      */
     protected function discoverResources(): void
     {
-        $this->initialized = true;
-        
-        // Scan app/Models directory
-        $modelsPath = app_path('Models');
-        
+        $modelsPath = app_path("Models");
+
         if (!is_dir($modelsPath)) {
             return;
         }
-        
+
         $files = File::files($modelsPath);
-        
+
         foreach ($files as $file) {
-            $className = 'App\\Models\\' . $file->getFilenameWithoutExtension();
-            
-            // Check if class exists and uses AdminResourceTrait
+            $className = "App\\Models\\" . $file->getFilenameWithoutExtension();
+
             if (class_exists($className)) {
                 $uses = class_uses_recursive($className);
-                
-                if (in_array('App\\Traits\\AdminResourceTrait', $uses)) {
+
+                if (in_array("App\\Traits\\AdminResourceTrait", $uses)) {
                     try {
                         $config = $className::adminMenuConfig();
-                        
-                        // Filter by permissions
-                        if ($config['admin_only'] ?? false) {
-                            if (!auth()->check() || !auth()->user()->is_admin) {
+
+                        // Check permissions
+                        if ($config["admin_only"] ?? false) {
+                            $user = optional(auth()->user());
+                            if (!$user || !$user->is_admin) {
                                 continue;
                             }
                         }
-                        
-                        $this->resources[] = $config;
+
+                        // Add parent resource menu
+                        $resourceName = $config["resource_name"];
+                        $parentItem = [
+                            "type" => "resource",
+                            "route" => "admin.{$resourceName}.list",
+                            "title" => $config["label"],
+                            "icon" => $config["icon"] ?? null,
+                            "parent" => null,
+                            "order" => $config["order"] ?? 10,
+                            "resource_name" => $resourceName,
+                            "model_class" => $config["model_class"],
+                        ];
+
+                        $this->menuItems[] = $parentItem;
+
+                        // Add sub-menu items (list, add, settings)
+                        foreach ($config["routes"] as $routeType) {
+                            $routeName = "admin.{$resourceName}.{$routeType}";
+
+                            $this->menuItems[] = [
+                                "type" => "resource-sub",
+                                "route" => $routeName,
+                                "title_key" => "admin.{$routeType}",
+                                "icon" => null,
+                                "parent" => $resourceName,
+                                "order" => $config["order"] ?? 10,
+                            ];
+                        }
                     } catch (\Exception $e) {
-                        // Skip models with errors
-                        logger()->warning("Failed to load admin config for {$className}: {$e->getMessage()}");
+                        Log::error($e->getMessage());
                     }
                 }
             }
         }
     }
-    
+
     /**
      * Register routes for all resources
      */
     public function registerRoutes(): void
     {
         if (!$this->initialized) {
-            $this->discoverResources();
+            $this->buildMenu();
         }
-        
-        foreach ($this->resources as $resource) {
-            $modelClass = $resource['model_class'] ?? null;
-            
-            if ($modelClass && method_exists($modelClass, 'registerAdminRoutes')) {
-                $modelClass::registerAdminRoutes();
+
+        foreach ($this->menuItems as $item) {
+            if ($item["type"] === "resource") {
+                $modelClass = $item["model_class"] ?? null;
+
+                if (
+                    $modelClass &&
+                    method_exists($modelClass, "registerAdminRoutes")
+                ) {
+                    $modelClass::registerAdminRoutes();
+                }
             }
         }
+    }
+
+    public function menuHtml()
+    {
+        $items = $this->getMenuItems();
+
+        $html = $this->menuListHtml($items);
+
+        return $html;
+    }
+
+    public function menuListHtml(array $items): string
+    {
+        $html = '<ul class="menu-list">';
+        foreach ($items as $key => $item) {
+            $html .= $this->menuItemHtml($item);
+        }
+        $html .= "</ul>";
+        return $html;
+    }
+
+    public function menuItemHtml(array $item): string
+    {
+        // if (!Route::has($item['route'])) return;
+        //
+        try {
+            $route = Route::has($item["route"]) ? route($item["route"]) : "#";
+            $active = request()->routeIs($item["route"]) ? "page" : "false";
+        } catch (Exception $e) {
+            $route = "#";
+            $active = "false";
+        }
+
+        // Get title
+        $title = $item["title"] ?? __($item["title_key"] ?? "app.untitled");
+
+        // Get children for this item
+        $itemChildren = $children[$item["resource_name"] ?? null] ?? [];
+
+        // Render icon if present (use Blade::render for dynamic components)
+        $iconHtml = "";
+        if ($icon = $item["icon"] ?? null) {
+            $iconHtml = "<x-{$icon} class='icon' />";
+        }
+
+        $html = sprintf(
+            '<li class="menu-item">
+                <a href="%s" aria-current="%s">
+                    %s <!-- icon -->
+                    %s <!-- title -->
+                </a>
+                %s <!-- children -->
+            </li>',
+            $route,
+            $active,
+            $iconHtml,
+            $title,
+            empty($itemChildren) ? "" : $this->menuListHtml($itemChildren),
+        );
+
+        return $html;
     }
 }
