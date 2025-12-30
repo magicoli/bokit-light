@@ -1,0 +1,35 @@
+/**
+ * ADMIN INTERFACE STYLES
+ * Minimal styling for admin pages, uses existing layout
+ */
+
+@import "tailwindcss";
+
+/* Admin body classes for customization */
+body.admin {
+    /* Reserved for future admin-specific styling */
+}
+
+/* Admin sidebar menu */
+.admin-menu {
+    /* Styling handled by Tailwind in menu.blade.php */
+}
+
+/* Admin page-specific overrides */
+body.admin-dashboard {
+    /* Dashboard-specific styles */
+}
+
+body.admin-settings {
+    /* Settings-specific styles */
+}
+
+/* Admin forms - extend forms.css */
+body.admin form {
+    /* Admin-specific form overrides if needed */
+}
+
+/* Admin tables - extend DataList styles */
+body.admin table {
+    /* Admin-specific table overrides if needed */
+}
