@@ -2,9 +2,9 @@ admin-menu
 |-- dashboard       // placeholder, I have great plans for this, but out of scope for now
 |-- settings        // general site settings (options), admin only
 |-- Bookings        // per owner, can only see own property bookings
-|   |-- calendar
 |   |-- list
 |   |-- add
+|   |-- calendar    // Not yet, first focus on default sub-menus
 |   `-- settings
 |-- Properties      // per owner
 |   |-- list
