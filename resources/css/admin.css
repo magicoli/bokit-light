@@ -96,12 +96,12 @@ nav#admin-menu {
 
             /* Collapsed menu items - hide children */
             &.collapsed > ul {
-                @apply hidden;
+                display: none !important;
             }
 
             /* Expanded menu items - show children */
             &.expanded > ul {
-                @apply block;
+                display: block !important;
             }
         }
 

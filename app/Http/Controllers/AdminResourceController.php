@@ -117,6 +117,25 @@ class AdminResourceController extends Controller
     }
 
     /**
+     * Display the specified resource with tabs/actions
+     */
+    public function show(string $resource, $id)
+    {
+        $modelClass = $this->getModelClass($resource);
+        $model = $modelClass::findOrFail($id);
+
+        // Check permissions
+        if (!user_can("view", $model)) {
+            abort(403);
+        }
+
+        return view("admin.resource.show", [
+            "resource" => $resource,
+            "model" => $model,
+        ]);
+    }
+
+    /**
      * Update the specified resource
      */
     public function update(Request $request, string $resource, $id)
