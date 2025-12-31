@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\TimezoneTrait;
 use App\Traits\AdminResourceTrait;
+use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +14,9 @@ use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    use SoftDeletes, TimezoneTrait, AdminResourceTrait;
+    use AdminResourceTrait;
+    use SoftDeletes;
+    use TimezoneTrait;
 
     protected $fillable = [
         "unit_id",

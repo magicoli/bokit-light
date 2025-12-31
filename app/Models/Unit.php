@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Model;
 
 class Unit extends Model
 {
+    // use AdminResourceTrait;
     use TimezoneTrait;
 
     protected $fillable = [

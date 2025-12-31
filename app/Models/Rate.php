@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\AdminResourceTrait;
 use App\Traits\FormTrait;
 use App\Traits\ListTrait;
 use App\Traits\TimezoneTrait;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Rate extends Model
 {
+    // use AdminResourceTrait;
     use FormTrait;
     use ListTrait;
     use TimezoneTrait;

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
+    // use AdminResourceTrait;
     use TimezoneTrait;
 
     protected $fillable = [
@@ -112,9 +114,9 @@ class User extends Authenticatable
         }
 
         $userRole = $propertyUser->pivot->role;
-        
+
         // Tous les rôles peuvent voir (user, admin, owner, manager)
-        return in_array($userRole, ['user', 'admin', 'owner', 'manager']);
+        return in_array($userRole, ["user", "admin", "owner", "manager"]);
     }
 
     /**
@@ -134,6 +136,10 @@ class User extends Authenticatable
             return false;
         }
 
-        return in_array($propertyUser->pivot->role, ['admin', 'owner', 'manager']);
+        return in_array($propertyUser->pivot->role, [
+            "admin",
+            "owner",
+            "manager",
+        ]);
     }
 }
