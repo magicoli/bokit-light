@@ -167,7 +167,7 @@ trait AdminResourceTrait
 
         return [
             "model_class" => static::class,
-            "label" => $config["label"] ?? ucfirst($resourceName),
+            "label" => $config["label"] ?? __("admin.{$resourceName}"),
             "icon" => $config["icon"] ?? null,
             "url" => $parentUrl,
             "order" => $config["order"] ?? 100,
@@ -191,7 +191,7 @@ trait AdminResourceTrait
     public static function adminConfig(): array
     {
         return [
-            "label" => ucfirst(static::getResourceName()),
+            "label" => __("admin." . static::getResourceName()),
             "icon" => null,
             "routes" => ["list", "add", "edit", "settings"],
             "order" => 100,
