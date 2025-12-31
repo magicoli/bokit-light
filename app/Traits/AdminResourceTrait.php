@@ -116,14 +116,19 @@ trait AdminResourceTrait
 
         // Show - Display single object with tabs/actions
         // Must be after /create, /list, /settings to avoid conflicts
-        if (in_array("show", $config["routes"] ?? []) || in_array("edit", $config["routes"] ?? [])) {
+        if (
+            in_array("show", $config["routes"] ?? []) ||
+            in_array("edit", $config["routes"] ?? [])
+        ) {
             Route::get("/{$resourceName}/{id}", function ($id) use (
                 $resourceName,
             ) {
                 return app(
                     \App\Http\Controllers\AdminResourceController::class,
                 )->show($resourceName, $id);
-            })->name("{$resourceName}.show")->where('id', '[0-9]+');
+            })
+                ->name("{$resourceName}.show")
+                ->where("id", "[0-9]+");
         }
 
         // Custom routes
@@ -185,6 +190,7 @@ trait AdminResourceTrait
             "order" => $config["order"] ?? 100,
             "resource_name" => $resourceName,
             "children" => $children,
+            "capability" => "manage",
         ];
     }
 
