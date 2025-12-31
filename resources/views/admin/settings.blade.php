@@ -1,7 +1,13 @@
 @extends('layouts.admin')
+@section('body-class')
+    @parent admin-settings
+@endsection
+
+@php
+    use Illuminate\Support\Facades\Cache;
+@endphp
 
 @section('title', __('admin.general_settings'))
-@section('body-class', 'admin admin-settings')
 
 @section('content')
 <form method="POST" action="{{ route('admin.settings.save') }}" class="bg-white rounded-lg shadow-sm p-6 max-w-4xl">
