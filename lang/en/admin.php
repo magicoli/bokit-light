@@ -13,6 +13,8 @@ return [
     // Resources
     "bookings" => "Bookings",
     "properties" => "Properties",
+    "rates" => "Rates",
+    "units" => "Units",
     "rental_units" => "Rental Units",
     "users" => "Users",
 ];
