@@ -93,6 +93,16 @@ nav#admin-menu {
                     }
                 }
             }
+
+            /* Collapsed menu items - hide children */
+            &.collapsed > ul {
+                @apply hidden;
+            }
+
+            /* Expanded menu items - show children */
+            &.expanded > ul {
+                @apply block;
+            }
         }
 
         ul {
