@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * AdminMenuService
@@ -67,7 +68,7 @@ class AdminMenuService
     protected function addCoreItems(): void
     {
         // Dashboard - accessible to all admin middleware users
-        $this->menuItems[] = [
+        $this->addMenuItem([
             "label" => __("admin.dashboard"),
             "url" => Route::has("admin.dashboard")
                 ? route("admin.dashboard")
@@ -76,26 +77,24 @@ class AdminMenuService
             "order" => 1,
             "resource_name" => "dashboard",
             "children" => [],
-        ];
+        ]);
 
-        // Settings - admin only
-        if (user_can("manage", \App\Models\User::class)) {
-            $this->menuItems[] = [
-                "label" => __("admin.general_settings"),
-                "url" => Route::has("admin.settings")
-                    ? route("admin.settings")
-                    : null,
-                "icon" => "settings-sliders",
-                "order" => 5,
-                "resource_name" => "settings",
-                "children" => [],
-            ];
-        }
+        $this->addMenuItem([
+            "label" => __("admin.general_settings"),
+            "url" => Route::has("admin.settings")
+                ? route("admin.settings")
+                : null,
+            "icon" => "settings-sliders",
+            "order" => 5,
+            "resource_name" => "settings",
+            "children" => [],
+            "capability" => "super_admin",
+        ]);
     }
 
     /**
      * Discover all models with AdminResourceTrait
-     * 
+     *
      * TODO: Migrate to AdminRegistry for unified registration
      * Future: AdminRegistry::all() will return both models AND custom pages
      */
@@ -124,14 +123,46 @@ class AdminMenuService
                             continue;
                         }
 
-                        // Add parent resource menu with children
-                        $this->menuItems[] = $config;
+                        // Add menu with children
+                        // $this->menuItems[] = $config;
+                        $this->addMenuItem($config);
                     } catch (\Exception $e) {
                         Log::error("AdminMenuService: " . $e->getMessage());
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Get menu item slug
+     */
+    public function getSlug(array $config): string
+    {
+        if (!empty($config["slug"])) {
+            return $config["slug"];
+        }
+
+        return $config["slug"] ??
+            Str::slug($config["resource_name"] ?? md5(json_encode($config)));
+    }
+
+    /**
+     * Add menu items
+     *
+     * @param array $config
+     */
+    public function addMenuItem(array $config): void
+    {
+        if (
+            ($config["capability"] ?? false) &&
+            !user_can($config["capability"], $config["model_class"] ?? null)
+        ) {
+            return;
+        }
+        $config["slug"] = self::getSlug($config);
+
+        $this->menuItems[$config["slug"]] = $config;
     }
 
     /**
@@ -146,7 +177,10 @@ class AdminMenuService
         foreach ($this->menuItems as $item) {
             $modelClass = $item["model_class"] ?? null;
 
-            if ($modelClass && method_exists($modelClass, "registerAdminRoutes")) {
+            if (
+                $modelClass &&
+                method_exists($modelClass, "registerAdminRoutes")
+            ) {
                 $modelClass::registerAdminRoutes();
             }
         }
@@ -185,7 +219,7 @@ class AdminMenuService
 
         // Check if current page
         $isCurrent = false;
-        $currentUrl = '';
+        $currentUrl = "";
         if ($url !== "#") {
             try {
                 $currentUrl = request()->url();
@@ -208,15 +242,15 @@ class AdminMenuService
         $childrenHtml = "";
         $hasChildren = false;
         $isExpanded = false;
-        
+
         if (!empty($item["children"])) {
             $hasChildren = true;
             $classes[] = "has-children";
-            
+
             // Check if any child is active
             $isExpanded = $this->isChildActive($item["children"], $currentUrl);
             $classes[] = $isExpanded ? "expanded" : "collapsed";
-            
+
             $childrenHtml = $this->menuListHtml($item["children"]);
         }
 
@@ -260,18 +294,21 @@ class AdminMenuService
 
         foreach ($children as $child) {
             $childUrl = $child["url"] ?? null;
-            
+
             // Direct match
             if ($childUrl && $childUrl === $currentUrl) {
                 return true;
             }
-            
+
             // Check grandchildren recursively
-            if (!empty($child["children"]) && $this->isChildActive($child["children"], $currentUrl)) {
+            if (
+                !empty($child["children"]) &&
+                $this->isChildActive($child["children"], $currentUrl)
+            ) {
                 return true;
             }
         }
-        
+
         return false;
     }
 }
