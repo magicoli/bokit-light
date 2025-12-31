@@ -1,4 +1,4 @@
-        <div class="nav-container{{ auth()->check() ? ' role-' . auth()->user()->getPrimaryRole() : '' }}">
+        <div class="nav-container {{ auth()->check() ? collect(auth()->user()->roles ?? [])->map(fn($role) => ' role-' . $role)->implode('') : '' }}">
             <div class="nav-inner">
                 <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
                     <h1 class="nav-branding">
