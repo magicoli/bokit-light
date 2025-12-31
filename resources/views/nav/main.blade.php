@@ -26,7 +26,8 @@
                         <a href="{{ route('properties') }}" class="nav-link badge-manage">
                             {{ __('app.properties') }}
                         </a>
-                        @if(auth()->user()->isAdmin())
+                        @if(user_can('super_admin'))
+                        {{-- @if(user_can('property_manager')) is the right call --}}
                         <a href="{{ route('rates') }}" class="nav-link badge-manage">
                             {{ __('rates.menu') }}
                         </a>
@@ -48,9 +49,10 @@
                         </svg>
                     </button>
                     @if(auth()->check())
-                        <!-- Admin menu (visible only for admins) -->
-                        @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="nav-link badge-admin {{ auth()->check() ? collect(auth()->user()->roles ?? [])->map(fn($role) => ' role-' . $role)->implode('') : '' }}">
+                        <!-- Admin menu (visible for users who can manage properties) -->
+                        {{-- @if(user_can('property_manager')) is the right call --}}
+                        @if(user_can('property_manager'))
+                            <a href="{{ route('admin.dashboard') }}" class="nav-link badge-admin">
                                 {{ __('app.admin') }}
                             </a>
                         @endif
@@ -139,8 +141,8 @@
                         </form>
                     </div>
 
-                    <!-- Admin section (if admin) -->
-                    @if(auth()->user()->isAdmin())
+                    <!-- Admin section (if user can manage properties) -->
+                    @if(user_can('property_manager'))
                         <div class="menu-section">
                             <div class="menu-title">{{ __('app.admin') }}</div>
                             <a href="{{ route('admin.dashboard') }}" class="nav-link">

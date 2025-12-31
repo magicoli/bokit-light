@@ -218,18 +218,27 @@ if (!function_exists("user_can")) {
     /**
      * Check if current user has permission
      *
-     * Alias for auth()->user()->can() that handles null user gracefully.
+     * Supports two forms:
+     * - user_can('ability', Model) - Check ability on model (uses Laravel authorization)
+     * - user_can('role_name') - Check if user has specific role
+     *
+     * Special roles:
+     * - user_can('admin') or user_can('super_admin') - Checks is_admin field or 'admin' role
+     *
      * This is the ONLY place where we check user permissions.
      *
-     * @param string $ability Ability to check (e.g., 'manage', 'view', 'edit', 'delete')
-     * @param mixed $model Model class or instance to check against
+     * @param string $ability Ability or role to check
+     * @param mixed $model Optional model class or instance (null for role check)
      * @return bool True if user has permission, false otherwise
      *
      * @example
      *   user_can('manage', \App\Models\Booking::class)
      *   user_can('edit', $booking)
+     *   user_can('admin')
+     *   user_can('super_admin')
+     *   user_can('manager')
      */
-    function user_can(string $ability, mixed $model): bool
+    function user_can(string $ability, mixed $model = null): bool
     {
         $user = auth()->user();
 
@@ -237,6 +246,57 @@ if (!function_exists("user_can")) {
             return false;
         }
 
+        // If no model provided, treat as role check
+        if ($model === null) {
+            // Special case: admin/super_admin checks the isAdmin() method
+            if (in_array($ability, ['admin', 'super_admin'])) {
+                return $user->isAdmin();
+            }
+            
+            // Otherwise check role via hasRole()
+            return $user->hasRole($ability);
+        }
+
+        // Otherwise use Laravel authorization
         return $user->can($ability, $model);
+    }
+}
+
+if (!function_exists("user_roles")) {
+    /**
+     * Get current user's roles array
+     *
+     * @return array User roles (empty array if not authenticated)
+     */
+    function user_roles(): array
+    {
+        $user = auth()->user();
+        return $user ? ($user->roles ?? []) : [];
+    }
+}
+
+if (!function_exists("user_classes")) {
+    /**
+     * Get CSS classes for current user
+     *
+     * Returns space-separated classes: "user-{id} role-{role1} role-{role2} ..."
+     *
+     * @return string CSS classes (empty string if not authenticated)
+     */
+    function user_classes(): string
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return '';
+        }
+
+        $classes = ['user-' . $user->id];
+        
+        foreach (user_roles() as $role) {
+            $classes[] = 'role-' . $role;
+        }
+
+        return implode(' ', $classes);
     }
 }

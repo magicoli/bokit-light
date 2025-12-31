@@ -30,7 +30,7 @@ class RatesController extends Controller
             // Get authorized properties for the user
             $query = Property::query();
 
-            if (!auth()->user()->isAdmin()) {
+            if (!user_can('super_admin')) {
                 $query->whereHas("users", function ($q) {
                     $q->where("users.id", auth()->id());
                 });

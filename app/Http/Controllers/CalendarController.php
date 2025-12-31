@@ -86,7 +86,7 @@ class CalendarController extends Controller
             },
         ]);
 
-        if (!auth()->user()->isAdmin()) {
+        if (!user_can('super_admin')) {
             $query->whereHas("users", function ($q) {
                 $q->where("users.id", auth()->id());
             });

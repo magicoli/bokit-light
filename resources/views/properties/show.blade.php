@@ -12,7 +12,7 @@
     <div class="property-show-header">
         <div class="header-row">
             <h1 class="title">{{ $property->name }}</h1>
-            @if(auth()->check() && (auth()->user()->isAdmin() || $property->users()->where('users.id', auth()->id())->exists()))
+            @if(auth()->check() && (user_can('super_admin') || $property->users()->where('users.id', auth()->id())->exists()))
             <div class="actions">
                 <a href="{{ route('calendar', ['property' => $property->slug]) }}"
                    class="action-link">
@@ -47,7 +47,7 @@
                            class="unit-name">
                             {{ $unit->name }}
                         </a>
-                        @if(auth()->check() && (auth()->user()->isAdmin() || $property->users()->where('users.id', auth()->id())->exists()))
+                        @if(auth()->check() && (user_can('super_admin') || $property->users()->where('users.id', auth()->id())->exists()))
                         <div class="unit-actions">
                             <a href="{{ route('units.show', [$property, $unit]) }}"
                                class="action-link">
@@ -68,7 +68,7 @@
                     </p>
                     @endif
 
-                    @if(auth()->check() && (auth()->user()->isAdmin() || $property->users()->where('users.id', auth()->id())->exists()))
+                    @if(auth()->check() && (user_can('super_admin') || $property->users()->where('users.id', auth()->id())->exists()))
                     <p class="unit-footer">
                         {{ $unit->icalSources->count() }} {{ __('app.calendar_sources') }}
                     </p>

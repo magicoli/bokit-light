@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
     private function registerGates(): void
     {
         // Admin gate - full access to everything
-        Gate::define('admin', fn($user) => $user && $user->is_admin);
+        Gate::define('admin', fn($user) => $user && $user->isAdmin());
 
         // Manage resource gate - admin or owner
         Gate::define('manage-resource', function ($user, $resource) {
@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
             }
             
             // Admins can manage everything
-            if ($user->is_admin) {
+            if ($user->isAdmin()) {
                 return true;
             }
             
@@ -63,12 +63,12 @@ class AppServiceProvider extends ServiceProvider
             }
             
             // Admins can manage everything
-            if ($user->is_admin) {
+            if ($user->isAdmin()) {
                 return true;
             }
             
             // Property managers can manage property-related resources
-            if ($user->role === 'property_manager') {
+            if ($user->hasRole('property_manager')) {
                 return true;
             }
             
