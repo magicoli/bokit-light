@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Rate extends Model
 {
-    // use AdminResourceTrait;
+    use AdminResourceTrait;
     use FormTrait;
     use ListTrait;
     use TimezoneTrait;
