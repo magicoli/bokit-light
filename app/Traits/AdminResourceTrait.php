@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -28,6 +29,19 @@ use Illuminate\Database\Eloquent\Builder;
  */
 trait AdminResourceTrait
 {
+    protected static $config = [];
+
+    static function init()
+    {
+        self::$config = [
+            "label" => __("admin." . static::getResourceName()),
+            "icon" => null,
+            "routes" => ["list", "show", "add", "edit", "settings"],
+            "order" => 100,
+            "capability" => "manage",
+        ];
+    }
+
     /**
      * Register admin routes for this resource
      * Called from routes/admin.php or service provider
@@ -36,6 +50,12 @@ trait AdminResourceTrait
     {
         $config = static::adminConfig();
         $resourceName = $config["resource_name"] ?? static::getResourceName();
+
+        # We should avoid creating routes for resources the user cannot manage
+        # But it does not work as expected, user auth is not yet initialized
+        // if (!user_can($config["capability"], $config["model_class"] ?? null)) {
+        //     return;
+        // }
 
         // Index/List - main resource route
         Route::get("/{$resourceName}", function () use ($resourceName) {
@@ -143,6 +163,7 @@ trait AdminResourceTrait
     public static function adminMenuConfig(): array
     {
         $config = static::adminConfig();
+
         $resourceName = $config["resource_name"] ?? static::getResourceName();
         $routes = $config["routes"] ?? ["list", "add", "settings"];
 
@@ -190,7 +211,7 @@ trait AdminResourceTrait
             "order" => $config["order"] ?? 100,
             "resource_name" => $resourceName,
             "children" => $children,
-            "capability" => "manage",
+            "capability" => $config["capability"] ?? "manage",
         ];
     }
 
@@ -208,11 +229,7 @@ trait AdminResourceTrait
      */
     public static function adminConfig(): array
     {
-        return [
-            "label" => __("admin." . static::getResourceName()),
-            "icon" => null,
-            "routes" => ["list", "show", "add", "edit", "settings"],
-            "order" => 100,
-        ];
+        self::init();
+        return static::$config;
     }
 }

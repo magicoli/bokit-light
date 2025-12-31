@@ -42,4 +42,13 @@ class Property extends Model
     {
         return $this->property->name;
     }
+
+    /**
+     * Admin resource configuration
+     */
+    public static function adminConfig(): array
+    {
+        self::init();
+        return self::$config;
+    }
 }
