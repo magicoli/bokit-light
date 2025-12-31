@@ -207,10 +207,23 @@ class AdminMenuService
 
         // Render children recursively
         $childrenHtml = "";
+        $hasChildren = false;
         if (!empty($item["children"])) {
+            $hasChildren = true;
+            $classes[] = "has-children";
             $childrenHtml = $this->menuListHtml($item["children"]);
         }
 
+        /**
+         * Memo: standard aria-current values:
+         * - page
+         * - step
+         * - location (within an environment or context)
+         * - date
+         * - time
+         * - true: current (not specifie)
+         * - false: not current
+         */
         $html = sprintf(
             '<li class="%s">
                 <a href="%s" aria-current="%s">
@@ -221,7 +234,7 @@ class AdminMenuService
             </li>',
             implode(" ", $classes),
             htmlspecialchars($url),
-            $isCurrent ? "page" : "false",
+            $isCurrent ? ($hasChildren ? "location" : "page") : "false",
             $iconHtml ? '<span class="icon">' . $iconHtml . "</span>" : "",
             htmlspecialchars($title),
             $childrenHtml,
