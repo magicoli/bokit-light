@@ -33,8 +33,21 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerGates(): void
     {
-        // Admin gate - full access to everything
-        Gate::define('admin', fn($user) => $user && $user->isAdmin());
+        // Admin gate - access to admin area
+        // Super admins have full access, property managers have limited access
+        Gate::define('admin', function ($user) {
+            if (!$user) {
+                return false;
+            }
+            
+            // Super admins have full access
+            if ($user->isAdmin()) {
+                return true;
+            }
+            
+            // Property managers have access to admin area (but some sections may be restricted)
+            return $user->hasRole('property_manager');
+        });
 
         // Manage resource gate - admin or owner
         Gate::define('manage-resource', function ($user, $resource) {

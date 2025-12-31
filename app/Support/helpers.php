@@ -218,25 +218,26 @@ if (!function_exists("user_can")) {
     /**
      * Check if current user has permission
      *
-     * Supports two forms:
-     * - user_can('ability', Model) - Check ability on model (uses Laravel authorization)
-     * - user_can('role_name') - Check if user has specific role
+     * Unified permission system - supports multiple forms:
+     * - user_can('role_name') - Check if user has specific role (e.g., 'property_manager')
+     * - user_can('manage', 'ClassName') - Check ability on model class by short name
+     * - user_can('manage', \App\Models\Model::class) - Check ability on full class name
+     * - user_can('manage', $object) - Check ability on model instance (ownership check)
      *
-     * Special roles:
-     * - user_can('admin') or user_can('super_admin') - Checks is_admin field or 'admin' role
+     * Super admins ALWAYS return true for any permission check.
      *
      * This is the ONLY place where we check user permissions.
      *
      * @param string $ability Ability or role to check
-     * @param mixed $model Optional model class or instance (null for role check)
+     * @param mixed $model Optional model class, short name, or instance (null for role check)
      * @return bool True if user has permission, false otherwise
      *
      * @example
-     *   user_can('manage', \App\Models\Booking::class)
-     *   user_can('edit', $booking)
-     *   user_can('admin')
-     *   user_can('super_admin')
-     *   user_can('manager')
+     *   user_can('property_manager')                    // Role check
+     *   user_can('manage', 'Property')                   // Short class name
+     *   user_can('manage', \App\Models\Booking::class)  // Full class name
+     *   user_can('manage', $booking)                     // Instance check
+     *   user_can('edit', $property)                      // Instance check
      */
     function user_can(string $ability, mixed $model = null): bool
     {
@@ -246,18 +247,33 @@ if (!function_exists("user_can")) {
             return false;
         }
 
+        // Super admins can do EVERYTHING
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         // If no model provided, treat as role check
         if ($model === null) {
-            // Special case: admin/super_admin checks the isAdmin() method
-            if (in_array($ability, ['admin', 'super_admin'])) {
-                return $user->isAdmin();
-            }
-            
-            // Otherwise check role via hasRole()
             return $user->hasRole($ability);
         }
 
-        // Otherwise use Laravel authorization
+        // If model is a string (class name), resolve to full class name
+        if (is_string($model)) {
+            // If it's a short name like "Property", convert to full class name
+            if (!class_exists($model)) {
+                $shortName = ucfirst($model);
+                $fullClass = "App\\Models\\{$shortName}";
+                
+                if (class_exists($fullClass)) {
+                    $model = $fullClass;
+                } else {
+                    // Class doesn't exist
+                    return false;
+                }
+            }
+        }
+
+        // Use Laravel authorization (Gates/Policies)
         return $user->can($ability, $model);
     }
 }
