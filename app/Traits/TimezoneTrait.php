@@ -6,9 +6,48 @@ use App\Support\Options;
 use Carbon\Carbon;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Support\Facades\Cache;
 
 trait TimezoneTrait
 {
+    /**
+     * Get cached HTML <option> elements for all timezones
+     * Used in select dropdowns across the app (User, Property, Unit, etc.)
+     * 
+     * @param string|null $selected Currently selected timezone
+     * @return string HTML options
+     */
+    public static function timezoneOptionsHtml(?string $selected = null): string
+    {
+        // Generate cache key including selected value to cache different states
+        $cacheKey = 'timezone_options_html';
+        
+        // Get base HTML (without selection) from cache
+        $baseHtml = Cache::remember($cacheKey, 86400 * 30, function() {
+            $timezones = timezone_identifiers_list();
+            $options = [];
+            foreach ($timezones as $timezone) {
+                $options[] = sprintf(
+                    '<option value="%s">%s</option>',
+                    e($timezone),
+                    e($timezone)
+                );
+            }
+            return implode("\n", $options);
+        });
+        
+        // If no selection needed, return cached HTML as-is
+        if (!$selected) {
+            return $baseHtml;
+        }
+        
+        // Add 'selected' attribute to the correct option
+        return str_replace(
+            'value="' . e($selected) . '"',
+            'value="' . e($selected) . '" selected',
+            $baseHtml
+        );
+    }
     /**
      * Get the timezone for this model
      *
