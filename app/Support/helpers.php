@@ -239,8 +239,21 @@ if (!function_exists("user_can")) {
      *   user_can('manage', $booking)                     // Instance check
      *   user_can('edit', $property)                      // Instance check
      */
-    function user_can(string $ability, mixed $model = null): bool
+    function user_can(mixed $ability, mixed $model = null): bool
     {
+        if (is_bool($ability)) {
+            return $ability;
+        }
+        if (is_null($ability)) {
+            return true;
+        }
+        if (!is_string($ability)) {
+            throw new InvalidArgumentException(
+                "Ability must be string or boolean",
+            );
+        }
+
+        auth()->check();
         $user = auth()->user();
 
         if (!$user) {
@@ -263,7 +276,7 @@ if (!function_exists("user_can")) {
             if (!class_exists($model)) {
                 $shortName = ucfirst($model);
                 $fullClass = "App\\Models\\{$shortName}";
-                
+
                 if (class_exists($fullClass)) {
                     $model = $fullClass;
                 } else {
@@ -287,7 +300,7 @@ if (!function_exists("user_roles")) {
     function user_roles(): array
     {
         $user = auth()->user();
-        return $user ? ($user->roles ?? []) : [];
+        return $user ? $user->roles ?? [] : [];
     }
 }
 
@@ -302,17 +315,17 @@ if (!function_exists("user_classes")) {
     function user_classes(): string
     {
         $user = auth()->user();
-        
+
         if (!$user) {
-            return '';
+            return "";
         }
 
-        $classes = ['user-' . $user->id];
-        
+        $classes = ["user-" . $user->id];
+
         foreach (user_roles() as $role) {
-            $classes[] = 'role-' . $role;
+            $classes[] = "role-" . $role;
         }
 
-        return implode(' ', $classes);
+        return implode(" ", $classes);
     }
 }

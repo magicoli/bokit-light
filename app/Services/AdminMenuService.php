@@ -117,14 +117,9 @@ class AdminMenuService
                 if (in_array("App\\Traits\\AdminResourceTrait", $uses)) {
                     try {
                         $config = $className::adminMenuConfig();
+                        // Permission are now set by config[capability] and filtered by addMenuItem
 
-                        // Check permissions with user_can()
-                        if (!user_can("manage", $className)) {
-                            continue;
-                        }
-
-                        // Add menu with children
-                        // $this->menuItems[] = $config;
+                        // Add menu item from $config
                         $this->addMenuItem($config);
                     } catch (\Exception $e) {
                         Log::error("AdminMenuService: " . $e->getMessage());
@@ -154,10 +149,8 @@ class AdminMenuService
      */
     public function addMenuItem(array $config): void
     {
-        if (
-            ($config["capability"] ?? false) &&
-            !user_can($config["capability"], $config["model_class"] ?? null)
-        ) {
+        $config["capability"] = $config["capability"] ?? null;
+        if (!user_can($config["capability"], $config["model_class"] ?? null)) {
             return;
         }
         $config["slug"] = self::getSlug($config);
