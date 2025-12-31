@@ -29,7 +29,7 @@
             </p>
         </div>
 
-        @if(auth()->check() && (user_can('super_admin') || $unit->property->users()->where('users.id', auth()->id())->exists()))
+        @if(user_can('manage', $unit->property))
         <div class="edit-action">
             <a href="{{ route('units.edit', [$unit->property, $unit]) }}"
                class="edit-button">

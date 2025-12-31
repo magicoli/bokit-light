@@ -71,6 +71,7 @@ return [
     "loading" => "Chargement...",
     "error" => "Erreur",
     "success" => "Succès",
+    "unauthorized" => "Non autorisé",
     "remember_me" => "Rester connecté",
     "week" => "Semaine",
     "weeks" => "Semaines",

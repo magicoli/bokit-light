@@ -70,6 +70,7 @@ return [
     "loading" => "Loading...",
     "error" => "Error",
     "success" => "Success",
+    "unauthorized" => "Unauthorized",
     "remember_me" => "Remember me",
     "week" => "Week",
     "weeks" => "Weeks",
