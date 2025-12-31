@@ -17,8 +17,10 @@ class DataList
     /**
      * Constructor accepts Model, Collection, or array
      */
-    public function __construct(Model|Collection|array $data, ?string $routePrefix = null)
-    {
+    public function __construct(
+        Model|Collection|array $data,
+        ?string $routePrefix = null,
+    ) {
         // Handle different input types
         if ($data instanceof Model) {
             $this->model = $data;
@@ -126,7 +128,11 @@ class DataList
     public function render(): string
     {
         if ($this->items->isEmpty() && !$this->model) {
+            return __("app.empty_list");
             // No items and no model - can still render empty state
+        }
+        if (empty($this->columns)) {
+            return __("app.error_columns_not_set");
         }
 
         return view("components.data-list", [

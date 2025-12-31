@@ -8,6 +8,7 @@
 @section('styles')
 @vite('resources/css/forms.css')
 @vite('resources/css/rates.css')
+@vite('resources/css/list.css')
 @vite('resources/css/flatpickr.css')
 @endsection
 
