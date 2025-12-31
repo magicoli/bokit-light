@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Traits\AdminResourceTrait;
+use App\Traits\FormTrait;
+use App\Traits\ListTrait;
 use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +16,8 @@ use Illuminate\Support\Str;
 
 class Booking extends Model
 {
+    use FormTrait;
+    use ListTrait;
     use AdminResourceTrait;
     use SoftDeletes;
     use TimezoneTrait;
