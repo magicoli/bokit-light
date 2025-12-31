@@ -37,7 +37,7 @@ class UnitController extends Controller
         }
 
         // Check access: admin or user has access to the unit's property
-        if (!auth()->user()->isAdmin()) {
+        if (!user_can('super_admin')) {
             $hasAccess = $unit->property
                 ->users()
                 ->where("users.id", auth()->id())
@@ -65,7 +65,7 @@ class UnitController extends Controller
             abort(404);
         }
         // Check access
-        if (!auth()->user()->isAdmin()) {
+        if (!user_can('super_admin')) {
             $hasAccess = $unit->property
                 ->users()
                 ->where("users.id", auth()->id())

@@ -46,7 +46,7 @@
                                            class="unit-name">
                                             {{ $unit->name }}
                                         </a>
-                                        @if(auth()->check() && (auth()->user()->isAdmin() || $unit->property->users()->where('users.id', auth()->id())->exists()))
+                                        @if(auth()->check() && (user_can('super_admin') || $unit->property->users()->where('users.id', auth()->id())->exists()))
                                         <div class="unit-actions">
                                             <a href="{{ route('units.show', [$property, $unit]) }}"
                                                class="action-link">

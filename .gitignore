@@ -25,3 +25,4 @@ storage/**
 *~
 .env.testing
 test-results
+*.bak

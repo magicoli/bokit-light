@@ -15,7 +15,7 @@ class PropertyController extends Controller
         // Filter by user access if not admin
         $query = Property::with('units');
         
-        if (!auth()->user()->isAdmin()) {
+        if (!user_can('super_admin')) {
             $query->whereHas('users', function ($q) {
                 $q->where('users.id', auth()->id());
             });
