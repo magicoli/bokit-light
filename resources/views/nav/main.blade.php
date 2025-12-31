@@ -1,4 +1,4 @@
-        <div class="nav-container {{ auth()->check() ? collect(auth()->user()->roles ?? [])->map(fn($role) => ' role-' . $role)->implode('') : '' }}">
+        <div class="nav-container">
             <div class="nav-inner">
                 <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
                     <h1 class="nav-branding">
@@ -18,16 +18,16 @@
 
                     @if(auth()->check())
                         <!-- Calendar menu -->
-                        <a href="{{ route('calendar') }}" class="nav-link">
+                        <a href="{{ route('calendar') }}" class="nav-link badge-manage">
                             {{ __('app.calendar') }}
                         </a>
 
                         <!-- Properties menu -->
-                        <a href="{{ route('properties') }}" class="nav-link">
+                        <a href="{{ route('properties') }}" class="nav-link badge-manage">
                             {{ __('app.properties') }}
                         </a>
                         @if(auth()->user()->isAdmin())
-                        <a href="{{ route('rates') }}" class="nav-link">
+                        <a href="{{ route('rates') }}" class="nav-link badge-manage">
                             {{ __('rates.menu') }}
                         </a>
                         @endif
@@ -50,7 +50,7 @@
                     @if(auth()->check())
                         <!-- Admin menu (visible only for admins) -->
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="nav-link badge-admin">
+                            <a href="{{ route('admin.dashboard') }}" class="nav-link badge-admin {{ auth()->check() ? collect(auth()->user()->roles ?? [])->map(fn($role) => ' role-' . $role)->implode('') : '' }}">
                                 {{ __('app.admin') }}
                             </a>
                         @endif
