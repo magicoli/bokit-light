@@ -1,4 +1,4 @@
-        <div class="nav-container">
+        <div class="nav-container{{ auth()->check() ? ' role-' . auth()->user()->getPrimaryRole() : '' }}">
             <div class="nav-inner">
                 <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
                     <h1 class="nav-branding">
@@ -50,23 +50,9 @@
                     @if(auth()->check())
                         <!-- Admin menu (visible only for admins) -->
                         @if(auth()->user()->isAdmin())
-                            <div class="dropdown" x-data="{ open: false }">
-                                <button @click="open = !open"
-                                        @click.away="open = false"
-                                        class="dropdown-button">
-                                    <span class="badge-admin">{{ __('app.admin') }}</span>
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div x-show="open"
-                                     x-cloak
-                                     class="dropdown-menu">
-                                    <a href="{{ route('admin.settings') }}" class="dropdown-item">
-                                        {{ __('app.admin_settings') }}
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="{{ route('admin.dashboard') }}" class="nav-link badge-admin">
+                                {{ __('app.admin') }}
+                            </a>
                         @endif
 
                         <!-- User menu -->
@@ -157,8 +143,8 @@
                     @if(auth()->user()->isAdmin())
                         <div class="menu-section">
                             <div class="menu-title">{{ __('app.admin') }}</div>
-                            <a href="{{ route('admin.settings') }}" class="nav-link">
-                                {{ __('app.admin_settings') }}
+                            <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                                {{ __('app.admin') }}
                             </a>
                         </div>
                     @endif

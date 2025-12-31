@@ -185,6 +185,7 @@ class AdminMenuService
 
         // Check if current page
         $isCurrent = false;
+        $currentUrl = '';
         if ($url !== "#") {
             try {
                 $currentUrl = request()->url();
@@ -206,9 +207,16 @@ class AdminMenuService
         // Render children recursively
         $childrenHtml = "";
         $hasChildren = false;
+        $isExpanded = false;
+        
         if (!empty($item["children"])) {
             $hasChildren = true;
             $classes[] = "has-children";
+            
+            // Check if any child is active
+            $isExpanded = $this->isChildActive($item["children"], $currentUrl);
+            $classes[] = $isExpanded ? "expanded" : "collapsed";
+            
             $childrenHtml = $this->menuListHtml($item["children"]);
         }
 
@@ -239,5 +247,31 @@ class AdminMenuService
         );
 
         return $html;
+    }
+
+    /**
+     * Check if any child (or descendant) is the active page
+     */
+    protected function isChildActive(array $children, string $currentUrl): bool
+    {
+        if (empty($currentUrl)) {
+            return false;
+        }
+
+        foreach ($children as $child) {
+            $childUrl = $child["url"] ?? null;
+            
+            // Direct match
+            if ($childUrl && $childUrl === $currentUrl) {
+                return true;
+            }
+            
+            // Check grandchildren recursively
+            if (!empty($child["children"]) && $this->isChildActive($child["children"], $currentUrl)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

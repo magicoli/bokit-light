@@ -46,6 +46,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get primary role for CSS classes (admin or user)
+     */
+    public function getPrimaryRole(): string
+    {
+        return $this->isAdmin() ? 'admin' : 'user';
+    }
+
+    /**
      * Check if user has a specific role
      */
     public function hasRole(string $role): bool

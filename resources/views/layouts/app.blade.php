@@ -49,7 +49,7 @@
 
     @yield('scripts')
 </head>
-<body class="@yield('body-class')">
+<body class="@yield('body-class'){{ auth()->check() ? ' role-' . auth()->user()->getPrimaryRole() : '' }}">
     <div id="page-layout">
         {{-- Main navigation --}}
         <nav x-data="{ mobileMenuOpen: false }">
