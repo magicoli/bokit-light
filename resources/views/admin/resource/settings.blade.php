@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('body-class')
-    @parent resource-settings
-@endsection
 
+@section('body-class')
+    @parent resource-settings {{ $resource }}-settings
+@endsection
 
 @section('title', __('admin.settings') . ' - ' . __('admin.' . $resource))
 
