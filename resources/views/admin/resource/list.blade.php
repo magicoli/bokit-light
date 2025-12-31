@@ -1,6 +1,7 @@
 @extends('layouts.admin')
-
-@section('body-class', 'admin resource-list')
+@section('body-class')
+    @parent resource-list
+@endsection
 
 @section('title', __('admin.' . $resource))
 

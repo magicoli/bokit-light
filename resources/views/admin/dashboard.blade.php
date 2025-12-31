@@ -1,7 +1,9 @@
 @extends('layouts.admin')
+@section('body-class')
+    @parent admin-dashboard
+@endsection
 
 @section('title', __('admin.dashboard'))
-@section('body-class', 'admin admin-dashboard')
 
 @section('content')
 <div class="prose max-w-none">
