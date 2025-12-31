@@ -30,6 +30,24 @@ Route::middleware(["web", "admin"])
             "saveSettings",
         ])->name("settings.save");
 
-        // Resource routes - auto-registered by models with AdminResourceTrait
-        \App\Models\Booking::registerAdminRoutes();
+        // Auto-discover and register routes for all models with AdminResourceTrait
+        // TODO: Migrate to AdminRegistry::discoverModels() + AdminRegistry::registerRoutes()
+        // This is a temporary implementation - see AdminRegistry for future architecture
+        $modelsPath = app_path("Models");
+        if (is_dir($modelsPath)) {
+            $files = \Illuminate\Support\Facades\File::files($modelsPath);
+            foreach ($files as $file) {
+                $className = "App\\Models\\" . $file->getFilenameWithoutExtension();
+                if (class_exists($className)) {
+                    $uses = class_uses_recursive($className);
+                    if (in_array("App\\Traits\\AdminResourceTrait", $uses)) {
+                        $className::registerAdminRoutes();
+                    }
+                }
+            }
+        }
+        
+        // Future implementation (when AdminRegistry is fully active):
+        // \App\Services\AdminRegistry::discoverModels();
+        // \App\Services\AdminRegistry::registerRoutes();
     });

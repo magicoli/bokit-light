@@ -33,7 +33,7 @@ class AdminMenuService
     }
 
     /**
-     * Get resources only (for backwards compatibility)
+     * Get resources only (models with AdminResourceTrait)
      */
     public function getResources(): array
     {
@@ -43,7 +43,7 @@ class AdminMenuService
 
         return array_filter(
             $this->menuItems,
-            fn($item) => $item["type"] === "resource",
+            fn($item) => isset($item["model_class"]),
         );
     }
 
@@ -95,6 +95,9 @@ class AdminMenuService
 
     /**
      * Discover all models with AdminResourceTrait
+     * 
+     * TODO: Migrate to AdminRegistry for unified registration
+     * Future: AdminRegistry::all() will return both models AND custom pages
      */
     protected function discoverResources(): void
     {
@@ -132,7 +135,7 @@ class AdminMenuService
     }
 
     /**
-     * Register routes for all resources
+     * Register routes for all discovered resources
      */
     public function registerRoutes(): void
     {
@@ -141,15 +144,10 @@ class AdminMenuService
         }
 
         foreach ($this->menuItems as $item) {
-            if ($item["type"] === "resource") {
-                $modelClass = $item["model_class"] ?? null;
+            $modelClass = $item["model_class"] ?? null;
 
-                if (
-                    $modelClass &&
-                    method_exists($modelClass, "registerAdminRoutes")
-                ) {
-                    $modelClass::registerAdminRoutes();
-                }
+            if ($modelClass && method_exists($modelClass, "registerAdminRoutes")) {
+                $modelClass::registerAdminRoutes();
             }
         }
     }
