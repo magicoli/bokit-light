@@ -12,6 +12,7 @@ export default defineConfig({
                 "resources/css/forms.css",
                 "resources/css/layout-flex.css",
                 "resources/css/layout-grid.css",
+                "resources/css/list.css",
                 "resources/css/markdown.css",
                 "resources/css/rates.css",
                 "resources/css/rates-widget.css",

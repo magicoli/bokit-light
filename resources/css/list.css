@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+table.data-list {
+    @apply w-full border-collapse;
+
+    thead {
+        @apply bg-gray-200;
+
+        th {
+            @apply px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-300;
+
+            &.actions-column {
+                @apply text-right;
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            @apply border-b border-gray-200;
+
+            &:hover {
+                @apply bg-gray-50;
+            }
+
+            td {
+                @apply px-4 py-3 text-sm text-gray-900;
+
+                .na {
+                    @apply text-gray-400;
+                }
+
+                &.actions {
+                    @apply text-right space-x-2;
+                }
+            }
+        }
+    }
+}
