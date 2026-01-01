@@ -40,6 +40,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\AutoSync::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Prevent 403 redirects for authenticated users - show error page instead
+        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
+            // If user is authenticated, show 403 error page instead of redirecting to login
+            if (auth()->check()) {
+                return response()->view('errors.403', [
+                    'exception' => $e
+                ], 403);
+            }
+            
+            // Otherwise let Laravel handle it (redirect to login)
+            return null;
+        });
     })
     ->create();

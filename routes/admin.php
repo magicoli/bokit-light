@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Support\Options;
 
 /*
 |--------------------------------------------------------------------------
@@ -11,7 +12,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(["web", "admin"])
+// Determine auth middleware based on options (same as web.php)
+$authMethod = Options::get("auth.method", "none");
+$authMiddleware = match ($authMethod) {
+    "wordpress" => "auth.wordpress",
+    "laravel" => "auth.laravel",
+    default => "auth.none",
+};
+
+Route::middleware([$authMiddleware, "admin"])  // Auth THEN admin check
     ->prefix("admin")
     ->name("admin.")
     ->group(function () {
