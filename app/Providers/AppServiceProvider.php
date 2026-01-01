@@ -35,77 +35,105 @@ class AppServiceProvider extends ServiceProvider
     {
         // Admin gate - access to admin area
         // Super admins have full access, property managers have limited access
-        Gate::define('admin', function ($user) {
+        Gate::define("admin", function ($user) {
             if (!$user) {
                 return false;
             }
-            
+
             // Super admins have full access
-            if ($user->isAdmin()) {
+            if ($user->isAdmin() || $user->hasRole("manager")) {
                 return true;
             }
-            
+
             // Property managers have access to admin area (but some sections may be restricted)
-            return $user->hasRole('property_manager');
+            return $user->hasRole("property_manager");
         });
 
         // Manage resource gate - admin or owner
-        Gate::define('manage-resource', function ($user, $resource) {
+        Gate::define("manage-resource", function ($user, $resource) {
             if (!$user) {
                 return false;
             }
-            
+
             // Admins can manage everything
             if ($user->isAdmin()) {
                 return true;
             }
-            
+
             // Owner can manage their own resources
-            if (method_exists($resource, 'isOwnedBy')) {
+            if (method_exists($resource, "isOwnedBy")) {
                 return $resource->isOwnedBy($user);
             }
-            
+
             // Fallback to owner_id check
-            return isset($resource->owner_id) && $resource->owner_id === $user->id;
+            return isset($resource->owner_id) &&
+                $resource->owner_id === $user->id;
         });
 
-        // Manage gate - check if user can manage a model class
-        Gate::define('manage', function ($user, $modelClass) {
+        // Manage gate - check if user can manage a model class or instance
+        // This is for GLOBAL management rights - only admins and managers
+        Gate::define("manage", function ($user, $modelClass = null) {
             if (!$user) {
                 return false;
             }
-            
-            // Admins can manage everything
+
+            // Super admins can manage everything
             if ($user->isAdmin()) {
                 return true;
             }
-            
+
             // Convert short class names to full class names
             if (is_string($modelClass) && !class_exists($modelClass)) {
                 $shortName = ucfirst($modelClass);
                 $fullClass = "App\\Models\\{$shortName}";
-                
+
                 if (class_exists($fullClass)) {
                     $modelClass = $fullClass;
                 } else {
                     return false;
                 }
+                // Global managers can manage everything
+                if ($user->hasRole("manager")) {
+                    return true;
+                }
             }
-            
-            // Property managers can manage property-related resources only
-            if ($user->hasRole('property_manager')) {
-                $allowedModels = [
-                    \App\Models\Booking::class,
-                    \App\Models\Property::class,
-                    \App\Models\Unit::class,
-                    \App\Models\CalendarSource::class,
-                    // Add other property-related models as needed
-                ];
-                
-                return in_array($modelClass, $allowedModels);
-            }
-            
+
+            // Property managers do NOT have global manage rights
             return false;
+        });
+
+        // Property manager gate - check if user has property_manager role
+        // This is a ROLE check, not a permission check
+        // Ownership filtering happens in controllers/queries
+        Gate::define("property_manager", function ($user) {
+            if (!$user) {
+                return false;
+            }
+
+            // Super admins always have access
+            if ($user->isAdmin() || $user->hasRole("manager")) {
+                return true;
+            }
+
+            // Check if user has property_manager role
+            return $user->hasRole("property_manager");
+        });
+
+        // Booking manager gate - check if user has booking_manager role
+        // This is a ROLE check, not a permission check
+        // Ownership filtering happens in controllers/queries
+        Gate::define("booking_manager", function ($user) {
+            if (!$user) {
+                return false;
+            }
+
+            // Super admins always have access
+            if ($user->isAdmin() || $user->hasRole("manager")) {
+                return true;
+            }
+
+            // Check if user has booking_manager role
+            return $user->hasRole("booking_manager");
         });
     }
 
