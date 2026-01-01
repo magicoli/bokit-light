@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Form
 {
-    private Model $model;
+    private ?Model $model = null;
+    private array $values = [];
     private ?string $action = null;
     private string $method = "POST";
     private array $fields = [];
@@ -14,9 +15,22 @@ class Form
     private $fieldsCallback;
     private array $buttons = [];
 
-    public function __construct(Model $model, $fieldsCallback, ?string $action = null)
+    /**
+     * @param Model|array|null $data Model instance, array of values, or null
+     * @param callable|string|array $fieldsCallback Method name, callable, or array [class, method]
+     * @param string|null $action Form action URL
+     */
+    public function __construct($data, $fieldsCallback, ?string $action = null)
     {
-        $this->model = $model;
+        // Handle different data types
+        if ($data instanceof Model) {
+            $this->model = $data;
+        } elseif (is_array($data)) {
+            $this->values = $data;
+        } elseif ($data !== null) {
+            throw new \InvalidArgumentException('Form data must be a Model, array, or null');
+        }
+
         $this->fieldsCallback = $fieldsCallback;
         $this->action = $action;
         $this->loadFields($fieldsCallback);
@@ -42,12 +56,16 @@ class Form
     private function loadFields($callback): void
     {
         if (is_string($callback)) {
-            // Method on model class
-            $modelClass = get_class($this->model);
-            if (!method_exists($modelClass, $callback)) {
-                throw new \BadMethodCallException("Method {$callback} does not exist on {$modelClass}");
+            // Method on model class (or static method if no model)
+            if ($this->model) {
+                $modelClass = get_class($this->model);
+                if (!method_exists($modelClass, $callback)) {
+                    throw new \BadMethodCallException("Method {$callback} does not exist on {$modelClass}");
+                }
+                $this->fields = $modelClass::$callback();
+            } else {
+                throw new \InvalidArgumentException('Cannot use string method callback without a Model');
             }
-            $this->fields = $modelClass::$callback();
         } elseif (is_array($callback)) {
             // [class, method] or [$object, method]
             if (!is_callable($callback)) {
@@ -77,6 +95,15 @@ class Form
     public function method(string $method): self
     {
         $this->method = strtoupper($method);
+        return $this;
+    }
+
+    /**
+     * Set values (for forms without model)
+     */
+    public function values(array $values): self
+    {
+        $this->values = $values;
         return $this;
     }
 
@@ -151,12 +178,14 @@ class Form
     {
         if (!$this->action) {
             throw new \RuntimeException(
-                "Form action must be set before rendering. Use form('method', route(...))",
+                "Form action must be set before rendering. Use action(route(...))",
             );
         }
 
         // Generate class names for styling
-        $modelSlug = strtolower(class_basename($this->model));
+        $modelSlug = $this->model 
+            ? strtolower(class_basename($this->model))
+            : 'nomodel';
         $callbackSlug = is_string($this->fieldsCallback) 
             ? str_replace('_', '-', strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $this->fieldsCallback)))
             : 'custom';
@@ -167,6 +196,7 @@ class Form
             "fields" => $this->fields,
             "fieldOptions" => $this->fieldOptions,
             "model" => $this->model,
+            "values" => $this->values,
             "modelSlug" => $modelSlug,
             "callbackSlug" => $callbackSlug,
             "buttons" => $this->buttons,

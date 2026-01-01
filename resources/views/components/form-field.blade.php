@@ -2,8 +2,12 @@
     $type = $field['type'] ?? 'text';
     $label = $field['label'] ?? null; // Label can be null for containers
     $default = $field['default'] ?? null;
-    $value = old($fieldName, $model->$fieldName ?? $default ?? null);
-    $value_only = old($fieldName, $model->$fieldName ?? null);
+    
+    // Get value from model, values array, or default
+    $modelValue = $model ? ($model->$fieldName ?? null) : ($values[$fieldName] ?? null);
+    $value = old($fieldName, $modelValue ?? $default ?? null);
+    $value_only = old($fieldName, $modelValue);
+    
     $attributes = $field['attributes'] ?? [];
     $required = $field['required'] ?? false;
     if($field['required'] ?? false) {
@@ -109,6 +113,7 @@
                     'fieldName' => $subKey,
                     'field' => $subItem,
                     'model' => $model,
+                    'values' => $values,
                     'fieldOptions' => $fieldOptions
                 ])
             @endforeach
