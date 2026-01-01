@@ -1,7 +1,9 @@
-<form id="{{ $modelSlug }}-{{ $callbackSlug }}" action="{{ $action }}" method="POST" class="form form-{{ $modelSlug }} form-{{ $callbackSlug }}">
-    @csrf
-    @if($method !== 'POST')
-        @method($method)
+<form id="{{ $modelSlug }}-{{ $callbackSlug }}" action="{{ $action }}" method="{{ $method === 'GET' ? 'GET' : 'POST' }}" class="form form-{{ $modelSlug }} form-{{ $callbackSlug }}">
+    @if($method !== 'GET')
+        @csrf
+        @if($method !== 'POST')
+            @method($method)
+        @endif
     @endif
 
     @foreach($fields as $fieldName => $field)
@@ -9,6 +11,7 @@
             'fieldName' => $fieldName,
             'field' => $field,
             'model' => $model,
+            'values' => $values,
             'fieldOptions' => $fieldOptions
         ])
     @endforeach
