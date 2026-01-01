@@ -46,9 +46,10 @@ class Property extends Model
     /**
      * Admin resource configuration
      */
-    // public static function adminConfig(): array
-    // {
-    //     self::init();
-    //     return self::$config;
-    // }
+    public static function adminConfig(): array
+    {
+        self::init();
+        // static::$config["capability"] = "property_manager";
+        return self::$config;
+    }
 }
