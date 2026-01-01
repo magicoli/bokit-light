@@ -63,12 +63,8 @@ if ($isInstalled) {
         })->name("logout");
     } elseif ($authMethod === "laravel") {
         Route::get("/login", function () {
-            // Redirect to calendar if already logged in
-            if (auth()->check()) {
-                return redirect("/calendar");
-            }
             return view("auth.login");
-        })->name("login");
+        })->middleware("guest")->name("login");
 
         Route::post("/login", function (\Illuminate\Http\Request $request) {
             $credentials = $request->validate([
@@ -116,7 +112,7 @@ if ($isInstalled) {
                     );
                 }
 
-                return redirect()->intended("/calendar");
+                return redirect()->intended("/dashboard");
             }
 
             return back()->withErrors([
@@ -144,6 +140,11 @@ if ($isInstalled) {
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
+        // Dashboard - main entry point for authenticated users
+        Route::get("/dashboard", function () {
+            return view("dashboard");
+        })->name("dashboard");
+        
         Route::get("/calendar", [CalendarController::class, "index"])->name(
             "calendar",
         );
