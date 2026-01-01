@@ -86,13 +86,8 @@ class CalendarController extends Controller
             },
         ]);
 
-        if (!user_can('super_admin')) {
-            $query->whereHas("users", function ($q) {
-                $q->where("users.id", auth()->id());
-            });
-        }
-
-        $properties = $query->get();
+        // Filter by user authorization
+        $properties = $query->forUser()->get();
 
         return view("calendar", [
             "view" => $view,

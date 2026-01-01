@@ -48,6 +48,69 @@ trait AdminResourceTrait
     }
 
     /**
+     * Scope query to user's authorized records
+     * 
+     * Filters based on user role:
+     * - Admin/manager: sees everything (no filter)
+     * - property_manager: sees only records they own or have access to
+     * 
+     * Override this method in models that need custom filtering logic.
+     * 
+     * @param Builder $query
+     * @param \App\Models\User|null $user User to filter for (defaults to current user)
+     * @return Builder
+     */
+    public function scopeForUser(Builder $query, $user = null): Builder
+    {
+        $user = $user ?? auth()->user();
+        
+        // No user or admin/manager: no filtering
+        if (!$user || $user->isAdmin() || $user->hasRole('manager')) {
+            return $query;
+        }
+        
+        // Property managers: filter by ownership
+        if ($user->hasRole('property_manager')) {
+            // Default: filter via property relationship
+            // Models should override this if they have direct user ownership
+            return $this->scopeForPropertyManager($query, $user);
+        }
+        
+        // Other roles: no access by default
+        return $query->whereRaw('1 = 0');
+    }
+
+    /**
+     * Filter query for property_manager role
+     * 
+     * Default implementation filters via property.users relationship.
+     * Override in specific models if needed.
+     * 
+     * @param Builder $query
+     * @param \App\Models\User $user
+     * @return Builder
+     */
+    protected function scopeForPropertyManager(Builder $query, $user): Builder
+    {
+        // For Property model: direct users relationship
+        if ($this instanceof \App\Models\Property) {
+            return $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        }
+        
+        // For models with property relationship: filter via property.users
+        if (method_exists($this, 'property')) {
+            return $query->whereHas('property.users', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        }
+        
+        // No property relationship: no access
+        return $query->whereRaw('1 = 0');
+    }
+
+    /**
      * Register admin routes for this resource
      * Called from routes/admin.php or service provider
      */

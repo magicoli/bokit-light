@@ -24,8 +24,8 @@ trait ListTrait
         // Create DataList with the model instance
         $list = new DataList($instance);
 
-        // Set items (default to all if not provided)
-        $list->items($items ?? static::all());
+        // Set items (default to forUser() query if not provided)
+        $list->items($items ?? static::forUser()->get());
 
         // Set route prefix if provided
         if ($routePrefix) {

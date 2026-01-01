@@ -28,15 +28,7 @@ class RatesController extends Controller
                 ->get();
 
             // Get authorized properties for the user
-            $query = Property::query();
-
-            if (!user_can('super_admin')) {
-                $query->whereHas("users", function ($q) {
-                    $q->where("users.id", auth()->id());
-                });
-            }
-
-            $properties = $query->get();
+            $properties = Property::forUser()->get();
 
             // Get all units and coupons for dynamic select population
             $units = Unit::with("property")->get();
@@ -184,8 +176,8 @@ class RatesController extends Controller
     public function calculator()
     {
         try {
-            $properties = Property::all();
-            $units = Unit::with("property")->get();
+            $properties = Property::forUser()->get();
+            $units = Unit::with("property")->forUser()->get();
 
             return view("rates.calculator", compact("properties", "units"));
         } catch (\Exception $e) {

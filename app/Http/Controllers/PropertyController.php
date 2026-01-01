@@ -12,16 +12,8 @@ class PropertyController extends Controller
      */
     public function index()
     {
-        // Filter by user access if not admin
-        $query = Property::with('units');
-        
-        if (!user_can('super_admin')) {
-            $query->whereHas('users', function ($q) {
-                $q->where('users.id', auth()->id());
-            });
-        }
-        
-        $properties = $query->get();
+        // Filter by user authorization
+        $properties = Property::with('units')->forUser()->get();
         
         return view('properties', [
             'properties' => $properties,
