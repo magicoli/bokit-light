@@ -63,6 +63,10 @@ if ($isInstalled) {
         })->name("logout");
     } elseif ($authMethod === "laravel") {
         Route::get("/login", function () {
+            // Redirect to calendar if already logged in
+            if (auth()->check()) {
+                return redirect("/calendar");
+            }
             return view("auth.login");
         })->name("login");
 
