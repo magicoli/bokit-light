@@ -90,9 +90,9 @@ class Booking extends Model
         string $sourceEventId,
         int $propertyId,
         ?string $guestEmail = null,
-        string $checkIn = null,
-        string $checkOut = null,
-        int $unitId = null,
+        ?string $checkIn = null,
+        ?string $checkOut = null,
+        ?int $unitId = null,
     ): ?Booking {
         // Priority 1: Exact match on source identifiers (most efficient - uses composite index)
         $booking = self::where("source_type", $sourceType)

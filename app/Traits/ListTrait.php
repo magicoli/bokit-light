@@ -149,7 +149,7 @@ trait ListTrait
             $keys,
             array_map(function ($key) use ($classSlug) {
                 return [
-                    "label" => __("${classSlug}.column_${key}"),
+                    "label" => __("{$classSlug}.column_{$key}"),
                     "sortable" => true,
                 ];
             }, $keys),
