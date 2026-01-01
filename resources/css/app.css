@@ -360,3 +360,29 @@ footer {
 .button-group {
     @apply flex gap-4;
 }
+
+/* Error pages */
+.error-page {
+    @apply text-center py-12 px-4;
+    @apply max-w-2xl mx-auto;
+}
+
+.error-code {
+    @apply text-8xl font-bold text-gray-300;
+    @apply mb-4;
+}
+
+.error-title {
+    @apply text-3xl font-bold text-gray-900;
+    @apply mb-4;
+}
+
+.error-message {
+    @apply text-lg text-gray-600;
+    @apply mb-8;
+}
+
+.error-actions {
+    @apply flex gap-4 justify-center;
+    @apply flex-wrap;
+}

@@ -270,23 +270,8 @@ if (!function_exists("user_can")) {
             return $user->hasRole($ability);
         }
 
-        // If model is a string (class name), resolve to full class name
-        if (is_string($model)) {
-            // If it's a short name like "Property", convert to full class name
-            if (!class_exists($model)) {
-                $shortName = ucfirst($model);
-                $fullClass = "App\\Models\\{$shortName}";
-
-                if (class_exists($fullClass)) {
-                    $model = $fullClass;
-                } else {
-                    // Class doesn't exist
-                    return false;
-                }
-            }
-        }
-
         // Use Laravel authorization (Gates/Policies)
+        // Note: Short class name conversion is handled in the Gate itself
         return $user->can($ability, $model);
     }
 }
