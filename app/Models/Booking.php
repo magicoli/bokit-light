@@ -364,6 +364,7 @@ class Booking extends Model
     public static function adminConfig(): array
     {
         self::init();
+        // For testing purposesn, ONLY Bookings are allowed to property_manager
         static::$config["capability"] = "property_manager";
         return self::$config;
     }

@@ -93,6 +93,21 @@
                     {{-- Page content --}}
                     @yield('content')
                 </div>
+
+                @if(config('app.debug') == true)
+                    @php
+                    if (isset($exception) && $exception->getMessage()) {
+                        $debug_info = $exception->getMessage();
+                    }
+                    @endphp
+
+                    @if($debug_info ?? false)
+                        <div class="debug-info">
+                            <h3>Debug Information</h3>
+                            {{ $debug_info }}
+                        </div>
+                    @endif
+                @endif
             </main>
 
             {{-- Left sidebar --}}

@@ -49,6 +49,7 @@ class Property extends Model
     public static function adminConfig(): array
     {
         self::init();
+        // DO NOT UNCOMMENT, access intentionally disabled for testing purposes
         // static::$config["capability"] = "property_manager";
         return self::$config;
     }
