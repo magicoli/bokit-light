@@ -11,18 +11,18 @@ class Coupon extends Model
     use TimezoneTrait;
 
     protected $fillable = [
-        'code',
-        'name',
-        'property_id',
-        'discount_amount',
-        'discount_type',
-        'conditions',
-        'is_active',
+        "code",
+        "name",
+        "property_id",
+        "discount_amount",
+        "discount_type",
+        "conditions",
+        "is_active",
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'conditions' => 'array',
+        "is_active" => "boolean",
+        "conditions" => "array",
     ];
 
     /**
@@ -38,7 +38,7 @@ class Coupon extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where("is_active", true);
     }
 
     /**
@@ -46,6 +46,6 @@ class Coupon extends Model
      */
     public function scopeForProperty($query, $propertyId)
     {
-        return $query->where('property_id', $propertyId);
+        return $query->where("property_id", $propertyId);
     }
 }

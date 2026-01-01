@@ -9,7 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    // use AdminResourceTrait;
+    use AdminResourceTrait;
     use TimezoneTrait;
 
     protected $fillable = [
@@ -50,7 +50,7 @@ class User extends Authenticatable
      */
     public function getPrimaryRole(): string
     {
-        return $this->isAdmin() ? 'admin' : 'user';
+        return $this->isAdmin() ? "admin" : "user";
     }
 
     /**

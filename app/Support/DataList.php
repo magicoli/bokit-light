@@ -120,7 +120,9 @@ class DataList
             "datetime" => $value ? $value->format("Y-m-d H:i") : "",
             default => is_string($value)
                 ? $value
-                : __("app.error_not_a_string"),
+                : (is_array($value)
+                    ? implode(", ", $value)
+                    : ""),
         };
     }
 

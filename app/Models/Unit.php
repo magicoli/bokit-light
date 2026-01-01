@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Unit extends Model
 {
-    // use AdminResourceTrait;
+    use AdminResourceTrait;
     use TimezoneTrait;
 
     protected $fillable = [
