@@ -365,7 +365,7 @@ class Booking extends Model
     {
         self::init();
         // For testing purposesn, ONLY Bookings are allowed to property_manager
-        static::$config["capability"] = "property_manager";
+        static::$config["capability"] = "booking_manager";
         return self::$config;
     }
 }
