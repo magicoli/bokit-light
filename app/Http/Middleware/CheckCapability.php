@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class CheckCapability
 {
@@ -30,12 +31,12 @@ class CheckCapability
             
             // Check if user can perform ability on model
             if (!user_can($ability, $model)) {
-                abort(403, __('app.unauthorized'));
+                throw new AuthorizationException(__('app.unauthorized'));
             }
         } else {
             // Simple role check
             if (!user_can($capability)) {
-                abort(403, __('app.unauthorized'));
+                throw new AuthorizationException(__('app.unauthorized'));
             }
         }
 

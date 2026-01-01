@@ -362,27 +362,35 @@ footer {
 }
 
 /* Error pages */
-.error-page {
-    @apply text-center py-12 px-4;
-    @apply max-w-2xl mx-auto;
+body.error-page {
+    @apply bg-gray-100;
+
+    .error-content {
+        @apply text-center mx-auto w-full;
+        .error-code {
+            @apply text-8xl font-bold text-gray-300;
+        }
+
+        .error-title {
+            @apply text-3xl font-bold text-gray-900;
+        }
+
+        .error-message {
+            @apply text-lg text-gray-600;
+        }
+
+        .error-actions {
+            @apply flex gap-4 justify-center;
+            @apply flex-wrap;
+        }
+    }
 }
 
-.error-code {
-    @apply text-8xl font-bold text-gray-300;
-    @apply mb-4;
-}
+.debug-info {
+    @apply bg-gray-300 p-4;
+    @apply text-left text-sm text-gray-600;
 
-.error-title {
-    @apply text-3xl font-bold text-gray-900;
-    @apply mb-4;
-}
-
-.error-message {
-    @apply text-lg text-gray-600;
-    @apply mb-8;
-}
-
-.error-actions {
-    @apply flex gap-4 justify-center;
-    @apply flex-wrap;
+    h3 {
+        @apply text-lg font-semibold text-gray-900;
+    }
 }
