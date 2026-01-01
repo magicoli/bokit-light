@@ -341,7 +341,9 @@ class Rate extends Model
     public static function listColumns(): array
     {
         return [
-            "display_name" => ["label" => __("rates.column_display_name")],
+            "display_name" => [
+                "label" => __("rates.column_display_name"),
+            ],
             "base" => [
                 "label" => __("rates.column_base"),
                 "format" => "custom",

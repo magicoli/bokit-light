@@ -118,7 +118,9 @@ class DataList
             "currency" => number_format($value, 2),
             "date" => $value ? $value->format("Y-m-d") : "",
             "datetime" => $value ? $value->format("Y-m-d H:i") : "",
-            default => (string) $value,
+            default => is_string($value)
+                ? $value
+                : __("app.error_not_a_string"),
         };
     }
 
