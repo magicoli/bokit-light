@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use App\Traits\FormTrait;
+use App\Traits\ListTrait;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,6 +31,9 @@ use Illuminate\Database\Eloquent\Builder;
  */
 trait AdminResourceTrait
 {
+    use FormTrait;
+    use ListTrait;
+
     protected static $config = [];
 
     static function init()

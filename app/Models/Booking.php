@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\Traits\AdminResourceTrait;
-use App\Traits\FormTrait;
-use App\Traits\ListTrait;
 use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -16,23 +14,21 @@ use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    use FormTrait;
-    use ListTrait;
     use AdminResourceTrait;
     use SoftDeletes;
     use TimezoneTrait;
 
     protected $fillable = [
-        "unit_id",
-        "property_id",
-        "uid",
-        "source_name",
         "status",
         "guest_name",
         "check_in",
         "check_out",
         "adults",
         "children",
+        "property_id",
+        "unit_id",
+        "source_name",
+        "uid",
         "price",
         "commission",
         "notes",
@@ -52,6 +48,12 @@ class Booking extends Model
         "commission" => "decimal:2",
         "ota" => "array",
     ];
+
+    // public static function fillable(): array
+    // {
+    //     return self::
+    //     ];
+    // }
 
     /**
      * Get the unit that owns this booking
