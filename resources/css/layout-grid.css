@@ -22,8 +22,8 @@
         "nav"
         "main-area"
         "foot";
-    grid-template-rows: auto 1fr auto;
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
 
     /* md (768px): sidebars side-by-side under main */
     @media (min-width: 768px) {
@@ -70,7 +70,7 @@
                         "main   main"
                         "sl     sr";
                     grid-template-columns: 1fr 1fr;
-                    grid-template-rows: auto 1fr;
+                    grid-template-rows: 1fr auto;
                 }
             }
 
@@ -177,6 +177,10 @@
             @apply hidden;
         }
     }
+}
+
+main {
+    @apply w-full;
 }
 
 /* Container query support for sidebars */
