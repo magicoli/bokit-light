@@ -10,6 +10,20 @@ use Illuminate\Support\Str;
 trait ListTrait
 {
     protected static $columns = [];
+    protected static $searchable = ["name"];
+    protected static $filterable = ["status"];
+    protected static $sortable = ["id", "name", "status"];
+
+    static function initControls()
+    {
+        // Make sure $searchable, $fitlerable and $sortable only  contain defined fillables
+        $fillable = new \ReflectionClass(static::class)->getDefaultProperties()[
+            "fillable"
+        ];
+        static::$searchable = array_intersect(static::$searchable, $fillable);
+        static::$filterable = array_intersect(static::$filterable, $fillable);
+        static::$sortable = array_intersect(static::$sortable, $fillable);
+    }
 
     /**
      * Get a list instance for this model collection
@@ -18,14 +32,79 @@ trait ListTrait
         ?Collection $items = null,
         ?string $routePrefix = null,
     ): DataList {
+        static::initControls();
+
         // Create an empty model instance for DataList
         $instance = new static();
 
         // Create DataList with the model instance
         $list = new DataList($instance);
 
-        // Set items (default to forUser() query if not provided)
-        $list->items($items ?? static::forUser()->get());
+        // If items provided, use them directly (no pagination/filters)
+        if ($items !== null) {
+            $list->items($items);
+            if ($routePrefix) {
+                $list->routePrefix($routePrefix);
+            }
+            return $list;
+        }
+
+        // Build query
+        $query = static::forUser();
+
+        // Apply search
+        $search = request("search", "");
+        if ($search) {
+            $searchable = static::$searchable;
+            if (!empty($searchable)) {
+                $query->where(function ($q) use ($searchable, $search) {
+                    foreach ($searchable as $col) {
+                        $q->orWhere($col, "like", "%{$search}%");
+                    }
+                });
+            }
+        }
+
+        // Apply filters
+        $filterable = static::$filterable;
+        foreach (array_keys($filterable) as $col) {
+            $val = request("filter_{$col}");
+            if ($val !== null && $val !== "") {
+                $query->where($col, $val);
+            }
+        }
+
+        // Apply sorting
+        $sortCol = request("sort", "id");
+        $sortDir = request("dir", "asc");
+        if (in_array($sortDir, ["asc", "desc"])) {
+            $sortable = static::$sortable;
+            if (in_array($sortCol, $sortable)) {
+                $query->orderBy($sortCol, $sortDir);
+            }
+        }
+
+        // Paginate
+        $perPage = min(100, max(10, (int) request("per_page", 25)));
+        $paginator = $query->paginate($perPage)->withQueryString();
+
+        // Set items and metadata
+        $list
+            ->items(collect($paginator->items()))
+            ->setPaginator($paginator)
+            ->setSearch($search)
+            ->setFilters($filterable)
+            ->setCurrentFilters(
+                array_filter(
+                    request()->only(
+                        array_map(
+                            fn($c) => "filter_{$c}",
+                            array_keys($filterable),
+                        ),
+                    ),
+                ),
+            )
+            ->setSort($sortCol, $sortDir);
 
         // Set route prefix if provided
         if ($routePrefix) {
@@ -77,5 +156,37 @@ trait ListTrait
         );
 
         return $columns;
+    }
+
+    /**
+     * Get filterable columns with options (override in model with protected static $filterable)
+     */
+    protected static function getFilters(): array
+    {
+        if (empty(static::$filterable)) {
+            return [];
+        }
+
+        $filters = [];
+        foreach (static::$filterable as $columnName) {
+            // Get distinct status values from forUser query
+            try {
+                $values = static::forUser()
+                    ->distinct()
+                    ->pluck($columnName)
+                    ->filter()
+                    ->sort();
+                if ($values->isEmpty()) {
+                    return [];
+                }
+                $filters[$columnName] = $values
+                    ->mapWithKeys(fn($v) => [$v => ucfirst($v)])
+                    ->toArray();
+            } catch (\Exception $e) {
+                return [];
+            }
+        }
+
+        return $filters;
     }
 }
