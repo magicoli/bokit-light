@@ -14,9 +14,10 @@ class DataList
     private array $columns = [];
     private ?string $groupBy = null;
     private $paginator = null;
-    private string $search = '';
+    private array $searchable = [];
+    private array $sortable = [];
     private array $filters = [];
-    private array $currentFilters = [];
+    private string $search = '';
     private string $sortColumn = '';
     private string $sortDirection = 'asc';
 
@@ -105,6 +106,24 @@ class DataList
     }
 
     /**
+     * Set searchable columns
+     */
+    public function setSearchable(array $searchable): self
+    {
+        $this->searchable = $searchable;
+        return $this;
+    }
+
+    /**
+     * Set sortable columns
+     */
+    public function setSortable(array $sortable): self
+    {
+        $this->sortable = $sortable;
+        return $this;
+    }
+
+    /**
      * Set search term
      */
     public function setSearch(string $search): self
@@ -123,15 +142,6 @@ class DataList
     }
 
     /**
-     * Set current filter values
-     */
-    public function setCurrentFilters(array $current): self
-    {
-        $this->currentFilters = $current;
-        return $this;
-    }
-
-    /**
      * Set sort column and direction
      */
     public function setSort(string $column, string $direction = 'asc'): self
@@ -139,6 +149,81 @@ class DataList
         $this->sortColumn = $column;
         $this->sortDirection = $direction;
         return $this;
+    }
+
+    /**
+     * Create the controls form (search, filters, per_page)
+     */
+    private function createControlsForm(): ?Form
+    {
+        // No controls if no searchable, no filters, and no paginator
+        if (empty($this->searchable) && empty($this->filters) && !$this->paginator) {
+            return null;
+        }
+
+        $fields = [];
+
+        // Search field
+        if (!empty($this->searchable)) {
+            $fields['search'] = [
+                'type' => 'text',
+                'label' => null,
+                'placeholder' => __('forms.search'),
+                'default' => '',
+            ];
+        }
+
+        // Filter fields
+        foreach ($this->filters as $column => $options) {
+            $fields["filter_{$column}"] = [
+                'type' => 'select',
+                'label' => null,
+                'options' => ['' => __("forms.all_{$column}")] + $options,
+                'default' => '',
+            ];
+        }
+
+        // Per page selector (if paginator exists)
+        if ($this->paginator) {
+            $fields['per_page'] = [
+                'type' => 'select',
+                'label' => null,
+                'options' => [
+                    10 => '10',
+                    25 => '25',
+                    50 => '50',
+                    100 => '100',
+                ],
+                'default' => 25,
+            ];
+        }
+
+        // Get current values from request
+        $values = request()->only(array_keys($fields));
+        
+        // Create form
+        $form = new Form($values, fn() => $fields, request()->url());
+        $form->method('GET')
+            ->buttons([
+                'submit' => [
+                    'label' => __('forms.filter'),
+                    'type' => 'submit',
+                    'class' => 'button primary',
+                ],
+            ]);
+
+        // Add clear button if there are active filters/search
+        if ($this->search || !empty(array_filter($values, fn($v) => $v !== '' && $v !== null))) {
+            $form->addButton('clear', __('forms.clear'), [
+                'type' => 'button',
+                'class' => 'button secondary',
+                'attributes' => [
+                    'onclick' => "window.location.href='" . request()->url() . "'",
+                ],
+            ]);
+        }
+
+        return $form;
     }
 
     /**
@@ -191,16 +276,16 @@ class DataList
             return __("app.error_columns_not_set");
         }
 
+        // Create controls form
+        $controlsForm = $this->createControlsForm();
+
         return view("components.data-list", [
             "items" => $this->items,
             "columns" => $this->columns,
             "routePrefix" => $this->routePrefix,
             "groupBy" => $this->groupBy,
-            "model" => $this->model,
+            "controlsForm" => $controlsForm,
             "paginator" => $this->paginator,
-            "search" => $this->search,
-            "filters" => $this->filters,
-            "currentFilters" => $this->currentFilters,
             "sortColumn" => $this->sortColumn,
             "sortDirection" => $this->sortDirection,
             "formatValue" => fn(

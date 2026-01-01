@@ -66,8 +66,8 @@ trait ListTrait
         }
 
         // Apply filters
-        $filterable = static::$filterable;
-        foreach (array_keys($filterable) as $col) {
+        $filters = static::getFilters();
+        foreach (array_keys($filters) as $col) {
             $val = request("filter_{$col}");
             if ($val !== null && $val !== "") {
                 $query->where($col, $val);
@@ -92,18 +92,10 @@ trait ListTrait
         $list
             ->items(collect($paginator->items()))
             ->setPaginator($paginator)
+            ->setSearchable(static::$searchable)
+            ->setSortable(static::$sortable)
+            ->setFilters($filters)
             ->setSearch($search)
-            ->setFilters($filterable)
-            ->setCurrentFilters(
-                array_filter(
-                    request()->only(
-                        array_map(
-                            fn($c) => "filter_{$c}",
-                            array_keys($filterable),
-                        ),
-                    ),
-                ),
-            )
             ->setSort($sortCol, $sortDir);
 
         // Set route prefix if provided
