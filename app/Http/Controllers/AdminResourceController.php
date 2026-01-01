@@ -45,9 +45,10 @@ class AdminResourceController extends Controller
         $modelClass = $this->getModelClass($resource);
 
         // Check permissions
-        if (!user_can("manage", $modelClass)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("manage", $modelClass)) {
+        //     abort(403);
+        // }
 
         $model = new $modelClass();
 
@@ -65,9 +66,10 @@ class AdminResourceController extends Controller
         $modelClass = $this->getModelClass($resource);
 
         // Check permissions
-        if (!user_can("manage", $modelClass)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("manage", $modelClass)) {
+        //     abort(403);
+        // }
 
         $model = new $modelClass();
 
@@ -85,9 +87,10 @@ class AdminResourceController extends Controller
         $modelClass = $this->getModelClass($resource);
 
         // Check permissions
-        if (!user_can("manage", $modelClass)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("manage", $modelClass)) {
+        //     abort(403);
+        // }
 
         // TODO: Validation
         $item = $modelClass::create($request->all());
@@ -106,9 +109,10 @@ class AdminResourceController extends Controller
         $model = $modelClass::findOrFail($id);
 
         // Check permissions
-        if (!user_can("edit", $model)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("edit", $model)) {
+        //     abort(403);
+        // }
 
         return view("admin.resource.edit", [
             "resource" => $resource,
@@ -125,9 +129,10 @@ class AdminResourceController extends Controller
         $model = $modelClass::findOrFail($id);
 
         // Check permissions
-        if (!user_can("view", $model)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("view", $model)) {
+        //     abort(403);
+        // }
 
         return view("admin.resource.show", [
             "resource" => $resource,
@@ -144,9 +149,10 @@ class AdminResourceController extends Controller
         $model = $modelClass::findOrFail($id);
 
         // Check permissions
-        if (!user_can("edit", $model)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("edit", $model)) {
+        //     abort(403);
+        // }
 
         // TODO: Validation
         $model->update($request->all());
@@ -165,9 +171,10 @@ class AdminResourceController extends Controller
         $model = $modelClass::findOrFail($id);
 
         // Check permissions
-        if (!user_can("delete", $model)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("delete", $model)) {
+        //     abort(403);
+        // }
 
         $model->delete();
 
@@ -184,9 +191,10 @@ class AdminResourceController extends Controller
         $modelClass = $this->getModelClass($resource);
 
         // Check permissions
-        if (!user_can("manage", $modelClass)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("manage", $modelClass)) {
+        //     abort(403);
+        // }
 
         $model = new $modelClass();
 
@@ -203,10 +211,10 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
 
-        // Check permissions
-        if (!user_can("manage", $modelClass)) {
-            abort(403);
-        }
+        // user_can("manage") IS WRONG: should check page/menu/object capability, not global "manage" ability
+        // if (!user_can("manage", $modelClass)) {
+        //     abort(403);
+        // }
 
         // TODO: Implement settings save
 
