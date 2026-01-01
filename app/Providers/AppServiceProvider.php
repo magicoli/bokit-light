@@ -80,9 +80,29 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
             
-            // Property managers can manage property-related resources
+            // Convert short class names to full class names
+            if (is_string($modelClass) && !class_exists($modelClass)) {
+                $shortName = ucfirst($modelClass);
+                $fullClass = "App\\Models\\{$shortName}";
+                
+                if (class_exists($fullClass)) {
+                    $modelClass = $fullClass;
+                } else {
+                    return false;
+                }
+            }
+            
+            // Property managers can manage property-related resources only
             if ($user->hasRole('property_manager')) {
-                return true;
+                $allowedModels = [
+                    \App\Models\Booking::class,
+                    \App\Models\Property::class,
+                    \App\Models\Unit::class,
+                    \App\Models\CalendarSource::class,
+                    // Add other property-related models as needed
+                ];
+                
+                return in_array($modelClass, $allowedModels);
             }
             
             return false;

@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             "auth.laravel" => \App\Http\Middleware\LaravelAuth::class,
             "auth.none" => \App\Http\Middleware\NoAuth::class,
             "admin" => \App\Http\Middleware\AdminMiddleware::class,
+            "can" => \App\Http\Middleware\CheckCapability::class,
         ]);
 
         // Auto-sync iCal sources on page loads
