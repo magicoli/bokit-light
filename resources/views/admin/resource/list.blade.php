@@ -7,6 +7,7 @@
 
 @section('styles')
 @vite('resources/css/list.css')
+@vite('resources/css/forms.css')
 @endsection
 
 @section('action-links')
