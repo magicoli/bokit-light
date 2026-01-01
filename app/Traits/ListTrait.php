@@ -61,6 +61,8 @@ trait ListTrait
                     "settings",
                     "created_at",
                     "updated_at",
+                    "password",
+                    "auth_provider",
                 ]);
         });
 
