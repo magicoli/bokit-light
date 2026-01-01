@@ -13,6 +13,12 @@ class DataList
     private ?string $routePrefix = null;
     private array $columns = [];
     private ?string $groupBy = null;
+    private $paginator = null;
+    private string $search = '';
+    private array $filters = [];
+    private array $currentFilters = [];
+    private string $sortColumn = '';
+    private string $sortDirection = 'asc';
 
     /**
      * Constructor accepts Model, Collection, or array
@@ -90,6 +96,52 @@ class DataList
     }
 
     /**
+     * Set paginator
+     */
+    public function setPaginator($paginator): self
+    {
+        $this->paginator = $paginator;
+        return $this;
+    }
+
+    /**
+     * Set search term
+     */
+    public function setSearch(string $search): self
+    {
+        $this->search = $search;
+        return $this;
+    }
+
+    /**
+     * Set available filters (column => [value => label])
+     */
+    public function setFilters(array $filters): self
+    {
+        $this->filters = $filters;
+        return $this;
+    }
+
+    /**
+     * Set current filter values
+     */
+    public function setCurrentFilters(array $current): self
+    {
+        $this->currentFilters = $current;
+        return $this;
+    }
+
+    /**
+     * Set sort column and direction
+     */
+    public function setSort(string $column, string $direction = 'asc'): self
+    {
+        $this->sortColumn = $column;
+        $this->sortDirection = $direction;
+        return $this;
+    }
+
+    /**
      * Format value based on column configuration
      */
     private function formatValue(
@@ -144,6 +196,13 @@ class DataList
             "columns" => $this->columns,
             "routePrefix" => $this->routePrefix,
             "groupBy" => $this->groupBy,
+            "model" => $this->model,
+            "paginator" => $this->paginator,
+            "search" => $this->search,
+            "filters" => $this->filters,
+            "currentFilters" => $this->currentFilters,
+            "sortColumn" => $this->sortColumn,
+            "sortDirection" => $this->sortDirection,
             "formatValue" => fn(
                 $item,
                 $columnKey,
