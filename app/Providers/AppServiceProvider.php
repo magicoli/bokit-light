@@ -26,6 +26,15 @@ class AppServiceProvider extends ServiceProvider
         $this->ensureConfigIsLoaded();
         $this->createStorageStructure();
         $this->registerGates();
+        $this->registerObservers();
+    }
+
+    /**
+     * Register model observers
+     */
+    private function registerObservers(): void
+    {
+        \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
     }
 
     /**
