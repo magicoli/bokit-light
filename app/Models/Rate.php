@@ -461,10 +461,10 @@ class Rate extends Model
      * FIRST WE MAKE SURE THAT ANY MODEL WITH ONLY THE TRAIT ENABLED
      * WILL BEHAVE PROPERLY
      */
-    public static function adminConfig(): array
-    {
-        self::init();
-        static::$config["capability"] = "property_manager";
-        return self::$config;
-    }
+    // public static function adminConfig(): array
+    // {
+    //     self::init();
+    //     static::$config["capability"] = "property_manager";
+    //     return self::$config;
+    // }
 }

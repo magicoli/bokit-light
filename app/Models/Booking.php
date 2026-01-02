@@ -49,6 +49,12 @@ class Booking extends Model
         "ota" => "array",
     ];
 
+    protected static $capability = "property_manager";
+
+    protected static $searchable = ["guest_name", "source_name"];
+
+    protected static $filterable = ["status", "source_name"];
+
     // public static function fillable(): array
     // {
     //     return self::
@@ -361,13 +367,13 @@ class Booking extends Model
      * FIRST WE MAKE SURE THAT ANY MODEL WITH ONLY THE TRAIT ENABLED
      * WILL BEHAVE PROPERLY
      */
-    public static function adminConfig(): array
-    {
-        self::init();
-        // For testing purposesn, ONLY Bookings are allowed to property_manager
-        static::$config["capability"] = "booking_manager";
-        static::$searchable = ["guest_name", "email"];
-        // static::$filterable = ["status", "source_name"];
-        return self::$config;
-    }
+    // public static function adminConfig(): array
+    // {
+    //     self::init();
+    //     // For testing purposesn, ONLY Bookings are allowed to property_manager
+    //     static::$config["capability"] = "booking_manager";
+    //     static::$searchable = ["guest_name", "email"];
+    //     // static::$filterable = ["status", "source_name"];
+    //     return self::$config;
+    // }
 }

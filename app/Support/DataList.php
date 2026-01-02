@@ -177,23 +177,23 @@ class DataList
         return $field;
     }
 
-    /**
-     * Set searchable columns
-     */
-    public function setSearchable(array $searchable): self
-    {
-        $this->searchable = $searchable;
-        return $this;
-    }
+    // /**
+    //  * Set searchable columns
+    //  */
+    // public function setSearchable(array $searchable): self
+    // {
+    //     $this->searchable = $searchable;
+    //     return $this;
+    // }
 
-    /**
-     * Set sortable columns
-     */
-    public function setSortable(array $sortable): self
-    {
-        $this->sortable = $sortable;
-        return $this;
-    }
+    // /**
+    //  * Set sortable columns
+    //  */
+    // public function setSortable(array $sortable): self
+    // {
+    //     $this->sortable = $sortable;
+    //     return $this;
+    // }
 
     /**
      * Set search term
@@ -247,12 +247,6 @@ class DataList
                 "placeholder" => implode(", ", $this->searchable),
                 "default" => "",
             ];
-        } else {
-            Log::debug("No searchable fields", [
-                "model class" => get_class($this->model),
-                '$this->searchable' => $this->searchable,
-                '$this->model::searchable()' => $this->model::searchable(),
-            ]);
         }
 
         $modelClass = get_class($this->model);
@@ -286,10 +280,13 @@ class DataList
 
         // Collect field names for request values BEFORE wrapping
         $fieldNames = array_keys($fields);
-        if (isset($fields['paginator']['items'])) {
-            $fieldNames = array_merge($fieldNames, array_keys($fields['paginator']['items']));
+        if (isset($fields["paginator"]["items"])) {
+            $fieldNames = array_merge(
+                $fieldNames,
+                array_keys($fields["paginator"]["items"]),
+            );
             // Remove 'paginator' from field names as it's a container
-            $fieldNames = array_diff($fieldNames, ['paginator']);
+            $fieldNames = array_diff($fieldNames, ["paginator"]);
         }
 
         $fields = [
@@ -335,26 +332,33 @@ class DataList
 
         // If value is null, return empty string
         if ($value === null) {
-            return '';
+            return "";
         }
 
         // Auto-detect format from model casts if not specified
-        if ($format === 'text' && $this->model) {
+        if ($format === "text" && $this->model) {
             $modelClass = get_class($this->model);
-            if (method_exists($modelClass, 'getConfig')) {
+            if (method_exists($modelClass, "getConfig")) {
                 $config = $modelClass::getConfig();
-                $casts = $config['casts'] ?? [];
-                
+                $casts = $config["casts"] ?? [];
+
                 if (isset($casts[$columnKey])) {
                     $castType = $casts[$columnKey];
                     // Map Laravel cast types to our format types
                     $format = match (true) {
-                        str_starts_with($castType, 'date') => 'date',
-                        $castType === 'datetime' => 'datetime',
-                        in_array($castType, ['int', 'integer', 'float', 'double', 'decimal']) => 'number',
-                        in_array($castType, ['bool', 'boolean']) => 'boolean',
-                        $castType === 'array' => 'array',
-                        default => 'text',
+                        str_starts_with($castType, "date") => "date",
+                        $castType === "datetime" => "datetime",
+                        in_array($castType, [
+                            "int",
+                            "integer",
+                            "float",
+                            "double",
+                            "decimal",
+                        ])
+                            => "number",
+                        in_array($castType, ["bool", "boolean"]) => "boolean",
+                        $castType === "array" => "array",
+                        default => "text",
                     };
                 }
             }
@@ -362,12 +366,22 @@ class DataList
 
         return match ($format) {
             "boolean" => $value ? "✓" : "✗",
-            "number" => is_numeric($value) ? number_format($value, 2) : (string) $value,
+            "number" => is_numeric($value)
+                ? number_format($value, 2)
+                : (string) $value,
             "currency" => number_format($value, 2),
-            "date" => is_object($value) && method_exists($value, 'format') ? $value->format("Y-m-d") : (string) $value,
-            "datetime" => is_object($value) && method_exists($value, 'format') ? $value->format("Y-m-d H:i") : (string) $value,
-            "array" => is_array($value) ? implode(", ", $value) : (string) $value,
-            default => is_string($value) || is_numeric($value) ? (string) $value : '',
+            "date" => is_object($value) && method_exists($value, "format")
+                ? $value->format("Y-m-d")
+                : (string) $value,
+            "datetime" => is_object($value) && method_exists($value, "format")
+                ? $value->format("Y-m-d H:i")
+                : (string) $value,
+            "array" => is_array($value)
+                ? implode(", ", $value)
+                : (string) $value,
+            default => is_string($value) || is_numeric($value)
+                ? (string) $value
+                : "",
         };
     }
 
