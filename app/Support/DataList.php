@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Traits\TimezoneTrait;
+
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -9,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DataList
 {
+    use TimezoneTrait;
+
     private ?Model $model = null;
     private Collection $items;
     private ?string $routePrefix = null;
@@ -379,9 +383,10 @@ class DataList
             "array" => is_array($value)
                 ? implode(", ", $value)
                 : (string) $value,
-            default => is_string($value) || is_numeric($value)
-                ? (string) $value
-                : "",
+            default
+                => (string) $value, // default => is_string($value) || is_numeric($value)
+            //     ? (string) $value
+            //     : "",
         };
     }
 

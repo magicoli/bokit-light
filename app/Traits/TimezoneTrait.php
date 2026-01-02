@@ -13,39 +13,39 @@ trait TimezoneTrait
     /**
      * Get cached HTML <option> elements for all timezones
      * Used in select dropdowns across the app (User, Property, Unit, etc.)
-     * 
+     *
      * @param string|null $selected Currently selected timezone
      * @return string HTML options
      */
     public static function timezoneOptionsHtml(?string $selected = null): string
     {
         // Generate cache key including selected value to cache different states
-        $cacheKey = 'timezone_options_html';
-        
+        $cacheKey = "timezone_options_html";
+
         // Get base HTML (without selection) from cache
-        $baseHtml = Cache::remember($cacheKey, 86400 * 30, function() {
+        $baseHtml = Cache::remember($cacheKey, 86400 * 30, function () {
             $timezones = timezone_identifiers_list();
             $options = [];
             foreach ($timezones as $timezone) {
                 $options[] = sprintf(
                     '<option value="%s">%s</option>',
                     e($timezone),
-                    e($timezone)
+                    e($timezone),
                 );
             }
             return implode("\n", $options);
         });
-        
+
         // If no selection needed, return cached HTML as-is
         if (!$selected) {
             return $baseHtml;
         }
-        
+
         // Add 'selected' attribute to the correct option
         return str_replace(
             'value="' . e($selected) . '"',
             'value="' . e($selected) . '" selected',
-            $baseHtml
+            $baseHtml,
         );
     }
     /**
@@ -105,7 +105,7 @@ trait TimezoneTrait
      * @param bool $showTimezone Whether to append timezone indicator
      * @return string
      */
-    public function displayDate(
+    public function formatDate(
         $date,
         string $format = "short",
         bool $showTimezone = false,
@@ -147,68 +147,112 @@ trait TimezoneTrait
      * @param string|bool $format 'short', 'medium', 'long', or boolean (false=long, true=short)
      * @return string
      */
-    public static function dateRange($start, $end, $format = 'long'): string
+    public static function dateRange($start, $end, $format = "long"): string
     {
         // Handle boolean format
         if (is_bool($format)) {
-            $format = $format ? 'short' : 'long';
+            $format = $format ? "short" : "long";
         }
 
-        $sameMonth = $start->month === $end->month && $start->year === $end->year;
+        $sameMonth =
+            $start->month === $end->month && $start->year === $end->year;
         $sameYear = $start->year === $end->year;
 
-        return match($format) {
-            'short' => self::dateRangeShort($start, $end, $sameMonth, $sameYear),
-            'medium' => self::dateRangeMedium($start, $end, $sameMonth, $sameYear),
-            default => self::dateRangeLong($start, $end, $sameMonth, $sameYear),
+        return match ($format) {
+            "short" => self::dateRangeShort(
+                $start,
+                $end,
+                $sameMonth,
+                $sameYear,
+            ),
+            "medium" => self::dateRangeMedium(
+                $start,
+                $end,
+                $sameMonth,
+                $sameYear,
+            ),
+            default => self::dateRangeLong(
+                $start,
+                $end,
+                $sameMonth,
+                $sameYear,
+            ),
         };
     }
 
     /**
      * Short format: 21-28/12 or 29/12-04/01
      */
-    private static function dateRangeShort($start, $end, $sameMonth, $sameYear): string
-    {
+    private static function dateRangeShort(
+        $start,
+        $end,
+        $sameMonth,
+        $sameYear,
+    ): string {
         if ($sameMonth) {
             // 21-28/12
-            return $start->translatedFormat('j') . '-' . $end->translatedFormat('j/m');
+            return $start->translatedFormat("j") .
+                "-" .
+                $end->translatedFormat("j/m");
         } else {
             // 29/12-04/01
-            return $start->translatedFormat('j/m') . '-' . $end->translatedFormat('j/m');
+            return $start->translatedFormat("j/m") .
+                "-" .
+                $end->translatedFormat("j/m");
         }
     }
 
     /**
      * Medium format: 21 - 28 Dec 2025 or 29 Dec 2025 - 4 Jan
      */
-    private static function dateRangeMedium($start, $end, $sameMonth, $sameYear): string
-    {
+    private static function dateRangeMedium(
+        $start,
+        $end,
+        $sameMonth,
+        $sameYear,
+    ): string {
         if ($sameMonth) {
             // 21 - 28 Dec 2025
-            return $start->translatedFormat('j') . ' - ' . $end->translatedFormat('j M Y');
+            return $start->translatedFormat("j") .
+                " - " .
+                $end->translatedFormat("j M Y");
         } elseif ($sameYear) {
             // 29 Dec 2025 - 4 Jan
-            return $start->translatedFormat('j M Y') . ' - ' . $end->translatedFormat('j M');
+            return $start->translatedFormat("j M Y") .
+                " - " .
+                $end->translatedFormat("j M");
         } else {
             // 29 Dec 2025 - 4 Jan 2026
-            return $start->translatedFormat('j M Y') . ' - ' . $end->translatedFormat('j M Y');
+            return $start->translatedFormat("j M Y") .
+                " - " .
+                $end->translatedFormat("j M Y");
         }
     }
 
     /**
      * Long format: 21 - 28 December 2025 or 29 December 2025 - 4 January 2026
      */
-    private static function dateRangeLong($start, $end, $sameMonth, $sameYear): string
-    {
+    private static function dateRangeLong(
+        $start,
+        $end,
+        $sameMonth,
+        $sameYear,
+    ): string {
         if ($sameMonth) {
             // 21 - 28 December 2025
-            return $start->translatedFormat('j') . ' - ' . $end->translatedFormat('j F Y');
+            return $start->translatedFormat("j") .
+                " - " .
+                $end->translatedFormat("j F Y");
         } elseif ($sameYear) {
             // 29 December 2025 - 4 January
-            return $start->translatedFormat('j F Y') . ' - ' . $end->translatedFormat('j F');
+            return $start->translatedFormat("j F Y") .
+                " - " .
+                $end->translatedFormat("j F");
         } else {
             // 29 December 2025 - 4 January 2026
-            return $start->translatedFormat('j F Y') . ' - ' . $end->translatedFormat('j F Y');
+            return $start->translatedFormat("j F Y") .
+                " - " .
+                $end->translatedFormat("j F Y");
         }
     }
 }
