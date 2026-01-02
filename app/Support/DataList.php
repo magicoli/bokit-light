@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 
 class DataList
@@ -242,10 +243,16 @@ class DataList
         if (!empty($this->searchable)) {
             $fields["search"] = [
                 "type" => "text",
-                "label" => null,
-                "placeholder" => __("forms.search"),
+                "label" => __("forms.search"),
+                "placeholder" => implode(", ", $this->searchable),
                 "default" => "",
             ];
+        } else {
+            Log::debug("No searchable fields", [
+                "model class" => get_class($this->model),
+                '$this->searchable' => $this->searchable,
+                '$this->model::searchable()' => $this->model::searchable(),
+            ]);
         }
 
         $modelClass = get_class($this->model);
