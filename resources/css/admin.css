@@ -21,7 +21,7 @@ body.admin {
         /* Settings-specific styles */
     }
 
-    /* Admin forms - extend forms.css */
+    /* Admin forms - extend form.css */
     &.admin form {
         /* Admin-specific form overrides if needed */
     }

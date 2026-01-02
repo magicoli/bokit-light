@@ -35,13 +35,13 @@
       "flatpickr.css"
     ]
   },
-  "resources/css/forms.css": {
-    "file": "assets/forms-BRJcPFXs.css",
-    "src": "resources/css/forms.css",
+  "resources/css/form.css": {
+    "file": "assets/form-BRJcPFXs.css",
+    "src": "resources/css/form.css",
     "isEntry": true,
-    "name": "forms",
+    "name": "form",
     "names": [
-      "forms.css"
+      "form.css"
     ]
   },
   "resources/css/layout-flex.css": {

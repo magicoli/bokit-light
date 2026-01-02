@@ -9,7 +9,7 @@ export default defineConfig({
                 "resources/css/app.css",
                 "resources/css/admin.css",
                 "resources/css/calendar.css",
-                "resources/css/forms.css",
+                "resources/css/form.css",
                 "resources/css/layout-flex.css",
                 "resources/css/layout-grid.css",
                 "resources/css/list.css",

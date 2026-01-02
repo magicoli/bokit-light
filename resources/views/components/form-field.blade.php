@@ -2,12 +2,12 @@
     $type = $field['type'] ?? 'text';
     $label = $field['label'] ?? null; // Label can be null for containers
     $default = $field['default'] ?? null;
-    
+
     // Get value from model, values array, or default
     $modelValue = $model ? ($model->$fieldName ?? null) : ($values[$fieldName] ?? null);
     $value = old($fieldName, $modelValue ?? $default ?? null);
     $value_only = old($fieldName, $modelValue);
-    
+
     $attributes = $field['attributes'] ?? [];
     $required = $field['required'] ?? false;
     if($field['required'] ?? false) {
@@ -72,6 +72,10 @@
 
         case "textarea":
             $container = "textarea";
+            break;
+
+        case "link":
+            $container = "a";
             break;
 
         default:
@@ -160,7 +164,22 @@
                 </option>
             @endforeach
         </select>
-
+    @elseif($type === 'link')
+        @php
+        $value = trim(($field['icon'] ?? '') . ' ' . $value);
+        @endphp
+        <a
+            id="{{ $fieldName }}"
+            name="{{ $fieldName }}"
+            class="{{ $inputClass }}"
+            {!! $attrs !!}
+        >
+            @if($field['icon'] ?? false)
+            {!! $field['icon'] !!}
+            @else
+            {{ $value }}
+            @endif
+        </a>
     @else
         <{{ $container }}
             type="{{ $type }}"
