@@ -284,6 +284,14 @@ class DataList
             $fields["paginator"] = $this->paginatorField();
         }
 
+        // Collect field names for request values BEFORE wrapping
+        $fieldNames = array_keys($fields);
+        if (isset($fields['paginator']['items'])) {
+            $fieldNames = array_merge($fieldNames, array_keys($fields['paginator']['items']));
+            // Remove 'paginator' from field names as it's a container
+            $fieldNames = array_diff($fieldNames, ['paginator']);
+        }
+
         $fields = [
             "control-row" => [
                 "type" => "fields-row",
@@ -291,8 +299,8 @@ class DataList
             ],
         ];
 
-        // Get current values from request
-        $values = request()->only(array_keys($fields));
+        // Get current values from request using collected field names
+        $values = request()->only($fieldNames);
 
         // Create form
         $form = new Form($values, fn() => $fields, request()->url());
