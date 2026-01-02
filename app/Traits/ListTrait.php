@@ -42,7 +42,7 @@ trait ListTrait
         // Apply search
         $search = request("search", "");
         if ($search) {
-            $searchable = $config['searchable'];
+            $searchable = $config["searchable"];
             if (!empty($searchable)) {
                 $query->where(function ($q) use ($searchable, $search) {
                     foreach ($searchable as $col) {
@@ -65,7 +65,7 @@ trait ListTrait
         $sortCol = request("sort", "id");
         $sortDir = request("dir", "asc");
         if (in_array($sortDir, ["asc", "desc"])) {
-            $sortable = $config['sortable'];
+            $sortable = $config["sortable"];
             if (in_array($sortCol, $sortable)) {
                 $query->orderBy($sortCol, $sortDir);
             }
@@ -79,11 +79,11 @@ trait ListTrait
         $list
             ->items(collect($paginator->items()))
             ->setPaginator($paginator)
-            ->setSearchable($config['searchable'])
-            ->setSortable($config['sortable'])
-            ->setFilters($filters)
             ->setSearch($search)
-            ->setSort($sortCol, $sortDir);
+            ->setSort($sortCol, $sortDir)
+            ->setFilters($filters);
+        // ->setSearchable($config['searchable'])
+        // ->setSortable($config['sortable'])
 
         // Set route prefix if provided
         if ($routePrefix) {
@@ -96,8 +96,8 @@ trait ListTrait
     public static function listColumns(): array
     {
         $config = static::getConfig();
-        $fillable = $config['fillable'];
-        $classSlug = $config['classSlug'];
+        $fillable = $config["fillable"];
+        $classSlug = $config["classSlug"];
 
         if (empty($fillable)) {
             return [];
@@ -140,7 +140,7 @@ trait ListTrait
     protected static function getFilters(): array
     {
         $config = static::getConfig();
-        $filterable = $config['filterable'];
+        $filterable = $config["filterable"];
 
         if (empty($filterable)) {
             return [];
