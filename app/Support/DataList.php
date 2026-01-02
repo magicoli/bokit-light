@@ -248,12 +248,25 @@ class DataList
             ];
         }
 
+        $modelClass = get_class($this->model);
+        $classSlug = strtolower(class_basename($modelClass));
+
         // Filter fields
         foreach ($this->filters as $column => $options) {
+            $columnName = str_replace(
+                "$classSlug.column_",
+                "",
+                __("$classSlug.column_{$column}"),
+            );
             $fields["filter_{$column}"] = [
                 "type" => "select",
-                "label" => null,
-                "options" => ["" => __("forms.all_{$column}")] + $options,
+                "label" => $columnName,
+                "options" =>
+                    [
+                        "" => __("forms.filter_column_name", [
+                            "column_name" => $columnName,
+                        ]),
+                    ] + $options,
                 "default" => "",
             ];
         }
