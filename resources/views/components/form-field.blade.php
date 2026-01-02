@@ -10,14 +10,20 @@
 
     $attributes = $field['attributes'] ?? [];
     $required = $field['required'] ?? false;
+
+    $fieldsetClass = trim("form-field field-{$type} field-{$fieldName} " . ($field['class'] ?? ''));
+    $inputClass = trim("input-{$type} " . ($field['attributes']['class'] ?? ''));
+
     if($field['required'] ?? false) {
         $attributes['required'] = true;
     }
     if($field['checked'] ?? false) {
         $attributes['checked'] = true;
     }
-    if($field['disabled'] ?? false) {
+    if($field['attributes']['disabled'] ?? false) {
         $attributes['disabled'] = true;
+        $field['disabled'] = true;
+        $fieldsetClass .= " disabled";
     }
     if($field['readonly'] ?? false) {
         $attributes['readonly'] = true;
@@ -25,7 +31,6 @@
 
     $options = $fieldOptions[$fieldName] ?? $field['options'] ?? [];
     $description = $field['description'] ?? null;
-    $inputClass = trim("input-{$type} " . ($field['class'] ?? ''));
 
     $fieldSize = $attributes['size'] ?? $field['size'] ?? null;
     if($fieldSize) {
@@ -39,7 +44,6 @@
     // Check if this is a container type (has items)
     $isContainer = in_array($type, ['html', 'section', 'fields-row', 'input-group']);
 
-    $fieldsetClass = trim("form-field field-{$type} field-{$fieldName} " . ($field['fieldset_class'] ?? ''));
 
     // Type-specific processing
     switch($type) {
@@ -75,7 +79,13 @@
             break;
 
         case "link":
-            $container = "a";
+            if($field['disabled'] ?? false) {
+                $container = 'span';
+                $attributes['href'] = '#';
+            } else {
+                $container = 'a';
+                $attributes['href'] = $field['attributes']['href'];
+            }
             break;
 
         default:
@@ -99,7 +109,7 @@
 
 @elseif($isContainer)
     {{-- ALL CONTAINERS: section, fields-row, input-group --}}
-        <div class="{{ $type }}">
+        <div class="{{ $type }} {{ $fieldsetClass }}">
         @if($label)
             @if($type === 'section')
                 <h3 class="section-title">{{ $label }}</h3>

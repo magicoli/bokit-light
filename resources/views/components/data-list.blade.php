@@ -2,29 +2,6 @@
 @if($controlsForm)
     <div class="card list-controls">
         {!! $controlsForm->render() !!}
-        
-        @if($paginator)
-            <div class="pagination-info">
-                {{ __('forms.showing') }} {{ $paginator->firstItem() }}-{{ $paginator->lastItem() }} {{ __('forms.of') }} {{ $paginator->total() }}
-            </div>
-            <div class="pagination-links">
-                @if($paginator->onFirstPage())
-                    <span class="disabled">⇤</span>
-                    <span class="disabled">←</span>
-                @else
-                    <a href="{{ $paginator->url(1) }}">⇤</a>
-                    <a href="{{ $paginator->previousPageUrl() }}">←</a>
-                @endif
-                <span>{{ $paginator->currentPage() }} / {{ $paginator->lastPage() }}</span>
-                @if($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}">→</a>
-                    <a href="{{ $paginator->url($paginator->lastPage()) }}">⇥</a>
-                @else
-                    <span class="disabled">→</span>
-                    <span class="disabled">⇥</span>
-                @endif
-            </div>
-        @endif
     </div>
 @endif
 
@@ -86,7 +63,7 @@
                                     {!! $formatValue($item, $columnName, $column) !!}
                                 </td>
                             @endforeach
-                            
+
                             @if($routePrefix)
                                 <td class="col-actions">
                                     @if(Route::has("{$routePrefix}.edit"))
@@ -108,7 +85,7 @@
                                 {!! $formatValue($item, $columnName, $column) !!}
                             </td>
                         @endforeach
-                        
+
                         @if($routePrefix)
                             <td class="col-actions">
                                 @if(Route::has("{$routePrefix}.edit"))
