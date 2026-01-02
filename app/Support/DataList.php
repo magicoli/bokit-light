@@ -333,16 +333,41 @@ class DataList
             $value = null;
         }
 
+        // If value is null, return empty string
+        if ($value === null) {
+            return '';
+        }
+
+        // Auto-detect format from model casts if not specified
+        if ($format === 'text' && $this->model) {
+            $modelClass = get_class($this->model);
+            if (method_exists($modelClass, 'getConfig')) {
+                $config = $modelClass::getConfig();
+                $casts = $config['casts'] ?? [];
+                
+                if (isset($casts[$columnKey])) {
+                    $castType = $casts[$columnKey];
+                    // Map Laravel cast types to our format types
+                    $format = match (true) {
+                        str_starts_with($castType, 'date') => 'date',
+                        $castType === 'datetime' => 'datetime',
+                        in_array($castType, ['int', 'integer', 'float', 'double', 'decimal']) => 'number',
+                        in_array($castType, ['bool', 'boolean']) => 'boolean',
+                        $castType === 'array' => 'array',
+                        default => 'text',
+                    };
+                }
+            }
+        }
+
         return match ($format) {
             "boolean" => $value ? "✓" : "✗",
+            "number" => is_numeric($value) ? number_format($value, 2) : (string) $value,
             "currency" => number_format($value, 2),
-            "date" => $value ? $value->format("Y-m-d") : "",
-            "datetime" => $value ? $value->format("Y-m-d H:i") : "",
-            default => is_string($value)
-                ? $value
-                : (is_array($value)
-                    ? implode(", ", $value)
-                    : ""),
+            "date" => is_object($value) && method_exists($value, 'format') ? $value->format("Y-m-d") : (string) $value,
+            "datetime" => is_object($value) && method_exists($value, 'format') ? $value->format("Y-m-d H:i") : (string) $value,
+            "array" => is_array($value) ? implode(", ", $value) : (string) $value,
+            default => is_string($value) || is_numeric($value) ? (string) $value : '',
         };
     }
 
