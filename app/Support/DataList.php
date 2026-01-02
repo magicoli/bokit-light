@@ -17,9 +17,9 @@ class DataList
     private array $searchable = [];
     private array $sortable = [];
     private array $filters = [];
-    private string $search = '';
-    private string $sortColumn = '';
-    private string $sortDirection = 'asc';
+    private string $search = "";
+    private string $sortColumn = "";
+    private string $sortDirection = "asc";
 
     /**
      * Constructor accepts Model, Collection, or array
@@ -106,6 +106,73 @@ class DataList
     }
 
     /**
+     * Paginator fields
+     */
+    public function paginatorField(): array
+    {
+        if (!$this->paginator ?? false) {
+            return [];
+        }
+        $field = [
+            "type" => "input-group",
+            "class" => "text-center",
+            "label" => __("forms.showing_x_y_of_z", [
+                "first" => $this->paginator->firstItem(),
+                "last" => $this->paginator->lastItem(),
+                "total" => $this->paginator->total(),
+            ]),
+            "items" => [
+                "first" => [
+                    "type" => "link",
+                    "label" => "",
+                    "icon" => icon("skip-back"),
+                    "attributes" => [
+                        "href" => $this->paginator->url(1),
+                    ],
+                ],
+                "previous" => [
+                    "type" => "link",
+                    "label" => "",
+                    "icon" => icon("chevron-left"),
+                    "attributes" => [
+                        "href" => $this->paginator->previousPageUrl(),
+                    ],
+                ],
+                "per_page" => [
+                    "type" => "select",
+                    "label" => "",
+                    "options" => [
+                        10 => "10",
+                        25 => "25",
+                        50 => "50",
+                        100 => "100",
+                    ],
+                    "default" => 25,
+                ],
+                "next" => [
+                    "type" => "link",
+                    "label" => "",
+                    "icon" => icon("chevron-right"),
+                    "attributes" => [
+                        "href" => $this->paginator->nextPageUrl(),
+                    ],
+                ],
+                "last" => [
+                    "type" => "link",
+                    "label" => "",
+                    "icon" => icon("skip-forward"),
+                    "attributes" => [
+                        "href" => $this->paginator->url(
+                            $this->paginator->lastPage(),
+                        ),
+                    ],
+                ],
+            ],
+        ];
+        return $field;
+    }
+
+    /**
      * Set searchable columns
      */
     public function setSearchable(array $searchable): self
@@ -144,7 +211,7 @@ class DataList
     /**
      * Set sort column and direction
      */
-    public function setSort(string $column, string $direction = 'asc'): self
+    public function setSort(string $column, string $direction = "asc"): self
     {
         $this->sortColumn = $column;
         $this->sortDirection = $direction;
@@ -157,7 +224,11 @@ class DataList
     private function createControlsForm(): ?Form
     {
         // No controls if no searchable, no filters, and no paginator
-        if (empty($this->searchable) && empty($this->filters) && !$this->paginator) {
+        if (
+            empty($this->searchable) &&
+            empty($this->filters) &&
+            !$this->paginator
+        ) {
             return null;
         }
 
@@ -165,63 +236,43 @@ class DataList
 
         // Search field
         if (!empty($this->searchable)) {
-            $fields['search'] = [
-                'type' => 'text',
-                'label' => null,
-                'placeholder' => __('forms.search'),
-                'default' => '',
+            $fields["search"] = [
+                "type" => "text",
+                "label" => null,
+                "placeholder" => __("forms.search"),
+                "default" => "",
             ];
         }
 
         // Filter fields
         foreach ($this->filters as $column => $options) {
             $fields["filter_{$column}"] = [
-                'type' => 'select',
-                'label' => null,
-                'options' => ['' => __("forms.all_{$column}")] + $options,
-                'default' => '',
+                "type" => "select",
+                "label" => null,
+                "options" => ["" => __("forms.all_{$column}")] + $options,
+                "default" => "",
             ];
         }
 
         // Per page selector (if paginator exists)
+        // TODO: if nr of pages is 1, disable navigation buttons
         if ($this->paginator) {
-            $fields['per_page'] = [
-                'type' => 'select',
-                'label' => null,
-                'options' => [
-                    10 => '10',
-                    25 => '25',
-                    50 => '50',
-                    100 => '100',
-                ],
-                'default' => 25,
-            ];
+            $fields["paginator"] = $this->paginatorField();
         }
+
+        $fields = [
+            "control-row" => [
+                "type" => "fields-row",
+                "items" => $fields,
+            ],
+        ];
 
         // Get current values from request
         $values = request()->only(array_keys($fields));
-        
+
         // Create form
         $form = new Form($values, fn() => $fields, request()->url());
-        $form->method('GET')
-            ->buttons([
-                'submit' => [
-                    'label' => __('forms.filter'),
-                    'type' => 'submit',
-                    'class' => 'button primary',
-                ],
-            ]);
-
-        // Add clear button if there are active filters/search
-        if ($this->search || !empty(array_filter($values, fn($v) => $v !== '' && $v !== null))) {
-            $form->addButton('clear', __('forms.clear'), [
-                'type' => 'button',
-                'class' => 'button secondary',
-                'attributes' => [
-                    'onclick' => "window.location.href='" . request()->url() . "'",
-                ],
-            ]);
-        }
+        $form->method("GET")->submitButton(__("forms.submit"));
 
         return $form;
     }

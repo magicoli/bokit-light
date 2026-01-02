@@ -3,7 +3,7 @@
 @section('title', __('app.edit_unit_title') . ' - ' . $unit->name)
 
 @section('styles')
-@vite('resources/css/forms.css')
+@vite('resources/css/form.css')
 @vite('resources/css/properties.css')
 @vite('resources/css/units.css')
 @endsection

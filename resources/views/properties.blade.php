@@ -4,7 +4,7 @@
 @section('subtitle', __('app.manage_properties_subtitle'))
 
 @section('styles')
-@vite('resources/css/forms.css')
+@vite('resources/css/form.css')
 @vite('resources/css/properties.css')
 @vite('resources/css/flatpickr.css')
 @endsection

@@ -7,20 +7,10 @@
 
 @section('styles')
 @vite('resources/css/list.css')
-@vite('resources/css/forms.css')
-@endsection
-
-@section('action-links')
-    @if(Route::has('admin.' . $resource . '.create'))
-        <a href="{{ route('admin.' . $resource . '.create') }}" class="btn btn-primary">
-            {!! icon('plus') !!}
-            {{ __('admin.add') }}
-        </a>
-    @endif
+@vite('resources/css/form.css')
 @endsection
 
 @section('content')
-
 @if($model)
     @if(method_exists($model, 'list'))
         {!! $model->list()->render() !!}
@@ -30,5 +20,4 @@
 @else
     {{ __('app.model_not_set') }}
 @endif
-
 @endsection

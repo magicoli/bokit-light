@@ -13,4 +13,5 @@ return [
     "no_options" => "No options",
     "date_from" => "From",
     "date_to" => "To",
+    "showing_x_y_of_z" => ":first to :last of :total",
 ];

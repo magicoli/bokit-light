@@ -248,7 +248,7 @@ php artisan make:migration add_capacity_to_units
 
 **File Organization**:
 - `app.css` - Common styles needed by any layout
-- `forms.css` - Common styles needed for any form
+- `form.css` - Common styles needed for any form
 - `calendar.css` - Calendar-specific styles
 - `properties.css` - Property management styles
 - `rates.css` - Rates-specific styles
