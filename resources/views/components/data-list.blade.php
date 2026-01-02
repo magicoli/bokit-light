@@ -1,6 +1,6 @@
 {{-- Controls form (search, filters, pagination) --}}
 @if($controlsForm)
-    <div class="card list-controls">
+    <div class="list-controls">
         {!! $controlsForm->render() !!}
     </div>
 @endif
