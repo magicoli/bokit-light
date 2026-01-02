@@ -115,7 +115,7 @@ class DataList
         }
         $field = [
             "type" => "input-group",
-            "class" => "text-center",
+            "class" => "paginator",
             "label" => __("forms.showing_x_y_of_z", [
                 "first" => $this->paginator->firstItem(),
                 "last" => $this->paginator->lastItem(),
@@ -127,6 +127,7 @@ class DataList
                     "label" => "",
                     "icon" => icon("skip-back"),
                     "attributes" => [
+                        // "disabled" => $this->paginator->onFirstPage(),
                         "href" => $this->paginator->url(1),
                     ],
                 ],
@@ -135,6 +136,7 @@ class DataList
                     "label" => "",
                     "icon" => icon("chevron-left"),
                     "attributes" => [
+                        // "disabled" => $this->paginator->onFirstPage(),
                         "href" => $this->paginator->previousPageUrl(),
                     ],
                 ],
@@ -154,6 +156,7 @@ class DataList
                     "label" => "",
                     "icon" => icon("chevron-right"),
                     "attributes" => [
+                        // "disabled" => $this->paginator->hasMorePages(),
                         "href" => $this->paginator->nextPageUrl(),
                     ],
                 ],
@@ -162,6 +165,7 @@ class DataList
                     "label" => "",
                     "icon" => icon("skip-forward"),
                     "attributes" => [
+                        // "disabled" => $this->paginator->hasMorePages(),
                         "href" => $this->paginator->url(
                             $this->paginator->lastPage(),
                         ),
