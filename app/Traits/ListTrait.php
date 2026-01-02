@@ -9,21 +9,7 @@ use Illuminate\Support\Str;
 
 trait ListTrait
 {
-    protected static $columns = [];
-    protected static $searchable = ["name"];
-    protected static $filterable = ["status"];
-    protected static $sortable = ["id", "name", "status"];
-
-    static function initControls()
-    {
-        // Make sure $searchable, $fitlerable and $sortable only  contain defined fillables
-        $fillable = new \ReflectionClass(static::class)->getDefaultProperties()[
-            "fillable"
-        ];
-        static::$searchable = array_intersect(static::$searchable, $fillable);
-        static::$filterable = array_intersect(static::$filterable, $fillable);
-        static::$sortable = array_intersect(static::$sortable, $fillable);
-    }
+    use ModelConfigTrait;
 
     /**
      * Get a list instance for this model collection
@@ -32,8 +18,6 @@ trait ListTrait
         ?Collection $items = null,
         ?string $routePrefix = null,
     ): DataList {
-        static::initControls();
-
         // Create an empty model instance for DataList
         $instance = new static();
 
@@ -49,13 +33,16 @@ trait ListTrait
             return $list;
         }
 
+        // Get configuration
+        $config = static::getConfig();
+
         // Build query
         $query = static::forUser();
 
         // Apply search
         $search = request("search", "");
         if ($search) {
-            $searchable = static::$searchable;
+            $searchable = $config['searchable'];
             if (!empty($searchable)) {
                 $query->where(function ($q) use ($searchable, $search) {
                     foreach ($searchable as $col) {
@@ -78,7 +65,7 @@ trait ListTrait
         $sortCol = request("sort", "id");
         $sortDir = request("dir", "asc");
         if (in_array($sortDir, ["asc", "desc"])) {
-            $sortable = static::$sortable;
+            $sortable = $config['sortable'];
             if (in_array($sortCol, $sortable)) {
                 $query->orderBy($sortCol, $sortDir);
             }
@@ -92,8 +79,8 @@ trait ListTrait
         $list
             ->items(collect($paginator->items()))
             ->setPaginator($paginator)
-            ->setSearchable(static::$searchable)
-            ->setSortable(static::$sortable)
+            ->setSearchable($config['searchable'])
+            ->setSortable($config['sortable'])
             ->setFilters($filters)
             ->setSearch($search)
             ->setSort($sortCol, $sortDir);
@@ -108,13 +95,10 @@ trait ListTrait
 
     public static function listColumns(): array
     {
-        $class = static::class;
-        $classBasename = class_basename($class);
-        $classSlug = Str::slug($classBasename);
+        $config = static::getConfig();
+        $fillable = $config['fillable'];
+        $classSlug = $config['classSlug'];
 
-        $fillable = new \ReflectionClass($class)->getDefaultProperties()[
-            "fillable"
-        ];
         if (empty($fillable)) {
             return [];
         }
@@ -151,17 +135,20 @@ trait ListTrait
     }
 
     /**
-     * Get filterable columns with options (override in model with protected static $filterable)
+     * Get filterable columns with options
      */
     protected static function getFilters(): array
     {
-        if (empty(static::$filterable)) {
+        $config = static::getConfig();
+        $filterable = $config['filterable'];
+
+        if (empty($filterable)) {
             return [];
         }
 
         $filters = [];
-        foreach (static::$filterable as $columnName) {
-            // Get distinct status values from forUser query
+        foreach ($filterable as $columnName) {
+            // Get distinct values from forUser query
             try {
                 $values = static::forUser()
                     ->distinct()
