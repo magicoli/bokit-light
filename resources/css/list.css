@@ -45,8 +45,9 @@ table.data-list {
         > * {
             @apply inline-flex w-fit items-center m-0;
         }
+
         fields-row {
-            @apply flex flex-row justify-around;
+            @apply flex flex-row justify-around w-full;
 
             > label {
                 @apply text-center;
