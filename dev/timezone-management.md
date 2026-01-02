@@ -9,7 +9,7 @@
 
 All models use `TimezoneTrait` which provides:
 - `timezone()`: Returns the appropriate timezone for this model
-- `displayDate($date, $format, $showTimezone)`: Formats dates with locale support
+- `formatDate($date, $format, $showTimezone)`: Formats dates with locale support
 
 Each model defines its own hierarchy:
 - **Unit**: unit.timezone > property.timezone > site > app
@@ -20,14 +20,14 @@ Each model defines its own hierarchy:
 ## Display Formats
 
 ```php
-$property->displayDate($date, 'long');        // Monday 21 December 2025 20:30
-$property->displayDate($date, 'short');       // Mon 21 Dec 2025 20:30
-$property->displayDate($date, 'date');        // 21 December 2025
-$property->displayDate($date, 'date_short');  // 21 Dec 2025
-$property->displayDate($date, 'time');        // 20:30
-$property->displayDate($date, 'day');         // Monday 21 December
-$property->displayDate($date, 'month');       // December 2025
-$property->displayDate($date, 'Y-m-d H:i');   // Custom format
+$property->formatDate($date, 'long');        // Monday 21 December 2025 20:30
+$property->formatDate($date, 'short');       // Mon 21 Dec 2025 20:30
+$property->formatDate($date, 'date');        // 21 December 2025
+$property->formatDate($date, 'date_short');  // 21 Dec 2025
+$property->formatDate($date, 'time');        // 20:30
+$property->formatDate($date, 'day');         // Monday 21 December
+$property->formatDate($date, 'month');       // December 2025
+$property->formatDate($date, 'Y-m-d H:i');   // Custom format
 ```
 
 Formats use `translatedFormat()` for locale support (respects app.locale).
