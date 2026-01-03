@@ -96,16 +96,16 @@
                 </div>
 
                 @if(config('app.debug') == true)
-                    @php
-                    if (isset($exception) && $exception->getMessage()) {
-                        $debug_info = $exception->getMessage();
-                    }
-                    @endphp
-
-                    @if($debug_info ?? false)
+                    @if(isset($exception) && $exception->getMessage())
+                        <div class="debug-info debug-error">
+                            <h3>Error Message</h3>
+                            {{ $exception->getMessage() }}
+                        </div>
+                    @endif
+                    @hasSection('debug-info')
                         <div class="debug-info">
                             <h3>Debug Information</h3>
-                            {{ $debug_info }}
+                            @yield('debug-info')
                         </div>
                     @endif
                 @endif

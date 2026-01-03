@@ -43,13 +43,16 @@ All API integrations are optional modules. They are included in Pro version, not
 - each unit **needs** it's own mapping config, though
 - must add a sync method option to the current iCal method, with method-specific parameters (for iCal it's currently only an url, for OTA it will require mapping details)
 - current required settings pages updates (to be added added by beds24 module)
-  - [ ] General settings (/admin/settings):
-    - [ ] The settings page should be adapted to properly use Form class
+  - [x] General settings (/admin/settings):
+    - [x] The settings page should be adapted to properly use Form class
     - [ ] Beds24 section with API id/keys/secrets
-  - [ ] Unit settings (/admin/units/{id}/settings):
-    - [ ] The unit settings page should be moved from current /{property}/{unit}/edit  to /admin/units/{id}/settings and adapted for proper use of Form class
-    - [ ] Beds24 API type
-    - [ ] Beds24-specific options (mapping details instead of iCal url)
+  - ~~Per-model settings (/admin/<bookings|properties|...>}/settings): not needed at this stage~~
+  - [ ] Activate universal actions view and edit for ModelConfigTrait
+  - [ ] -> Unit Edit page (/admin/units/{id}/edit):
+    - [ ] Implement basic edit page with $fillable defined by model
+    - [ ] Verify that current iCal settings (as seen in former /{property}/{unit}/edit page) are properly displayed and editable in the new edit page
+    - [ ] Rewrite source section to allow additional source types nd parameters (iCal url, APIs will need other kind of parameters, add dumb API type and parameters for testing)
+    - [ ] Implement actual Beds24 API type through basic beds24 module, with Beds24-specific options (mapping details instead of iCal url)
 
 ## Post-Deployment Enhancements
 
