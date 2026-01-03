@@ -11,6 +11,9 @@
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-icons": "^1.8",
+        "codeat3/blade-simple-icons": "^8.1",
+        "davidhsianturi/blade-bootstrap-icons": "^2.1",
+        "devrabiul/laravel-toaster-magic": "^1.5",
         "itsmalikjones/blade-iconic": "^1.3",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
