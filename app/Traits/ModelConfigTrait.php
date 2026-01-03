@@ -22,8 +22,7 @@ trait ModelConfigTrait
 
     /**
      * Accessor: Calculate actions
-     * Default actions: Status, Edit, View
-     * Models can override getActionsConfig() to customize
+     * Reads default actions from model config, generates URLs dynamically
      *
      * @return string|null
      */
@@ -31,73 +30,57 @@ trait ModelConfigTrait
     {
         return Attribute::make(
             get: function () {
-                $actionsConfig = $this->getActionsConfig();
+                $config = static::getConfig();
+                $resourceName = Str::plural(Str::snake($config['classBasename']));
                 $actions = [];
                 $sep = " ";
 
-                foreach ($actionsConfig as $key => $config) {
-                    $target = $config["target"] ?? false 
-                        ? 'target="' . $config["target"] . '"' 
-                        : "";
-                    
-                    // Skip action if no URL and not status
-                    if (empty($config["url"]) && $key !== "status") {
-                        continue;
-                    }
+                // Build actions from config
+                foreach ($config['actions'] as $key) {
+                    switch ($key) {
+                        case 'status':
+                            $actions[$key] = sprintf(
+                                '<span class="action-status" title="%s">%s</span>',
+                                __("app.status_" . ($this->status ?? 'undefined')),
+                                $this->getStatusIcon()
+                            );
+                            break;
 
-                    if ($key === "status") {
-                        // Status is a span, not a link
-                        $actions[$key] = sprintf(
-                            '<span class="action-status" title="%s">%s</span>',
-                            $config["text"] ?? "",
-                            $config["icon"] ?? ($config["text"] ?? "")
-                        );
-                    } else {
-                        $actions[$key] = sprintf(
-                            '<a href="%s" %s class="action-link" title="%s">%s</a>',
-                            $config["url"],
-                            $target,
-                            $config["text"] ?? "",
-                            $config["icon"] ?? ($config["text"] ?? "")
-                        );
+                        case 'edit':
+                            $actions[$key] = sprintf(
+                                '<a href="%s" class="action-link" title="%s">%s</a>',
+                                route("admin.{$resourceName}.edit", $this->id),
+                                __("lists.action_edit"),
+                                icon("edit")
+                            );
+                            break;
+
+                        case 'view':
+                            $actions[$key] = sprintf(
+                                '<a href="%s" class="action-link" title="%s">%s</a>',
+                                route("admin.{$resourceName}.show", $this->id),
+                                __("lists.action_view"),
+                                icon("eye")
+                            );
+                            break;
+
+                        case 'ota':
+                            // Custom action for Booking model
+                            if ($this->ota_url ?? false) {
+                                $actions[$key] = sprintf(
+                                    '<a href="%s" target="_blank" class="action-link" title="%s">%s</a>',
+                                    $this->ota_url,
+                                    __("lists.action_ota"),
+                                    icon($this->api_source ?? "arrow-up-right")
+                                );
+                            }
+                            break;
                     }
                 }
 
                 return implode($sep, $actions);
             },
         );
-    }
-
-    /**
-     * Get actions configuration for this model
-     * Override this method in models to customize actions
-     *
-     * @return array
-     */
-    protected function getActionsConfig(): array
-    {
-        $config = static::getConfig();
-        $resourceName = Str::plural(Str::snake($config['classBasename']));
-        
-        $actions = [
-            "status" => [
-                "url" => false,
-                "text" => __("app.status_" . ($this->status ?? 'undefined')),
-                "icon" => $this->getStatusIcon(),
-            ],
-            "edit" => [
-                "url" => route("admin.{$resourceName}.edit", $this->id),
-                "text" => __("lists.action_edit"),
-                "icon" => icon("edit"),
-            ],
-            "view" => [
-                "url" => route("admin.{$resourceName}.show", $this->id),
-                "text" => __("lists.action_view"),
-                "icon" => icon("eye"),
-            ],
-        ];
-
-        return $actions;
     }
 
     /**
@@ -110,6 +93,7 @@ trait ModelConfigTrait
      *   - sortable: array (default: all fillable)
      *   - filterable: array (default: ['status'])
      *   - capability: string (default: 'manage')
+     *   - actions: array (default: ['status', 'edit', 'view'])
      *   - classSlug: string
      *   - classBasename: string
      */
@@ -139,6 +123,7 @@ trait ModelConfigTrait
         $sortable = $defaults["sortable"] ?? $fillable;
         $filterable = $defaults["filterable"] ?? ["status"];
         $capability = $defaults["capability"] ?? "manage";
+        $actions = $defaults["actions"] ?? ["status", "edit", "view"];
 
         // Validate against fillable
         $searchable = array_values(
@@ -160,6 +145,7 @@ trait ModelConfigTrait
             "sortable" => $sortable,
             "filterable" => $filterable,
             "capability" => $capability,
+            "actions" => $actions,
             "classSlug" => $classSlug,
             "classBasename" => $classBasename,
             "list_columns" => $list_columns,
