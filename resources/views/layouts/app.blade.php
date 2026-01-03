@@ -48,6 +48,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @yield('scripts')
+    {!! ToastMagic::styles() !!}
 </head>
 <body class="@yield('body-class') {{ user_classes() }}">
     <div id="page-layout">
@@ -138,5 +139,6 @@
             });
         }
     </script>
+    {!! ToastMagic::scripts() !!}
 </body>
 </html>

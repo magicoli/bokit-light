@@ -8,10 +8,6 @@ table.data-list {
 
         th {
             @apply px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-300;
-
-            &.actions-column {
-                @apply text-right;
-            }
         }
     }
 
@@ -33,6 +29,26 @@ table.data-list {
                 &.actions {
                     @apply text-right space-x-2;
                 }
+
+                &.col-notes,
+                &.col-comments {
+                    @apply relative;
+                    /* Max 20rem, 1 line, overflow-y auto */
+                    @apply max-w-2xs text-xs truncate;
+                }
+            }
+        }
+    }
+
+    th,
+    td {
+        &.col-actions {
+            > * {
+                @apply inline-block;
+            }
+
+            svg {
+                @apply inline w-4 h-4;
             }
         }
     }

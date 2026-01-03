@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Services\BookingMetadataParser;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
+use BladeUI\Icons\Components\Icon;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
-use App\Services\BookingMetadataParser;
+// use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class Booking extends Model
@@ -23,6 +25,7 @@ class Booking extends Model
         "guest_name",
         "check_in",
         "check_out",
+        "guests",
         "adults",
         "children",
         "property_id",
@@ -37,8 +40,6 @@ class Booking extends Model
         "raw_data",
     ];
 
-    protected $appends = ["ota_url", "ota_link"];
-
     protected $casts = [
         "check_in" => "date",
         "check_out" => "date",
@@ -51,9 +52,121 @@ class Booking extends Model
 
     protected static $capability = "property_manager";
 
+    protected $appends = [
+        "actions",
+        "unit_name",
+        "ota_url",
+        "ota_link",
+        "api_source",
+    ];
+
     protected static $searchable = ["guest_name", "source_name"];
 
-    protected static $filterable = ["status", "source_name"];
+    protected static $filterable = ["status", "unit_name", "source_name"];
+
+    protected $list_columns = [
+        "actions",
+        // "api_source", // DEBUG
+        // "status", // DEBUG
+        "unit_name",
+        "check_in",
+        "check_out",
+        "guest_name",
+        "guests",
+        "adults",
+        "children",
+        "price",
+        "notes",
+    ];
+
+    /**
+     * Accessor: Calculate unit name from unit_id
+     *
+     * @return string|null
+     */
+    protected function unitName(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                // Later: build popup link
+                // if ($this->unit_id ?? null) {
+                //     return sprintf(
+                //         "<a href='%s'>%s</a>",
+                //         route("admin.units.show", $this->unit_id),
+                //         $this->unit->name,
+                //     );
+                // }
+
+                // Now: build unit filter link
+                return $this->unit ? $this->unit->name : null;
+            },
+        );
+    }
+
+    /**
+     * Accessor: Calculate total guests
+     *
+     * Priority:
+     * 1. Use guests column if set
+     * 2. Calculate from adults + children if available
+     * 3. Use raw_data[guests] if available
+     * 4. Calculate from raw_data[adults] + raw_data[children]
+     */
+    protected function guests(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                // Priority 1: return as it is if set
+                $guests =
+                    $this->attributes["guests"] ??
+                    ($this->raw_data["guests"] ?? null);
+                if ($guests) {
+                    return $guests;
+                }
+
+                // Priority 2: adults + children columns
+                if (
+                    isset($this->attributes["adults"]) ||
+                    isset($this->attributes["children"])
+                ) {
+                    return ($this->attributes["adults"] ?? 0) +
+                        ($this->attributes["children"] ?? 0);
+                }
+
+                // Priority 3: raw_data[guests]
+                if (
+                    isset($this->raw_data["guests"]) &&
+                    $this->raw_data["guests"] !== null
+                ) {
+                    return $this->raw_data["guests"];
+                }
+
+                // Priority 4: raw_data[adults] + raw_data[children]
+                return ($this->raw_data["adults"] ?? 0) +
+                    ($this->raw_data["children"] ?? 0);
+            },
+        );
+    }
+
+    protected function adults(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->attributes["adults"] ??
+                    ($this->raw_data["adults"] ?? null);
+            },
+        );
+    }
+
+    protected function children(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->attributes["children"] ??
+                    ($this->raw_data["children"] ?? null);
+            },
+        );
+    }
 
     // public static function fillable(): array
     // {
@@ -288,6 +401,9 @@ class Booking extends Model
         );
     }
 
+    /**
+     * Get the source slug for the booking
+     */
     public static function sourceSlug(string $source): string
     {
         $source = trim($source);
@@ -295,9 +411,28 @@ class Booking extends Model
         return match (true) {
             (bool) preg_match("/airbnb/", $source) => "airbnb",
             (bool) preg_match("/beds24/", $source) => "beds24",
-            (bool) preg_match("/booking\.com/", $source) => "bookingcom",
+            (bool) preg_match("/booking(\.|dot)?com/", $source)
+                => "booking-com",
             default => Str::slug(preg_replace("/^(www|api)\./", "", $source)),
         };
+    }
+
+    public function apiSource(): Attribute
+    {
+        $channel_manager = $this->source_name ?? "";
+        $ota_api = $this->getMetadata("api_source", "") ?? "";
+        $source = strtolower($ota_api ?? ($channel_manager ?? ""));
+        switch ($source) {
+            case "direct":
+                $source = $channel_manager ?? $source;
+                break;
+            // case "booking":
+            //     $source = "booking-com";
+            //     break;
+            // default:
+            //     $url = null;
+        }
+        return Attribute::make(get: fn($value) => $source);
     }
 
     /**
@@ -307,8 +442,9 @@ class Booking extends Model
      */
     public function otaUrl(): Attribute
     {
-        $source_ref = $this->getMetadata("source_ref", "");
-        $ota_slug = $this->source_name;
+        $source = $this->apiSource ?? null;
+        $source_ref = $this->getMetadata("api_ref", "");
+        $ota_slug = self::sourceSlug($source);
         if ($source_ref) {
             // e.g.
             // beds24: https://beds24.com/control2.php?ajax=bookedit&id=12345678
@@ -317,14 +453,26 @@ class Booking extends Model
                 case "airbnb":
                     $url = "https://www.airbnb.com/hosting/reservations/details/{$source_ref}";
                     break;
+                case "booking":
+                case "booking.com":
+                case "bookingdotcom":
+                case "booking-com":
+                    if (options("api.booking-com.hotel-id") ?? false) {
+                        $url = "https://admin.booking.com/booking/details/{$source_ref}";
+                        break;
+                    }
+                    $url = null;
+                    break;
                 case "beds24":
                     $url = "https://beds24.com/control2.php?ajax=bookedit&id={$source_ref}";
                     break;
                 default:
-                    $url = "no url";
+                    // Unknown OTA
+                    $url = null;
             }
         } else {
-            $url = "no source reference";
+            // no source reference
+            $url = null;
         }
 
         return Attribute::make(get: fn($value) => $url);
@@ -338,12 +486,10 @@ class Booking extends Model
     public function otaLink(): Attribute
     {
         $url = $this->ota_url;
+        $source = $this->api_source;
+        $icon = icon($source) ?? $source;
         if (preg_match("#://#", $url)) {
-            $link = sprintf(
-                "<a href='%s' target='_blank'>%s</a>",
-                $url,
-                sprintf(__("View on %s"), $this->source_name),
-            );
+            $link = sprintf("<a href='%s' target='_blank'>%s</a>", $url, $icon);
         } else {
             $link = $url;
         }

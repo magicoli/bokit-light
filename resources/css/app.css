@@ -28,10 +28,6 @@
    ============================================================================= */
 
 nav {
-    &.nav-main {
-        @apply bg-white shadow-sm border-b border-gray-200;
-    }
-
     .nav-container {
         /*@apply container mx-auto;*/
         @apply w-full px-4 sm:px-6 lg:px-8;

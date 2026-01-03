@@ -97,14 +97,18 @@ trait ListTrait
     {
         $config = static::getConfig();
         $fillable = $config["fillable"];
+        $appends = $config["appends"] ?? [];
+        $columns = empty($config["list_columns"])
+            ? array_merge($fillable, $appends)
+            : $config["list_columns"];
         $classSlug = $config["classSlug"];
 
-        if (empty($fillable)) {
+        if (empty($columns)) {
             return [];
         }
 
         // Exclude columns prefixed with raw_ or suffixed with id or uid
-        $keys = array_filter($fillable, function ($column) {
+        $keys = array_filter($columns, function ($column) {
             return !str_starts_with($column, "raw_") &&
                 !str_starts_with($column, "is_") &&
                 !str_ends_with($column, "_id") &&
@@ -162,7 +166,7 @@ trait ListTrait
                     ->mapWithKeys(fn($v) => [$v => ucfirst($v)])
                     ->toArray();
             } catch (\Exception $e) {
-                return [];
+                continue;
             }
         }
 
