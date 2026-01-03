@@ -4,15 +4,8 @@
     @parent edit-page edit-{{ $resource }} edit-{{ $resource }}-{{ $model->id }}
 @endsection
 
-@php
-    $modelName = $model->display_name
-    ?? $model->title
-    ?? $model->name
-    ?? Str::singular($resource) . ' #' . $model->id;
-@endphp
-
 {{-- Page title should include name of the object edited, not the resource class name --}}
-@section('title', __('forms.edit_name', ['name' => $modelName]))
+@section('title', __('forms.edit_name', ['name' => $displayName]))
 
 @section('content')
 <div class="card">
@@ -21,14 +14,11 @@
         BEGIN FORM
     </div>
     <div class="card-body">
-{{-- {!! $form->render() !!} --}}
+        {!! $formContent !!}
     </div>
     <div class="card-footer">
         {{-- for debug, we don't need header and footer in final result --}}
         END FORM
     </div>
 </div>
-@endsection
-
-@section('debug-info')
 @endsection

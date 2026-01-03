@@ -137,6 +137,23 @@ trait ModelConfigTrait
             array_intersect($list_columns, $valid_columns),
         );
 
+        // Generate editFields if not defined
+        $editFields = $defaults["editFields"] ?? null;
+        if ($editFields === null) {
+            $editFields = [];
+            foreach ($fillable as $fieldName) {
+                // Skip internal fields
+                if (in_array($fieldName, ["id", "created_at", "updated_at", "deleted_at"])) {
+                    continue;
+                }
+                
+                $editFields[$fieldName] = [
+                    "label" => __(ucfirst(str_replace("_", " ", $fieldName))),
+                    // No type - Form will auto-detect from value
+                ];
+            }
+        }
+
         self::$config = [
             "fillable" => $fillable,
             "appends" => $appends,
@@ -149,6 +166,7 @@ trait ModelConfigTrait
             "classSlug" => $classSlug,
             "classBasename" => $classBasename,
             "list_columns" => $list_columns,
+            "editFields" => $editFields,
         ];
 
         return self::$config;

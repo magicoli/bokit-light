@@ -248,78 +248,83 @@ class DataList
             return null;
         }
 
-        $fields = [];
+        try {
+            $fields = [];
 
-        // Search field
-        if (!empty($this->searchable)) {
-            $fields["search"] = [
-                "type" => "text",
-                "label" => __("forms.search"),
-                "placeholder" => implode(", ", $this->searchable),
-                "default" => "",
+            // Search field
+            if (!empty($this->searchable)) {
+                $fields["search"] = [
+                    "type" => "text",
+                    "label" => __("forms.search"),
+                    "placeholder" => implode(", ", $this->searchable),
+                    "default" => "",
+                ];
+            }
+
+            $modelClass = get_class($this->model);
+            $classSlug = strtolower(class_basename($modelClass));
+
+            // Filter fields
+            foreach ($this->filters as $column => $options) {
+                $columnName = str_replace(
+                    "$classSlug.field.",
+                    "",
+                    __("$classSlug.field.{$column}"),
+                );
+                $fields["filter_{$column}"] = [
+                    "type" => "select",
+                    "label" => $columnName,
+                    "options" =>
+                        [
+                            "" => __("forms.filter_field.name", [
+                                "field.name" => $columnName,
+                            ]),
+                        ] + $options,
+                    "default" => "",
+                ];
+            }
+
+            // Per page selector (if paginator exists)
+            // TODO: if nr of pages is 1, disable navigation buttons
+            if ($this->paginator) {
+                $fields["paginator"] = $this->paginatorField();
+            }
+
+            // Collect field names for request values BEFORE wrapping
+            $fieldNames = array_keys($fields);
+            if (isset($fields["paginator"]["items"])) {
+                $fieldNames = array_merge(
+                    $fieldNames,
+                    array_keys($fields["paginator"]["items"]),
+                );
+                // Remove 'paginator' from field names as it's a container
+                $fieldNames = array_diff($fieldNames, ["paginator"]);
+            }
+
+            $fields = [
+                "control-row" => [
+                    "type" => "fields-row",
+                    "items" => $fields,
+                ],
             ];
+
+            // Get current values from request using collected field names
+            $values = request()->only($fieldNames);
+
+            // Create form
+            $form = new Form($values, fn() => $fields, request()->url());
+            $form->method("GET")->submitButton(__("forms.submit"));
+            return $form;
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            // Handle exception
+            return null;
         }
-
-        $modelClass = get_class($this->model);
-        $classSlug = strtolower(class_basename($modelClass));
-
-        // Filter fields
-        foreach ($this->filters as $column => $options) {
-            $columnName = str_replace(
-                "$classSlug.column_",
-                "",
-                __("$classSlug.column_{$column}"),
-            );
-            $fields["filter_{$column}"] = [
-                "type" => "select",
-                "label" => $columnName,
-                "options" =>
-                    [
-                        "" => __("forms.filter_column_name", [
-                            "column_name" => $columnName,
-                        ]),
-                    ] + $options,
-                "default" => "",
-            ];
-        }
-
-        // Per page selector (if paginator exists)
-        // TODO: if nr of pages is 1, disable navigation buttons
-        if ($this->paginator) {
-            $fields["paginator"] = $this->paginatorField();
-        }
-
-        // Collect field names for request values BEFORE wrapping
-        $fieldNames = array_keys($fields);
-        if (isset($fields["paginator"]["items"])) {
-            $fieldNames = array_merge(
-                $fieldNames,
-                array_keys($fields["paginator"]["items"]),
-            );
-            // Remove 'paginator' from field names as it's a container
-            $fieldNames = array_diff($fieldNames, ["paginator"]);
-        }
-
-        $fields = [
-            "control-row" => [
-                "type" => "fields-row",
-                "items" => $fields,
-            ],
-        ];
-
-        // Get current values from request using collected field names
-        $values = request()->only($fieldNames);
-
-        // Create form
-        $form = new Form($values, fn() => $fields, request()->url());
-        $form->method("GET")->submitButton(__("forms.submit"));
-
-        return $form;
     }
 
     /**
      * Format value based on column configuration
-     * 
+     *
      * Simplified: Get accessor/column value and format only basic types
      */
     private function formatValue(
@@ -371,14 +376,23 @@ class DataList
 
                 if (isset($casts[$columnKey])) {
                     $castType = $casts[$columnKey];
-                    
+
                     return match (true) {
-                        str_starts_with($castType, "date") => $this->formatDate($value),
-                        $castType === "datetime" => $this->formatDateTime($value),
-                        str_starts_with($castType, "decimal") => self::formatDecimal($value, 2),
-                        in_array($castType, ["int", "integer"]) => self::formatInteger($value),
-                        in_array($castType, ["float", "double"]) => self::formatDecimal($value, 2),
-                        in_array($castType, ["bool", "boolean"]) => $value ? "✓" : "✗",
+                        str_starts_with($castType, "date") => $this->formatDate(
+                            $value,
+                        ),
+                        $castType === "datetime" => $this->formatDateTime(
+                            $value,
+                        ),
+                        str_starts_with($castType, "decimal")
+                            => self::formatDecimal($value, 2),
+                        in_array($castType, ["int", "integer"])
+                            => self::formatInteger($value),
+                        in_array($castType, ["float", "double"])
+                            => self::formatDecimal($value, 2),
+                        in_array($castType, ["bool", "boolean"]) => $value
+                            ? "✓"
+                            : "✗",
                         $castType === "array" => self::formatArray($value),
                         default => (string) $value,
                     };
@@ -392,7 +406,8 @@ class DataList
             is_int($value) => self::formatInteger($value),
             is_float($value) => self::formatDecimal($value, 2),
             is_array($value) => self::formatArray($value),
-            is_object($value) && method_exists($value, 'format') => $this->formatDate($value),
+            is_object($value) && method_exists($value, "format")
+                => $this->formatDate($value),
             default => (string) $value,
         };
     }
@@ -410,8 +425,10 @@ class DataList
         return \App\Traits\ModelConfigTrait::formatDecimal($value, $decimals);
     }
 
-    private static function formatArray($value, string $separator = ', '): string
-    {
+    private static function formatArray(
+        $value,
+        string $separator = ", ",
+    ): string {
         return \App\Traits\ModelConfigTrait::formatArray($value, $separator);
     }
 

@@ -1,9 +1,9 @@
 <?php
 
 return [
-    "column_name" => "Nom",
-    "column_email" => "Email",
-    "column_password" => "Mot de passe",
-    "column_auth_provider" => "Auth Provider",
-    "column_roles" => "Roles",
+    "field.name" => "Nom",
+    "field.email" => "Email",
+    "field.password" => "Mot de passe",
+    "field.auth_provider" => "Auth Provider",
+    "field.roles" => "Roles",
 ];

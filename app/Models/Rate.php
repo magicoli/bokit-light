@@ -355,10 +355,10 @@ class Rate extends Model
     {
         return [
             "display_name" => [
-                "label" => __("rates.column_display_name"),
+                "label" => __("rates.field.display_name"),
             ],
             "base" => [
-                "label" => __("rates.column_base"),
+                "label" => __("rates.field.base"),
                 "format" => "custom",
                 "formatter" => function ($rate) {
                     $display = number_format($rate->base, 2);
@@ -371,9 +371,9 @@ class Rate extends Model
                     return $display;
                 },
             ],
-            "calculation_formula" => ["label" => __("rates.column_formula")],
+            "calculation_formula" => ["label" => __("rates.field.formula")],
             "booking_dates" => [
-                "label" => __("rates.column_booking"),
+                "label" => __("rates.field.booking"),
                 "format" => "custom",
                 "formatter" => function ($rate) {
                     if (!$rate->booking_from && !$rate->booking_to) {
@@ -389,7 +389,7 @@ class Rate extends Model
                 },
             ],
             "stay_dates" => [
-                "label" => __("rates.column_stay"),
+                "label" => __("rates.field.stay"),
                 "format" => "custom",
                 "formatter" => function ($rate) {
                     if (!$rate->stay_from && !$rate->stay_to) {
@@ -404,9 +404,9 @@ class Rate extends Model
                     return "{$from} → {$to}";
                 },
             ],
-            "priority" => ["label" => __("rates.column_priority")],
+            "priority" => ["label" => __("rates.field.priority")],
             "is_active" => [
-                "label" => __("rates.column_enabled"),
+                "label" => __("rates.field.enabled"),
                 "format" => "boolean",
             ],
         ];

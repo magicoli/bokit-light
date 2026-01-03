@@ -1,6 +1,13 @@
-@vite(['resources/css/form.css'])
+{{-- @section('styles') --}}
+@vite('resources/css/form.css')
+@vite('resources/css/flatpickr.css')
+{{-- @endsection --}}
 
-<form id="{{ $modelSlug }}-{{ $callbackSlug }}" action="{{ $action }}" method="{{ $method === 'GET' ? 'GET' : 'POST' }}" class="form form-{{ $modelSlug }} form-{{ $callbackSlug }}">
+{{-- @section('scripts') --}}
+@vite('resources/js/flatpickr.js')
+{{-- @endsection --}}
+
+<form id="{{ $formId }}" action="{{ $action }}" method="{{ $method === 'GET' ? 'GET' : 'POST' }}" class="form">
     @if($method !== 'GET')
         @csrf
         @if($method !== 'POST')
@@ -8,15 +15,7 @@
         @endif
     @endif
 
-    @foreach($fields as $fieldName => $field)
-        @include('components.form-field', [
-            'fieldName' => $fieldName,
-            'field' => $field,
-            'model' => $model,
-            'values' => $values,
-            'fieldOptions' => $fieldOptions
-        ])
-    @endforeach
+    {!! $fieldsHtml !!}
 
     <div class="form-actions">
         @foreach($buttons as $key => $button)
