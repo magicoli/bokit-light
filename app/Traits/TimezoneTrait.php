@@ -107,7 +107,7 @@ trait TimezoneTrait
      */
     public function formatDate(
         $date,
-        string $format = "short",
+        string $format = "d/m/Y",
         bool $showTimezone = false,
     ): string {
         if (is_string($date)) {
@@ -121,11 +121,12 @@ trait TimezoneTrait
             "long" => $date->translatedFormat(
                 "l j F Y H:i",
             ), // Monday 21 December 2025 20:30
-            "short" => $date->translatedFormat(
-                "D j M Y H:i",
-            ), // Mon 21 Dec 2025 20:30
+            "short" => $date->translatedFormat("d/m/y H:i"), // 21/12/2025 20:30
+            "medium" => $date->translatedFormat(
+                "J  M Y H:i",
+            ), // 21/12/2025 20:30
             "date" => $date->translatedFormat("j F Y"), // 21 December 2025
-            "date_short" => $date->translatedFormat("j M Y"), // 21 Dec 2025
+            "date_short" => $date->translatedFormat("d/m/y"), // 21/12/25
             "time" => $date->format("H:i"), // 20:30
             "day" => $date->translatedFormat("l j F"), // Monday 21 December
             "month" => $date->translatedFormat("F Y"), // December 2025
@@ -137,6 +138,22 @@ trait TimezoneTrait
         }
 
         return $formatted;
+    }
+
+    /**
+     * Format a datetime for display (alias with different default)
+     *
+     * @param Carbon|string $date
+     * @param string $format Use 'long', 'short', or Carbon format string
+     * @param bool $showTimezone Whether to append timezone indicator
+     * @return string
+     */
+    public function formatDateTime(
+        $date,
+        string $format = "d/m/Y H:i",
+        bool $showTimezone = false,
+    ): string {
+        return $this->formatDate($date, $format, $showTimezone);
     }
 
     /**
