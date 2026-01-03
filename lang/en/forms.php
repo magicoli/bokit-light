@@ -14,6 +14,6 @@ return [
     "date_from" => "From",
     "date_to" => "To",
     "showing_x_y_of_z" => ":first to :last of :total",
-    "filter_column-name" => "Filter by :column_name",
+    "filter_column-name" => "Filter by :field.name",
     "edit_name" => "Edit :name",
 ];

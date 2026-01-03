@@ -165,8 +165,8 @@ class SqlServerConnector extends Connector implements ConnectorInterface
             $arguments['MultiSubnetFailover'] = $config['multi_subnet_failover'];
         }
 
-        if (isset($config['column_encryption'])) {
-            $arguments['ColumnEncryption'] = $config['column_encryption'];
+        if (isset($config['field.encryption'])) {
+            $arguments['ColumnEncryption'] = $config['field.encryption'];
         }
 
         if (isset($config['key_store_authentication'])) {

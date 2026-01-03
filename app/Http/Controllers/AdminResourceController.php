@@ -33,11 +33,11 @@ class AdminResourceController extends Controller
      */
     private function getCapability(string $modelClass): string
     {
-        if (method_exists($modelClass, 'getConfig')) {
+        if (method_exists($modelClass, "getConfig")) {
             $config = $modelClass::getConfig();
-            return $config['capability'] ?? 'manage';
+            return $config["capability"] ?? "manage";
         }
-        return 'manage';
+        return "manage";
     }
 
     /**
@@ -46,7 +46,7 @@ class AdminResourceController extends Controller
     private function checkAccess(string $modelClass): void
     {
         $capability = $this->getCapability($modelClass);
-        
+
         if (!user_can($capability)) {
             abort(403);
         }
@@ -59,44 +59,46 @@ class AdminResourceController extends Controller
     private function checkObjectAccess(string $modelClass, $object): void
     {
         $user = auth()->user();
-        
+
         // Admins always have access
         if ($user->isAdmin()) {
             return;
         }
-        
+
         // Managers have global access
-        if ($user->hasRole('manager')) {
+        if ($user->hasRole("manager")) {
             return;
         }
-        
+
         // Property managers: check ownership
-        if ($user->hasRole('property_manager')) {
+        if ($user->hasRole("property_manager")) {
             // Check via isOwnedBy method if available
-            if (method_exists($object, 'isOwnedBy')) {
+            if (method_exists($object, "isOwnedBy")) {
                 if (!$object->isOwnedBy($user)) {
                     abort(403);
                 }
                 return;
             }
-            
+
             // Check via property relationship
-            if (method_exists($object, 'property') && $object->property) {
+            if (method_exists($object, "property") && $object->property) {
                 $property = $object->property;
-                if ($property->users()->where('users.id', $user->id)->exists()) {
+                if (
+                    $property->users()->where("users.id", $user->id)->exists()
+                ) {
                     return;
                 }
                 abort(403);
             }
-            
+
             // Direct property_id check for Property model itself
             if ($object instanceof \App\Models\Property) {
-                if ($object->users()->where('users.id', $user->id)->exists()) {
+                if ($object->users()->where("users.id", $user->id)->exists()) {
                     return;
                 }
                 abort(403);
             }
-            
+
             // No ownership found
             abort(403);
         }
@@ -166,13 +168,30 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $this->checkAccess($modelClass);
-        
+
         $model = $modelClass::findOrFail($id);
         $this->checkObjectAccess($modelClass, $model);
+
+        // Get model configuration
+        $config = $modelClass::getConfig();
+
+        // Create form with model's edit fields configuration
+        $form = new Form(
+            $model,
+            fn() => $config["editFields"] ?? [],
+            route("admin.{$resource}.update", $id),
+        );
+
+        $displayName =
+            $model->display_name ??
+            ($model->title ??
+                ($model->name ?? Str::singular($resource) . " #" . $model->id));
 
         return view("admin.resource.edit", [
             "resource" => $resource,
             "model" => $model,
+            "displayName" => $displayName,
+            "formContent" => $form->render(),
         ]);
     }
 
@@ -183,7 +202,7 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $this->checkAccess($modelClass);
-        
+
         $model = $modelClass::findOrFail($id);
         $this->checkObjectAccess($modelClass, $model);
 
@@ -200,7 +219,7 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $this->checkAccess($modelClass);
-        
+
         $model = $modelClass::findOrFail($id);
         $this->checkObjectAccess($modelClass, $model);
 
@@ -219,7 +238,7 @@ class AdminResourceController extends Controller
     {
         $modelClass = $this->getModelClass($resource);
         $this->checkAccess($modelClass);
-        
+
         $model = $modelClass::findOrFail($id);
         $this->checkObjectAccess($modelClass, $model);
 

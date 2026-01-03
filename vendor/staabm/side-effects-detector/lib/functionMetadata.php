@@ -1574,7 +1574,7 @@ return [
 	'wordwrap' => ['hasSideEffects' => false],
 	'xml_error_string' => ['hasSideEffects' => false],
 	'xml_get_current_byte_index' => ['hasSideEffects' => false],
-	'xml_get_current_column_number' => ['hasSideEffects' => false],
+	'xml_get_current_field.number' => ['hasSideEffects' => false],
 	'xml_get_current_line_number' => ['hasSideEffects' => false],
 	'xml_get_error_code' => ['hasSideEffects' => false],
 	'xml_parser_create' => ['hasSideEffects' => false],

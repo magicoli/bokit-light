@@ -43,6 +43,9 @@ class Booking extends Model
     protected $casts = [
         "check_in" => "date",
         "check_out" => "date",
+        "guests" => "integer",
+        "adults" => "integer",
+        "children" => "integer",
         "is_manual" => "boolean",
         "raw_data" => "array",
         "price" => "decimal:2",

@@ -17,8 +17,19 @@ class MySqlGrammar extends Grammar
      * @var string[]
      */
     protected $modifiers = [
-        'Unsigned', 'Charset', 'Collate', 'VirtualAs', 'StoredAs', 'Nullable',
-        'Default', 'OnUpdate', 'Invisible', 'Increment', 'Comment', 'After', 'First',
+        "Unsigned",
+        "Charset",
+        "Collate",
+        "VirtualAs",
+        "StoredAs",
+        "Nullable",
+        "Default",
+        "OnUpdate",
+        "Invisible",
+        "Increment",
+        "Comment",
+        "After",
+        "First",
     ];
 
     /**
@@ -26,14 +37,20 @@ class MySqlGrammar extends Grammar
      *
      * @var string[]
      */
-    protected $serials = ['bigInteger', 'integer', 'mediumInteger', 'smallInteger', 'tinyInteger'];
+    protected $serials = [
+        "bigInteger",
+        "integer",
+        "mediumInteger",
+        "smallInteger",
+        "tinyInteger",
+    ];
 
     /**
      * The commands to be executed outside of create or alter commands.
      *
      * @var string[]
      */
-    protected $fluentCommands = ['AutoIncrementStartingValues'];
+    protected $fluentCommands = ["AutoIncrementStartingValues"];
 
     /**
      * Compile a create database command.
@@ -45,12 +62,18 @@ class MySqlGrammar extends Grammar
     {
         $sql = parent::compileCreateDatabase($name);
 
-        if ($charset = $this->connection->getConfig('charset')) {
-            $sql .= sprintf(' default character set %s', $this->wrapValue($charset));
+        if ($charset = $this->connection->getConfig("charset")) {
+            $sql .= sprintf(
+                " default character set %s",
+                $this->wrapValue($charset),
+            );
         }
 
-        if ($collation = $this->connection->getConfig('collation')) {
-            $sql .= sprintf(' default collate %s', $this->wrapValue($collation));
+        if ($collation = $this->connection->getConfig("collation")) {
+            $sql .= sprintf(
+                " default collate %s",
+                $this->wrapValue($collation),
+            );
         }
 
         return $sql;
@@ -63,9 +86,9 @@ class MySqlGrammar extends Grammar
      */
     public function compileSchemas()
     {
-        return 'select schema_name as name, schema_name = schema() as `default` from information_schema.schemata where '
-            .$this->compileSchemaWhereClause(null, 'schema_name')
-            .' order by schema_name';
+        return "select schema_name as name, schema_name = schema() as `default` from information_schema.schemata where " .
+            $this->compileSchemaWhereClause(null, "schema_name") .
+            " order by schema_name";
     }
 
     /**
@@ -78,10 +101,10 @@ class MySqlGrammar extends Grammar
     public function compileTableExists($schema, $table)
     {
         return sprintf(
-            'select exists (select 1 from information_schema.tables where '
-            ."table_schema = %s and table_name = %s and table_type in ('BASE TABLE', 'SYSTEM VERSIONED')) as `exists`",
-            $schema ? $this->quoteString($schema) : 'schema()',
-            $this->quoteString($table)
+            "select exists (select 1 from information_schema.tables where " .
+                "table_schema = %s and table_name = %s and table_type in ('BASE TABLE', 'SYSTEM VERSIONED')) as `exists`",
+            $schema ? $this->quoteString($schema) : "schema()",
+            $this->quoteString($table),
         );
     }
 
@@ -94,12 +117,12 @@ class MySqlGrammar extends Grammar
     public function compileTables($schema)
     {
         return sprintf(
-            'select table_name as `name`, table_schema as `schema`, (data_length + index_length) as `size`, '
-            .'table_comment as `comment`, engine as `engine`, table_collation as `collation` '
-            ."from information_schema.tables where table_type in ('BASE TABLE', 'SYSTEM VERSIONED') and "
-            .$this->compileSchemaWhereClause($schema, 'table_schema')
-            .' order by table_schema, table_name',
-            $this->quoteString($schema)
+            "select table_name as `name`, table_schema as `schema`, (data_length + index_length) as `size`, " .
+                "table_comment as `comment`, engine as `engine`, table_collation as `collation` " .
+                "from information_schema.tables where table_type in ('BASE TABLE', 'SYSTEM VERSIONED') and " .
+                $this->compileSchemaWhereClause($schema, "table_schema") .
+                " order by table_schema, table_name",
+            $this->quoteString($schema),
         );
     }
 
@@ -111,10 +134,10 @@ class MySqlGrammar extends Grammar
      */
     public function compileViews($schema)
     {
-        return 'select table_name as `name`, table_schema as `schema`, view_definition as `definition` '
-            .'from information_schema.views where '
-            .$this->compileSchemaWhereClause($schema, 'table_schema')
-            .' order by table_schema, table_name';
+        return "select table_name as `name`, table_schema as `schema`, view_definition as `definition` " .
+            "from information_schema.views where " .
+            $this->compileSchemaWhereClause($schema, "table_schema") .
+            " order by table_schema, table_name";
     }
 
     /**
@@ -126,11 +149,15 @@ class MySqlGrammar extends Grammar
      */
     protected function compileSchemaWhereClause($schema, $column)
     {
-        return $column.(match (true) {
-            ! empty($schema) && is_array($schema) => ' in ('.$this->quoteString($schema).')',
-            ! empty($schema) => ' = '.$this->quoteString($schema),
-            default => " not in ('information_schema', 'mysql', 'ndbinfo', 'performance_schema', 'sys')",
-        });
+        return $column .
+            match (true) {
+                !empty($schema) && is_array($schema) => " in (" .
+                    $this->quoteString($schema) .
+                    ")",
+                !empty($schema) => " = " . $this->quoteString($schema),
+                default
+                    => " not in ('information_schema', 'mysql', 'ndbinfo', 'performance_schema', 'sys')",
+            };
     }
 
     /**
@@ -143,14 +170,14 @@ class MySqlGrammar extends Grammar
     public function compileColumns($schema, $table)
     {
         return sprintf(
-            'select column_name as `name`, data_type as `type_name`, column_type as `type`, '
-            .'collation_name as `collation`, is_nullable as `nullable`, '
-            .'column_default as `default`, column_comment as `comment`, '
-            .'generation_expression as `expression`, extra as `extra` '
-            .'from information_schema.columns where table_schema = %s and table_name = %s '
-            .'order by ordinal_position asc',
-            $schema ? $this->quoteString($schema) : 'schema()',
-            $this->quoteString($table)
+            "select field.name as `name`, data_type as `type_name`, field.type as `type`, " .
+                "collation_name as `collation`, is_nullable as `nullable`, " .
+                "field.default as `default`, field.comment as `comment`, " .
+                "generation_expression as `expression`, extra as `extra` " .
+                "from information_schema.columns where table_schema = %s and table_name = %s " .
+                "order by ordinal_position asc",
+            $schema ? $this->quoteString($schema) : "schema()",
+            $this->quoteString($table),
         );
     }
 
@@ -164,12 +191,12 @@ class MySqlGrammar extends Grammar
     public function compileIndexes($schema, $table)
     {
         return sprintf(
-            'select index_name as `name`, group_concat(column_name order by seq_in_index) as `columns`, '
-            .'index_type as `type`, not non_unique as `unique` '
-            .'from information_schema.statistics where table_schema = %s and table_name = %s '
-            .'group by index_name, index_type, non_unique',
-            $schema ? $this->quoteString($schema) : 'schema()',
-            $this->quoteString($table)
+            "select index_name as `name`, group_concat(field.name order by seq_in_index) as `columns`, " .
+                "index_type as `type`, not non_unique as `unique` " .
+                "from information_schema.statistics where table_schema = %s and table_name = %s " .
+                "group by index_name, index_type, non_unique",
+            $schema ? $this->quoteString($schema) : "schema()",
+            $this->quoteString($table),
         );
     }
 
@@ -183,19 +210,19 @@ class MySqlGrammar extends Grammar
     public function compileForeignKeys($schema, $table)
     {
         return sprintf(
-            'select kc.constraint_name as `name`, '
-            .'group_concat(kc.column_name order by kc.ordinal_position) as `columns`, '
-            .'kc.referenced_table_schema as `foreign_schema`, '
-            .'kc.referenced_table_name as `foreign_table`, '
-            .'group_concat(kc.referenced_column_name order by kc.ordinal_position) as `foreign_columns`, '
-            .'rc.update_rule as `on_update`, '
-            .'rc.delete_rule as `on_delete` '
-            .'from information_schema.key_column_usage kc join information_schema.referential_constraints rc '
-            .'on kc.constraint_schema = rc.constraint_schema and kc.constraint_name = rc.constraint_name '
-            .'where kc.table_schema = %s and kc.table_name = %s and kc.referenced_table_name is not null '
-            .'group by kc.constraint_name, kc.referenced_table_schema, kc.referenced_table_name, rc.update_rule, rc.delete_rule',
-            $schema ? $this->quoteString($schema) : 'schema()',
-            $this->quoteString($table)
+            "select kc.constraint_name as `name`, " .
+                "group_concat(kc.field.name order by kc.ordinal_position) as `columns`, " .
+                "kc.referenced_table_schema as `foreign_schema`, " .
+                "kc.referenced_table_name as `foreign_table`, " .
+                "group_concat(kc.referenced_field.name order by kc.ordinal_position) as `foreign_columns`, " .
+                "rc.update_rule as `on_update`, " .
+                "rc.delete_rule as `on_delete` " .
+                "from information_schema.key_field.usage kc join information_schema.referential_constraints rc " .
+                "on kc.constraint_schema = rc.constraint_schema and kc.constraint_name = rc.constraint_name " .
+                "where kc.table_schema = %s and kc.table_name = %s and kc.referenced_table_name is not null " .
+                "group by kc.constraint_name, kc.referenced_table_schema, kc.referenced_table_name, rc.update_rule, rc.delete_rule",
+            $schema ? $this->quoteString($schema) : "schema()",
+            $this->quoteString($table),
         );
     }
 
@@ -208,16 +235,12 @@ class MySqlGrammar extends Grammar
      */
     public function compileCreate(Blueprint $blueprint, Fluent $command)
     {
-        $sql = $this->compileCreateTable(
-            $blueprint, $command
-        );
+        $sql = $this->compileCreateTable($blueprint, $command);
 
         // Once we have the primary SQL, we can add the encoding option to the SQL for
         // the table.  Then, we can check if a storage engine has been supplied for
         // the table. If so, we will add the engine declaration to the SQL query.
-        $sql = $this->compileCreateEncoding(
-            $sql, $blueprint
-        );
+        $sql = $this->compileCreateEncoding($sql, $blueprint);
 
         // Finally, we will append the engine configuration onto this SQL statement as
         // the final thing we do before returning this finished SQL. Once this gets
@@ -236,20 +259,21 @@ class MySqlGrammar extends Grammar
     {
         $tableStructure = $this->getColumns($blueprint);
 
-        if ($primaryKey = $this->getCommandByName($blueprint, 'primary')) {
+        if ($primaryKey = $this->getCommandByName($blueprint, "primary")) {
             $tableStructure[] = sprintf(
-                'primary key %s(%s)',
-                $primaryKey->algorithm ? 'using '.$primaryKey->algorithm : '',
-                $this->columnize($primaryKey->columns)
+                "primary key %s(%s)",
+                $primaryKey->algorithm ? "using " . $primaryKey->algorithm : "",
+                $this->columnize($primaryKey->columns),
             );
 
             $primaryKey->shouldBeSkipped = true;
         }
 
-        return sprintf('%s table %s (%s)',
-            $blueprint->temporary ? 'create temporary' : 'create',
+        return sprintf(
+            "%s table %s (%s)",
+            $blueprint->temporary ? "create temporary" : "create",
             $this->wrapTable($blueprint),
-            implode(', ', $tableStructure)
+            implode(", ", $tableStructure),
         );
     }
 
@@ -266,9 +290,11 @@ class MySqlGrammar extends Grammar
         // blueprint itself or on the root configuration for the connection that the
         // table is being created on. We will add these to the create table query.
         if (isset($blueprint->charset)) {
-            $sql .= ' default character set '.$blueprint->charset;
-        } elseif (! is_null($charset = $this->connection->getConfig('charset'))) {
-            $sql .= ' default character set '.$charset;
+            $sql .= " default character set " . $blueprint->charset;
+        } elseif (
+            !is_null($charset = $this->connection->getConfig("charset"))
+        ) {
+            $sql .= " default character set " . $charset;
         }
 
         // Next we will add the collation to the create table statement if one has been
@@ -276,7 +302,9 @@ class MySqlGrammar extends Grammar
         // connection that the query is targeting. We'll add it to this SQL query.
         if (isset($blueprint->collation)) {
             $sql .= " collate '{$blueprint->collation}'";
-        } elseif (! is_null($collation = $this->connection->getConfig('collation'))) {
+        } elseif (
+            !is_null($collation = $this->connection->getConfig("collation"))
+        ) {
             $sql .= " collate '{$collation}'";
         }
 
@@ -293,9 +321,9 @@ class MySqlGrammar extends Grammar
     protected function compileCreateEngine($sql, Blueprint $blueprint)
     {
         if (isset($blueprint->engine)) {
-            return $sql.' engine = '.$blueprint->engine;
-        } elseif (! is_null($engine = $this->connection->getConfig('engine'))) {
-            return $sql.' engine = '.$engine;
+            return $sql . " engine = " . $blueprint->engine;
+        } elseif (!is_null($engine = $this->connection->getConfig("engine"))) {
+            return $sql . " engine = " . $engine;
         }
 
         return $sql;
@@ -310,10 +338,11 @@ class MySqlGrammar extends Grammar
      */
     public function compileAdd(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('alter table %s add %s%s',
+        return sprintf(
+            "alter table %s add %s%s",
             $this->wrapTable($blueprint),
             $this->getColumn($blueprint, $command->column),
-            $command->column->instant ? ', algorithm=instant' : ''
+            $command->column->instant ? ", algorithm=instant" : "",
         );
     }
 
@@ -324,11 +353,21 @@ class MySqlGrammar extends Grammar
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
-    public function compileAutoIncrementStartingValues(Blueprint $blueprint, Fluent $command)
-    {
-        if ($command->column->autoIncrement
-            && $value = $command->column->get('startingValue', $command->column->get('from'))) {
-            return 'alter table '.$this->wrapTable($blueprint).' auto_increment = '.$value;
+    public function compileAutoIncrementStartingValues(
+        Blueprint $blueprint,
+        Fluent $command,
+    ) {
+        if (
+            $command->column->autoIncrement &&
+            ($value = $command->column->get(
+                "startingValue",
+                $command->column->get("from"),
+            ))
+        ) {
+            return "alter table " .
+                $this->wrapTable($blueprint) .
+                " auto_increment = " .
+                $value;
         }
     }
 
@@ -338,8 +377,10 @@ class MySqlGrammar extends Grammar
         $isMaria = $this->connection->isMaria();
         $version = $this->connection->getServerVersion();
 
-        if (($isMaria && version_compare($version, '10.5.2', '<')) ||
-            (! $isMaria && version_compare($version, '8.0.3', '<'))) {
+        if (
+            ($isMaria && version_compare($version, "10.5.2", "<")) ||
+            (!$isMaria && version_compare($version, "8.0.3", "<"))
+        ) {
             return $this->compileLegacyRenameColumn($blueprint, $command);
         }
 
@@ -353,41 +394,61 @@ class MySqlGrammar extends Grammar
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
-    protected function compileLegacyRenameColumn(Blueprint $blueprint, Fluent $command)
-    {
-        $column = (new Collection($this->connection->getSchemaBuilder()->getColumns($blueprint->getTable())))
-            ->firstWhere('name', $command->from);
+    protected function compileLegacyRenameColumn(
+        Blueprint $blueprint,
+        Fluent $command,
+    ) {
+        $column = new Collection(
+            $this->connection
+                ->getSchemaBuilder()
+                ->getColumns($blueprint->getTable()),
+        )->firstWhere("name", $command->from);
 
-        $modifiers = $this->addModifiers($column['type'], $blueprint, new ColumnDefinition([
-            'change' => true,
-            'type' => match ($column['type_name']) {
-                'bigint' => 'bigInteger',
-                'int' => 'integer',
-                'mediumint' => 'mediumInteger',
-                'smallint' => 'smallInteger',
-                'tinyint' => 'tinyInteger',
-                default => $column['type_name'],
-            },
-            'nullable' => $column['nullable'],
-            'default' => $column['default'] && (str_starts_with(strtolower($column['default']), 'current_timestamp') || $column['default'] === 'NULL')
-                ? new Expression($column['default'])
-                : $column['default'],
-            'autoIncrement' => $column['auto_increment'],
-            'collation' => $column['collation'],
-            'comment' => $column['comment'],
-            'virtualAs' => ! is_null($column['generation']) && $column['generation']['type'] === 'virtual'
-                ? $column['generation']['expression']
-                : null,
-            'storedAs' => ! is_null($column['generation']) && $column['generation']['type'] === 'stored'
-                ? $column['generation']['expression']
-                : null,
-        ]));
+        $modifiers = $this->addModifiers(
+            $column["type"],
+            $blueprint,
+            new ColumnDefinition([
+                "change" => true,
+                "type" => match ($column["type_name"]) {
+                    "bigint" => "bigInteger",
+                    "int" => "integer",
+                    "mediumint" => "mediumInteger",
+                    "smallint" => "smallInteger",
+                    "tinyint" => "tinyInteger",
+                    default => $column["type_name"],
+                },
+                "nullable" => $column["nullable"],
+                "default" =>
+                    $column["default"] &&
+                    (str_starts_with(
+                        strtolower($column["default"]),
+                        "current_timestamp",
+                    ) ||
+                        $column["default"] === "NULL")
+                        ? new Expression($column["default"])
+                        : $column["default"],
+                "autoIncrement" => $column["auto_increment"],
+                "collation" => $column["collation"],
+                "comment" => $column["comment"],
+                "virtualAs" =>
+                    !is_null($column["generation"]) &&
+                    $column["generation"]["type"] === "virtual"
+                        ? $column["generation"]["expression"]
+                        : null,
+                "storedAs" =>
+                    !is_null($column["generation"]) &&
+                    $column["generation"]["type"] === "stored"
+                        ? $column["generation"]["expression"]
+                        : null,
+            ]),
+        );
 
-        return sprintf('alter table %s change %s %s %s',
+        return sprintf(
+            "alter table %s change %s %s %s",
             $this->wrapTable($blueprint),
             $this->wrap($command->from),
             $this->wrap($command->to),
-            $modifiers
+            $modifiers,
         );
     }
 
@@ -396,18 +457,21 @@ class MySqlGrammar extends Grammar
     {
         $column = $command->column;
 
-        $sql = sprintf('alter table %s %s %s%s %s',
+        $sql = sprintf(
+            "alter table %s %s %s%s %s",
             $this->wrapTable($blueprint),
-            is_null($column->renameTo) ? 'modify' : 'change',
+            is_null($column->renameTo) ? "modify" : "change",
             $this->wrap($column),
-            is_null($column->renameTo) ? '' : ' '.$this->wrap($column->renameTo),
-            $this->getType($column)
+            is_null($column->renameTo)
+                ? ""
+                : " " . $this->wrap($column->renameTo),
+            $this->getType($column),
         );
 
         $sql = $this->addModifiers($sql, $blueprint, $column);
 
         if ($column->instant) {
-            $sql .= ', algorithm=instant';
+            $sql .= ", algorithm=instant";
         }
 
         return $sql;
@@ -422,10 +486,11 @@ class MySqlGrammar extends Grammar
      */
     public function compilePrimary(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('alter table %s add primary key %s(%s)',
+        return sprintf(
+            "alter table %s add primary key %s(%s)",
             $this->wrapTable($blueprint),
-            $command->algorithm ? 'using '.$command->algorithm : '',
-            $this->columnize($command->columns)
+            $command->algorithm ? "using " . $command->algorithm : "",
+            $this->columnize($command->columns),
         );
     }
 
@@ -438,7 +503,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileUnique(Blueprint $blueprint, Fluent $command)
     {
-        return $this->compileKey($blueprint, $command, 'unique');
+        return $this->compileKey($blueprint, $command, "unique");
     }
 
     /**
@@ -450,7 +515,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileIndex(Blueprint $blueprint, Fluent $command)
     {
-        return $this->compileKey($blueprint, $command, 'index');
+        return $this->compileKey($blueprint, $command, "index");
     }
 
     /**
@@ -462,7 +527,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileFullText(Blueprint $blueprint, Fluent $command)
     {
-        return $this->compileKey($blueprint, $command, 'fulltext');
+        return $this->compileKey($blueprint, $command, "fulltext");
     }
 
     /**
@@ -474,7 +539,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileSpatialIndex(Blueprint $blueprint, Fluent $command)
     {
-        return $this->compileKey($blueprint, $command, 'spatial index');
+        return $this->compileKey($blueprint, $command, "spatial index");
     }
 
     /**
@@ -487,12 +552,13 @@ class MySqlGrammar extends Grammar
      */
     protected function compileKey(Blueprint $blueprint, Fluent $command, $type)
     {
-        return sprintf('alter table %s add %s %s%s(%s)',
+        return sprintf(
+            "alter table %s add %s %s%s(%s)",
             $this->wrapTable($blueprint),
             $type,
             $this->wrap($command->index),
-            $command->algorithm ? ' using '.$command->algorithm : '',
-            $this->columnize($command->columns)
+            $command->algorithm ? " using " . $command->algorithm : "",
+            $this->columnize($command->columns),
         );
     }
 
@@ -505,7 +571,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileDrop(Blueprint $blueprint, Fluent $command)
     {
-        return 'drop table '.$this->wrapTable($blueprint);
+        return "drop table " . $this->wrapTable($blueprint);
     }
 
     /**
@@ -517,7 +583,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileDropIfExists(Blueprint $blueprint, Fluent $command)
     {
-        return 'drop table if exists '.$this->wrapTable($blueprint);
+        return "drop table if exists " . $this->wrapTable($blueprint);
     }
 
     /**
@@ -529,9 +595,16 @@ class MySqlGrammar extends Grammar
      */
     public function compileDropColumn(Blueprint $blueprint, Fluent $command)
     {
-        $columns = $this->prefixArray('drop', $this->wrapArray($command->columns));
+        $columns = $this->prefixArray(
+            "drop",
+            $this->wrapArray($command->columns),
+        );
 
-        return 'alter table '.$this->wrapTable($blueprint).' '.implode(', ', $columns).($command->instant ? ', algorithm=instant' : '');
+        return "alter table " .
+            $this->wrapTable($blueprint) .
+            " " .
+            implode(", ", $columns) .
+            ($command->instant ? ", algorithm=instant" : "");
     }
 
     /**
@@ -543,7 +616,9 @@ class MySqlGrammar extends Grammar
      */
     public function compileDropPrimary(Blueprint $blueprint, Fluent $command)
     {
-        return 'alter table '.$this->wrapTable($blueprint).' drop primary key';
+        return "alter table " .
+            $this->wrapTable($blueprint) .
+            " drop primary key";
     }
 
     /**
@@ -593,8 +668,10 @@ class MySqlGrammar extends Grammar
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
-    public function compileDropSpatialIndex(Blueprint $blueprint, Fluent $command)
-    {
+    public function compileDropSpatialIndex(
+        Blueprint $blueprint,
+        Fluent $command,
+    ) {
         return $this->compileDropIndex($blueprint, $command);
     }
 
@@ -609,7 +686,9 @@ class MySqlGrammar extends Grammar
     {
         $index = $this->wrap($command->index);
 
-        return "alter table {$this->wrapTable($blueprint)} drop foreign key {$index}";
+        return "alter table {$this->wrapTable(
+            $blueprint,
+        )} drop foreign key {$index}";
     }
 
     /**
@@ -623,7 +702,7 @@ class MySqlGrammar extends Grammar
     {
         $from = $this->wrapTable($blueprint);
 
-        return "rename table {$from} to ".$this->wrapTable($command->to);
+        return "rename table {$from} to " . $this->wrapTable($command->to);
     }
 
     /**
@@ -635,10 +714,11 @@ class MySqlGrammar extends Grammar
      */
     public function compileRenameIndex(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('alter table %s rename index %s to %s',
+        return sprintf(
+            "alter table %s rename index %s to %s",
             $this->wrapTable($blueprint),
             $this->wrap($command->from),
-            $this->wrap($command->to)
+            $this->wrap($command->to),
         );
     }
 
@@ -650,7 +730,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileDropAllTables($tables)
     {
-        return 'drop table '.implode(', ', $this->escapeNames($tables));
+        return "drop table " . implode(", ", $this->escapeNames($tables));
     }
 
     /**
@@ -661,7 +741,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileDropAllViews($views)
     {
-        return 'drop view '.implode(', ', $this->escapeNames($views));
+        return "drop view " . implode(", ", $this->escapeNames($views));
     }
 
     /**
@@ -671,7 +751,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileEnableForeignKeyConstraints()
     {
-        return 'SET FOREIGN_KEY_CHECKS=1;';
+        return "SET FOREIGN_KEY_CHECKS=1;";
     }
 
     /**
@@ -681,7 +761,7 @@ class MySqlGrammar extends Grammar
      */
     public function compileDisableForeignKeyConstraints()
     {
-        return 'SET FOREIGN_KEY_CHECKS=0;';
+        return "SET FOREIGN_KEY_CHECKS=0;";
     }
 
     /**
@@ -693,9 +773,10 @@ class MySqlGrammar extends Grammar
      */
     public function compileTableComment(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('alter table %s comment = %s',
+        return sprintf(
+            "alter table %s comment = %s",
             $this->wrapTable($blueprint),
-            "'".str_replace("'", "''", $command->comment)."'"
+            "'" . str_replace("'", "''", $command->comment) . "'",
         );
     }
 
@@ -708,8 +789,10 @@ class MySqlGrammar extends Grammar
     public function escapeNames($names)
     {
         return array_map(
-            fn ($name) => (new Collection(explode('.', $name)))->map($this->wrapValue(...))->implode('.'),
-            $names
+            fn($name) => new Collection(explode(".", $name))
+                ->map($this->wrapValue(...))
+                ->implode("."),
+            $names,
         );
     }
 
@@ -743,7 +826,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTinyText(Fluent $column)
     {
-        return 'tinytext';
+        return "tinytext";
     }
 
     /**
@@ -754,7 +837,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeText(Fluent $column)
     {
-        return 'text';
+        return "text";
     }
 
     /**
@@ -765,7 +848,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeMediumText(Fluent $column)
     {
-        return 'mediumtext';
+        return "mediumtext";
     }
 
     /**
@@ -776,7 +859,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeLongText(Fluent $column)
     {
-        return 'longtext';
+        return "longtext";
     }
 
     /**
@@ -787,7 +870,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeBigInteger(Fluent $column)
     {
-        return 'bigint';
+        return "bigint";
     }
 
     /**
@@ -798,7 +881,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeInteger(Fluent $column)
     {
-        return 'int';
+        return "int";
     }
 
     /**
@@ -809,7 +892,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeMediumInteger(Fluent $column)
     {
-        return 'mediumint';
+        return "mediumint";
     }
 
     /**
@@ -820,7 +903,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTinyInteger(Fluent $column)
     {
-        return 'tinyint';
+        return "tinyint";
     }
 
     /**
@@ -831,7 +914,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeSmallInteger(Fluent $column)
     {
-        return 'smallint';
+        return "smallint";
     }
 
     /**
@@ -846,7 +929,7 @@ class MySqlGrammar extends Grammar
             return "float({$column->precision})";
         }
 
-        return 'float';
+        return "float";
     }
 
     /**
@@ -857,7 +940,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeDouble(Fluent $column)
     {
-        return 'double';
+        return "double";
     }
 
     /**
@@ -879,7 +962,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeBoolean(Fluent $column)
     {
-        return 'tinyint(1)';
+        return "tinyint(1)";
     }
 
     /**
@@ -890,7 +973,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeEnum(Fluent $column)
     {
-        return sprintf('enum(%s)', $this->quoteString($column->allowed));
+        return sprintf("enum(%s)", $this->quoteString($column->allowed));
     }
 
     /**
@@ -901,7 +984,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeSet(Fluent $column)
     {
-        return sprintf('set(%s)', $this->quoteString($column->allowed));
+        return sprintf("set(%s)", $this->quoteString($column->allowed));
     }
 
     /**
@@ -912,7 +995,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeJson(Fluent $column)
     {
-        return 'json';
+        return "json";
     }
 
     /**
@@ -923,7 +1006,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeJsonb(Fluent $column)
     {
-        return 'json';
+        return "json";
     }
 
     /**
@@ -937,14 +1020,16 @@ class MySqlGrammar extends Grammar
         $isMaria = $this->connection->isMaria();
         $version = $this->connection->getServerVersion();
 
-        if ($isMaria ||
-            (! $isMaria && version_compare($version, '8.0.13', '>='))) {
+        if (
+            $isMaria ||
+            (!$isMaria && version_compare($version, "8.0.13", ">="))
+        ) {
             if ($column->useCurrent) {
-                $column->default(new Expression('(CURDATE())'));
+                $column->default(new Expression("(CURDATE())"));
             }
         }
 
-        return 'date';
+        return "date";
     }
 
     /**
@@ -955,7 +1040,9 @@ class MySqlGrammar extends Grammar
      */
     protected function typeDateTime(Fluent $column)
     {
-        $current = $column->precision ? "CURRENT_TIMESTAMP($column->precision)" : 'CURRENT_TIMESTAMP';
+        $current = $column->precision
+            ? "CURRENT_TIMESTAMP($column->precision)"
+            : "CURRENT_TIMESTAMP";
 
         if ($column->useCurrent) {
             $column->default(new Expression($current));
@@ -965,7 +1052,7 @@ class MySqlGrammar extends Grammar
             $column->onUpdate(new Expression($current));
         }
 
-        return $column->precision ? "datetime($column->precision)" : 'datetime';
+        return $column->precision ? "datetime($column->precision)" : "datetime";
     }
 
     /**
@@ -987,7 +1074,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTime(Fluent $column)
     {
-        return $column->precision ? "time($column->precision)" : 'time';
+        return $column->precision ? "time($column->precision)" : "time";
     }
 
     /**
@@ -1009,7 +1096,9 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTimestamp(Fluent $column)
     {
-        $current = $column->precision ? "CURRENT_TIMESTAMP($column->precision)" : 'CURRENT_TIMESTAMP';
+        $current = $column->precision
+            ? "CURRENT_TIMESTAMP($column->precision)"
+            : "CURRENT_TIMESTAMP";
 
         if ($column->useCurrent) {
             $column->default(new Expression($current));
@@ -1019,7 +1108,9 @@ class MySqlGrammar extends Grammar
             $column->onUpdate(new Expression($current));
         }
 
-        return $column->precision ? "timestamp($column->precision)" : 'timestamp';
+        return $column->precision
+            ? "timestamp($column->precision)"
+            : "timestamp";
     }
 
     /**
@@ -1044,14 +1135,16 @@ class MySqlGrammar extends Grammar
         $isMaria = $this->connection->isMaria();
         $version = $this->connection->getServerVersion();
 
-        if ($isMaria ||
-            (! $isMaria && version_compare($version, '8.0.13', '>='))) {
+        if (
+            $isMaria ||
+            (!$isMaria && version_compare($version, "8.0.13", ">="))
+        ) {
             if ($column->useCurrent) {
-                $column->default(new Expression('(YEAR(CURDATE()))'));
+                $column->default(new Expression("(YEAR(CURDATE()))"));
             }
         }
 
-        return 'year';
+        return "year";
     }
 
     /**
@@ -1063,10 +1156,12 @@ class MySqlGrammar extends Grammar
     protected function typeBinary(Fluent $column)
     {
         if ($column->length) {
-            return $column->fixed ? "binary({$column->length})" : "varbinary({$column->length})";
+            return $column->fixed
+                ? "binary({$column->length})"
+                : "varbinary({$column->length})";
         }
 
-        return 'blob';
+        return "blob";
     }
 
     /**
@@ -1077,7 +1172,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeUuid(Fluent $column)
     {
-        return 'char(36)';
+        return "char(36)";
     }
 
     /**
@@ -1088,7 +1183,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeIpAddress(Fluent $column)
     {
-        return 'varchar(45)';
+        return "varchar(45)";
     }
 
     /**
@@ -1099,7 +1194,7 @@ class MySqlGrammar extends Grammar
      */
     protected function typeMacAddress(Fluent $column)
     {
-        return 'varchar(17)';
+        return "varchar(17)";
     }
 
     /**
@@ -1112,17 +1207,29 @@ class MySqlGrammar extends Grammar
     {
         $subtype = $column->subtype ? strtolower($column->subtype) : null;
 
-        if (! in_array($subtype, ['point', 'linestring', 'polygon', 'geometrycollection', 'multipoint', 'multilinestring', 'multipolygon'])) {
+        if (
+            !in_array($subtype, [
+                "point",
+                "linestring",
+                "polygon",
+                "geometrycollection",
+                "multipoint",
+                "multilinestring",
+                "multipolygon",
+            ])
+        ) {
             $subtype = null;
         }
 
-        return sprintf('%s%s',
-            $subtype ?? 'geometry',
+        return sprintf(
+            "%s%s",
+            $subtype ?? "geometry",
             match (true) {
-                $column->srid && $this->connection->isMaria() => ' ref_system_id='.$column->srid,
-                (bool) $column->srid => ' srid '.$column->srid,
-                default => '',
-            }
+                $column->srid && $this->connection->isMaria()
+                    => " ref_system_id=" . $column->srid,
+                (bool) $column->srid => " srid " . $column->srid,
+                default => "",
+            },
         );
     }
 
@@ -1147,7 +1254,9 @@ class MySqlGrammar extends Grammar
      */
     protected function typeComputed(Fluent $column)
     {
-        throw new RuntimeException('This database driver requires a type, see the virtualAs / storedAs modifiers.');
+        throw new RuntimeException(
+            "This database driver requires a type, see the virtualAs / storedAs modifiers.",
+        );
     }
 
     /**
@@ -1158,9 +1267,9 @@ class MySqlGrammar extends Grammar
      */
     protected function typeVector(Fluent $column)
     {
-        return isset($column->dimensions) && $column->dimensions !== ''
+        return isset($column->dimensions) && $column->dimensions !== ""
             ? "vector({$column->dimensions})"
-            : 'vector';
+            : "vector";
     }
 
     /**
@@ -1172,7 +1281,7 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyVirtualAs(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($virtualAs = $column->virtualAsJson)) {
+        if (!is_null($virtualAs = $column->virtualAsJson)) {
             if ($this->isJsonSelector($virtualAs)) {
                 $virtualAs = $this->wrapJsonSelector($virtualAs);
             }
@@ -1180,7 +1289,7 @@ class MySqlGrammar extends Grammar
             return " as ({$virtualAs})";
         }
 
-        if (! is_null($virtualAs = $column->virtualAs)) {
+        if (!is_null($virtualAs = $column->virtualAs)) {
             return " as ({$this->getValue($virtualAs)})";
         }
     }
@@ -1194,7 +1303,7 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyStoredAs(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($storedAs = $column->storedAsJson)) {
+        if (!is_null($storedAs = $column->storedAsJson)) {
             if ($this->isJsonSelector($storedAs)) {
                 $storedAs = $this->wrapJsonSelector($storedAs);
             }
@@ -1202,7 +1311,7 @@ class MySqlGrammar extends Grammar
             return " as ({$storedAs}) stored";
         }
 
-        if (! is_null($storedAs = $column->storedAs)) {
+        if (!is_null($storedAs = $column->storedAs)) {
             return " as ({$this->getValue($storedAs)}) stored";
         }
     }
@@ -1217,7 +1326,7 @@ class MySqlGrammar extends Grammar
     protected function modifyUnsigned(Blueprint $blueprint, Fluent $column)
     {
         if ($column->unsigned) {
-            return ' unsigned';
+            return " unsigned";
         }
     }
 
@@ -1230,8 +1339,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyCharset(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->charset)) {
-            return ' character set '.$column->charset;
+        if (!is_null($column->charset)) {
+            return " character set " . $column->charset;
         }
     }
 
@@ -1244,7 +1353,7 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyCollate(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->collation)) {
+        if (!is_null($column->collation)) {
             return " collate '{$column->collation}'";
         }
     }
@@ -1258,15 +1367,17 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyNullable(Blueprint $blueprint, Fluent $column)
     {
-        if (is_null($column->virtualAs) &&
+        if (
+            is_null($column->virtualAs) &&
             is_null($column->virtualAsJson) &&
             is_null($column->storedAs) &&
-            is_null($column->storedAsJson)) {
-            return $column->nullable ? ' null' : ' not null';
+            is_null($column->storedAsJson)
+        ) {
+            return $column->nullable ? " null" : " not null";
         }
 
         if ($column->nullable === false) {
-            return ' not null';
+            return " not null";
         }
     }
 
@@ -1279,8 +1390,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyInvisible(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->invisible)) {
-            return ' invisible';
+        if (!is_null($column->invisible)) {
+            return " invisible";
         }
     }
 
@@ -1293,8 +1404,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyDefault(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->default)) {
-            return ' default '.$this->getDefaultValue($column->default);
+        if (!is_null($column->default)) {
+            return " default " . $this->getDefaultValue($column->default);
         }
     }
 
@@ -1307,8 +1418,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyOnUpdate(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->onUpdate)) {
-            return ' on update '.$this->getValue($column->onUpdate);
+        if (!is_null($column->onUpdate)) {
+            return " on update " . $this->getValue($column->onUpdate);
         }
     }
 
@@ -1322,9 +1433,10 @@ class MySqlGrammar extends Grammar
     protected function modifyIncrement(Blueprint $blueprint, Fluent $column)
     {
         if (in_array($column->type, $this->serials) && $column->autoIncrement) {
-            return $this->hasCommand($blueprint, 'primary') || ($column->change && ! $column->primary)
-                ? ' auto_increment'
-                : ' auto_increment primary key';
+            return $this->hasCommand($blueprint, "primary") ||
+                ($column->change && !$column->primary)
+                ? " auto_increment"
+                : " auto_increment primary key";
         }
     }
 
@@ -1337,8 +1449,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyFirst(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->first)) {
-            return ' first';
+        if (!is_null($column->first)) {
+            return " first";
         }
     }
 
@@ -1351,8 +1463,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyAfter(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->after)) {
-            return ' after '.$this->wrap($column->after);
+        if (!is_null($column->after)) {
+            return " after " . $this->wrap($column->after);
         }
     }
 
@@ -1365,8 +1477,8 @@ class MySqlGrammar extends Grammar
      */
     protected function modifyComment(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->comment)) {
-            return " comment '".addslashes($column->comment)."'";
+        if (!is_null($column->comment)) {
+            return " comment '" . addslashes($column->comment) . "'";
         }
     }
 
@@ -1378,8 +1490,8 @@ class MySqlGrammar extends Grammar
      */
     protected function wrapValue($value)
     {
-        if ($value !== '*') {
-            return '`'.str_replace('`', '``', $value).'`';
+        if ($value !== "*") {
+            return "`" . str_replace("`", "``", $value) . "`";
         }
 
         return $value;
@@ -1395,6 +1507,6 @@ class MySqlGrammar extends Grammar
     {
         [$field, $path] = $this->wrapJsonFieldAndPath($value);
 
-        return 'json_unquote(json_extract('.$field.$path.'))';
+        return "json_unquote(json_extract(" . $field . $path . "))";
     }
 }

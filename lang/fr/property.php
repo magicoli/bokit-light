@@ -1,5 +1,5 @@
 <?php
 
 return [
-    "column_name" => "Nom",
+    "field.name" => "Nom",
 ];

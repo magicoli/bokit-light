@@ -163,7 +163,7 @@ class MySqlSchemaState extends SchemaState
         try {
             $process->setTimeout(null)->mustRun($output, $variables);
         } catch (Exception $e) {
-            if (Str::contains($e->getMessage(), ['column-statistics', 'column_statistics'])) {
+            if (Str::contains($e->getMessage(), ['column-statistics', 'field.statistics'])) {
                 return $this->executeDumpProcess(Process::fromShellCommandLine(
                     str_replace(' --column-statistics=0', '', $process->getCommandLine())
                 ), $output, $variables, $depth + 1);

@@ -20,21 +20,33 @@ class SqlServerGrammar extends Grammar
      *
      * @var string[]
      */
-    protected $modifiers = ['Collate', 'Nullable', 'Default', 'Persisted', 'Increment'];
+    protected $modifiers = [
+        "Collate",
+        "Nullable",
+        "Default",
+        "Persisted",
+        "Increment",
+    ];
 
     /**
      * The columns available as serials.
      *
      * @var string[]
      */
-    protected $serials = ['tinyInteger', 'smallInteger', 'mediumInteger', 'integer', 'bigInteger'];
+    protected $serials = [
+        "tinyInteger",
+        "smallInteger",
+        "mediumInteger",
+        "integer",
+        "bigInteger",
+    ];
 
     /**
      * The commands to be executed outside of create or alter command.
      *
      * @var string[]
      */
-    protected $fluentCommands = ['Default'];
+    protected $fluentCommands = ["Default"];
 
     /**
      * Compile the query to determine the schemas.
@@ -43,8 +55,8 @@ class SqlServerGrammar extends Grammar
      */
     public function compileSchemas()
     {
-        return 'select name, iif(schema_id = schema_id(), 1, 0) as [default] from sys.schemas '
-            ."where name not in ('information_schema', 'sys') and name not like 'db[_]%' order by name";
+        return "select name, iif(schema_id = schema_id(), 1, 0) as [default] from sys.schemas " .
+            "where name not in ('information_schema', 'sys') and name not like 'db[_]%' order by name";
     }
 
     /**
@@ -58,7 +70,7 @@ class SqlServerGrammar extends Grammar
     {
         return sprintf(
             'select (case when object_id(%s, \'U\') is null then 0 else 1 end) as [exists]',
-            $this->quoteString($schema ? $schema.'.'.$table : $table)
+            $this->quoteString($schema ? $schema . "." . $table : $table),
         );
     }
 
@@ -70,14 +82,17 @@ class SqlServerGrammar extends Grammar
      */
     public function compileTables($schema)
     {
-        return 'select t.name as name, schema_name(t.schema_id) as [schema], sum(u.total_pages) * 8 * 1024 as size '
-            .'from sys.tables as t '
-            .'join sys.partitions as p on p.object_id = t.object_id '
-            .'join sys.allocation_units as u on u.container_id = p.hobt_id '
-            ."where t.is_ms_shipped = 0 and t.name <> 'sysdiagrams'"
-            .$this->compileSchemaWhereClause($schema, 'schema_name(t.schema_id)')
-            .' group by t.name, t.schema_id '
-            .'order by [schema], t.name';
+        return "select t.name as name, schema_name(t.schema_id) as [schema], sum(u.total_pages) * 8 * 1024 as size " .
+            "from sys.tables as t " .
+            "join sys.partitions as p on p.object_id = t.object_id " .
+            "join sys.allocation_units as u on u.container_id = p.hobt_id " .
+            "where t.is_ms_shipped = 0 and t.name <> 'sysdiagrams'" .
+            $this->compileSchemaWhereClause(
+                $schema,
+                "schema_name(t.schema_id)",
+            ) .
+            " group by t.name, t.schema_id " .
+            "order by [schema], t.name";
     }
 
     /**
@@ -88,11 +103,14 @@ class SqlServerGrammar extends Grammar
      */
     public function compileViews($schema)
     {
-        return 'select name, schema_name(v.schema_id) as [schema], definition from sys.views as v '
-            .'inner join sys.sql_modules as m on v.object_id = m.object_id '
-            .'where v.is_ms_shipped = 0'
-            .$this->compileSchemaWhereClause($schema, 'schema_name(v.schema_id)')
-            .' order by [schema], name';
+        return "select name, schema_name(v.schema_id) as [schema], definition from sys.views as v " .
+            "inner join sys.sql_modules as m on v.object_id = m.object_id " .
+            "where v.is_ms_shipped = 0" .
+            $this->compileSchemaWhereClause(
+                $schema,
+                "schema_name(v.schema_id)",
+            ) .
+            " order by [schema], name";
     }
 
     /**
@@ -105,9 +123,11 @@ class SqlServerGrammar extends Grammar
     protected function compileSchemaWhereClause($schema, $column)
     {
         return match (true) {
-            ! empty($schema) && is_array($schema) => " and $column in (".$this->quoteString($schema).')',
-            ! empty($schema) => " and $column = ".$this->quoteString($schema),
-            default => '',
+            !empty($schema) && is_array($schema) => " and $column in (" .
+                $this->quoteString($schema) .
+                ")",
+            !empty($schema) => " and $column = " . $this->quoteString($schema),
+            default => "",
         };
     }
 
@@ -121,23 +141,23 @@ class SqlServerGrammar extends Grammar
     public function compileColumns($schema, $table)
     {
         return sprintf(
-            'select col.name, type.name as type_name, '
-            .'col.max_length as length, col.precision as precision, col.scale as places, '
-            .'col.is_nullable as nullable, def.definition as [default], '
-            .'col.is_identity as autoincrement, col.collation_name as collation, '
-            .'com.definition as [expression], is_persisted as [persisted], '
-            .'cast(prop.value as nvarchar(max)) as comment '
-            .'from sys.columns as col '
-            .'join sys.types as type on col.user_type_id = type.user_type_id '
-            .'join sys.objects as obj on col.object_id = obj.object_id '
-            .'join sys.schemas as scm on obj.schema_id = scm.schema_id '
-            .'left join sys.default_constraints def on col.default_object_id = def.object_id and col.object_id = def.parent_object_id '
-            ."left join sys.extended_properties as prop on obj.object_id = prop.major_id and col.column_id = prop.minor_id and prop.name = 'MS_Description' "
-            .'left join sys.computed_columns as com on col.column_id = com.column_id and col.object_id = com.object_id '
-            ."where obj.type in ('U', 'V') and obj.name = %s and scm.name = %s "
-            .'order by col.column_id',
+            "select col.name, type.name as type_name, " .
+                "col.max_length as length, col.precision as precision, col.scale as places, " .
+                "col.is_nullable as nullable, def.definition as [default], " .
+                "col.is_identity as autoincrement, col.collation_name as collation, " .
+                "com.definition as [expression], is_persisted as [persisted], " .
+                "cast(prop.value as nvarchar(max)) as comment " .
+                "from sys.columns as col " .
+                "join sys.types as type on col.user_type_id = type.user_type_id " .
+                "join sys.objects as obj on col.object_id = obj.object_id " .
+                "join sys.schemas as scm on obj.schema_id = scm.schema_id " .
+                "left join sys.default_constraints def on col.default_object_id = def.object_id and col.object_id = def.parent_object_id " .
+                "left join sys.extended_properties as prop on obj.object_id = prop.major_id and col.field.id = prop.minor_id and prop.name = 'MS_Description' " .
+                "left join sys.computed_columns as com on col.field.id = com.field.id and col.object_id = com.object_id " .
+                "where obj.type in ('U', 'V') and obj.name = %s and scm.name = %s " .
+                "order by col.field.id",
             $this->quoteString($table),
-            $schema ? $this->quoteString($schema) : 'schema_name()',
+            $schema ? $this->quoteString($schema) : "schema_name()",
         );
     }
 
@@ -151,17 +171,17 @@ class SqlServerGrammar extends Grammar
     public function compileIndexes($schema, $table)
     {
         return sprintf(
-            "select idx.name as name, string_agg(col.name, ',') within group (order by idxcol.key_ordinal) as columns, "
-            .'idx.type_desc as [type], idx.is_unique as [unique], idx.is_primary_key as [primary] '
-            .'from sys.indexes as idx '
-            .'join sys.tables as tbl on idx.object_id = tbl.object_id '
-            .'join sys.schemas as scm on tbl.schema_id = scm.schema_id '
-            .'join sys.index_columns as idxcol on idx.object_id = idxcol.object_id and idx.index_id = idxcol.index_id '
-            .'join sys.columns as col on idxcol.object_id = col.object_id and idxcol.column_id = col.column_id '
-            .'where tbl.name = %s and scm.name = %s '
-            .'group by idx.name, idx.type_desc, idx.is_unique, idx.is_primary_key',
+            "select idx.name as name, string_agg(col.name, ',') within group (order by idxcol.key_ordinal) as columns, " .
+                "idx.type_desc as [type], idx.is_unique as [unique], idx.is_primary_key as [primary] " .
+                "from sys.indexes as idx " .
+                "join sys.tables as tbl on idx.object_id = tbl.object_id " .
+                "join sys.schemas as scm on tbl.schema_id = scm.schema_id " .
+                "join sys.index_columns as idxcol on idx.object_id = idxcol.object_id and idx.index_id = idxcol.index_id " .
+                "join sys.columns as col on idxcol.object_id = col.object_id and idxcol.field.id = col.field.id " .
+                "where tbl.name = %s and scm.name = %s " .
+                "group by idx.name, idx.type_desc, idx.is_unique, idx.is_primary_key",
             $this->quoteString($table),
-            $schema ? $this->quoteString($schema) : 'schema_name()',
+            $schema ? $this->quoteString($schema) : "schema_name()",
         );
     }
 
@@ -175,24 +195,24 @@ class SqlServerGrammar extends Grammar
     public function compileForeignKeys($schema, $table)
     {
         return sprintf(
-            'select fk.name as name, '
-            ."string_agg(lc.name, ',') within group (order by fkc.constraint_column_id) as columns, "
-            .'fs.name as foreign_schema, ft.name as foreign_table, '
-            ."string_agg(fc.name, ',') within group (order by fkc.constraint_column_id) as foreign_columns, "
-            .'fk.update_referential_action_desc as on_update, '
-            .'fk.delete_referential_action_desc as on_delete '
-            .'from sys.foreign_keys as fk '
-            .'join sys.foreign_key_columns as fkc on fkc.constraint_object_id = fk.object_id '
-            .'join sys.tables as lt on lt.object_id = fk.parent_object_id '
-            .'join sys.schemas as ls on lt.schema_id = ls.schema_id '
-            .'join sys.columns as lc on fkc.parent_object_id = lc.object_id and fkc.parent_column_id = lc.column_id '
-            .'join sys.tables as ft on ft.object_id = fk.referenced_object_id '
-            .'join sys.schemas as fs on ft.schema_id = fs.schema_id '
-            .'join sys.columns as fc on fkc.referenced_object_id = fc.object_id and fkc.referenced_column_id = fc.column_id '
-            .'where lt.name = %s and ls.name = %s '
-            .'group by fk.name, fs.name, ft.name, fk.update_referential_action_desc, fk.delete_referential_action_desc',
+            "select fk.name as name, " .
+                "string_agg(lc.name, ',') within group (order by fkc.constraint_field.id) as columns, " .
+                "fs.name as foreign_schema, ft.name as foreign_table, " .
+                "string_agg(fc.name, ',') within group (order by fkc.constraint_field.id) as foreign_columns, " .
+                "fk.update_referential_action_desc as on_update, " .
+                "fk.delete_referential_action_desc as on_delete " .
+                "from sys.foreign_keys as fk " .
+                "join sys.foreign_key_columns as fkc on fkc.constraint_object_id = fk.object_id " .
+                "join sys.tables as lt on lt.object_id = fk.parent_object_id " .
+                "join sys.schemas as ls on lt.schema_id = ls.schema_id " .
+                "join sys.columns as lc on fkc.parent_object_id = lc.object_id and fkc.parent_field.id = lc.field.id " .
+                "join sys.tables as ft on ft.object_id = fk.referenced_object_id " .
+                "join sys.schemas as fs on ft.schema_id = fs.schema_id " .
+                "join sys.columns as fc on fkc.referenced_object_id = fc.object_id and fkc.referenced_field.id = fc.field.id " .
+                "where lt.name = %s and ls.name = %s " .
+                "group by fk.name, fs.name, ft.name, fk.update_referential_action_desc, fk.delete_referential_action_desc",
             $this->quoteString($table),
-            $schema ? $this->quoteString($schema) : 'schema_name()',
+            $schema ? $this->quoteString($schema) : "schema_name()",
         );
     }
 
@@ -205,9 +225,15 @@ class SqlServerGrammar extends Grammar
      */
     public function compileCreate(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('create table %s (%s)',
-            $this->wrapTable($blueprint, $blueprint->temporary ? '#'.$this->connection->getTablePrefix() : null),
-            implode(', ', $this->getColumns($blueprint))
+        return sprintf(
+            "create table %s (%s)",
+            $this->wrapTable(
+                $blueprint,
+                $blueprint->temporary
+                    ? "#" . $this->connection->getTablePrefix()
+                    : null,
+            ),
+            implode(", ", $this->getColumns($blueprint)),
         );
     }
 
@@ -220,18 +246,24 @@ class SqlServerGrammar extends Grammar
      */
     public function compileAdd(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('alter table %s add %s',
+        return sprintf(
+            "alter table %s add %s",
             $this->wrapTable($blueprint),
-            $this->getColumn($blueprint, $command->column)
+            $this->getColumn($blueprint, $command->column),
         );
     }
 
     /** @inheritDoc */
     public function compileRenameColumn(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf("sp_rename %s, %s, N'COLUMN'",
-            $this->quoteString($this->wrapTable($blueprint).'.'.$this->wrap($command->from)),
-            $this->wrap($command->to)
+        return sprintf(
+            "sp_rename %s, %s, N'COLUMN'",
+            $this->quoteString(
+                $this->wrapTable($blueprint) .
+                    "." .
+                    $this->wrap($command->from),
+            ),
+            $this->wrap($command->to),
         );
     }
 
@@ -240,7 +272,8 @@ class SqlServerGrammar extends Grammar
     {
         return [
             $this->compileDropDefaultConstraint($blueprint, $command),
-            sprintf('alter table %s alter column %s',
+            sprintf(
+                "alter table %s alter column %s",
                 $this->wrapTable($blueprint),
                 $this->getColumn($blueprint, $command->column),
             ),
@@ -256,10 +289,11 @@ class SqlServerGrammar extends Grammar
      */
     public function compilePrimary(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('alter table %s add constraint %s primary key (%s)',
+        return sprintf(
+            "alter table %s add constraint %s primary key (%s)",
             $this->wrapTable($blueprint),
             $this->wrap($command->index),
-            $this->columnize($command->columns)
+            $this->columnize($command->columns),
         );
     }
 
@@ -272,11 +306,12 @@ class SqlServerGrammar extends Grammar
      */
     public function compileUnique(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('create unique index %s on %s (%s)%s',
+        return sprintf(
+            "create unique index %s on %s (%s)%s",
             $this->wrap($command->index),
             $this->wrapTable($blueprint),
             $this->columnize($command->columns),
-            $command->online ? ' with (online = on)' : ''
+            $command->online ? " with (online = on)" : "",
         );
     }
 
@@ -289,11 +324,12 @@ class SqlServerGrammar extends Grammar
      */
     public function compileIndex(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('create index %s on %s (%s)%s',
+        return sprintf(
+            "create index %s on %s (%s)%s",
             $this->wrap($command->index),
             $this->wrapTable($blueprint),
             $this->columnize($command->columns),
-            $command->online ? ' with (online = on)' : ''
+            $command->online ? " with (online = on)" : "",
         );
     }
 
@@ -306,10 +342,11 @@ class SqlServerGrammar extends Grammar
      */
     public function compileSpatialIndex(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('create spatial index %s on %s (%s)',
+        return sprintf(
+            "create spatial index %s on %s (%s)",
             $this->wrap($command->index),
             $this->wrapTable($blueprint),
-            $this->columnize($command->columns)
+            $this->columnize($command->columns),
         );
     }
 
@@ -322,11 +359,12 @@ class SqlServerGrammar extends Grammar
      */
     public function compileDefault(Blueprint $blueprint, Fluent $command)
     {
-        if ($command->column->change && ! is_null($command->column->default)) {
-            return sprintf('alter table %s add default %s for %s',
+        if ($command->column->change && !is_null($command->column->default)) {
+            return sprintf(
+                "alter table %s add default %s for %s",
                 $this->wrapTable($blueprint),
                 $this->getDefaultValue($command->column->default),
-                $this->wrap($command->column)
+                $this->wrap($command->column),
             );
         }
     }
@@ -340,7 +378,7 @@ class SqlServerGrammar extends Grammar
      */
     public function compileDrop(Blueprint $blueprint, Fluent $command)
     {
-        return 'drop table '.$this->wrapTable($blueprint);
+        return "drop table " . $this->wrapTable($blueprint);
     }
 
     /**
@@ -352,9 +390,10 @@ class SqlServerGrammar extends Grammar
      */
     public function compileDropIfExists(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('if object_id(%s, \'U\') is not null drop table %s',
+        return sprintf(
+            'if object_id(%s, \'U\') is not null drop table %s',
             $this->quoteString($this->wrapTable($blueprint)),
-            $this->wrapTable($blueprint)
+            $this->wrapTable($blueprint),
         );
     }
 
@@ -379,9 +418,14 @@ class SqlServerGrammar extends Grammar
     {
         $columns = $this->wrapArray($command->columns);
 
-        $dropExistingConstraintsSql = $this->compileDropDefaultConstraint($blueprint, $command).';';
+        $dropExistingConstraintsSql =
+            $this->compileDropDefaultConstraint($blueprint, $command) . ";";
 
-        return $dropExistingConstraintsSql.'alter table '.$this->wrapTable($blueprint).' drop column '.implode(', ', $columns);
+        return $dropExistingConstraintsSql .
+            "alter table " .
+            $this->wrapTable($blueprint) .
+            " drop column " .
+            implode(", ", $columns);
     }
 
     /**
@@ -391,20 +435,23 @@ class SqlServerGrammar extends Grammar
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
-    public function compileDropDefaultConstraint(Blueprint $blueprint, Fluent $command)
-    {
-        $columns = $command->name === 'change'
-            ? "'".$command->column->name."'"
-            : "'".implode("', '", $command->columns)."'";
+    public function compileDropDefaultConstraint(
+        Blueprint $blueprint,
+        Fluent $command,
+    ) {
+        $columns =
+            $command->name === "change"
+                ? "'" . $command->column->name . "'"
+                : "'" . implode("', '", $command->columns) . "'";
 
         $table = $this->wrapTable($blueprint);
         $tableName = $this->quoteString($this->wrapTable($blueprint));
 
         $sql = "DECLARE @sql NVARCHAR(MAX) = '';";
         $sql .= "SELECT @sql += 'ALTER TABLE $table DROP CONSTRAINT ' + OBJECT_NAME([default_object_id]) + ';' ";
-        $sql .= 'FROM sys.columns ';
+        $sql .= "FROM sys.columns ";
         $sql .= "WHERE [object_id] = OBJECT_ID($tableName) AND [name] in ($columns) AND [default_object_id] <> 0;";
-        $sql .= 'EXEC(@sql)';
+        $sql .= "EXEC(@sql)";
 
         return $sql;
     }
@@ -420,7 +467,9 @@ class SqlServerGrammar extends Grammar
     {
         $index = $this->wrap($command->index);
 
-        return "alter table {$this->wrapTable($blueprint)} drop constraint {$index}";
+        return "alter table {$this->wrapTable(
+            $blueprint,
+        )} drop constraint {$index}";
     }
 
     /**
@@ -458,8 +507,10 @@ class SqlServerGrammar extends Grammar
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
-    public function compileDropSpatialIndex(Blueprint $blueprint, Fluent $command)
-    {
+    public function compileDropSpatialIndex(
+        Blueprint $blueprint,
+        Fluent $command,
+    ) {
         return $this->compileDropIndex($blueprint, $command);
     }
 
@@ -474,7 +525,9 @@ class SqlServerGrammar extends Grammar
     {
         $index = $this->wrap($command->index);
 
-        return "alter table {$this->wrapTable($blueprint)} drop constraint {$index}";
+        return "alter table {$this->wrapTable(
+            $blueprint,
+        )} drop constraint {$index}";
     }
 
     /**
@@ -486,9 +539,10 @@ class SqlServerGrammar extends Grammar
      */
     public function compileRename(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('sp_rename %s, %s',
+        return sprintf(
+            "sp_rename %s, %s",
             $this->quoteString($this->wrapTable($blueprint)),
-            $this->wrapTable($command->to)
+            $this->wrapTable($command->to),
         );
     }
 
@@ -501,9 +555,14 @@ class SqlServerGrammar extends Grammar
      */
     public function compileRenameIndex(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf("sp_rename %s, %s, N'INDEX'",
-            $this->quoteString($this->wrapTable($blueprint).'.'.$this->wrap($command->from)),
-            $this->wrap($command->to)
+        return sprintf(
+            "sp_rename %s, %s, N'INDEX'",
+            $this->quoteString(
+                $this->wrapTable($blueprint) .
+                    "." .
+                    $this->wrap($command->from),
+            ),
+            $this->wrap($command->to),
         );
     }
 
@@ -587,7 +646,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeTinyText(Fluent $column)
     {
-        return 'nvarchar(255)';
+        return "nvarchar(255)";
     }
 
     /**
@@ -598,7 +657,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeText(Fluent $column)
     {
-        return 'nvarchar(max)';
+        return "nvarchar(max)";
     }
 
     /**
@@ -609,7 +668,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeMediumText(Fluent $column)
     {
-        return 'nvarchar(max)';
+        return "nvarchar(max)";
     }
 
     /**
@@ -620,7 +679,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeLongText(Fluent $column)
     {
-        return 'nvarchar(max)';
+        return "nvarchar(max)";
     }
 
     /**
@@ -631,7 +690,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeInteger(Fluent $column)
     {
-        return 'int';
+        return "int";
     }
 
     /**
@@ -642,7 +701,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeBigInteger(Fluent $column)
     {
-        return 'bigint';
+        return "bigint";
     }
 
     /**
@@ -653,7 +712,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeMediumInteger(Fluent $column)
     {
-        return 'int';
+        return "int";
     }
 
     /**
@@ -664,7 +723,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeTinyInteger(Fluent $column)
     {
-        return 'tinyint';
+        return "tinyint";
     }
 
     /**
@@ -675,7 +734,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeSmallInteger(Fluent $column)
     {
-        return 'smallint';
+        return "smallint";
     }
 
     /**
@@ -690,7 +749,7 @@ class SqlServerGrammar extends Grammar
             return "float({$column->precision})";
         }
 
-        return 'float';
+        return "float";
     }
 
     /**
@@ -701,7 +760,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeDouble(Fluent $column)
     {
-        return 'double precision';
+        return "double precision";
     }
 
     /**
@@ -723,7 +782,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeBoolean(Fluent $column)
     {
-        return 'bit';
+        return "bit";
     }
 
     /**
@@ -737,7 +796,7 @@ class SqlServerGrammar extends Grammar
         return sprintf(
             'nvarchar(255) check ("%s" in (%s))',
             $column->name,
-            $this->quoteString($column->allowed)
+            $this->quoteString($column->allowed),
         );
     }
 
@@ -749,7 +808,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeJson(Fluent $column)
     {
-        return 'nvarchar(max)';
+        return "nvarchar(max)";
     }
 
     /**
@@ -760,7 +819,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeJsonb(Fluent $column)
     {
-        return 'nvarchar(max)';
+        return "nvarchar(max)";
     }
 
     /**
@@ -772,10 +831,10 @@ class SqlServerGrammar extends Grammar
     protected function typeDate(Fluent $column)
     {
         if ($column->useCurrent) {
-            $column->default(new Expression('CAST(GETDATE() AS DATE)'));
+            $column->default(new Expression("CAST(GETDATE() AS DATE)"));
         }
 
-        return 'date';
+        return "date";
     }
 
     /**
@@ -808,7 +867,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeTime(Fluent $column)
     {
-        return $column->precision ? "time($column->precision)" : 'time';
+        return $column->precision ? "time($column->precision)" : "time";
     }
 
     /**
@@ -831,10 +890,12 @@ class SqlServerGrammar extends Grammar
     protected function typeTimestamp(Fluent $column)
     {
         if ($column->useCurrent) {
-            $column->default(new Expression('CURRENT_TIMESTAMP'));
+            $column->default(new Expression("CURRENT_TIMESTAMP"));
         }
 
-        return $column->precision ? "datetime2($column->precision)" : 'datetime';
+        return $column->precision
+            ? "datetime2($column->precision)"
+            : "datetime";
     }
 
     /**
@@ -848,10 +909,12 @@ class SqlServerGrammar extends Grammar
     protected function typeTimestampTz(Fluent $column)
     {
         if ($column->useCurrent) {
-            $column->default(new Expression('CURRENT_TIMESTAMP'));
+            $column->default(new Expression("CURRENT_TIMESTAMP"));
         }
 
-        return $column->precision ? "datetimeoffset($column->precision)" : 'datetimeoffset';
+        return $column->precision
+            ? "datetimeoffset($column->precision)"
+            : "datetimeoffset";
     }
 
     /**
@@ -863,7 +926,9 @@ class SqlServerGrammar extends Grammar
     protected function typeYear(Fluent $column)
     {
         if ($column->useCurrent) {
-            $column->default(new Expression('CAST(YEAR(GETDATE()) AS INTEGER)'));
+            $column->default(
+                new Expression("CAST(YEAR(GETDATE()) AS INTEGER)"),
+            );
         }
 
         return $this->typeInteger($column);
@@ -878,10 +943,12 @@ class SqlServerGrammar extends Grammar
     protected function typeBinary(Fluent $column)
     {
         if ($column->length) {
-            return $column->fixed ? "binary({$column->length})" : "varbinary({$column->length})";
+            return $column->fixed
+                ? "binary({$column->length})"
+                : "varbinary({$column->length})";
         }
 
-        return 'varbinary(max)';
+        return "varbinary(max)";
     }
 
     /**
@@ -892,7 +959,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeUuid(Fluent $column)
     {
-        return 'uniqueidentifier';
+        return "uniqueidentifier";
     }
 
     /**
@@ -903,7 +970,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeIpAddress(Fluent $column)
     {
-        return 'nvarchar(45)';
+        return "nvarchar(45)";
     }
 
     /**
@@ -914,7 +981,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeMacAddress(Fluent $column)
     {
-        return 'nvarchar(17)';
+        return "nvarchar(17)";
     }
 
     /**
@@ -925,7 +992,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeGeometry(Fluent $column)
     {
-        return 'geometry';
+        return "geometry";
     }
 
     /**
@@ -936,7 +1003,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeGeography(Fluent $column)
     {
-        return 'geography';
+        return "geography";
     }
 
     /**
@@ -959,8 +1026,8 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyCollate(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->collation)) {
-            return ' collate '.$column->collation;
+        if (!is_null($column->collation)) {
+            return " collate " . $column->collation;
         }
     }
 
@@ -973,8 +1040,8 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyNullable(Blueprint $blueprint, Fluent $column)
     {
-        if ($column->type !== 'computed') {
-            return $column->nullable ? ' null' : ' not null';
+        if ($column->type !== "computed") {
+            return $column->nullable ? " null" : " not null";
         }
     }
 
@@ -987,8 +1054,8 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyDefault(Blueprint $blueprint, Fluent $column)
     {
-        if (! $column->change && ! is_null($column->default)) {
-            return ' default '.$this->getDefaultValue($column->default);
+        if (!$column->change && !is_null($column->default)) {
+            return " default " . $this->getDefaultValue($column->default);
         }
     }
 
@@ -1001,8 +1068,14 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyIncrement(Blueprint $blueprint, Fluent $column)
     {
-        if (! $column->change && in_array($column->type, $this->serials) && $column->autoIncrement) {
-            return $this->hasCommand($blueprint, 'primary') ? ' identity' : ' identity primary key';
+        if (
+            !$column->change &&
+            in_array($column->type, $this->serials) &&
+            $column->autoIncrement
+        ) {
+            return $this->hasCommand($blueprint, "primary")
+                ? " identity"
+                : " identity primary key";
         }
     }
 
@@ -1016,15 +1089,17 @@ class SqlServerGrammar extends Grammar
     protected function modifyPersisted(Blueprint $blueprint, Fluent $column)
     {
         if ($column->change) {
-            if ($column->type === 'computed') {
-                return $column->persisted ? ' add persisted' : ' drop persisted';
+            if ($column->type === "computed") {
+                return $column->persisted
+                    ? " add persisted"
+                    : " drop persisted";
             }
 
             return null;
         }
 
         if ($column->persisted) {
-            return ' persisted';
+            return " persisted";
         }
     }
 
@@ -1037,7 +1112,7 @@ class SqlServerGrammar extends Grammar
     public function quoteString($value)
     {
         if (is_array($value)) {
-            return implode(', ', array_map([$this, __FUNCTION__], $value));
+            return implode(", ", array_map([$this, __FUNCTION__], $value));
         }
 
         return "N'$value'";

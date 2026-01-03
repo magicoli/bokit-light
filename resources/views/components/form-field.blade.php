@@ -1,215 +1,115 @@
-@php
-    $type = $field['type'] ?? 'text';
-    $label = $field['label'] ?? null; // Label can be null for containers
-    $default = $field['default'] ?? null;
-
-    // Get value from model, values array, or default
-    $modelValue = $model ? ($model->$fieldName ?? null) : ($values[$fieldName] ?? null);
-    $value = old($fieldName, $modelValue ?? $default ?? null);
-    $value_only = old($fieldName, $modelValue);
-
-    $attributes = $field['attributes'] ?? [];
-    $required = $field['required'] ?? false;
-
-    $fieldsetClass = trim("form-field field-{$type} field-{$fieldName} " . ($field['class'] ?? ''));
-    $inputClass = trim("input-{$type} " . ($field['attributes']['class'] ?? ''));
-
-    if($field['required'] ?? false) {
-        $attributes['required'] = true;
-    }
-    if($field['checked'] ?? false) {
-        $attributes['checked'] = true;
-    }
-    if($field['attributes']['disabled'] ?? false) {
-        $attributes['disabled'] = true;
-        $field['disabled'] = true;
-        $fieldsetClass .= " disabled";
-    }
-    if($field['readonly'] ?? false) {
-        $attributes['readonly'] = true;
-    }
-
-    $options = $fieldOptions[$fieldName] ?? $field['options'] ?? [];
-    $description = $field['description'] ?? null;
-
-    $fieldSize = $attributes['size'] ?? $field['size'] ?? null;
-    if($fieldSize) {
-        $inputClass .= " w-[{$fieldSize}rem]";
-    }
-
-    $placeholder = $field['placeholder'] ?? $attributes['placeholder'] ?? null;
-
-    $container = "input";
-
-    // Check if this is a container type (has items)
-    $isContainer = in_array($type, ['html', 'section', 'fields-row', 'input-group']);
-
-
-    // Type-specific processing
-    switch($type) {
-        case "html":
-        case "section":
-        case "fields-row":
-        case "input-group":
-            // Container types - no further processing needed
-            break;
-
-        case "date-range":
-            $attributes['flatpickr-mode'] = "range";
-        case "date":
-            $type = "text";
-            $inputClass = trim("flatpickr-input $fieldsetClass");
-            break;
-
-        case "switch":
-        case "checkbox":
-            switch(old($fieldName, $default)) {
-                case "1":
-                    $attributes['checked'] = true;
-                    break;
-
-                default:
-                    unset($attributes['checked']);
-            }
-            $value = 1;
-            break;
-
-        case "textarea":
-            $container = "textarea";
-            break;
-
-        case "link":
-            if($field['disabled'] ?? false) {
-                $container = 'span';
-                $attributes['href'] = '#';
-            } else {
-                $container = 'a';
-                $attributes['href'] = $field['attributes']['href'];
-            }
-            break;
-
-        default:
-            // Standard input types - set label if not provided
-            if ($label === null) {
-                $label = ucfirst(str_replace('_', ' ', $fieldName));
-            }
-            break;
-    }
-
-    $attrs = array_to_attrs($attributes);
-    $default = sanitize_field_value($default);
-    $value = sanitize_field_value($value);
-@endphp
-
-@if($type === 'html')
-    {{-- HTML content type - special case with no wrapper --}}
-    <div id="{{ $fieldName }}" name="{{ $fieldName }}">
+{{-- Container type: html --}}
+@if($field['type'] === 'html')
+    <div id="{{ $field['name'] }}" name="{{ $field['name'] }}">
         {!! $field['value'] ?? '' !!}
     </div>
 
-@elseif($isContainer)
-    {{-- ALL CONTAINERS: section, fields-row, input-group --}}
-        <div class="{{ $type }} {{ $fieldsetClass }}">
-        @if($label)
-            @if($type === 'section')
-                <h3 class="section-title">{{ $label }}</h3>
+{{-- Container types: section, fields-row, fields-group, input-group --}}
+@elseif($field['isContainer'])
+    <div class="{{ $field['type'] }} {{ $field['fieldsetClass'] }}">
+        @if($field['label'])
+            @if($field['type'] === 'section')
+                <h3 class="section-title">{{ $field['label'] }}</h3>
             @else
-                <label>{{ $label }}</label>
+                <label>{{ $field['label'] }}</label>
             @endif
         @endif
 
-        @if(isset($field['items']) && is_array($field['items']))
-            @if($type=="input-group")
-            <div class="items {{ $type }}-items">
-            @endif
-            @foreach($field['items'] as $subKey => $subItem)
-                @include('components.form-field', [
-                    'fieldName' => $subKey,
-                    'field' => $subItem,
-                    'model' => $model,
-                    'values' => $values,
-                    'fieldOptions' => $fieldOptions
-                ])
-            @endforeach
-            @if($type=="input-group")
+        @if($field['type'] === 'input-group')
+            <div class="items input-group-items">
+                {!! $field['items_content'] ?? '' !!}
             </div>
-            @endif
+        @else
+            {!! $field['items_content'] ?? '' !!}
         @endif
 
-        @if($description)
-            <p class="description">{{ $description }}</p>
+        @if($field['description'])
+            <p class="description">{{ $field['description'] }}</p>
         @endif
     </div>
+
+{{-- Regular fields --}}
 @else
-    <fieldset id="{{ $fieldName }}-fieldset" class="{{ $fieldsetClass }}">
+    @php
+    $value = old($field['name'], $field['value']);
+    @endphp
 
-    {{-- ACTUAL FIELD RENDERING --}}
-    @if($label)
-    <label for="{{ $fieldName }}">
-        {{ $label }}
-        @if($required)
-            <span class="required">*</span>
-        @endif
-    </label>
-    @endif
+    <fieldset id="{{ $field['name'] }}-fieldset" class="{{ $field['fieldsetClass'] }}">
 
-    @if($type === 'select')
-        @php
-        $hasOptions = count($options) > 0;
-        $selectPlaceholder = $hasOptions ? $placeholder : __('forms.no_options');
-        $selectDisabled = !$hasOptions;
-        @endphp
-        <select
-            id="{{ $fieldName }}"
-            name="{{ $fieldName }}"
-            placeholder="{{ $placeholder }}"
-            data-no-options-text="{{ __('forms.no_options') }}"
-            {{ $selectDisabled ? 'disabled' : '' }}
-            {!! $attrs !!}
-        >
-            <option value="">{{ $selectPlaceholder }}</option>
-            @foreach($options as $optValue => $optLabel)
-                <option value="{{ $optValue }}" {{ old($fieldName, $value) == $optValue ? 'selected' : '' }}>
-                    {{ $optLabel }}
-                </option>
-            @endforeach
-        </select>
-    @elseif($type === 'link')
-        @php
-        $value = trim(($field['icon'] ?? '') . ' ' . $value);
-        @endphp
-        <a
-            id="{{ $fieldName }}"
-            name="{{ $fieldName }}"
-            class="{{ $inputClass }}"
-            {!! $attrs !!}
-        >
-            @if($field['icon'] ?? false)
-            {!! $field['icon'] !!}
-            @else
-            {{ $value }}
+        @if($field['label'])
+        <label for="{{ $field['name'] }}">
+            {{ $field['label'] }}
+            @if($field['required'] ?? false)
+                <span class="required">*</span>
             @endif
-        </a>
-    @else
-        <{{ $container }}
-            type="{{ $type }}"
-            id="{{ $fieldName }}"
-            name="{{ $fieldName }}"
-            class="{{ $inputClass }}"
-            value="{{ old($fieldName, $value) }}"
-            default="{{ $default }}"
-            placeholder="{{ $placeholder }}"
-            {!! $attrs !!}
-        >
-    @endif
+        </label>
+        @endif
 
-    @if($description)
-        <p class="field-description">{{ $description }}</p>
-    @endif
+        @if($field['type'] === 'select')
+            @php
+            $hasOptions = count($field['options']) > 0;
+            $selectPlaceholder = $hasOptions ? $field['placeholder'] : __('forms.no_options');
+            @endphp
+            <select
+                id="{{ $field['name'] }}"
+                name="{{ $field['name'] }}"
+                class="{{ $field['inputClass'] }}"
+                placeholder="{{ $field['placeholder'] }}"
+                data-no-options-text="{{ __('forms.no_options') }}"
+                {{ !$hasOptions ? 'disabled' : '' }}
+                {!! $field['attrs'] !!}
+            >
+                <option value="">{{ $selectPlaceholder }}</option>
+                @foreach($field['options'] as $optValue => $optLabel)
+                    <option value="{{ $optValue }}" {{ $value == $optValue ? 'selected' : '' }}>
+                        {{ $optLabel }}
+                    </option>
+                @endforeach
+            </select>
 
-    @error($fieldName)
-        <span class="error">{{ $message }}</span>
-    @enderror
+        @elseif($field['type'] === 'textarea')
+            <textarea
+                id="{{ $field['name'] }}"
+                name="{{ $field['name'] }}"
+                class="{{ $field['inputClass'] }}"
+                placeholder="{{ $field['placeholder'] }}"
+                {!! $field['attrs'] !!}
+            >{{ $value }}</textarea>
+
+        @elseif($field['type'] === 'link')
+            <a
+                id="{{ $field['name'] }}"
+                name="{{ $field['name'] }}"
+                class="{{ $field['inputClass'] }}"
+                {!! $field['attrs'] !!}
+            >{{ $value }}</a>
+
+        @else
+            {{-- Default: standard input element --}}
+            @if(!is_string($value) && $value !== null)
+                {{-- Error: non-text value for unknown type --}}
+                <div class="field-type-error" style="padding: 0.5rem; background: #fee; border: 1px solid #c33; border-radius: 4px; color: #c33;">
+                    <strong>{{ $field['name'] }}:</strong> Unsupported type {{ gettype($value) }}
+                </div>
+            @else
+                <{{ $field['container'] }}
+                    type="{{ $field['type'] }}"
+                    id="{{ $field['name'] }}"
+                    name="{{ $field['name'] }}"
+                    class="{{ $field['inputClass'] }}"
+                    value="{{ $value }}"
+                    placeholder="{{ $field['placeholder'] }}"
+                    {!! $field['attrs'] !!}
+                >
+            @endif
+        @endif
+
+        @if($field['description'])
+            <p class="field-description">{{ $field['description'] }}</p>
+        @endif
+
+        @error($field['name'])
+            <span class="error">{{ $message }}</span>
+        @enderror
     </fieldset>
-
 @endif

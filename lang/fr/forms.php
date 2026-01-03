@@ -14,5 +14,5 @@ return [
     "date_from" => "Du",
     "date_to" => "Au",
     "showing_x_y_of_z" => ":first à :last sur :total",
-    "filter_column_name" => "Filtrer par :column_name",
+    "filter_field.name" => "Filtrer par :field.name",
 ];

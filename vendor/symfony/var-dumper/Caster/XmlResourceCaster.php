@@ -52,7 +52,7 @@ class XmlResourceCaster
     public static function castXml($h, array $a, Stub $stub, bool $isNested): array
     {
         $a['current_byte_index'] = xml_get_current_byte_index($h);
-        $a['current_column_number'] = xml_get_current_column_number($h);
+        $a['current_field.number'] = xml_get_current_field.number($h);
         $a['current_line_number'] = xml_get_current_line_number($h);
         $a['error_code'] = xml_get_error_code($h);
 
