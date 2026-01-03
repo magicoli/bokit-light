@@ -29,12 +29,12 @@ class AdminResourceController extends Controller
     }
 
     /**
-     * Get capability from model's adminConfig
+     * Get capability from model's config
      */
     private function getCapability(string $modelClass): string
     {
-        if (method_exists($modelClass, 'adminConfig')) {
-            $config = $modelClass::adminConfig();
+        if (method_exists($modelClass, 'getConfig')) {
+            $config = $modelClass::getConfig();
             return $config['capability'] ?? 'manage';
         }
         return 'manage';

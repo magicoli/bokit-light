@@ -63,6 +63,13 @@ class DataList
         if (method_exists($modelClass, "listColumns")) {
             $this->columns = $modelClass::listColumns();
         }
+
+        // Load searchable/sortable/filters from model config
+        if (method_exists($modelClass, "getConfig")) {
+            $config = $modelClass::getConfig();
+            $this->searchable = $config["searchable"] ?? [];
+            $this->sortable = $config["sortable"] ?? [];
+        }
     }
 
     /**
@@ -312,13 +319,15 @@ class DataList
 
     /**
      * Format value based on column configuration
+     * 
+     * Simplified: Get accessor/column value and format only basic types
      */
     private function formatValue(
         $item,
         string $columnKey,
         array $column,
     ): string {
-        $format = $column["format"] ?? "text";
+        $format = $column["format"] ?? "auto";
 
         // Custom formatter
         if ($format === "custom" && isset($column["formatter"])) {
@@ -339,8 +348,22 @@ class DataList
             return "";
         }
 
-        // Auto-detect format from model casts if not specified
-        if ($format === "text" && $this->model) {
+        // If format is explicit, use it
+        if ($format !== "auto") {
+            return match ($format) {
+                "boolean" => $value ? "✓" : "✗",
+                "integer" => self::formatInteger($value),
+                "decimal" => self::formatDecimal($value, 2),
+                "currency" => self::formatDecimal($value, 2),
+                "date" => $this->formatDate($value),
+                "datetime" => $this->formatDateTime($value),
+                "array" => self::formatArray($value),
+                default => (string) $value,
+            };
+        }
+
+        // Auto-detect format from model casts
+        if ($this->model) {
             $modelClass = get_class($this->model);
             if (method_exists($modelClass, "getConfig")) {
                 $config = $modelClass::getConfig();
@@ -348,46 +371,48 @@ class DataList
 
                 if (isset($casts[$columnKey])) {
                     $castType = $casts[$columnKey];
-                    // Map Laravel cast types to our format types
-                    $format = match (true) {
-                        str_starts_with($castType, "date") => "date",
-                        $castType === "datetime" => "datetime",
-                        in_array($castType, [
-                            "int",
-                            "integer",
-                            "float",
-                            "double",
-                            "decimal",
-                        ])
-                            => "number",
-                        in_array($castType, ["bool", "boolean"]) => "boolean",
-                        $castType === "array" => "array",
-                        default => "text",
+                    
+                    return match (true) {
+                        str_starts_with($castType, "date") => $this->formatDate($value),
+                        $castType === "datetime" => $this->formatDateTime($value),
+                        str_starts_with($castType, "decimal") => self::formatDecimal($value, 2),
+                        in_array($castType, ["int", "integer"]) => self::formatInteger($value),
+                        in_array($castType, ["float", "double"]) => self::formatDecimal($value, 2),
+                        in_array($castType, ["bool", "boolean"]) => $value ? "✓" : "✗",
+                        $castType === "array" => self::formatArray($value),
+                        default => (string) $value,
                     };
                 }
             }
         }
 
-        return match ($format) {
-            "boolean" => $value ? "✓" : "✗",
-            "number" => is_numeric($value)
-                ? number_format($value, 2)
-                : (string) $value,
-            "currency" => number_format($value, 2),
-            "date" => is_object($value) && method_exists($value, "format")
-                ? $value->format("Y-m-d")
-                : (string) $value,
-            "datetime" => is_object($value) && method_exists($value, "format")
-                ? $value->format("Y-m-d H:i")
-                : (string) $value,
-            "array" => is_array($value)
-                ? implode(", ", $value)
-                : (string) $value,
-            default
-                => (string) $value, // default => is_string($value) || is_numeric($value)
-            //     ? (string) $value
-            //     : "",
+        // No cast defined - detect from PHP type
+        return match (true) {
+            is_bool($value) => $value ? "✓" : "✗",
+            is_int($value) => self::formatInteger($value),
+            is_float($value) => self::formatDecimal($value, 2),
+            is_array($value) => self::formatArray($value),
+            is_object($value) && method_exists($value, 'format') => $this->formatDate($value),
+            default => (string) $value,
         };
+    }
+
+    /**
+     * Format helpers - delegate to ModelConfigTrait
+     */
+    private static function formatInteger($value): string
+    {
+        return \App\Traits\ModelConfigTrait::formatInteger($value);
+    }
+
+    private static function formatDecimal($value, int $decimals = 2): string
+    {
+        return \App\Traits\ModelConfigTrait::formatDecimal($value, $decimals);
+    }
+
+    private static function formatArray($value, string $separator = ', '): string
+    {
+        return \App\Traits\ModelConfigTrait::formatArray($value, $separator);
     }
 
     /**

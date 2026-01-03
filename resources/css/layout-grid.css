@@ -33,8 +33,11 @@
     /* Grid area assignments */
     > nav {
         grid-area: nav;
-        @apply bg-gray-100;
         @apply sticky top-0 z-10;
+        @apply bg-green-50 shadow-sm border-b border-gray-200;
+        @media all and (display-mode: standalone) {
+            @apply bg-pink-50;
+        }
     }
 
     > #main-area {
