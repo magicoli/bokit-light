@@ -17,6 +17,10 @@ class Property extends Model
         "settings" => "array",
     ];
 
+    protected $appends = ["actions"];
+
+    protected $list_columns = ["actions", "name", "slug"];
+
     /**
      * Get the units for this property
      */

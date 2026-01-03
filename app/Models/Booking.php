@@ -507,6 +507,29 @@ class Booking extends Model
     }
 
     /**
+     * Get actions configuration for Booking model
+     * Overrides ModelConfigTrait to add OTA link action
+     *
+     * @return array
+     */
+    protected function getActionsConfig(): array
+    {
+        $actions = parent::getActionsConfig();
+
+        // Add OTA link if available
+        if ($this->ota_url ?? false) {
+            $actions["ota"] = [
+                "url" => $this->ota_url,
+                "text" => __("lists.action_ota"),
+                "icon" => icon($this->api_source ?? "arrow-up-right"),
+                "target" => "_blank",
+            ];
+        }
+
+        return $actions;
+    }
+
+    /**
      * Admin resource configuration
      *
      * WE DO NOT IMPLEMENT YET,

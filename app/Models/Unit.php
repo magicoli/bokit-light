@@ -29,6 +29,18 @@ class Unit extends Model
         "unit_type" => "string",
     ];
 
+    protected $appends = ["actions"];
+
+    protected $list_columns = [
+        "actions",
+        "name",
+        "property_id",
+        "unit_type",
+        "bedrooms",
+        "max_guests",
+        "is_active",
+    ];
+
     /**
      * Get the property that owns this unit
      */
