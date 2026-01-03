@@ -168,16 +168,6 @@ if ($isInstalled) {
             Route::get("/admin", function () {
                 return view("admin.dashboard");
             })->name("admin.dashboard");
-
-            Route::get("/admin/settings", [
-                AdminController::class,
-                "settings",
-            ])->name("admin.settings");
-
-            Route::post("/admin/settings", [
-                AdminController::class,
-                "saveSettings",
-            ])->name("admin.settings.save");
         });
 
         // Rates management

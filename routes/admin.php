@@ -30,9 +30,10 @@ Route::middleware([$authMiddleware, "admin"])  // Auth THEN admin check
         })->name("dashboard");
 
         // General settings
-        Route::get("/settings", function () {
-            return view("admin.settings");
-        })->name("settings");
+        Route::get("/settings", [
+            \App\Http\Controllers\AdminController::class,
+            "settings",
+        ])->name("settings");
 
         Route::post("/settings", [
             \App\Http\Controllers\AdminController::class,

@@ -39,7 +39,7 @@ Access: Admin menu > Settings
 The display timezone selector:
 - Lists all PHP timezones (`timezone_identifiers_list()`)
 - Uses Select2 for searchable dropdown
-- Saves to `Options::set('display.timezone')`
+- Saves to `Options::set('display_timezone')`
 - Applies site-wide unless overridden per-property/unit
 
 ## Calendar Display

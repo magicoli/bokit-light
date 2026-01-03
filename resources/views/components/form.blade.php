@@ -1,3 +1,5 @@
+@vite(['resources/css/form.css'])
+
 <form id="{{ $modelSlug }}-{{ $callbackSlug }}" action="{{ $action }}" method="{{ $method === 'GET' ? 'GET' : 'POST' }}" class="form form-{{ $modelSlug }} form-{{ $callbackSlug }}">
     @if($method !== 'GET')
         @csrf
