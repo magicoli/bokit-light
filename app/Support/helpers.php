@@ -186,13 +186,36 @@ if (!function_exists("icon")) {
      *   icon('dashboard')
      *   icon('settings-sliders', 'w-6 h-6')
      */
-    function icon(string $name, string $class = "w-4 h-4 inline"): string
+    function icon(string $name, $default = null): string
     {
+        $name = $name ?? $default;
+
+        if (empty($name)) {
+            return "";
+        }
+
         // Path to iconic SVG files
         // Change this line to switch to another icon library
-        $path = base_path(
+        // $path = base_path(
+        //     "vendor/itsmalikjones/blade-iconic/resources/svg/{$name}.svg",
+        // );
+
+        $path = null;
+
+        $files = [
+            "vendor/davidhsianturi/blade-bootstrap-icons//resources/svg/{$name}.svg",
             "vendor/itsmalikjones/blade-iconic/resources/svg/{$name}.svg",
-        );
+            "vendor/codeat3/blade-simple-icons/resources/svg/{$name}.svg",
+            // "public/svg/font-awesome-light/{$name}.svg",
+            "public/svg/{$name}.svg",
+        ];
+
+        foreach ($files as $file) {
+            if (file_exists(base_path($file))) {
+                $path = base_path($file);
+                break;
+            }
+        }
 
         if (!file_exists($path)) {
             return "[$name]";
@@ -200,19 +223,21 @@ if (!function_exists("icon")) {
 
         $svg = file_get_contents($path);
 
-        // Add class attribute to <svg> tag
-        if ($class && strpos($svg, "<svg") !== false) {
-            $svg = preg_replace(
-                "/<svg([^>]*)>/",
-                '<svg$1 class="' . htmlspecialchars($class) . '">',
-                $svg,
-                1,
-            );
-        }
-
         return $svg;
     }
 }
+
+// public function icon_ota($slug)
+// {
+//     switch ($slug) {
+//         case "airbnb":
+//             return icon("si-airbnb");
+//         case "beds24":
+//             return icon("beds24-logo");
+//         case "booking-com":
+//             return icon("bookingdotcom");
+//     }
+// }
 
 if (!function_exists("user_can")) {
     /**
