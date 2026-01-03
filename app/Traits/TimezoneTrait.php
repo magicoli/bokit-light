@@ -51,7 +51,7 @@ trait TimezoneTrait
     /**
      * Get the timezone for this model
      *
-     * Default implementation: uses site-wide display.timezone option
+     * Default implementation: uses site-wide display_timezone option
      * Each model should override this method to define its own hierarchy
      *
      * Examples:
@@ -82,7 +82,7 @@ trait TimezoneTrait
     public static function defaultTimezone($short = false): string
     {
         $tzString = Options::get(
-            "display.timezone",
+            "timezone",
             config("app.timezone", "UTC"),
         );
         if ($short) {

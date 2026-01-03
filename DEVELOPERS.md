@@ -43,6 +43,7 @@ bokit-light/
 │   ├── lang/                  # Translations (en, fr)
 │   └── views/                 # Blade templates
 ├── routes/
+│   ├── admin.php             # Admin zone routes
 │   ├── web.php               # Application routes
 │   └── console.php           # Scheduler configuration
 ├── dev/                      # Development documentation
