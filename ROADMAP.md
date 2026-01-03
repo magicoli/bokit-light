@@ -1,5 +1,21 @@
 # Bokit Light - ROADMAP
 
+## Most critical for basic functional deployment
+
+The mission is to be functional  as soon as possible, with the minimum features required to achieve this goal. This includes:
+
+- [x] Calendar, in sync with Channel Manager (at least with iCal)
+- [ ] Booking details (name, phone, mail address, guests, adults, children, notes, price, paid, balance, status): partially implemented
+- [ ] Same booking details popup in Calendar and admin List views
+- [ ] Add notes to booking (not overridden by CM sync)
+- [ ] Edit booking name and contacts (not overridden by CM sync)
+- [ ] In actions links: Direct link to the OTA booking edit/management page, fallback to CM booking page (implemented for Airbnb, to implement for booking.com and beds24)
+- [ ] Create manual booking
+- [ ] Export booking ics
+- [ ] Export booking contacts as webcal (anticipate future Mailcow/Google/NextCloud address book integration)
+
+**Important**: booking details might require some CM/OTA API integration. However, full API integration is not a priority for the initial release, make sure to take a **minimal API integration approach**, focusing only on receiving the missing data.
+
 ## AdminResourceTrait - Future Features
 
 ### Frontend Public Views
