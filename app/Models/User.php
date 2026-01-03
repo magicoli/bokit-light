@@ -27,6 +27,10 @@ class User extends Authenticatable
         "roles" => "array",
     ];
 
+    protected $appends = ["actions"];
+
+    protected $list_columns = ["actions", "name", "email", "is_admin", "roles"];
+
     /**
      * Get the properties for this user
      */

@@ -22,7 +22,8 @@ trait ModelConfigTrait
 
     /**
      * Accessor: Calculate actions
-     * (Not yet implemented)
+     * Default actions: Status, Edit, View
+     * Models can override getActionsConfig() to customize
      *
      * @return string|null
      */
@@ -30,54 +31,73 @@ trait ModelConfigTrait
     {
         return Attribute::make(
             get: function () {
-                $actions = [
-                    "status" => [
-                        "url" => false,
-                        "text" => __("app.status_" . $this->status),
-                        "icon" => $this->getStatusIcon(),
-                    ],
-                    "view" => [
-                        "url" => route("admin.bookings.show", $this->id),
-                        "text" => __("lists.action_view"),
-                        "icon" => icon("eye"),
-                    ],
-                    "edit" => [
-                        "url" => route("admin.bookings.edit", $this->id),
-                        "text" => __("lists.action_edit"),
-                        "icon" => icon("edit"),
-                    ],
-                    // "delete" => [
-                    //     "url" => route("admin.bookings.destroy", $this->id),
-                    //     "text" => __("lists.action_delete"),
-                    //     "icon" => icon("trash"),
-                    // ],
-                ];
-                if ($this->ota_url ?? false) {
-                    $actions["ota"] = [
-                        "url" => $this->ota_url,
-                        "text" => __("lists.action_ota"),
-                        "icon" => icon($this->api_source ?? "arrow-up-right"),
-                        "target" => "_blank",
-                    ];
-                }
+                $actionsConfig = $this->getActionsConfig();
+                $actions = [];
                 $sep = " ";
-                foreach ($actions as $key => $value) {
-                    $target =
-                        $value["target"] ?? false
-                            ? 'target="' . $value["target"] . '"'
-                            : "";
-                    $actions[$key] = sprintf(
-                        '<a href="%s" %s class="action-link" title="%s">%s</a>',
-                        $value["url"],
-                        $target,
-                        $value["text"] ?? "",
-                        $value["icon"] ?? ($value["text"] ?? ""),
-                    );
+
+                foreach ($actionsConfig as $key => $config) {
+                    $target = $config["target"] ?? false 
+                        ? 'target="' . $config["target"] . '"' 
+                        : "";
+                    
+                    // Skip action if no URL and not status
+                    if (empty($config["url"]) && $key !== "status") {
+                        continue;
+                    }
+
+                    if ($key === "status") {
+                        // Status is a span, not a link
+                        $actions[$key] = sprintf(
+                            '<span class="action-status" title="%s">%s</span>',
+                            $config["text"] ?? "",
+                            $config["icon"] ?? ($config["text"] ?? "")
+                        );
+                    } else {
+                        $actions[$key] = sprintf(
+                            '<a href="%s" %s class="action-link" title="%s">%s</a>',
+                            $config["url"],
+                            $target,
+                            $config["text"] ?? "",
+                            $config["icon"] ?? ($config["text"] ?? "")
+                        );
+                    }
                 }
 
                 return implode($sep, $actions);
             },
         );
+    }
+
+    /**
+     * Get actions configuration for this model
+     * Override this method in models to customize actions
+     *
+     * @return array
+     */
+    protected function getActionsConfig(): array
+    {
+        $config = static::getConfig();
+        $resourceName = Str::plural(Str::snake($config['classBasename']));
+        
+        $actions = [
+            "status" => [
+                "url" => false,
+                "text" => __("app.status_" . ($this->status ?? 'undefined')),
+                "icon" => $this->getStatusIcon(),
+            ],
+            "edit" => [
+                "url" => route("admin.{$resourceName}.edit", $this->id),
+                "text" => __("lists.action_edit"),
+                "icon" => icon("edit"),
+            ],
+            "view" => [
+                "url" => route("admin.{$resourceName}.show", $this->id),
+                "text" => __("lists.action_view"),
+                "icon" => icon("eye"),
+            ],
+        ];
+
+        return $actions;
     }
 
     /**

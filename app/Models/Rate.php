@@ -45,6 +45,19 @@ class Rate extends Model
         "settings" => "array",
     ];
 
+    protected $appends = ["actions"];
+
+    protected $list_columns = [
+        "actions",
+        "name",
+        "property_id",
+        "unit_type",
+        "unit_id",
+        "base",
+        "priority",
+        "is_active",
+    ];
+
     /**
      * Boot method - auto-generate slug and setup observers
      */
