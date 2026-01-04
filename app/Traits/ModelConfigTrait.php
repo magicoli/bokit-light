@@ -194,8 +194,6 @@ trait ModelConfigTrait
      */
     public function setField($fieldName, $field = [])
     {
-        // TODO: keep only dynamic data manipulation here, move all the static logic in getField()
-
         try {
             $field = self::getField($fieldName, $field) ?? [];
         } catch (Exception $e) {
@@ -203,7 +201,10 @@ trait ModelConfigTrait
             return $field;
         }
 
-        // Move render() dynamic logic here
+        // Get value from model instance if not already set
+        if (!isset($field["value"])) {
+            $field["value"] = $field["value"] ?? ($this->$fieldName ?? null);
+        }
 
         return $field;
     }
