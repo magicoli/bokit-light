@@ -96,14 +96,13 @@
                 </div>
 
                 @if(config('app.debug') == true)
-                    @if(isset($exception) && $exception->getMessage())
-                        <div class="debug-info debug-error">
-                            <h3>Error Message</h3>
-                            {{ $exception->getMessage() }}
-                        </div>
-                    @endif
+                    @php
+                    if(isset($exception) && $exception->getMessage()) {
+                        debug_error("layout/app.blade.php exception", $exception);
+                    }
+                    @endphp
                     @hasSection('debug-info')
-                        <div class="debug-info">
+                        <div id="debug-info" class="debug-info">
                             <h3>Debug Information</h3>
                             @yield('debug-info')
                         </div>

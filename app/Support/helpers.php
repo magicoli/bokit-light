@@ -357,3 +357,86 @@ if (!function_exists("is_json")) {
         return json_last_error() === JSON_ERROR_NONE;
     }
 }
+if (!function_exists("debug_error")) {
+    /**
+     * Add debug information to the debug-info Blade section
+     * Only works when APP_DEBUG=true
+     *
+     * @param string $title Section title
+     * @param mixed $content Content to display - can be string, array, or Throwable
+     * @param string $type Optional CSS class (error, warning, info)
+     * @return void
+     */
+    function debug_error(string $title, $content, string $type = "info"): void
+    {
+        if (!config("app.debug")) {
+            return;
+        }
+
+        // Get the view factory
+        $factory = app("view");
+
+        // Start section with output buffering
+        $factory->startSection("debug-info");
+
+        // Output our debug content (will be captured by ob)
+        echo '<div class="debug-section debug-' . $type . '">';
+        echo "<h4>" . htmlspecialchars($title) . "</h4>";
+
+        if (!empty($content)) {
+            // Handle Throwable (Exception, Error, etc.)
+            if ($content instanceof \Throwable) {
+                echo "<ul>";
+                echo "<li><strong>Message:</strong> " . htmlspecialchars($content->getMessage()) . "</li>";
+                echo "<li><strong>File:</strong> " . htmlspecialchars($content->getFile()) . ":" . $content->getLine() . "</li>";
+                echo "<li><strong>Code:</strong> " . htmlspecialchars($content->getCode()) . "</li>";
+                echo "<li><strong>Trace:</strong><pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars($content->getTraceAsString()) . "</pre></li>";
+                echo "</ul>";
+            }
+            // Handle strings
+            elseif (is_string($content)) {
+                echo "<p>" . htmlspecialchars($content) . "</p>";
+            }
+            // Handle arrays
+            elseif (is_array($content)) {
+                echo "<ul>";
+                foreach ($content as $key => $value) {
+                    echo "<li><strong>" . htmlspecialchars($key) . "</strong>: ";
+                    
+                    // Handle Throwable inside array
+                    if ($value instanceof \Throwable) {
+                        echo "<ul>";
+                        echo "<li><strong>Message:</strong> " . htmlspecialchars($value->getMessage()) . "</li>";
+                        echo "<li><strong>File:</strong> " . htmlspecialchars($value->getFile()) . ":" . $value->getLine() . "</li>";
+                        echo "<li><strong>Code:</strong> " . htmlspecialchars($value->getCode()) . "</li>";
+                        echo "<li><strong>Trace:</strong><pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars($value->getTraceAsString()) . "</pre></li>";
+                        echo "</ul>";
+                    }
+                    // Multi-line values in scrollable pre
+                    elseif (is_string($value) && preg_match("/\n/", $value)) {
+                        echo "<pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars($value) . "</pre>";
+                    }
+                    // Arrays as lists
+                    elseif (is_array($value)) {
+                        echo htmlspecialchars(implode(", ", $value));
+                    }
+                    // Other values
+                    else {
+                        echo htmlspecialchars(var_export($value, true));
+                    }
+                    echo "</li>";
+                }
+                echo "</ul>";
+            }
+            // Handle other types
+            else {
+                echo "<pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars(var_export($content, true)) . "</pre>";
+            }
+        }
+
+        echo "</div>";
+
+        // Close section and append to existing content
+        $factory->appendSection();
+    }
+}
