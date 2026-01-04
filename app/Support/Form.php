@@ -198,13 +198,15 @@ class Form
         // - ModelConfigTrait::setField() for dynamic values and data manipulation
 
         try {
-            if ($this->model) {
+            if ($this->model ?? false) {
                 $field = $this->model->setField($fieldName, $field);
-            } elseif ($this->class) {
+            } elseif ($this->class ?? false) {
                 $field = $this->class::getField($fieldName, $field);
             } else {
-                $reflection = new \ReflectionClass(App\Trait\ModelConfigTrait);
-                $field = $reflection::getField($fieldName, $field);
+                $field = \App\Traits\ModelConfigTrait::getField(
+                    $fieldName,
+                    $field,
+                );
             }
 
             // Not sure if old() should be used here or in normalizeField()...
