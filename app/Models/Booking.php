@@ -381,12 +381,12 @@ class Booking extends Model
     }
 
     /**
-     * Get the human-readable status label
+     * DEPRECATED Get the human-readable status label
      */
-    public function getStatusLabelAttribute(): string
-    {
-        return BookingMetadataParser::getStatusLabel($this->status);
-    }
+    // public function getStatusLabelAttribute(): string
+    // {
+    //     return BookingMetadataParser::getStatusLabel($this->status);
+    // }
 
     /**
      * Get metadata value by key with optional default

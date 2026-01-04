@@ -130,29 +130,29 @@ class BookingMetadataParser
     }
 
     /**
-     * Get human-readable status label
+     * DEPRECATED Get human-readable status label
      *
      * @param string|null $status
      * @return string
      */
-    public static function getStatusLabel(?string $status): string
-    {
-        $labels = [
-            "inquiry" => __("Inquiry"), // Non-blocking
-            "request" => __("Request"), // Blocking (TODO: add a deadline logic to release the dates)
-            "new" => __("New"), // Blocking
-            "confirmed" => __("Confirmed"), // Blocking
-            "cancelled_by_owner" => __("Cancelled by Owner"), // Non-blocking
-            "cancelled_by_guest" => __("Cancelled by Guest"), // Non-blocking (TODO: add a deadline logic to hide the booking)
-            "vanished" => __("Vanished"), // Non-blocking (TODO: add a deadline logic to hide the booking)
-            "deleted" => __("Deleted"), // Non-blocking, not shown in the UI
-            "blocked" => __("Blocked"), // Blocking
-            "unavailable" => __("Unavailable"), // Blocking
-            "undefined" => __("Undefined"), // Blocking
-        ];
+    // public static function getStatusLabel(?string $status): string
+    // {
+    //     $labels = [
+    //         "inquiry" => __("app.status.inquiry"), // Non-blocking
+    //         "request" => __("app.status.request"), // Blocking (TODO: add a deadline logic to release the dates)
+    //         "new" => __("app.status.new"), // Blocking
+    //         "confirmed" => __("app.status.confirmed"), // Blocking
+    //         "cancelled_by_owner" => __("app.status.cancelled_by_owner"), // Non-blocking
+    //         "cancelled_by_guest" => __("app.status.cancelled_by_guest"), // Non-blocking (TODO: add a deadline logic to hide the booking)
+    //         "vanished" => __("app.status.vanished"), // Non-blocking (TODO: add a deadline logic to hide the booking)
+    //         "deleted" => __("app.status.deleted"), // Non-blocking, not shown in the UI
+    //         "blocked" => __("app.status.blocked"), // Blocking
+    //         "unavailable" => __("app.status.unavailable"), // Blocking
+    //         "undefined" => __("app.status.undefined"), // Blocking
+    //     ];
 
-        $status = strtolower($status ?? "undefined");
+    //     $status = strtolower($status ?? "undefined");
 
-        return $labels[$status] ?? ucfirst($status);
-    }
+    //     return $labels[$status] ?? "Unknown " . ucfirst($status);
+    // }
 }
