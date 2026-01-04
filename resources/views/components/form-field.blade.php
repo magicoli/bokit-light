@@ -6,7 +6,7 @@
 
 {{-- Container types: section, fields-row, fields-group, input-group --}}
 @elseif($field['isContainer'])
-    <div class="{{ $field['type'] }} {{ $field['fieldsetClass'] }}">
+    <div class="{{ $field['type'] }} {{ $field['class'] }}">
         @if($field['label'])
             @if($field['type'] === 'section')
                 <h3 class="section-title">{{ $field['label'] }}</h3>
@@ -31,10 +31,10 @@
 {{-- Regular fields --}}
 @else
     @php
-    $value = old($field['name'], $field['value']);
+    $value = old($field['name'], ($field['value'] ?? null));
     @endphp
 
-    <fieldset id="{{ $field['name'] }}-fieldset" class="{{ $field['fieldsetClass'] }}">
+    <fieldset id="{{ $field['name'] }}-fieldset" class="{{ $field['class'] }}">
 
         @if($field['label'])
         <label for="{{ $field['name'] }}">
@@ -53,7 +53,7 @@
             <select
                 id="{{ $field['name'] }}"
                 name="{{ $field['name'] }}"
-                class="{{ $field['inputClass'] }}"
+                class="{{ $field['attributes']['class'] }}"
                 placeholder="{{ $field['placeholder'] }}"
                 data-no-options-text="{{ __('forms.no_options') }}"
                 {{ !$hasOptions ? 'disabled' : '' }}
@@ -71,7 +71,7 @@
             <textarea
                 id="{{ $field['name'] }}"
                 name="{{ $field['name'] }}"
-                class="{{ $field['inputClass'] }}"
+                class="{{ $field['attributes']['class'] }}"
                 placeholder="{{ $field['placeholder'] }}"
                 {!! $field['attrs'] !!}
             >{{ $value }}</textarea>
@@ -80,7 +80,7 @@
             <a
                 id="{{ $field['name'] }}"
                 name="{{ $field['name'] }}"
-                class="{{ $field['inputClass'] }}"
+                class="{{ $field['attributes']['class'] }}"
                 {!! $field['attrs'] !!}
             >{{ $value }}</a>
 
@@ -92,11 +92,11 @@
                     <strong>{{ $field['name'] }}:</strong> Unsupported type {{ gettype($value) }}
                 </div>
             @else
-                <{{ $field['container'] }}
+                <{{ $field['container'] ?? 'input' }}
                     type="{{ $field['type'] }}"
                     id="{{ $field['name'] }}"
                     name="{{ $field['name'] }}"
-                    class="{{ $field['inputClass'] }}"
+                    class="{{ $field['attributes']['class'] }}"
                     value="{{ $value }}"
                     placeholder="{{ $field['placeholder'] }}"
                     {!! $field['attrs'] !!}

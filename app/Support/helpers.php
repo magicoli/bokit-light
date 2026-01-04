@@ -339,3 +339,21 @@ if (!function_exists("user_classes")) {
         return implode(" ", $classes);
     }
 }
+
+if (!function_exists("is_json")) {
+    /**
+     * Check if a string is valid JSON
+     *
+     * @param string $string String to check
+     * @return bool True if string is valid JSON, false otherwise
+     */
+    function is_json(string $string): bool
+    {
+        if (function_exists("json_validate")) {
+            return json_validate($string);
+        }
+
+        json_decode($string);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+}
