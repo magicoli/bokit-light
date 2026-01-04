@@ -233,7 +233,8 @@ class Form
                 "trace" => $e->getTraceAsString(),
             ]);
 
-            // section("debug-info", $e->getTraceAsString());
+            // Add debug info for display - pass exception directly
+            debug_error("Field Rendering Error: {$fieldName}", $e, "error");
 
             // TODO: method renderErrorField to format the output like an usual field instead, with error in dedicated field error container
             return '<div class="field-error alert alert-danger">' .
@@ -440,12 +441,22 @@ class Form
                 "trace" => $e->getTraceAsString(),
             ]);
 
+            // Add debug info for display - pass exception with context
+            debug_error(
+                "Form Rendering Error (formId: {$formId})",
+                [
+                    "exception" => $e,
+                    "formId" => $formId,
+                    "fields" => array_keys($this->fields),
+                ],
+                "error",
+            );
             // Return user-friendly error message
             return '<div class="form-error">' .
                 '<p class="error">Form rendering error: ' .
                 htmlspecialchars($e->getMessage()) .
                 "</p>" .
-                '<p class="text-sm text-gray-500">Details logged for debugging.</p>' .
+                '<p class="text-sm text-gray-500">Details in debug section below.</p>' .
                 "</div>";
         }
     }

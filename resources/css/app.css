@@ -382,11 +382,42 @@ body.error-page {
     }
 }
 
+nav,
+main,
+header,
+footer {
+    @apply max-w-full;
+
+    &:has(#debug-info) {
+        @apply overflow-x-clip;
+    }
+}
+
+#debug-info,
 .debug-info {
-    @apply bg-gray-300 p-4;
+    @apply bg-gray-200 p-4;
     @apply text-left text-sm text-gray-600;
 
+    @apply max-w-full overflow-clip;
+
+    pre {
+        @apply max-w-full overflow-clip;
+        @apply ps-2 py-2 bg-gray-300;
+        /*max-width: 100% !important;*/
+
+        white-space: pre-wrap; /* Since CSS 2.1 */
+        white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+        white-space: -pre-wrap; /* Opera 4-6 */
+        white-space: -o-pre-wrap; /* Opera 7 */
+        word-wrap: break-word; /* Internet Explorer 5.5+ */
+    }
+
     h3 {
-        @apply text-lg font-semibold text-gray-900;
+        @apply text-lg;
+    }
+
+    h3,
+    h4 {
+        @apply font-semibold text-gray-900;
     }
 }
