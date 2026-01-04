@@ -31,47 +31,52 @@ trait ModelConfigTrait
         return Attribute::make(
             get: function () {
                 $config = static::getConfig();
-                $resourceName = Str::plural(Str::snake($config['classBasename']));
+                $resourceName = Str::plural(
+                    Str::snake($config["classBasename"]),
+                );
                 $actions = [];
                 $sep = " ";
 
                 // Build actions from config
-                foreach ($config['actions'] as $key) {
+                foreach ($config["actions"] as $key) {
                     switch ($key) {
-                        case 'status':
+                        case "status":
                             $actions[$key] = sprintf(
                                 '<span class="action-status" title="%s">%s</span>',
-                                __("app.status_" . ($this->status ?? 'undefined')),
-                                $this->getStatusIcon()
+                                __(
+                                    "app.status_" .
+                                        ($this->status ?? "undefined"),
+                                ),
+                                $this->getStatusIcon(),
                             );
                             break;
 
-                        case 'edit':
+                        case "edit":
                             $actions[$key] = sprintf(
                                 '<a href="%s" class="action-link" title="%s">%s</a>',
                                 route("admin.{$resourceName}.edit", $this->id),
                                 __("lists.action_edit"),
-                                icon("edit")
+                                icon("edit"),
                             );
                             break;
 
-                        case 'view':
+                        case "view":
                             $actions[$key] = sprintf(
                                 '<a href="%s" class="action-link" title="%s">%s</a>',
                                 route("admin.{$resourceName}.show", $this->id),
                                 __("lists.action_view"),
-                                icon("eye")
+                                icon("eye"),
                             );
                             break;
 
-                        case 'ota':
+                        case "ota":
                             // Custom action for Booking model
                             if ($this->ota_url ?? false) {
                                 $actions[$key] = sprintf(
                                     '<a href="%s" target="_blank" class="action-link" title="%s">%s</a>',
                                     $this->ota_url,
                                     __("lists.action_ota"),
-                                    icon($this->api_source ?? "arrow-up-right")
+                                    icon($this->api_source ?? "arrow-up-right"),
                                 );
                             }
                             break;
@@ -143,12 +148,19 @@ trait ModelConfigTrait
             $editFields = [];
             foreach ($fillable as $fieldName) {
                 // Skip internal fields
-                if (in_array($fieldName, ["id", "created_at", "updated_at", "deleted_at"])) {
+                if (
+                    in_array($fieldName, [
+                        "id",
+                        "created_at",
+                        "updated_at",
+                        "deleted_at",
+                    ])
+                ) {
                     continue;
                 }
-                
+
                 $editFields[$fieldName] = [
-                    "label" => __(ucfirst(str_replace("_", " ", $fieldName))),
+                    // "label" => __(ucfirst(str_replace("_", " ", $fieldName))),
                     // No type - Form will auto-detect from value
                 ];
             }
