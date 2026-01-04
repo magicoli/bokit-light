@@ -239,7 +239,9 @@ class Form
                 "trace" => $e->getTraceAsString(),
             ]);
 
-            // TODO: Should be formatted like an usual field instead, with error in dedicated field error container
+            // section("debug-info", $e->getTraceAsString());
+
+            // TODO: method renderErrorField to format the output like an usual field instead, with error in dedicated field error container
             return '<div class="field-error alert alert-danger">' .
                 "<strong>" .
                 htmlspecialchars($fieldName) .
