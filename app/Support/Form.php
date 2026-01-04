@@ -200,14 +200,21 @@ class Form
         try {
             if ($this->model) {
                 $field = $this->model->setField($fieldName, $field);
+            } elseif ($this->class) {
+                $field = $this->class::getField($fieldName, $field);
+            } else {
+                $reflection = new \ReflectionClass(App\Trait\ModelConfigTrait);
+                $field = $reflection::getField($fieldName, $field);
             }
 
             // Get value: use existing value if already set (from parent), otherwise get from model
-            $field["value"] =
-                $field["value"] ??
-                ($this->model
-                    ? $this->model->$fieldName ?? null
-                    : $this->values[$fieldName] ?? null);
+            // $field["value"] =
+            //     $field["value"] ??
+            //     ($this->model
+            //         ? $this->model->$fieldName ?? null
+            //         : $this->values[$fieldName] ?? null);
+
+            $field["value"] = old($fieldName, $field["value"] ?? null);
 
             $field = $this->normalizeField($field);
 
@@ -227,12 +234,12 @@ class Form
             // Pass complete $field to view
             return view("components.form-field", ["field" => $field])->render();
         } catch (\Throwable $e) {
-            Log::error("Field rendering failed", [
+            Log::error($e->getMessage(), [
                 "field" => $fieldName,
-                "error" => $e->getMessage(),
                 "trace" => $e->getTraceAsString(),
             ]);
 
+            // TODO: Should be formatted like an usual field instead, with error in dedicated field error container
             return '<div class="field-error alert alert-danger">' .
                 "<strong>" .
                 htmlspecialchars($fieldName) .
@@ -387,8 +394,6 @@ class Form
         if (isset($field["value"])) {
             $field["value"] = sanitize_field_value($field["value"] ?? null);
         }
-
-        $field["value"] = old($fieldName, $field["value"] ?? null);
 
         return $field;
     }
