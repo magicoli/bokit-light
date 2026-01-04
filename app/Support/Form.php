@@ -207,13 +207,7 @@ class Form
                 $field = $reflection::getField($fieldName, $field);
             }
 
-            // Get value: use existing value if already set (from parent), otherwise get from model
-            // $field["value"] =
-            //     $field["value"] ??
-            //     ($this->model
-            //         ? $this->model->$fieldName ?? null
-            //         : $this->values[$fieldName] ?? null);
-
+            // Not sure if old() should be used here or in normalizeField()...
             $field["value"] = old($fieldName, $field["value"] ?? null);
 
             $field = $this->normalizeField($field);
