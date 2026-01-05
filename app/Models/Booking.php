@@ -67,7 +67,7 @@ class Booking extends Model
 
     protected static $filterable = ["status", "unit_name", "source_name"];
 
-    protected static $actions = ["status", "edit", "view", "ota"];
+    protected static $actions = ["status", "view", "edit", "ota"];
 
     protected $list_columns = [
         "actions",
