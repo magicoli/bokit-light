@@ -14,6 +14,12 @@
     /* ... */
 }
 
+:root {
+    --template-1-cols: 1fr;
+    --template-2-columns: 480px 1fr;
+    --template-3-columns: 350px 1fr 350px;
+}
+
 #page-layout {
     @apply grid min-h-screen w-full;
 
@@ -22,7 +28,7 @@
         "nav"
         "main-area"
         "foot";
-    grid-template-columns: 1fr;
+    @apply grid-cols-(--template-1-columns);
     grid-template-rows: auto 1fr auto;
 
     /* md (768px): sidebars side-by-side under main */
@@ -89,13 +95,14 @@
             /* 2xl(1536px): 3 columns */
             @media (min-width: 1536px) {
                 grid-template-areas: "sl     main   sr";
-                grid-template-columns: 350px 1fr 350px;
+                /*grid-template-columns: 350px 1fr 350px;*/
+                @apply grid-cols-(--template-3-columns);
                 grid-template-rows: 1fr;
 
                 /* Only left sidebar */
                 &:has(#sidebar-left *):not(:has(#sidebar-right *)) {
+                    @apply grid-cols-(--template-2-columns);
                     grid-template-areas: "sl     main";
-                    grid-template-columns: 480px 1fr;
                 }
 
                 /* Only right sidebar */

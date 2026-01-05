@@ -78,8 +78,8 @@ class Booking extends Model
         "check_out",
         "guest_name",
         "guests",
-        "adults",
-        "children",
+        // "adults",
+        // "children",
         "price",
         "notes",
     ];

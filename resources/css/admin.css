@@ -7,8 +7,22 @@
 
 /* Admin body classes for customization */
 body.admin {
-    #page-layout > #main-area .sidebar#sidebar-left {
-        @apply p-0;
+    --template-2-columns: 240px 1fr;
+    --template-3-columns: 240px 1fr auto;
+
+    #page-layout {
+        @apply bg-black;
+        > #main-area {
+            .sidebar#sidebar-left {
+                @apply p-0;
+            }
+
+            /*&:has(.sidebar *),:has(#sidebar-left *):not(:has(#sidebar-right *)) {*/
+            &:has(.sidebar *):has(#sidebar-left *):not(:has(#sidebar-right *)) {
+                /*@apply grid grid-cols-(--template-2-columns);*/
+                /*grid-template-columns: 200px 1fr;*/
+            }
+        }
     }
 
     /* Reserved for future admin-specific styling */
@@ -47,7 +61,7 @@ nav#admin-menu {
 
             a {
                 @apply block w-full flex flex-row gap-1 px-4 py-2;
-                @apply rounded-s-3xl ml-1 pl-3;
+                @apply rounded-s-3xl ml-1 -mr-1 pl-3;
 
                 .icon {
                     &:empty,
@@ -68,7 +82,7 @@ nav#admin-menu {
                 }
 
                 &:active {
-                    @apply bg-pink-500  text-gray-700;
+                    @apply bg-pink-500 text-white;
                 }
 
                 &[aria-current="page"] {
