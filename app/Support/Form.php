@@ -207,9 +207,12 @@ class Form
                     $fieldName,
                     $field,
                 );
-                
+
                 // For forms without model/class, use $this->values if available
-                if (!isset($field["value"]) && isset($this->values[$fieldName])) {
+                if (
+                    !isset($field["value"]) &&
+                    isset($this->values[$fieldName])
+                ) {
                     $field["value"] = $this->values[$fieldName];
                 }
             }
@@ -224,10 +227,10 @@ class Form
                 $field["items_content"] = "";
                 foreach ($field["items"] as $key => $item) {
                     $renderedItem = $this->renderField($key, $item);
-                    Log::debug("rendering $key", [
-                        "subfield" => $item,
-                        // "rendered" => $renderedItem,
-                    ]);
+                    // Log::debug("rendering $key", [
+                    //     "subfield" => $item,
+                    //     // "rendered" => $renderedItem,
+                    // ]);
                     $field["items_content"] .= $renderedItem;
                 }
             }
