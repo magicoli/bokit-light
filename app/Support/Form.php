@@ -207,6 +207,11 @@ class Form
                     $fieldName,
                     $field,
                 );
+                
+                // For forms without model/class, use $this->values if available
+                if (!isset($field["value"]) && isset($this->values[$fieldName])) {
+                    $field["value"] = $this->values[$fieldName];
+                }
             }
 
             // Not sure if old() should be used here or in normalizeField()...
