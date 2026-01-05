@@ -5,7 +5,7 @@ return [
     "field.guest_name" => "Name",
     "field.check_in" => "Check-in",
     "field.check_out" => "Check-out",
-    "field.guests" => "Guests",
+    "field.guests" => "Persons",
     "field.adults" => "Adults",
     "field.children" => "Children",
     "field.source_name" => "Source",

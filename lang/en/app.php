@@ -17,8 +17,8 @@ return [
     // Calendar
     "calendar" => "Calendar",
     "booking" => "Booking",
-    // "check_in" => "Check-in",
-    // "check_out" => "Check-out",
+    "check_in" => "Check-in",
+    "check_out" => "Check-out",
     "from" => "From",
     "to" => "To",
     "adults" => "Adults",
