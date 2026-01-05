@@ -1,29 +1,30 @@
 @import "tailwindcss";
+@import "./_theme.css";
 
 table.data-list {
     @apply w-full border-collapse;
 
     thead {
-        @apply bg-gray-200;
+        @apply bg-light;
 
         th {
-            @apply px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b-2 border-gray-300;
+            @apply px-4 py-3 text-left text-sm font-semibold text-dark border-b-2 border-light;
         }
     }
 
     tbody {
         tr {
-            @apply border-b border-gray-200;
+            @apply border-b border-light;
 
             &:hover {
                 @apply bg-gray-50;
             }
 
             td {
-                @apply px-4 py-3 text-sm text-gray-900;
+                @apply px-4 py-3 text-sm text-dark;
 
                 .na {
-                    @apply text-gray-400;
+                    @apply text-secondary;
                 }
 
                 &.actions {

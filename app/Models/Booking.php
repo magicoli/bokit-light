@@ -375,10 +375,10 @@ class Booking extends Model
     /**
      * Get the color for this booking based on status
      */
-    public function getColorAttribute(): string
-    {
-        return BookingMetadataParser::getStatusColor($this->status);
-    }
+    // public function getColorAttribute(): string
+    // {
+    //     return BookingMetadataParser::getStatusColor($this->status);
+    // }
 
     /**
      * DEPRECATED Get the human-readable status label

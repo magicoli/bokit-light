@@ -182,7 +182,8 @@ use App\Traits\TimezoneTrait;
 
                                     $startsBeforePeriod = $checkIn->lt($startDate);
                                     $endsAfterPeriod = $checkOut->gt($endDate);
-
+                                    $continued = $startsBeforePeriod ? 'continued' : '';
+                                    $continues = $endsAfterPeriod ? 'continues' : '';
                                     // Determine if this is the first visible day for this booking
                                     $isFirstVisibleDay = ($checkIn->isSameDay($day)) || ($startsBeforePeriod && $day->isSameDay($startDate));
 
@@ -219,30 +220,24 @@ use App\Traits\TimezoneTrait;
                                         $applyOpacity = !in_array($booking->status, ['cancelled', 'vanished', 'deleted']);
                                         $opacityStyle = $applyOpacity ? 'opacity: 0.92;' : '';
                                     @endphp
-                                    <div class="booking-block"
+                                    <div class="booking-block status-{{ $booking->status }} text-primary bg-{{ $booking->status }} {{ $continued }} {{ $continues }}"
                                          style="left: {{ $leftPercent }}%;
-                                                width: {{ $widthPercent }}%;
-                                                top: 0.375rem;
-                                                bottom: 0.375rem;
-                                                margin-left: 2px;
-                                                margin-right: 2px;
-                                                background-color: {{ $booking->color }};
-                                                {{ $opacityStyle }}"
+                                                width: {{ $widthPercent }}%;"
                                          @click="showBooking({{ $booking->id }})">
-                                        @if($startsBeforePeriod)
+                                        {{-- @if($startsBeforePeriod)
                                             <span class="continues">◀</span>
-                                        @endif
+                                        @endif --}}
                                         <span class="guest-name">
-                                            @if($booking->trashed())
-                                                <span class="status-badge">DELETED</span>
-                                            @elseif(in_array($booking->status, ['cancelled', 'vanished', 'deleted']))
-                                                <span class="status-badge">{{ strtoupper($booking->status) }}</span>
-                                            @endif
                                             {{ $booking->guest_name }}
                                         </span>
-                                        @if($endsAfterPeriod)
-                                            <span class="extends">▶</span>
+                                        @if($booking->api_source && $booking->api_source != 'beds24')
+                                        <span class="badge badge-ota ota-{{ $booking->api_source }}">
+                                            {{ $booking->api_source }}
+                                        </span>
                                         @endif
+                                        {{-- @if($endsAfterPeriod)
+                                            <span class="extends">▶</span>
+                                        @endif --}}
                                     </div>
                                 @endif
                             @endforeach
@@ -260,32 +255,28 @@ use App\Traits\TimezoneTrait;
     <div x-show="selectedBooking"
          x-cloak
          @click.self="selectedBooking = null"
-         class="booking-modal-backdrop">
-        <div class="booking-modal" @click.stop>
+         class="modal-backdrop">
+        <div class="modal card p-0" @click.stop>
             <template x-if="selectedBooking">
                 <div>
                     <!-- Title: Guest name -->
-                    <div class="modal-header">
+                    <div class="modal-header card-header">
                         <h3>
                             <span x-show="selectedBooking.deleted_at" class="badge-deleted">DELETED</span>
                             <span x-text="selectedBooking.guest_name"></span>
                         </h3>
                         <button @click="selectedBooking = null" class="close-button">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
+                            {!! icon('close') !!}
                         </button>
                     </div>
 
-                    <div class="modal-content">
+                    <div class="modal-content card-body">
                         <!-- Unit + Status -->
                         <div class="fields-row">
                             <div class="unit-info">
                                 <span class="unit-name" x-text="selectedBooking.unit?.name"></span>
+                                <span class="actions action-links" x-html="' ' + selectedBooking.actions"></span>
                             </div>
-                            <span class="status-badge"
-                                  :style="`background-color: ${selectedBooking.color}`"
-                                  x-text="selectedBooking.status_label"></span>
                         </div>
 
                         <!-- Check-in / Check-out / Nights (une seule rangée) -->
@@ -355,29 +346,24 @@ use App\Traits\TimezoneTrait;
                             <label>Notes:</label>
                             <div class="comments-text" x-text="selectedBooking.notes"></div>
                         </div>
-
-                        <!-- Source + API Source -->
-                        <div class="source-section">
-                            <div class="source-line">
-                                <span class="label">{{ __('Source:') }}</span>
-                                <span class="value" x-text="selectedBooking.source_name"></span>
-                                <span class="value">
-                                    <span x-text="selectedBooking.raw_data?.api_source"></span>
-                                    <span x-show="selectedBooking.raw_data?.api_ref" x-text="' ' + selectedBooking.raw_data?.api_ref"></span>
-                                </span>
-                            </div>
-                            <div class="source-line">
-                                <span class="label">{{ __('Link:') }}</span>
-                                <span x-html="' ' + selectedBooking.ota_link" class="link"></span>
-                            </div>
-                            <div class="source-line">
-                                <span class="label">{{ __('URL:') }}</span>
-                                <span class="value" x-text="' ' + selectedBooking.ota_url"></span>
-                            </div>
+                    </div>
+                    <div class="modal-footer card-footer">
+                        <div class="source-line">
+                            <span class="label">{{ __('Source:') }}</span>
+                            <span class="value" x-text="selectedBooking.source_name"></span>
+                            <span class="value">
+                                <span x-text="selectedBooking.raw_data?.api_source"></span>
+                                <span x-show="selectedBooking.raw_data?.api_ref" x-text="' ' + selectedBooking.raw_data?.api_ref"></span>
+                            </span>
                         </div>
-
+                        {{-- <div class="actions action-links">
+                            <span class="action-link">
+                                <span x-html="' ' + selectedBooking.ota_link" class="link"></span>
+                            </span>
+                        </div> --}}
                     </div>
                 </div>
+
             </template>
         </div>
     </div>

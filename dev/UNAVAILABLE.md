@@ -113,8 +113,8 @@ Update `calendar.blade.php` to display blocked dates:
 ```php
 // In the day cell loop
 @if($blockDate)
-    <div class="absolute inset-0 bg-gray-300 opacity-50 pointer-events-none">
-        <div class="text-xs text-gray-600 p-1">🚫</div>
+    <div class="absolute inset-0 bg-light opacity-50 pointer-events-none">
+        <div class="text-xs text-secondary p-1">🚫</div>
     </div>
 @endif
 ```

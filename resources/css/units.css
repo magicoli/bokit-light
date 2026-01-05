@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "./_theme.css";
+
 /*
  * Units CSS
  */

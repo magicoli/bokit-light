@@ -42,36 +42,42 @@ trait ModelConfigTrait
                     switch ($key) {
                         case "status":
                             $actions[$key] = sprintf(
-                                '<span class="action-status" title="%s">%s</span>',
+                                '<span class="action-link action-status status-%s" title="%s">%s</span>',
+                                $this->status ?? "unknown",
                                 __(
                                     "app.status_" .
-                                        ($this->status ?? "undefined"),
+                                        ($this->status ?? "unknown"),
                                 ),
                                 $this->getStatusIcon(),
                             );
                             break;
 
                         case "edit":
-                            if (user_can("manage", $this)) {
+                            if (user_can("edit", $this)) {
                                 $actions[$key] = sprintf(
                                     '<a href="%s" class="action-link" title="%s">%s</a>',
                                     route(
                                         "admin.{$resourceName}.edit",
                                         $this->id,
                                     ),
-                                    __("lists.action_edit"),
+                                    __("app.action_edit"),
                                     icon("edit"),
                                 );
                             }
                             break;
 
                         case "view":
-                            $actions[$key] = sprintf(
-                                '<a href="%s" class="action-link" title="%s">%s</a>',
-                                route("admin.{$resourceName}.show", $this->id),
-                                __("lists.action_view"),
-                                icon("eye"),
-                            );
+                            if (user_can("view", $this)) {
+                                $actions[$key] = sprintf(
+                                    '<a href="%s" class="action-link" title="%s">%s</a>',
+                                    route(
+                                        "admin.{$resourceName}.show",
+                                        $this->id,
+                                    ),
+                                    __("app.action_view"),
+                                    icon("eye"),
+                                );
+                            }
                             break;
 
                         case "ota":
@@ -133,10 +139,7 @@ trait ModelConfigTrait
         $sortable = $defaults["sortable"] ?? $fillable;
         $filterable = $defaults["filterable"] ?? ["status"];
         $capability = $defaults["capability"] ?? "manage";
-        $actions = $defaults["actions"] ?? ["status", "view"];
-        if (user_can("admin")) {
-            $actions[] = "edit";
-        }
+        $actions = $defaults["actions"] ?? ["status", "view", "edit"];
 
         // Validate against fillable
         $searchable = array_values(

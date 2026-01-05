@@ -10,6 +10,7 @@
 **/
 
 @import "tailwindcss";
+@import "./_theme.css";
 
 #page-layout {
     @apply flex flex-col w-full min-h-screen;
@@ -32,7 +33,7 @@
 }
 
 #content-wrapper {
-    @apply bg-gray-100;
+    @apply bg-light;
     /*@apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 p-0 xl:p-4 xl:gap-4 space-x-0 space-y-0;*/
 
     main:not(:has(.sidebar *)) {
@@ -40,7 +41,7 @@
     }
 
     &:has(.sidebar *) {
-        @apply md:bg-gray-700;
+        @apply md:bg-dark;
         @apply grid grid-flow-row-dense grid-cols-1;
         @apply md:grid-cols-2;
         @apply lg:grid-cols-4;
@@ -86,7 +87,7 @@
     }
 
     main {
-        @apply bg-gray-100;
+        @apply bg-light;
         &:has(.content .calendar-wrapper) {
             @apply max-w-none;
         }

@@ -466,7 +466,7 @@ class Form
                 '<p class="error">Form rendering error: ' .
                 htmlspecialchars($e->getMessage()) .
                 "</p>" .
-                '<p class="text-sm text-gray-500">Details in debug section below.</p>' .
+                    '<p class="text-sm text-secondary">Details in debug section below.</p>' .
                 "</div>";
         }
     }

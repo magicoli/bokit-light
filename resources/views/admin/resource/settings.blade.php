@@ -9,7 +9,7 @@
 
 @section('content')
     La pêche
-    <p class="text-gray-500">{{ __('Resource settings - TODO') }}</p>
+    <p class="text-secondary">{{ __('Resource settings - TODO') }}</p>
     <a href="{{ route('admin.' . $resource . '.index') }}" class="btn">
         {{ __('Back to list') }}
     </a>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./_theme.css";
 
 /* Rates form specific styles */
 /* Don't: include generic styles that could be useful outside rates scope */
@@ -7,10 +8,10 @@
 
 /* Parent rate indicator */
 .parent_rate {
-    @apply text-sm text-gray-700;
+    @apply text-sm text-dark;
 }
 
 /* Property group header in calculator results */
 .property-group-header td {
-    @apply bg-gray-200 font-semibold;
+    @apply bg-light font-semibold;
 }
