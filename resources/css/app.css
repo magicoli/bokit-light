@@ -16,12 +16,7 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
-@theme {
-    --font-sans:
-        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-        "Noto Color Emoji";
-}
+@import "./_theme.css";
 
 /* =============================================================================
    NAVIGATION
@@ -48,7 +43,7 @@ nav {
         }
 
         .app-title {
-            @apply text-2xl font-semibold text-gray-900;
+            @apply text-2xl font-semibold text-dark;
         }
 
         .badge-env {
@@ -63,7 +58,7 @@ nav {
 
     /* Hamburger button */
     .hamburger-button {
-        @apply p-2 rounded-md text-gray-700 transition-colors order-last;
+        @apply p-2 rounded-md text-dark transition-colors order-last;
 
         /* Visible jusqu'au desktop complet */
         @media (min-width: 1024px) {
@@ -87,7 +82,7 @@ nav {
 
     /* Mobile menu (overlay) */
     .mobile-menu {
-        @apply fixed inset-x-0 top-16 bg-white border-b border-gray-200 shadow-lg z-50 px-4 py-4 space-y-3;
+        @apply fixed inset-x-0 top-16 bg-white border-b border-light shadow-lg z-50 px-4 py-4 space-y-3;
 
         /* Visible jusqu'au desktop complet */
         @media (min-width: 1024px) {
@@ -95,7 +90,7 @@ nav {
         }
 
         .menu-section {
-            @apply border-t border-gray-200 pt-3 first:border-t-0 first:pt-0;
+            @apply border-t border-light pt-3 first:border-t-0 first:pt-0;
 
             /* Cacher la navigation principale sur tablet (elle est dans le main-menu) */
             &.main-nav {
@@ -105,13 +100,13 @@ nav {
             }
 
             .menu-title {
-                @apply text-xs font-semibold text-gray-500 uppercase mb-2;
+                @apply text-xs font-semibold text-secondary uppercase mb-2;
             }
         }
     }
 
     .nav-link {
-        @apply text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md transition-colors;
+        @apply text-sm font-medium text-dark hover:text-dark px-3 py-2 rounded-md transition-colors;
 
         /* Mobile version in overlay */
         .mobile-menu & {
@@ -159,7 +154,7 @@ nav {
     }
 
     .dropdown-button {
-        @apply flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none;
+        @apply flex items-center space-x-1 text-sm text-dark hover:text-dark focus:outline-none;
 
         svg {
             @apply w-4 h-4;
@@ -167,15 +162,15 @@ nav {
     }
 
     .dropdown-menu {
-        @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200;
+        @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-light;
     }
 
     .dropdown-item {
-        @apply block px-4 py-2 text-sm text-gray-700;
+        @apply block px-4 py-2 text-sm text-dark;
     }
 
     .dropdown-item-button {
-        @apply w-full text-left block px-4 py-2 text-sm text-gray-700;
+        @apply w-full text-left block px-4 py-2 text-sm text-dark;
     }
 
     .badge-admin,
@@ -185,11 +180,11 @@ nav {
     }
 
     .nav-login {
-        @apply text-sm text-blue-600 hover:text-blue-800 font-medium;
+        @apply text-sm text-primary hover:text-blue-800 font-medium;
     }
 
     .nav-date {
-        @apply text-sm text-gray-500;
+        @apply text-sm text-secondary;
 
         /* Sur mobile et tablet: format court avant hamburger */
         @media (max-width: 1023px) {
@@ -198,7 +193,7 @@ nav {
     }
 
     .locale-switcher {
-        @apply flex items-center space-x-1 border-l border-gray-300 pl-4;
+        @apply flex items-center space-x-1 border-l border-light pl-4;
 
         /* Cacher sur mobile (sera dans le menu hamburger) */
         @media (max-width: 767px) {
@@ -224,7 +219,7 @@ nav {
         }
 
         &:not(.active) {
-            @apply text-gray-600;
+            @apply text-secondary;
         }
     }
 }
@@ -244,13 +239,13 @@ nav {
     header {
         h1,
         .page-title {
-            @apply text-3xl font-bold text-gray-900;
+            @apply text-3xl font-bold text-dark;
         }
     }
 }
 
 footer {
-    @apply w-full bg-gray-800 text-gray-300 p-4;
+    @apply w-full bg-dark text-light p-4;
 
     > * {
         @apply container mx-auto;
@@ -273,7 +268,7 @@ footer {
 
     .notice {
         @apply p-2 items-center leading-none lg:rounded-full flex lg:inline-flex;
-        @apply bg-gray-300 border border-gray-500;
+        @apply bg-light border border-secondary;
 
         .tag {
             @apply flex rounded-full uppercase px-2 py-1 text-xs font-bold mr-3;
@@ -304,9 +299,9 @@ footer {
         }
 
         &.notice-info {
-            @apply bg-blue-100 border-blue-500 border-2;
+            @apply bg-blue-100 border-primary border-2;
             .tag {
-                @apply bg-blue-500 text-white;
+                @apply bg-primary text-white;
             }
         }
     }
@@ -321,7 +316,7 @@ footer {
     }
 
     .card-header {
-        @apply bg-gray-300/75 px-4 py-2 m-0;
+        @apply bg-light/75 px-4 py-2 m-0;
         @apply md:rounded-t-lg;
     }
 
@@ -330,12 +325,12 @@ footer {
     }
 
     .card-footer {
-        @apply bg-gray-100 px-4 py-2;
+        @apply bg-light px-4 py-2;
         @apply md:rounded-b-lg;
     }
 
     h2 {
-        @apply text-base/7 font-semibold text-gray-900;
+        @apply text-base/7 font-semibold text-dark;
     }
 }
 
@@ -359,20 +354,20 @@ footer {
 
 /* Error pages */
 body.error-page {
-    @apply bg-gray-100;
+    @apply bg-light;
 
     .error-content {
         @apply text-center mx-auto w-full;
         .error-code {
-            @apply text-8xl font-bold text-gray-300;
+            @apply text-8xl font-bold text-light;
         }
 
         .error-title {
-            @apply text-3xl font-bold text-gray-900;
+            @apply text-3xl font-bold text-dark;
         }
 
         .error-message {
-            @apply text-lg text-gray-600;
+            @apply text-lg text-secondary;
         }
 
         .error-actions {
@@ -395,14 +390,14 @@ footer {
 
 #debug-info,
 .debug-info {
-    @apply bg-gray-200 p-4;
-    @apply text-left text-sm text-gray-600;
+    @apply bg-light p-4;
+    @apply text-left text-sm text-secondary;
 
     @apply max-w-full overflow-clip;
 
     pre {
         @apply max-w-full overflow-clip;
-        @apply ps-2 py-2 bg-gray-300;
+        @apply ps-2 py-2 bg-light;
         /*max-width: 100% !important;*/
 
         white-space: pre-wrap; /* Since CSS 2.1 */
@@ -418,6 +413,20 @@ footer {
 
     h3,
     h4 {
-        @apply font-semibold text-gray-900;
+        @apply font-semibold text-dark;
     }
+}
+
+button,
+.btn,
+a,
+a:visited {
+    /*@apply text-primary;*/
+    @apply text-link hover:text-highlight;
+
+    /*&.link {*/
+    svg {
+        @apply w-4 h-4 inline-block;
+    }
+    /*}*/
 }

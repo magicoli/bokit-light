@@ -220,7 +220,7 @@ php artisan make:migration add_capacity_to_units
 /* ✅ GOOD */
 .nav-button {
     @apply inline-flex items-center justify-center w-10 h-10
-           border border-gray-300 rounded-md hover:bg-gray-50;
+           border border-light rounded-md hover:bg-gray-50;
 }
 
 /* ❌ BAD */

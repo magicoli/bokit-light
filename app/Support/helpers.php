@@ -75,7 +75,7 @@ function appLogoHtml(): string
 // <div class="branding justify-center text-center mb-6">
 //     {!! appLogoHtml() !!}
 //     <h1 class="text-2xl font-bold">{{ config('app.name') }}</h1>
-//     <p class="text-sm text-gray-500">{{ config('app.slogan') }}</p>
+//     <p class="text-sm text-secondary">{{ config('app.slogan') }}</p>
 // </div>
 
 function appBrandingHtml(): string
@@ -84,7 +84,7 @@ function appBrandingHtml(): string
         '<div class="branding justify-center text-center mb-6">
             %s
             <h1 class="text-2xl font-bold">%s</h1>
-            <p class="text-sm text-gray-500">%s</p>
+            <p class="text-sm text-secondary">%s</p>
         </div>',
         appLogoHtml(),
         config("app.name", "Bokit"),
@@ -227,17 +227,25 @@ if (!function_exists("icon")) {
     }
 }
 
-// public function icon_ota($slug)
-// {
-//     switch ($slug) {
-//         case "airbnb":
-//             return icon("si-airbnb");
-//         case "beds24":
-//             return icon("beds24-logo");
-//         case "booking-com":
-//             return icon("bookingdotcom");
-//     }
-// }
+function icon_ota($slug, $default = null)
+{
+    switch ($slug) {
+        case "abritel":
+        case "vrbo":
+        case "expedia":
+        case "homeaway":
+            return icon("expedia", $default);
+            break;
+        case "airbnb":
+            return icon("airbnb", $default);
+        case "beds24":
+            return icon("beds24-logo", $default);
+        case "bookingcom":
+        case "booking.com":
+        case "booking-com":
+            return icon("bookingdotcom", $default);
+    }
+}
 
 if (!function_exists("user_can")) {
     /**
@@ -387,10 +395,20 @@ if (!function_exists("debug_error")) {
             // Handle Throwable (Exception, Error, etc.)
             if ($content instanceof \Throwable) {
                 echo "<ul>";
-                echo "<li><strong>Message:</strong> " . htmlspecialchars($content->getMessage()) . "</li>";
-                echo "<li><strong>File:</strong> " . htmlspecialchars($content->getFile()) . ":" . $content->getLine() . "</li>";
-                echo "<li><strong>Code:</strong> " . htmlspecialchars($content->getCode()) . "</li>";
-                echo "<li><strong>Trace:</strong><pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars($content->getTraceAsString()) . "</pre></li>";
+                echo "<li><strong>Message:</strong> " .
+                    htmlspecialchars($content->getMessage()) .
+                    "</li>";
+                echo "<li><strong>File:</strong> " .
+                    htmlspecialchars($content->getFile()) .
+                    ":" .
+                    $content->getLine() .
+                    "</li>";
+                echo "<li><strong>Code:</strong> " .
+                    htmlspecialchars($content->getCode()) .
+                    "</li>";
+                echo "<li><strong>Trace:</strong><pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" .
+                    htmlspecialchars($content->getTraceAsString()) .
+                    "</pre></li>";
                 echo "</ul>";
             }
             // Handle strings
@@ -401,20 +419,34 @@ if (!function_exists("debug_error")) {
             elseif (is_array($content)) {
                 echo "<ul>";
                 foreach ($content as $key => $value) {
-                    echo "<li><strong>" . htmlspecialchars($key) . "</strong>: ";
-                    
+                    echo "<li><strong>" .
+                        htmlspecialchars($key) .
+                        "</strong>: ";
+
                     // Handle Throwable inside array
                     if ($value instanceof \Throwable) {
                         echo "<ul>";
-                        echo "<li><strong>Message:</strong> " . htmlspecialchars($value->getMessage()) . "</li>";
-                        echo "<li><strong>File:</strong> " . htmlspecialchars($value->getFile()) . ":" . $value->getLine() . "</li>";
-                        echo "<li><strong>Code:</strong> " . htmlspecialchars($value->getCode()) . "</li>";
-                        echo "<li><strong>Trace:</strong><pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars($value->getTraceAsString()) . "</pre></li>";
+                        echo "<li><strong>Message:</strong> " .
+                            htmlspecialchars($value->getMessage()) .
+                            "</li>";
+                        echo "<li><strong>File:</strong> " .
+                            htmlspecialchars($value->getFile()) .
+                            ":" .
+                            $value->getLine() .
+                            "</li>";
+                        echo "<li><strong>Code:</strong> " .
+                            htmlspecialchars($value->getCode()) .
+                            "</li>";
+                        echo "<li><strong>Trace:</strong><pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" .
+                            htmlspecialchars($value->getTraceAsString()) .
+                            "</pre></li>";
                         echo "</ul>";
                     }
                     // Multi-line values in scrollable pre
                     elseif (is_string($value) && preg_match("/\n/", $value)) {
-                        echo "<pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars($value) . "</pre>";
+                        echo "<pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" .
+                            htmlspecialchars($value) .
+                            "</pre>";
                     }
                     // Arrays as lists
                     elseif (is_array($value)) {
@@ -430,7 +462,9 @@ if (!function_exists("debug_error")) {
             }
             // Handle other types
             else {
-                echo "<pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" . htmlspecialchars(var_export($content, true)) . "</pre>";
+                echo "<pre style='overflow-x: auto; max-width: 100%; white-space: pre;'>" .
+                    htmlspecialchars(var_export($content, true)) .
+                    "</pre>";
             }
         }
 

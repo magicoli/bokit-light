@@ -1,6 +1,6 @@
 <div class="mb-6">
-    <h2 class="text-xl font-semibold text-gray-900 mb-2">Create Your Rental Units</h2>
-    <p class="text-gray-600 text-sm">
+    <h2 class="text-xl font-semibold text-dark mb-2">Create Your Rental Units</h2>
+    <p class="text-secondary text-sm">
         Add the rental units (apartments, houses, rooms) that you want to manage in the calendar.
     </p>
 </div>
@@ -13,14 +13,14 @@
     <button
         type="button"
         onclick="addUnit()"
-        class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors border-2 border-dashed border-gray-300">
+        class="w-full bg-light hover:bg-light text-dark font-semibold py-3 px-4 rounded-lg transition-colors border-2 border-dashed border-light">
         + Add Another Unit
     </button>
 
     <button
         type="submit"
         data-loading="Creating Units..."
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+        class="w-full bg-primary hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
         Create Units & Complete Installation
     </button>
 </form>
@@ -33,16 +33,16 @@
         const container = document.getElementById('units-container');
 
         const unitDiv = document.createElement('div');
-        unitDiv.className = 'border border-gray-300 rounded-lg p-4 space-y-4';
+        unitDiv.className = 'border border-light rounded-lg p-4 space-y-4';
         unitDiv.dataset.unitIndex = unitCount;
         unitDiv.innerHTML = `
             <div class="flex justify-between items-center mb-2">
-                <h3 class="font-semibold text-gray-900">Unit #${unitCount}</h3>
+                <h3 class="font-semibold text-dark">Unit #${unitCount}</h3>
                 ${unitCount > 1 ? `<button type="button" onclick="removeUnit(${unitCount})" class="text-red-600 hover:text-red-800 text-sm">Remove</button>` : ''}
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-dark mb-1">
                     Unit Name <span class="text-red-500">*</span>
                 </label>
                 <input
@@ -50,28 +50,28 @@
                     name="units[${unitCount}][name]"
                     id="unit-name-${unitCount}"
                     required
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="w-full px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="e.g., Sun"
                     oninput="updateUnitSlug(${unitCount})"
                 >
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-dark mb-1">
                     Slug <span class="text-red-500">*</span>
                 </label>
                 <input
                     type="text"
                     name="units[${unitCount}][slug]"
                     id="unit-slug-${unitCount}"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                    class="w-full px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
                     placeholder="sun"
                 >
-                <p class="text-xs text-gray-500 mt-1">URL-friendly identifier (auto-generated)</p>
+                <p class="text-xs text-secondary mt-1">URL-friendly identifier (auto-generated)</p>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-dark mb-1">
                     iCal Sources <span class="text-red-500">*</span>
                 </label>
                 <div id="sources-${unitCount}" class="space-y-2">
@@ -80,18 +80,18 @@
                             type="url"
                             name="units[${unitCount}][ical_sources][0][url]"
                             required
-                            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            class="flex-1 px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                             placeholder="https://example.com/calendar.ics"
                         >
                         <button
                             type="button"
                             onclick="addSource(${unitCount})"
-                            class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm">
+                            class="px-3 py-2 bg-light hover:bg-light text-dark rounded-md text-sm">
                             +
                         </button>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Calendar synchronization URLs (e.g., from Airbnb, Booking.com)</p>
+                <p class="text-xs text-secondary mt-1">Calendar synchronization URLs (e.g., from Airbnb, Booking.com)</p>
             </div>
         `;
 
@@ -129,7 +129,7 @@
                 type="url"
                 name="units[${unitIndex}][ical_sources][${sourceCount}][url]"
                 required
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                class="flex-1 px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 placeholder="https://example.com/calendar.ics"
             >
             <button

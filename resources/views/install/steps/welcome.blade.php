@@ -1,11 +1,11 @@
 <div class="space-y-6">
     <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ config('app.name') }}</h2>
-        <p class="text-gray-600">{{ config('app.slogan') }}</p>
+        <h2 class="text-3xl font-bold text-dark mb-2">{{ config('app.name') }}</h2>
+        <p class="text-secondary">{{ config('app.slogan') }}</p>
     </div>
 
     <div class="mb-6">
-        <p class="text-gray-700 mb-6">
+        <p class="text-dark mb-6">
             This wizard will help you create the initial configuration of your calendar system.
         </p>
     </div>
@@ -27,7 +27,7 @@
     </div>
 
 
-    <div class="text-center text-sm text-gray-500">
+    <div class="text-center text-sm text-secondary">
         <p>Installation should take less than 5 minutes</p>
     </div>
 </div>

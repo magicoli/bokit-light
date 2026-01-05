@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./_theme.css";
 
 /* Calendar special case: hide sidebars on large screens */
 #page-layout:has(.calendar-wrapper) {
@@ -49,7 +50,7 @@ header {
 }
 
 .calendar-nav {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-2 mb-6;
+    @apply bg-white rounded-lg shadow-sm border border-light p-2 mb-6;
 
     @media (min-width: 640px) {
         @apply p-4;
@@ -64,16 +65,16 @@ header {
     }
 
     .nav-button {
-        @apply inline-flex items-center justify-center border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors;
+        @apply inline-flex items-center justify-center border border-light rounded-md text-sm font-medium bg-white hover:bg-gray-50 transition-colors;
         width: 2.5rem;
         height: 2.5rem;
 
         &:active {
-            @apply bg-gray-200;
+            @apply bg-light;
         }
 
         &.today {
-            @apply border-2 border-blue-500 text-blue-600 hover:bg-blue-50;
+            @apply border-2 border-primary text-primary hover:bg-blue-50;
             width: auto;
             padding: 0.5rem 0.5rem;
 
@@ -88,7 +89,7 @@ header {
 
         &:disabled,
         &.disabled {
-            @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+            @apply text-muted cursor-not-allowed;
         }
     }
 
@@ -96,7 +97,7 @@ header {
         @apply flex flex-wrap justify-center items-baseline gap-x-2 mx-auto;
 
         h2 {
-            @apply text-lg font-bold text-gray-900 truncate m-0 p-0;
+            @apply text-lg font-bold  truncate m-0 p-0;
 
             @media (min-width: 640px) {
                 @apply text-2xl;
@@ -105,7 +106,7 @@ header {
 
         .timezone,
         .week-info {
-            @apply text-xs text-gray-500 m-0 p-0 truncate;
+            @apply text-xs text-secondary m-0 p-0 truncate;
         }
     }
 
@@ -119,7 +120,7 @@ header {
    ============================================================================= */
 
 .calendar-wrapper {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-hidden;
+    @apply bg-white rounded-lg shadow-sm border border-light overflow-x-hidden;
 }
 
 .calendar-table-container {
@@ -127,7 +128,7 @@ header {
 }
 
 .calendar-table {
-    @apply min-w-full divide-y divide-gray-200;
+    @apply min-w-full divide-y divide-light;
     table-layout: fixed;
 }
 
@@ -139,7 +140,7 @@ header {
     @apply bg-gray-50 sticky top-0 z-10;
 
     .unit-column {
-        @apply sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r-2 border-gray-300 min-w-[100px] w-[120px];
+        @apply sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider border-r-2 border-light min-w-[100px] w-[120px];
 
         @media (max-width: 639px) {
             @apply hidden;
@@ -147,21 +148,21 @@ header {
     }
 
     .day-column {
-        @apply px-1 py-2 text-center min-w-[38px] border-r border-gray-200 relative;
+        @apply px-1 py-2 text-center min-w-[38px] border-r border-light relative;
 
         &.today {
             @apply bg-blue-50/50;
         }
 
         .day-name {
-            @apply text-xs font-medium text-gray-700;
+            @apply text-xs font-medium;
         }
 
         .day-number {
-            @apply text-sm font-bold text-gray-900;
+            @apply text-sm font-bold;
 
             &.today {
-                @apply text-blue-600;
+                @apply text-primary;
             }
         }
     }
@@ -172,33 +173,33 @@ header {
    ============================================================================= */
 
 .calendar-body {
-    @apply bg-white divide-y divide-gray-200;
+    @apply bg-white divide-y divide-light;
 }
 
 .property-row {
-    @apply border-t-2 border-gray-300;
+    @apply border-t-2 border-light;
 
     &:not(.unit-row) {
-        @apply bg-gray-300;
+        @apply bg-light;
     }
 
     .property-name {
-        @apply sticky left-0 z-10 bg-gray-200 px-4 py-2 border-r-2 border-gray-300 font-bold text-gray-800 text-sm;
+        @apply sticky left-0 z-10 bg-light px-4 py-2 border-r-2 border-light font-bold text-sm;
 
         @media (max-width: 639px) {
             @apply hidden;
         }
 
         .timezone {
-            @apply text-gray-500 text-xs font-normal;
+            @apply text-xs font-normal;
         }
     }
 
     .property-spacer {
-        @apply bg-gray-200 border-r border-gray-200;
+        @apply bg-light border-r border-light;
 
         &.weekend {
-            @apply bg-gray-200/50;
+            @apply bg-light/50;
         }
     }
 }
@@ -207,7 +208,7 @@ header {
     @apply hover:bg-gray-50 transition-colors;
 
     .unit-cell {
-        @apply sticky left-0 z-10 bg-white px-4 py-3 border-r-2 border-gray-300 hover:bg-gray-50;
+        @apply sticky left-0 z-10 bg-white px-4 py-3 border-r-2 border-light hover:bg-gray-50;
 
         @media (max-width: 639px) {
             @apply hidden;
@@ -218,11 +219,11 @@ header {
         @apply flex items-center space-x-2;
 
         .unit-name {
-            @apply font-medium text-gray-900 text-sm;
+            @apply font-medium  text-sm;
         }
 
         .timezone {
-            @apply text-gray-500 text-xs font-normal;
+            @apply text-secondary text-xs font-normal;
         }
     }
 }
@@ -232,7 +233,7 @@ header {
    ============================================================================= */
 
 .day-cell {
-    @apply relative h-16 px-0 border-r border-gray-200;
+    @apply relative h-16 px-0 border-r border-light;
 
     @media (max-width: 639px) {
         @apply h-20;
@@ -240,11 +241,11 @@ header {
 
     /* 3 niveaux de gris : passé (50) < weekend (100) */
     &.past {
-        @apply bg-gray-100;
+        @apply bg-light;
     }
 
     &.weekend {
-        @apply bg-gray-200/75;
+        @apply bg-light/75;
     }
 
     .unit-label-mobile {
@@ -259,7 +260,7 @@ header {
         }
 
         .timezone {
-            @apply text-gray-500 text-xs font-normal;
+            @apply text-secondary text-xs font-normal;
         }
     }
 
@@ -273,10 +274,64 @@ header {
    ============================================================================= */
 
 .booking-block {
-    @apply absolute rounded-xl text-white text-xs font-medium overflow-hidden hover:shadow-xl hover:opacity-100 transition-all flex items-center px-2 cursor-pointer z-10;
+    @apply absolute rounded-full text-white bg-unknown text-xs font-medium overflow-hidden hover:shadow-xl hover:opacity-100 transition-all flex items-center px-4 cursor-pointer z-10;
+    @apply top-1 bottom-1 m-0 gap-4;
 
-    .continues {
-        @apply opacity-75 mr-1;
+    &.status-confirmed {
+        @apply bg-confirmed;
+    }
+
+    &.status-new {
+        @apply bg-new;
+    }
+
+    &.status-cancelled {
+        @apply bg-cancelled;
+    }
+
+    &.status-request {
+        @apply bg-request;
+    }
+
+    &.status-inquiry {
+        @apply bg-inquiry;
+    }
+
+    &.status-unavailable {
+        @apply bg-unavailable;
+    }
+
+    &.status-blocked {
+        @apply bg-blocked;
+    }
+
+    &.status-vanished {
+        @apply bg-vanished;
+    }
+
+    &.status-unknown {
+        @apply bg-unknown;
+    }
+
+    &.continued {
+        @apply rounded-l-none;
+        &:before {
+            @apply text-xs opacity-75;
+            @apply absolute left-1;
+            content: "◀";
+        }
+    }
+    &.continues {
+        @apply rounded-r-none;
+        .guest-name:after {
+            @apply opacity-75;
+            /*@apply absolute right-1;*/
+            content: "▶";
+        }
+    }
+
+    .icon-ota svg {
+        @apply w-6 h-6;
     }
 
     .guest-name {
@@ -296,26 +351,30 @@ header {
    BOOKING MODAL
    ============================================================================= */
 
-.booking-modal-backdrop {
+.modal-backdrop {
     @apply fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50;
 }
 
-.booking-modal {
-    @apply bg-white rounded-lg shadow-xl max-w-md w-full p-6;
+.modal {
+    @apply container max-w-lg p-0;
+
+    > div {
+        @apply p-0;
+    }
 
     .modal-header {
-        @apply flex justify-between items-start mb-4;
+        @apply flex justify-between items-start text-white bg-primary;
 
         h3 {
-            @apply text-xl font-bold text-gray-900;
+            @apply text-xl font-bold;
 
             .badge-deleted {
-                @apply inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded mr-2;
+                @apply inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded;
             }
         }
 
         .close-button {
-            @apply text-gray-400 hover:text-gray-600;
+            @apply text-secondary hover:text-secondary;
 
             svg {
                 @apply w-6 h-6;
@@ -324,19 +383,48 @@ header {
     }
 
     .modal-content {
-        @apply space-y-3;
+        @apply space-y-3 max-h-[calc(100vh-6rem)] overflow-y-auto;
+    }
+
+    .modal-footer {
+        &:has(:not(*)) {
+            @apply hidden;
+        }
+    }
+
+    .unit-info {
+        @apply w-full flex justify-start items-center gap-2;
+
+        .unit-name {
+            @apply grow font-medium;
+        }
+
+        .actions {
+            @apply inline-flex ms-auto gap-2 text-nowrap;
+
+            .action-link {
+                @apply m-0 p-0 align-baseline;
+
+                svg {
+                    @apply w-5 h-5 align-baseline rounded;
+                }
+
+                a svg {
+                    @apply hover:bg-dark hover:text-light;
+                }
+            }
+        }
+
+        .status-confirmed,
+        .status-new {
+            svg {
+                @apply bg-green-500 text-white m-0;
+            }
+        }
     }
 
     .fields-row {
         @apply flex items-center justify-between;
-
-        .unit-info {
-            @apply flex items-center;
-
-            .unit-name {
-                @apply text-sm font-medium text-gray-900;
-            }
-        }
 
         .status-badge {
             @apply inline-flex items-center px-2 py-1 rounded text-white text-xs font-semibold;
@@ -344,68 +432,63 @@ header {
     }
 
     .dates-section {
-        @apply border-t pt-3 grid grid-cols-3 gap-4;
+        @apply border-y py-3 grid grid-cols-3 gap-4;
 
         .date-field {
             label {
-                @apply text-xs font-medium text-gray-500 uppercase block;
+                @apply text-xs font-medium text-secondary uppercase block;
             }
 
             .value {
-                @apply text-sm text-gray-900 font-semibold mt-1;
+                @apply text-sm  font-semibold mt-1;
             }
         }
     }
 
     .detail-section {
-        @apply border-t pt-3;
-
         .detail-line {
-            @apply text-sm mb-1;
+            @apply flex flex-wrap text-sm mb-1;
 
             .label {
-                @apply font-medium text-gray-500;
+                @apply w-3xs font-medium;
             }
 
             .value {
-                @apply text-gray-900 ml-2;
-            }
-
-            .link {
-                @apply text-blue-600 hover:underline ml-2;
+                @apply ml-2;
             }
         }
     }
-
+    .card-footer {
+        > &:has(:not(*)) {
+            @apply hidden;
+        }
+        @apply flex justify-between items-center gap-4;
+    }
     .source-section {
-        @apply border-t pt-3;
-
         .source-line {
             @apply text-sm mb-1;
 
             .label {
-                @apply font-medium text-gray-500;
+                @apply font-medium text-secondary;
             }
 
             .value {
-                @apply text-gray-900 ml-2;
+                @apply ml-2;
             }
 
             .link {
-                @apply text-blue-600 hover:underline ml-2;
+                @apply text-primary hover:underline ml-2;
             }
         }
     }
 
     .comments-section {
-        @apply border-t pt-3;
-
         label {
-            @apply text-sm font-medium text-gray-500 block mb-2;
+            @apply text-sm font-medium text-secondary block mb-2;
         }
 
         .comments-text {
-            @apply text-sm text-gray-700 bg-gray-50 p-3 rounded whitespace-pre-wrap;
+            @apply text-sm bg-gray-50 p-3 rounded whitespace-pre-wrap;
         }
     }
 }

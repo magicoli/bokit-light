@@ -9,6 +9,7 @@
 **/
 
 @import "tailwindcss";
+@import "./_theme.css";
 
 @layer utilities {
     /* ... */
@@ -17,6 +18,7 @@
 :root {
     --template-1-cols: 1fr;
     --template-2-columns: 480px 1fr;
+    --template-2-columns-right: 480px 1fr;
     --template-3-columns: 350px 1fr 350px;
 }
 
@@ -33,14 +35,14 @@
 
     /* md (768px): sidebars side-by-side under main */
     @media (min-width: 768px) {
-        @apply bg-gray-700;
+        @apply bg-dark;
     }
 
     /* Grid area assignments */
     > nav {
         grid-area: nav;
         @apply sticky top-0 z-10;
-        @apply bg-white shadow-sm border-b border-gray-200;
+        @apply bg-white shadow-sm border-b border-light;
         @media all and (display-mode: standalone) {
             @apply bg-pink-50;
         }
@@ -61,7 +63,7 @@
             "main"
             "sl"
             "sr";
-        grid-template-columns: 1fr;
+        @apply grid-cols-(--template-1-columns);
         grid-template-rows: auto auto 1fr;
 
         &:has(.sidebar *) {
@@ -88,14 +90,13 @@
                 grid-template-areas:
                     "sl     main"
                     "sr     main";
-                grid-template-columns: 350px 1fr;
+                @apply grid-cols-(--template-2-columns);
                 grid-template-rows: auto 1fr;
             }
 
             /* 2xl(1536px): 3 columns */
             @media (min-width: 1536px) {
                 grid-template-areas: "sl     main   sr";
-                /*grid-template-columns: 350px 1fr 350px;*/
                 @apply grid-cols-(--template-3-columns);
                 grid-template-rows: 1fr;
 
@@ -108,7 +109,7 @@
                 /* Only right sidebar */
                 &:has(#sidebar-right *):not(:has(#sidebar-left *)) {
                     grid-template-areas: "main   sr";
-                    grid-template-columns: 1fr 480px;
+                    @apply grid-cols-(--template-2-columns-right);
                 }
             }
         }
@@ -147,8 +148,9 @@
 
         > main {
             /*@apply border border-green-300; /* DEBUG */
-            @apply bg-gray-100;
+            @apply bg-light;
             @apply space-y-8;
+            @apply place-self-stretch;
 
             > header {
                 &:not(:has(*)) {
@@ -159,7 +161,8 @@
 
         .sidebar {
             @apply p-4;
-            @apply lg:h-fit;
+            @apply lg:h-fit sticky top-0;
+            @apply place-self-stretch;
             /*@apply 2xl:sticky 2xl:inset-y-16;*/
 
             &:not(:has(*)) {

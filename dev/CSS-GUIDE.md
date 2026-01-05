@@ -17,8 +17,8 @@ public/css/
 /* ✅ BON : Utiliser @apply avec les classes Tailwind */
 .nav-button {
     @apply inline-flex items-center justify-center aspect-square w-10 
-           border border-gray-300 rounded-md text-sm font-medium 
-           text-gray-700 bg-white hover:bg-gray-50 transition-colors;
+           border border-light rounded-md text-sm font-medium 
+           text-dark bg-white hover:bg-gray-50 transition-colors;
 }
 
 /* ❌ MAUVAIS : Hardcoder les valeurs */

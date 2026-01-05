@@ -1,6 +1,8 @@
+@import "tailwindcss";
+@import "./_theme.css";
+
 /* Tailwind Typography-like styles for markdown */
 .prose {
-    color: #374151;
     line-height: 1.75;
 }
 .prose h1 {
@@ -29,7 +31,7 @@
     margin-bottom: 1.25em;
 }
 .prose code {
-    background-color: #f3f4f6;
+    @apply bg-light text-dark;
     padding: 0.2em 0.4em;
     border-radius: 0.25rem;
     font-size: 0.875em;
@@ -37,8 +39,7 @@
         ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 .prose pre {
-    background-color: #1f2937;
-    color: #f9fafb;
+    @apply bg-dark text-light;
     padding: 1em;
     border-radius: 0.5rem;
     overflow-x: auto;
@@ -46,9 +47,7 @@
     margin-bottom: 1.7142857em;
 }
 .prose pre code {
-    background-color: transparent;
     padding: 0;
-    color: inherit;
 }
 .prose ul,
 .prose ol {
@@ -61,20 +60,17 @@
     margin-bottom: 0.5em;
 }
 .prose a {
-    color: #2563eb;
     text-decoration: none;
     font-weight: 500;
 }
 .prose a:hover {
-    color: #1d4ed8;
     text-decoration: underline;
 }
 .prose blockquote {
+    @apply text-secondary;
+    @apply pl-4 border-l-4 border-secondary;
+    @apply my-4;
     font-style: italic;
-    border-left: 4px solid #e5e7eb;
-    padding-left: 1em;
-    margin: 1.6em 0;
-    color: #6b7280;
 }
 .prose table {
     width: 100%;
@@ -84,11 +80,10 @@
 }
 .prose th,
 .prose td {
-    border: 1px solid #e5e7eb;
-    padding: 0.5em 1em;
+    @apply border border-secondary;
+    @apply px-4 py-2;
     text-align: left;
 }
 .prose th {
-    background-color: #f9fafb;
-    font-weight: 600;
+    @apply bg-secondary text-light font-medium;
 }

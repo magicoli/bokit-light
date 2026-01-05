@@ -1,13 +1,13 @@
 <div class="mb-6">
-    <h2 class="text-xl font-semibold text-gray-900 mb-2">Create Your Property</h2>
-    <p class="text-gray-600 text-sm">
+    <h2 class="text-xl font-semibold text-dark mb-2">Create Your Property</h2>
+    <p class="text-secondary text-sm">
         A property represents your organization or business entity that owns rental units.
     </p>
 </div>
 
 <form id="property-form" onsubmit="event.preventDefault(); submitPropertyForm();" class="space-y-4">
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="block text-sm font-medium text-dark mb-1">
             Property Name <span class="text-red-500">*</span>
         </label>
         <input
@@ -15,15 +15,15 @@
             name="name"
             id="property-name"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="e.g., Gîtes Mosaïques"
             oninput="updateSlug()"
         >
-        <p class="text-xs text-gray-500 mt-1">The name of your rental business or organization</p>
+        <p class="text-xs text-secondary mt-1">The name of your rental business or organization</p>
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="block text-sm font-medium text-dark mb-1">
             Slug <span class="text-red-500">*</span>
         </label>
         <input
@@ -31,30 +31,30 @@
             name="slug"
             id="property-slug"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            class="w-full px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
             placeholder="gites-mosaiques"
         >
-        <p class="text-xs text-gray-500 mt-1">URL-friendly identifier (auto-generated from name, but you can customize it)</p>
+        <p class="text-xs text-secondary mt-1">URL-friendly identifier (auto-generated from name, but you can customize it)</p>
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="block text-sm font-medium text-dark mb-1">
             Website URL <span class="text-red-500">*</span>
         </label>
         <input
             type="url"
             name="url"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="https://www.example.com"
         >
-        <p class="text-xs text-gray-500 mt-1">Your property's website URL</p>
+        <p class="text-xs text-secondary mt-1">Your property's website URL</p>
     </div>
 
     <button
         type="submit"
         data-loading="Creating Property..."
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+        class="w-full bg-primary hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
         Create Property & Continue
     </button>
 </form>

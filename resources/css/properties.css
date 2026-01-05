@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./_theme.css";
 
 /* =============================================================================
    PROPERTIES & UNITS STYLES
@@ -23,26 +24,26 @@
     }
 
     .title {
-        @apply text-3xl font-bold text-gray-900;
+        @apply text-3xl font-bold text-dark;
     }
 
     .actions {
         @apply flex gap-3 text-sm;
 
         .action-link {
-            @apply text-blue-600 hover:text-blue-800;
+            @apply text-primary hover:text-blue-800;
         }
 
         .separator {
-            @apply text-gray-300;
+            @apply text-light;
         }
     }
 
     .website {
-        @apply text-gray-600 mt-2;
+        @apply text-secondary mt-2;
 
         a {
-            @apply text-blue-600 hover:underline;
+            @apply text-primary hover:underline;
         }
     }
 }
@@ -51,7 +52,7 @@
     @apply mb-6;
 
     .back-link {
-        @apply text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block;
+        @apply text-sm text-primary hover:text-blue-800 mb-2 inline-block;
     }
 
     .title-row {
@@ -59,11 +60,11 @@
     }
 
     .title {
-        @apply text-3xl font-bold text-gray-900;
+        @apply text-3xl font-bold text-dark;
     }
 
     .subtitle {
-        @apply text-sm text-gray-500;
+        @apply text-sm text-secondary;
     }
 }
 
@@ -85,7 +86,7 @@
     @apply bg-white rounded-lg shadow-sm p-8 text-center;
 
     .message {
-        @apply text-gray-500;
+        @apply text-secondary;
     }
 }
 
@@ -99,11 +100,11 @@
     @apply bg-white rounded-lg shadow-sm p-6;
 
     .property-name {
-        @apply text-xl font-semibold text-gray-900 mb-4;
+        @apply text-xl font-semibold text-dark mb-4;
     }
 
     .no-units {
-        @apply text-sm text-gray-500;
+        @apply text-sm text-secondary;
     }
 }
 
@@ -118,67 +119,67 @@
 
 /* Unit card */
 .unit-card {
-    @apply border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all;
+    @apply border border-light rounded-lg p-4 hover:border-primary hover:shadow-md transition-all;
 
     .unit-header {
         @apply flex items-baseline justify-between gap-3 mb-2;
     }
 
     .unit-name {
-        @apply font-medium text-gray-900 hover:text-blue-600;
+        @apply font-medium text-dark hover:text-primary;
     }
 
     .unit-actions {
         @apply flex gap-2 text-xs;
 
         .action-link {
-            @apply text-blue-600 hover:text-blue-800;
+            @apply text-primary hover:text-blue-800;
         }
 
         .separator {
-            @apply text-gray-300;
+            @apply text-light;
         }
     }
 
     .unit-description {
-        @apply text-sm text-gray-600 mb-2;
+        @apply text-sm text-secondary mb-2;
     }
 
     .unit-meta {
-        @apply text-sm text-gray-500;
+        @apply text-sm text-secondary;
     }
 }
 
 /* Unit card large variant (for property show page) */
 .unit-card-large {
-    @apply bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-400 hover:shadow-md transition-all;
+    @apply bg-white border border-light rounded-lg p-6 hover:border-primary hover:shadow-md transition-all;
 
     .unit-header {
         @apply flex items-baseline justify-between gap-3 mb-3;
     }
 
     .unit-name {
-        @apply text-xl font-semibold text-gray-900 hover:text-blue-600;
+        @apply text-xl font-semibold text-dark hover:text-primary;
     }
 
     .unit-actions {
         @apply flex gap-2 text-xs;
 
         .action-link {
-            @apply text-blue-600 hover:text-blue-800;
+            @apply text-primary hover:text-blue-800;
         }
 
         .separator {
-            @apply text-gray-300;
+            @apply text-light;
         }
     }
 
     .unit-description {
-        @apply text-sm text-gray-600 mb-3;
+        @apply text-sm text-secondary mb-3;
     }
 
     .unit-footer {
-        @apply text-xs text-gray-500 border-t border-gray-200 pt-2;
+        @apply text-xs text-secondary border-t border-light pt-2;
     }
 }
 
@@ -192,54 +193,54 @@
 }
 
 .add-source-button {
-    @apply inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
-    
+    @apply inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors;
+
     svg {
         @apply w-4 h-4 mr-2;
     }
 }
 
 .sources-table {
-    @apply w-full border-collapse border border-gray-200 rounded-lg overflow-hidden;
-    
+    @apply w-full border-collapse border border-light rounded-lg overflow-hidden;
+
     thead {
         @apply bg-gray-50;
-        
+
         th {
-            @apply border-b border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700;
+            @apply border-b border-light px-4 py-3 text-left text-sm font-medium text-dark;
         }
     }
-    
+
     tbody {
         tr {
             @apply bg-white;
-            
+
             &:nth-child(even) {
                 @apply bg-gray-50;
             }
         }
-        
+
         td {
-            @apply border-b border-gray-200 px-4 py-3;
+            @apply border-b border-light px-4 py-3;
         }
     }
 }
 
 /* Empty state for sources */
 .sources-empty {
-    @apply text-center py-8 text-gray-500 border border-gray-200 rounded-lg;
+    @apply text-center py-8 text-secondary border border-light rounded-lg;
 }
 
 /* Form actions */
 .form-actions {
-    @apply flex items-center justify-between pt-6 border-t border-gray-200;
+    @apply flex items-center justify-between pt-6 border-t border-light;
 
     .cancel-link {
-        @apply text-gray-600 hover:text-gray-800;
+        @apply text-secondary hover:text-dark;
     }
 
     .submit-button {
-        @apply px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors;
+        @apply px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors;
     }
 }
 /* Unit show page */
@@ -259,7 +260,7 @@
     }
 
     .unit-name {
-        @apply text-3xl font-bold text-gray-900;
+        @apply text-3xl font-bold text-dark;
     }
 }
 
@@ -271,10 +272,10 @@
     }
 
     .property-info {
-        @apply text-gray-500 border-t border-gray-200 pt-2 mt-4;
+        @apply text-secondary border-t border-light pt-2 mt-4;
 
         a {
-            @apply text-blue-600 hover:underline;
+            @apply text-primary hover:underline;
         }
     }
 
@@ -283,7 +284,7 @@
     }
 
     .edit-button {
-        @apply inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
+        @apply inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors;
 
         svg {
             @apply w-4 h-4 mr-2;

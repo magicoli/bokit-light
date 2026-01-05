@@ -104,7 +104,7 @@
                                 <button
                                     type="button icon-button"
                                     @click="removeSource(index)"
-                                    class="text-gray-400 hover:text-red-600 transition-colors border-0 border-transparent"
+                                    class="text-secondary hover:text-red-600 transition-colors border-0 border-transparent"
                                     x-show="sources.length > 1"
                                     title="{{ __('app.delete') }}"
                                 >
@@ -116,7 +116,7 @@
                         </tr>
 
                         <tr x-show="source.last_sync_at" class="bg-gray-50">
-                            <td colspan="3" class="px-4 py-2 text-xs text-gray-500">
+                            <td colspan="3" class="px-4 py-2 text-xs text-secondary">
                                 {{ __('app.last_synced') }}: <span x-text="source.last_sync_at"></span>
                             </td>
                         </tr>
