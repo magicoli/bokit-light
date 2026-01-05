@@ -1,24 +1,11 @@
-@extends('layouts.admin')
+@extends('layouts.admin-resource')
 
-@section('body-class')
-    @parent edit-page edit-{{ $resource }} edit-{{ $resource }}-{{ $model->id }}
-@endsection
+@php
+$resource_page = 'edit';
+@endphp
 
-{{-- Page title should include name of the object edited, not the resource class name --}}
-@section('title', __('forms.edit_name', ['name' => $displayName]))
+@section('resource-page', $resource_page)
 
-@section('content')
-<div class="card">
-    <div class="card-header">
-        {{-- for debug, we don't need header and footer in final result --}}
-        BEGIN FORM
-    </div>
-    <div class="card-body">
-        {!! $formContent !!}
-    </div>
-    <div class="card-footer">
-        {{-- for debug, we don't need header and footer in final result --}}
-        END FORM
-    </div>
-</div>
+@section('resource-body')
+    {!! $formContent !!}
 @endsection
