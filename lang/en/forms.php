@@ -8,6 +8,8 @@ return [
     "cancel" => "Cancel",
     "delete" => "Delete",
     "edit" => "Edit",
+    "view" => "View",
+    "list" => "List",
     "create" => "Create",
     "update" => "Update",
     "no_options" => "No options",
@@ -16,4 +18,5 @@ return [
     "showing_x_y_of_z" => ":first to :last of :total",
     "filter_column-name" => "Filter by :field.name",
     "edit_name" => "Edit :name",
+    "view_name" => ":name",
 ];
