@@ -52,12 +52,17 @@ trait ModelConfigTrait
                             break;
 
                         case "edit":
-                            $actions[$key] = sprintf(
-                                '<a href="%s" class="action-link" title="%s">%s</a>',
-                                route("admin.{$resourceName}.edit", $this->id),
-                                __("lists.action_edit"),
-                                icon("edit"),
-                            );
+                            if (user_can("manage", $this)) {
+                                $actions[$key] = sprintf(
+                                    '<a href="%s" class="action-link" title="%s">%s</a>',
+                                    route(
+                                        "admin.{$resourceName}.edit",
+                                        $this->id,
+                                    ),
+                                    __("lists.action_edit"),
+                                    icon("edit"),
+                                );
+                            }
                             break;
 
                         case "view":
@@ -128,7 +133,10 @@ trait ModelConfigTrait
         $sortable = $defaults["sortable"] ?? $fillable;
         $filterable = $defaults["filterable"] ?? ["status"];
         $capability = $defaults["capability"] ?? "manage";
-        $actions = $defaults["actions"] ?? ["status", "edit", "view"];
+        $actions = $defaults["actions"] ?? ["status", "view"];
+        if (user_can("admin")) {
+            $actions[] = "edit";
+        }
 
         // Validate against fillable
         $searchable = array_values(
