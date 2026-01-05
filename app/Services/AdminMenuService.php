@@ -80,7 +80,7 @@ class AdminMenuService
         ]);
 
         $this->addMenuItem([
-            "label" => __("admin.general_settings"),
+            "label" => __("admin.settings"),
             "url" => Route::has("admin.settings")
                 ? route("admin.settings")
                 : null,

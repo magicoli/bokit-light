@@ -276,7 +276,7 @@ class DataList
                     "label" => $columnName,
                     "options" =>
                         [
-                            "" => __("forms.filter_field.name", [
+                            "" => __("forms.filter_column-name", [
                                 "field.name" => $columnName,
                             ]),
                         ] + $options,
@@ -304,6 +304,7 @@ class DataList
             $fields = [
                 "control-row" => [
                     "type" => "fields-row",
+                    "label" => "",
                     "items" => $fields,
                 ],
             ];

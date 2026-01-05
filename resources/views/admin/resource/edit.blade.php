@@ -4,7 +4,7 @@
 $resource_page = 'edit';
 @endphp
 
-@section('resource-page', $resource_page)
+{{-- @section('resource-page', $resource_page) --}}
 
 @section('resource-body')
     {!! $formContent !!}

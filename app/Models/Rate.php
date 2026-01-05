@@ -145,6 +145,7 @@ class Rate extends Model
         return [
             "scope" => [
                 "type" => "fields-row",
+                "label" => "",
                 "items" => [
                     "property_id" => [
                         "type" => "select",
@@ -299,6 +300,7 @@ class Rate extends Model
         return [
             "search-row" => [
                 "type" => "fields-row",
+                "label" => "",
                 "items" => [
                     "dates" => [
                         "type" => "date-range",
