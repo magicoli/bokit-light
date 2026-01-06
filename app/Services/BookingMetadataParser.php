@@ -8,16 +8,15 @@ class BookingMetadataParser
      * Parse structured metadata from iCal description
      *
      * Expected format from Beds24:
-     * STATUS: Confirmed
-     * GUESTS: 2
-     * ADULT: 2
-     * CHILD: 0
-     * TIME: 14:00
-     * PHONE: 1234567890
-     * MOBILE: 0987654321
-     * COUNTRY: US
-     * COMMENTS: Special requests here
-     * OTA: VRBO 123456
+     * STATUS:[STATUS]/[GROUPID]
+     * GUESTS:[NUMPEOPLE1]/[NUMADULT1]/[NUMCHILD1]
+     * TIME:[GUESTARRIVALTIME]
+     * PHONE:[GUESTPHONE]/[GUESTMOBILE]
+     * EMAIL:[GUESTEMAIL]
+     * CTRY:[GUESTCOUNTRY2]
+     * OTA:[APISOURCETEXT] [APIREF]
+     * COMMENTS:[GUESTCOMMENTS]
+     * NOTES:[NOTES]
      * Any remaining text...
      *
      * @param string $description Raw iCal DESCRIPTION field
@@ -49,13 +48,27 @@ class BookingMetadataParser
                     // Special handling for specific fields
                     switch ($key) {
                         case "status":
-                            $metadata["status"] = $value;
+                            $parts = explode("/", $value);
+                            $metadata["status"] = $parts[0] ?? null;
+                            $metadata["group_id"] = $parts[1] ?? null;
                             break;
 
                         case "guests":
+                            // Split guests/adult/child
+                            $parts = explode("/", $value);
+                            $metadata["guests"] = (int) $parts[0];
+                            $metadata["adults"] = (int) $parts[1] ?? null;
+                            $metadata["children"] = (int) $parts[2] ?? null;
+                            break;
+
                         case "adult":
+                        case "adults":
+                            $metadata["adults"] = (int) $value;
+                            break;
+
                         case "child":
-                            $metadata[$key] = (int) $value;
+                        case "children":
+                            $metadata["children"] = (int) $value;
                             break;
 
                         case "time":
@@ -63,6 +76,11 @@ class BookingMetadataParser
                             break;
 
                         case "phone":
+                            $parts = explode("/", $value);
+                            $metadata["phone"] = $parts[0] ?? null;
+                            $metadata["mobile"] = $parts[1] ?? null;
+                            break;
+
                         case "mobile":
                             $metadata[$key] = $value;
                             break;
@@ -71,6 +89,7 @@ class BookingMetadataParser
                             $metadata["email"] = $value;
                             break;
 
+                        case "ctry":
                         case "country":
                         case "country2":
                             $metadata["country"] = $value;
@@ -80,13 +99,22 @@ class BookingMetadataParser
                             $metadata["guest_comments"] = $value;
                             break;
 
+                        case "notes":
+                            $metadata["notes"] = $value;
+                            break;
+
                         case "ota":
-                            // Split "VRBO 123456" into source and ref
-                            $parts = explode(" ", $value, 2);
+                            // Split "VRBO 123456" or "VRBO/123456" into source and ref
+                            $value = str_replace(" ", "/", $value);
+                            $parts = explode("/", $value, 2);
                             $metadata["api_source"] = $parts[0];
                             if (isset($parts[1])) {
                                 $metadata["api_ref"] = $parts[1];
                             }
+                            break;
+
+                        case "time":
+                            $metadata["time"] = $value;
                             break;
 
                         default:
@@ -94,6 +122,29 @@ class BookingMetadataParser
                             $metadata[$key] = $value;
                     }
                 }
+
+                /*
+                // TODO: properly normalize phone numbers, see if Laravel-Phone package allow this
+                // https://github.com/Propaganistas/Laravel-Phone
+                $phone = new PhoneNumber('012/34.56.78', 'BE');
+                $phone->format($format);       // See libphonenumber\PhoneNumberFormat
+                $phone->formatE164();          // +3212345678
+                $phone->formatInternational(); // +32 12 34 56 78
+                $phone->formatRFC3966();       // tel:+32-12-34-56-78
+                $phone->formatNational();      // 012 34 56 78
+                */
+                // For now, assume if it contains only numbers and doesn't start with a zero, it's
+                // missing the plus sign
+                $metadata["phone"] = preg_replace(
+                    '/^([1-9][0-9]+)$/',
+                    '+$1',
+                    $metadata["phone"] ?? "",
+                );
+                $metadata["mobile"] = preg_replace(
+                    '/^([1-9][0-9]+)$/',
+                    '+$1',
+                    $metadata["mobile"] ?? "",
+                );
             } else {
                 // Not a "KEY: value" line, keep it as notes
                 $remainingLines[] = $line;
