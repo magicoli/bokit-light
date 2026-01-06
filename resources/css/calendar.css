@@ -365,34 +365,31 @@ header {
         @apply p-0;
     }
 
-    .modal-header {
-        @apply flex justify-between items-start text-white bg-secondary;
+    .close-button {
+        @apply text-secondary hover:text-highlight;
 
+        svg {
+            @apply w-6 h-6;
+        }
+    }
+
+    .modal-header,
+    .modal-footer {
+        @apply text-dark bg-light flex justify-between items-start;
+
+        &:has(:not(*)) {
+            @apply hidden;
+        }
+    }
+
+    .modal-header {
         h3 {
             @apply text-xl font-bold;
-
-            .badge-deleted {
-                @apply inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 rounded;
-            }
-        }
-
-        .close-button {
-            @apply text-secondary hover:text-secondary;
-
-            svg {
-                @apply w-6 h-6;
-            }
         }
     }
 
     .modal-content {
         @apply space-y-3 max-h-[calc(100vh-6rem)] overflow-y-auto;
-    }
-
-    .modal-footer {
-        &:has(:not(*)) {
-            @apply hidden;
-        }
     }
 
     .unit-info {
@@ -453,7 +450,7 @@ header {
             @apply flex flex-wrap text-sm mb-1;
 
             .label {
-                @apply w-24 font-medium;
+                @apply w-32 font-medium;
             }
 
             .value {
