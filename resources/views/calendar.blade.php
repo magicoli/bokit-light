@@ -260,12 +260,14 @@ use App\Traits\TimezoneTrait;
             <template x-if="selectedBooking">
                 <div>
                     <!-- Title: Guest name -->
-                    <div class="modal-header card-header">
+                    <div class="modal-header card-header"
+                         :class="'status-' + (selectedBooking?.status || '') + ' bg-' + (selectedBooking?.status || '')">
+                    {{-- <div class="modal-header card-header"> --}}
                         <h3>
                             <span x-show="selectedBooking.deleted_at" class="badge-deleted">DELETED</span>
                             <span x-text="selectedBooking.guest_name"></span>
                         </h3>
-                        <button @click="selectedBooking = null" class="close-button">
+                        <button @click="selectedBooking = null" class="close-button text-white">
                             {!! icon('close') !!}
                         </button>
                     </div>
