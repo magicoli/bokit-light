@@ -453,7 +453,7 @@ header {
             @apply flex flex-wrap text-sm mb-1;
 
             .label {
-                @apply w-3xs font-medium;
+                @apply w-24 font-medium;
             }
 
             .value {
