@@ -41,6 +41,8 @@ class Unit extends Model
         "is_active",
     ];
 
+    protected static $icon = "bed-outline";
+
     /**
      * Get the property that owns this unit
      */

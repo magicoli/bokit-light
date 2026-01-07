@@ -69,6 +69,8 @@ class Booking extends Model
 
     protected static $actions = ["status", "view", "edit", "ota"];
 
+    protected static $icon = "calendar";
+
     protected $list_columns = [
         "actions",
         // "api_source", // DEBUG

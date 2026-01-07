@@ -21,8 +21,8 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         '35a6ad97d21e794e7e22a17d806652e4' => __DIR__ . '/..' . '/nunomaduro/termwind/src/Functions.php',
         '606a39d89246991a373564698c2d8383' => __DIR__ . '/..' . '/symfony/polyfill-php85/bootstrap.php',
         '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
-        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '29ffe97919493792170d47eb03a68da9' => __DIR__ . '/..' . '/blade-ui-kit/blade-icons/src/helpers.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '2203a247e6fda86070a5e4e07aed533a' => __DIR__ . '/..' . '/symfony/clock/Resources/now.php',
         '09f6b20656683369174dd6fa83b7e5fb' => __DIR__ . '/..' . '/symfony/polyfill-uuid/bootstrap.php',
         'a1105708a18b76903365ca1c4aa61b02' => __DIR__ . '/..' . '/symfony/translation/Resources/functions.php',
@@ -183,6 +183,7 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
             'Fruitcake\\Cors\\' => 15,
             'Fidry\\CpuCoreCounter\\' => 21,
             'Faker\\' => 6,
+            'Faisal50x\\BladeIonicons\\' => 24,
         ),
         'E' =>
         array (
@@ -580,6 +581,10 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         array (
             0 => __DIR__ . '/..' . '/fakerphp/faker/src/Faker',
         ),
+        'Faisal50x\\BladeIonicons\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/faisal50x/blade-ionicons/src',
+        ),
         'Egulias\\EmailValidator\\' =>
         array (
             0 => __DIR__ . '/..' . '/egulias/email-validator/src',
@@ -715,6 +720,7 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         'App\\Traits\\FormTrait' => __DIR__ . '/../..' . '/app/Traits/FormTrait.php',
         'App\\Traits\\ListTrait' => __DIR__ . '/../..' . '/app/Traits/ListTrait.php',
         'App\\Traits\\ModelConfigTrait' => __DIR__ . '/../..' . '/app/Traits/ModelConfigTrait.php',
+        'App\\Traits\\SettingsTrait' => __DIR__ . '/../..' . '/app/Traits/SettingsTrait.php',
         'App\\Traits\\TimezoneTrait' => __DIR__ . '/../..' . '/app/Traits/TimezoneTrait.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'BladeUI\\Icons\\BladeIconsServiceProvider' => __DIR__ . '/..' . '/blade-ui-kit/blade-icons/src/BladeIconsServiceProvider.php',
@@ -1076,6 +1082,7 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         'Egulias\\EmailValidator\\Warning\\QuotedString' => __DIR__ . '/..' . '/egulias/email-validator/src/Warning/QuotedString.php',
         'Egulias\\EmailValidator\\Warning\\TLD' => __DIR__ . '/..' . '/egulias/email-validator/src/Warning/TLD.php',
         'Egulias\\EmailValidator\\Warning\\Warning' => __DIR__ . '/..' . '/egulias/email-validator/src/Warning/Warning.php',
+        'Faisal50x\\BladeIonicons\\BladeIoniconsServiceProvider' => __DIR__ . '/..' . '/faisal50x/blade-ionicons/src/BladeIoniconsServiceProvider.php',
         'Faker\\Calculator\\Ean' => __DIR__ . '/..' . '/fakerphp/faker/src/Faker/Calculator/Ean.php',
         'Faker\\Calculator\\Iban' => __DIR__ . '/..' . '/fakerphp/faker/src/Faker/Calculator/Iban.php',
         'Faker\\Calculator\\Inn' => __DIR__ . '/..' . '/fakerphp/faker/src/Faker/Calculator/Inn.php',

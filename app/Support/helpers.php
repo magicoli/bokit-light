@@ -205,6 +205,7 @@ if (!function_exists("icon")) {
         $files = [
             "vendor/davidhsianturi/blade-bootstrap-icons//resources/svg/{$name}.svg",
             "vendor/itsmalikjones/blade-iconic/resources/svg/{$name}.svg",
+            "vendor/faisal50x/blade-ionicons//resources/svg/{$name}.svg",
             "vendor/codeat3/blade-simple-icons/resources/svg/{$name}.svg",
             // "public/svg/font-awesome-light/{$name}.svg",
             "public/svg/{$name}.svg",

@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
@@ -125,6 +126,8 @@ trait ModelConfigTrait
 
         // Basic class info
         $classBasename = class_basename($class);
+        $resourceName = Str::plural(strtolower($classBasename));
+
         $classSlug = Str::slug($classBasename);
 
         // Get properties
@@ -188,8 +191,15 @@ trait ModelConfigTrait
             "searchable" => $searchable,
             "sortable" => $sortable,
             "filterable" => $filterable,
+            "resource_name" => $resourceName,
             "capability" => $defaults["capability"] ?? "manage",
             "actions" => $defaults["actions"] ?? ["status", "view", "edit"],
+            "menu" => [
+                "parent" => $defaults["parent"] ?? null,
+                "label" => $defaults["label"] ?? __("admin.$resourceName"),
+                "icon" => $defaults["icon"] ?? null,
+                "order" => $defaults["order"] ?? 10,
+            ],
         ];
 
         return self::$config;
