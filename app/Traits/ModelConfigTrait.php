@@ -196,7 +196,7 @@ trait ModelConfigTrait
             "actions" => $defaults["actions"] ?? ["status", "view", "edit"],
             "menu" => [
                 "parent" => $defaults["parent"] ?? null,
-                "label" => $defaults["label"] ?? __("admin.$resourceName"),
+                "label" => $defaults["label"] ?? __("app.$resourceName"),
                 "icon" => $defaults["icon"] ?? null,
                 "order" => $defaults["order"] ?? 10,
             ],
