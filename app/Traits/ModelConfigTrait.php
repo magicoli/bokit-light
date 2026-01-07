@@ -5,8 +5,6 @@ namespace App\Traits;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Http\Request;
-use App\Http\Middleware\SetLocale;
 
 /**
  * Centralized model configuration trait
@@ -122,21 +120,7 @@ trait ModelConfigTrait
             return self::$config;
         }
 
-        // Ensure locale is properly set before processing translations/
-        //
-        // // This doesn't work, it crashes the app
-        // if (!app()->bound('locale.set')) {
-        //     app()->singleton('locale.set', true);
-
-        //     // Force locale detection if not already done
-        //     $request = request();
-        //     if ($request && !app()->make('App\Http\Middleware\SetLocale')->isLocaleSet()) {
-        //         $setLocale = app()->make('App\Http\Middleware\SetLocale');
-        //         $setLocale->handle($request, function() {
-        //             return null;
-        //         });
-        //     }
-        // }
+        // Laravel config should have handled locale correctly at this stage (not via APP_LOCALE)
 
         $class = static::class;
         $reflection = new \ReflectionClass($class);
