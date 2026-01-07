@@ -118,10 +118,10 @@ Secure, non-guessable URLs with permanent tokens:
 3. **arrivals**: Arrival dates only (check-in events)
 4. **departures**: Departure dates only (check-out events)
 
-### Fluent Syntax
+### ICS Method Syntax
 ```php
-// Builder pattern for ICS variants
-$bookings->toIcs();               // Anonymous occupied
+// Simple parameter-based syntax
+$bookings->toIcs();               // Default = Anonymous occupied
 $bookings->toIcs("occupied");     // Anonymous occupied
 $bookings->toIcs("bookings");     // Full bookings
 $bookings->toIcs("arrivals");     // Arrivals only
@@ -157,12 +157,13 @@ Both levels are supported:
 ## Module Integration
 
 ### Optional Formatters
-Modules can register custom formatters:
+Modules can register custom formatters.
 
-```php
-// modules/beds24/src/Beds24ServiceProvider.php
-FormatterRegistry::register('ics_beds24', fn($booking) => $bookings->toIcsBeds24());
-```
+Modules will be registered globally with a process not yet implemented.
+
+Once registered, they should be able to add their own formatters.
+
+TBD later.
 
 ### Backward Compatibility
 - Main application works without any modules
