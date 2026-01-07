@@ -58,6 +58,10 @@ class Rate extends Model
         "is_active",
     ];
 
+    protected static $icon = "cash-outline";
+
+    protected static $order = 20;
+
     /**
      * Boot method - auto-generate slug and setup observers
      */

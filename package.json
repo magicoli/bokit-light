@@ -16,6 +16,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@awesome.me/kit-331d27d491": "^1.0.2",
         "flatpickr": "^4.6.13"
     }
 }

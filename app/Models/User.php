@@ -31,6 +31,10 @@ class User extends Authenticatable
 
     protected $list_columns = ["actions", "name", "email", "is_admin", "roles"];
 
+    protected static $icon = "users";
+
+    protected static $order = 5;
+
     /**
      * Get the properties for this user
      */

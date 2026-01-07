@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eef5e696051d6d21df37bb0639271f0d",
+    "content-hash": "3f54dc7cfef0952094579adf9ef13395",
     "packages": [
         {
             "name": "blade-ui-kit/blade-icons",
@@ -783,6 +783,72 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "faisal50x/blade-ionicons",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Foysal50x/blade-ionicons.git",
+                "reference": "1c3754ac3e30913aaa493e5bc87646d284b54a69"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Foysal50x/blade-ionicons/zipball/1c3754ac3e30913aaa493e5bc87646d284b54a69",
+                "reference": "1c3754ac3e30913aaa493e5bc87646d284b54a69",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.1",
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "codeat3/blade-icon-generation-helpers": "^0.8.0|^0.10.0",
+                "orchestra/testbench": "^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^10.5|^11.0|^12.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "BladeIonicons": "Faisal50x\\BladeIonicons\\BladeIoniconsFacade"
+                    },
+                    "providers": [
+                        "Faisal50x\\BladeIonicons\\BladeIoniconsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Faisal50x\\BladeIonicons\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Faisal Ahmed",
+                    "email": "foysal20x@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A package to easily make use of ionicons in your Laravel Blade views.",
+            "homepage": "https://github.com/faisal50x/blade-ionicons",
+            "keywords": [
+                "blade",
+                "blade-ionicons",
+                "faisal50x",
+                "ionicons",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/Foysal50x/blade-ionicons/issues",
+                "source": "https://github.com/Foysal50x/blade-ionicons/tree/v1.1.0"
+            },
+            "time": "2025-05-27T18:26:16+00:00"
         },
         {
             "name": "fruitcake/php-cors",

@@ -21,6 +21,8 @@ class Property extends Model
 
     protected $list_columns = ["actions", "name"];
 
+    protected static $icon = "building";
+
     /**
      * Get the units for this property
      */
