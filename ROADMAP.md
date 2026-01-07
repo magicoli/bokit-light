@@ -135,7 +135,7 @@ Route::get('/{page:slug}', [PageController::class, 'show']);  // Catch-all for p
 
 ```php
 // In Model using AdminResourceTrait
-public static function adminConfig(): array
+public static function setConfig(): array
 {
     return [
         'label' => __('admin.bookings'),

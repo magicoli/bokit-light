@@ -130,16 +130,15 @@ trait ModelConfigTrait
         // Get properties
         $fillable = $defaults["fillable"] ?? [];
         $appends = $defaults["appends"] ?? [];
+        $casts = $defaults["casts"] ?? [];
+
         $valid_columns = array_merge($fillable, $appends);
         $list_columns = empty($defaults["list_columns"])
             ? $fillable
             : $defaults["list_columns"];
-        $casts = $defaults["casts"] ?? [];
         $searchable = $defaults["searchable"] ?? ["name"];
         $sortable = $defaults["sortable"] ?? $fillable;
         $filterable = $defaults["filterable"] ?? ["status"];
-        $capability = $defaults["capability"] ?? "manage";
-        $actions = $defaults["actions"] ?? ["status", "view", "edit"];
 
         // Validate against fillable
         $searchable = array_values(
@@ -179,18 +178,18 @@ trait ModelConfigTrait
         }
 
         self::$config = [
+            "classSlug" => $classSlug,
+            "classBasename" => $classBasename,
             "fillable" => $fillable,
             "appends" => $appends,
             "casts" => $casts,
+            "list_columns" => $list_columns,
+            "editFields" => $editFields,
             "searchable" => $searchable,
             "sortable" => $sortable,
             "filterable" => $filterable,
-            "capability" => $capability,
-            "actions" => $actions,
-            "classSlug" => $classSlug,
-            "classBasename" => $classBasename,
-            "list_columns" => $list_columns,
-            "editFields" => $editFields,
+            "capability" => $defaults["capability"] ?? "manage",
+            "actions" => $defaults["actions"] ?? ["status", "view", "edit"],
         ];
 
         return self::$config;
