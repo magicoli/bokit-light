@@ -4,7 +4,7 @@ namespace App\Traits;
 
 use App\Traits\FormTrait;
 use App\Traits\ListTrait;
-use Illuminate\Support\Facades\Log;
+// use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,14 +20,6 @@ use Illuminate\Database\Eloquent\Builder;
  * Usage:
  *   class Booking extends Model {
  *       use AdminResourceTrait;
- *
- *       public static function adminConfig(): array {
- *           return [
- *               'label' => 'Bookings',
- *               'icon' => '📅',
- *               'routes' => ['calendar', 'list', 'add', 'settings'],
- *           ];
- *       }
  *   }
  */
 trait AdminResourceTrait

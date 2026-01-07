@@ -19,7 +19,7 @@ class Property extends Model
 
     protected $appends = ["actions"];
 
-    protected $list_columns = ["actions", "name", "slug"];
+    protected $list_columns = ["actions", "name"];
 
     /**
      * Get the units for this property
@@ -46,14 +46,4 @@ class Property extends Model
     {
         return $this->property->name;
     }
-
-    /**
-     * Admin resource configuration
-     */
-    // public static function adminConfig(): array
-    // {
-    //     self::init();
-    //     static::$config["capability"] = "property_manager";
-    //     return self::$config;
-    // }
 }
