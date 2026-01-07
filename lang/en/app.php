@@ -11,7 +11,6 @@ return [
     "admin" => "Admin",
     "admin_settings" => "Admin Settings",
     "user_account" => "Account",
-    "properties" => "Properties",
     "language" => "Language",
 
     // Calendar
@@ -31,9 +30,17 @@ return [
     // Time
     "today" => "Today",
 
-    // Units
+    // Resources
+    "bookings" => "Bookings",
+    // "properties" => "Properties",
+    // "property" => "Property",
+    "rates" => "Rates",
+    "units" => "Units",
     "unit" => "Unit",
-    "property" => "Property",
+    "rental_units" => "Rental Units",
+    "users" => "Users",
+
+    // Units
     "website" => "Website",
     "description" => "Description",
     "edit_unit" => "Edit Unit",
