@@ -213,6 +213,9 @@ class BookingSyncIcal
         // Collect UIDs from feed for vanished detection
         $feedUids = [];
 
+        // Source identifier for sync system (e.g., "airbnb_ical")
+        $sourceId = ($source->name ?? "unknown") . "_ical";
+
         foreach ($events as $event) {
             // Required fields
             if (
@@ -283,61 +286,58 @@ class BookingSyncIcal
                 "deleted",
             ]);
 
-            // Get existing booking to compare for changes
-            $existing = Booking::where("uid", $event["UID"])
+            // Get existing booking
+            $booking = Booking::where("uid", $event["UID"])
                 ->where("unit_id", $source->unit_id)
                 ->first();
 
-            // Snapshot existing data for comparison (convert dates to strings)
-            $existingData = $existing
-                ? [
-                    "guest_name" => $existing->guest_name,
-                    "check_in" => $existing->check_in->format("Y-m-d"),
-                    "check_out" => $existing->check_out->format("Y-m-d"),
-                    "status" => $existing->status,
-                    "adults" => $existing->adults,
-                    "children" => $existing->children,
-                    "notes" => $existing->notes,
-                ]
-                : null;
+            // New booking data from sync
+            $newData = [
+                "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
+                "check_in" => $checkIn,
+                "check_out" => $checkOut,
+                "status" => $status,
+                "adults" => $adults,
+                "children" => $children,
+                "notes" => $parsed["notes"] ?: null,
+            ];
 
-            // Create or update booking
-            $booking = Booking::updateOrCreate(
-                [
+            if (!$booking) {
+                // Create new booking with sync data
+                $booking = new Booking([
                     "uid" => $event["UID"],
-                ],
-                [
                     "unit_id" => $source->unit_id,
-                    "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
-                    "check_in" => $checkIn,
-                    "check_out" => $checkOut,
-                    "status" => $status,
-                    "adults" => $adults,
-                    "children" => $children,
-                    "notes" => $parsed["notes"] ?: null,
-                    "raw_data" => $parsed["metadata"],
                     "source_name" => $source->name ?? "undefined",
-                ],
-            );
+                ]);
+                $booking->fill($newData);
 
-            // Track stats
+                // Store raw and processed data in sync_data
+                $booking->sync_data = [
+                    $sourceId => [
+                        "raw" => $event,
+                        "processed" => $parsed["metadata"],
+                        "synced_at" => now()->toIso8601String(),
+                    ],
+                ];
+
+                $booking->save();
+                $stats["new"]++;
+            } else {
+                // Use three-way merge to update existing booking
+                $result = $booking->applySyncData($newData, $sourceId, [
+                    "raw" => $event,
+                    "processed" => $parsed["metadata"],
+                ]);
+
+                // Track stats based on what was updated
+                if (!empty($result["updated"])) {
+                    $stats["updated"]++;
+                }
+            }
+
+            // Track deleted bookings
             if ($isDeleted) {
                 $stats["deleted"]++;
-            } elseif ($booking->wasRecentlyCreated) {
-                $stats["new"]++;
-            } elseif (
-                $existingData &&
-                $this->hasDataChanged($existingData, [
-                    "guest_name" => $booking->guest_name,
-                    "check_in" => $booking->check_in->format("Y-m-d"),
-                    "check_out" => $booking->check_out->format("Y-m-d"),
-                    "status" => $booking->status,
-                    "adults" => $booking->adults,
-                    "children" => $booking->children,
-                    "notes" => $booking->notes,
-                ])
-            ) {
-                $stats["updated"]++;
             }
 
             $stats["total"]++;
@@ -386,20 +386,6 @@ class BookingSyncIcal
         // When API sources are added, this method should check if this is the first/primary source
         // For example: return $source->is_primary || $source->id === $this->getPrimarySourceId($source->unit_id);
         return true;
-    }
-
-    /**
-     * Check if booking data has actually changed
-     */
-    protected function hasDataChanged(array $old, array $new): bool
-    {
-        return $old["guest_name"] !== $new["guest_name"] ||
-            $old["check_in"] !== $new["check_in"] ||
-            $old["check_out"] !== $new["check_out"] ||
-            $old["status"] !== $new["status"] ||
-            $old["adults"] !== $new["adults"] ||
-            $old["children"] !== $new["children"] ||
-            $old["notes"] !== $new["notes"];
     }
 
     /**
