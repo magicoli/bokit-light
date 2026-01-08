@@ -29,7 +29,7 @@ Provides universal collection methods for all models:
 ```php
 trait CollectionTrait 
 {
-    public function toCollection(): Collection
+    public function collection(): Collection
     public function toArray(array $context = []): array
     public function toJson(array $context = []): string
     public function toXml(array $context = []): string
