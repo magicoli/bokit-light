@@ -139,6 +139,175 @@ class BookingSyncIcal
     }
 
     /**
+     * Parse structured metadata from iCal description
+     *
+     * Expected format from Beds24:
+     * STATUS:[STATUS]/[GROUPID]
+     * GUESTS:[NUMPEOPLE1]/[NUMADULT1]/[NUMCHILD1]
+     * TIME:[GUESTARRIVALTIME]
+     * PHONE:[GUESTPHONE]/[GUESTMOBILE]
+     * EMAIL:[GUESTEMAIL]
+     * CTRY:[GUESTCOUNTRY2]
+     * OTA:[APISOURCETEXT] [APIREF]
+     * COMMENTS:[GUESTCOMMENTS]
+     * NOTES:[NOTES]
+     * Any remaining text...
+     *
+     * @param string $description Raw iCal DESCRIPTION field
+     * @return array ['metadata' => [...], 'notes' => '...']
+     */
+    public static function parse(string $description): array
+    {
+        $metadata = [];
+        $remainingLines = [];
+
+        $lines = explode("\n", $description);
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            if (empty($line)) {
+                continue;
+            }
+
+            // Try to match "KEY: value" pattern
+            if (
+                preg_match('/^([A-Z][A-Z0-9]*)\s*:\s*(.*)$/i', $line, $matches)
+            ) {
+                $key = strtolower($matches[1]);
+                $value = trim($matches[2]);
+
+                // Only store if value is not empty
+                if ($value !== "") {
+                    // Special handling for specific fields
+                    switch ($key) {
+                        case "status":
+                            $parts = explode("/", $value);
+                            $metadata["status"] = $parts[0] ?? null;
+                            $metadata["group_id"] = $parts[1] ?? null;
+                            break;
+
+                        case "guests":
+                            // Split guests/adult/child
+                            $parts = explode("/", $value);
+                            $metadata["guests"] = (int) $parts[0];
+                            $metadata["adults"] = (int) $parts[1] ?? null;
+                            $metadata["children"] = (int) $parts[2] ?? null;
+                            break;
+
+                        case "adult":
+                        case "adults":
+                            $metadata["adults"] = (int) $value;
+                            break;
+
+                        case "child":
+                        case "children":
+                            $metadata["children"] = (int) $value;
+                            break;
+
+                        case "time":
+                            $metadata["arrival_time"] = $value;
+                            break;
+
+                        case "phone":
+                            $parts = explode("/", $value);
+                            $metadata["phone"] = $parts[0] ?? null;
+                            $metadata["mobile"] = $parts[1] ?? null;
+                            break;
+
+                        case "mobile":
+                            $metadata[$key] = $value;
+                            break;
+
+                        case "email":
+                            $metadata["email"] = $value;
+                            break;
+
+                        case "ctry":
+                        case "country":
+                        case "country2":
+                            $metadata["country"] = $value;
+                            break;
+
+                        case "comments":
+                            $metadata["guest_comments"] = $value;
+                            break;
+
+                        case "notes":
+                            $metadata["notes"] = $value;
+                            break;
+
+                        case "ota":
+                            // Split "VRBO 123456" or "VRBO/123456" into source and ref
+                            $value = str_replace(" ", "/", $value);
+                            $parts = explode("/", $value, 2);
+                            $metadata["api_source"] = $parts[0];
+                            if (isset($parts[1])) {
+                                $metadata["api_ref"] = $parts[1];
+                            }
+                            break;
+
+                        case "time":
+                            $metadata["time"] = $value;
+                            break;
+
+                        default:
+                            // Store any other KEY: value pairs
+                            $metadata[$key] = $value;
+                    }
+                }
+
+                /*
+                // TODO: properly normalize phone numbers, see if Laravel-Phone package allow this
+                // https://github.com/Propaganistas/Laravel-Phone
+                $phone = new PhoneNumber('012/34.56.78', 'BE');
+                $phone->format($format);       // See libphonenumber\PhoneNumberFormat
+                $phone->formatE164();          // +3212345678
+                $phone->formatInternational(); // +32 12 34 56 78
+                $phone->formatRFC3966();       // tel:+32-12-34-56-78
+                $phone->formatNational();      // 012 34 56 78
+                */
+                // For now, assume if it contains only numbers and doesn't start with a zero, it's
+                // missing the plus sign
+                $metadata["phone"] = preg_replace(
+                    '/^([1-9][0-9]+)$/',
+                    '+$1',
+                    $metadata["phone"] ?? "",
+                );
+                $metadata["mobile"] = preg_replace(
+                    '/^([1-9][0-9]+)$/',
+                    '+$1',
+                    $metadata["mobile"] ?? "",
+                );
+            } else {
+                // Not a "KEY: value" line, keep it as notes
+                $remainingLines[] = $line;
+            }
+        }
+
+        // Separate data into model fields vs additional metadata
+        // Fields that have corresponding columns in bookings table
+        $modelFields = ['status', 'group_id', 'guests', 'adults', 'children', 'notes'];
+        
+        $fields = [];
+        $additionalMetadata = [];
+        
+        foreach ($metadata as $key => $value) {
+            if (in_array($key, $modelFields)) {
+                $fields[$key] = $value;
+            } else {
+                $additionalMetadata[$key] = $value;
+            }
+        }
+
+        return [
+            "fields" => $fields,
+            "metadata" => $additionalMetadata,
+            "notes" => implode("\n", $remainingLines),
+        ];
+    }
+
+    /**
      * Parse iCal content and extract events
      */
     protected function parseIcal(string $content): array
@@ -241,10 +410,15 @@ class BookingSyncIcal
 
             // Decode and parse metadata from DESCRIPTION field
             $description = $this->decodeIcalText($event["DESCRIPTION"] ?? "");
-            $parsed = BookingMetadataParser::parse($description);
+            $parsed = self::parse($description);
+
+            // Extract parsed data
+            $fields = $parsed["fields"];  // Data for model columns
+            $metadata = $parsed["metadata"];  // Additional metadata (email, phone, etc.)
+            $notesText = $parsed["notes"];  // Free text
 
             // Set special statuses
-            $status = strtolower($parsed["metadata"]["status"] ?? "");
+            $status = strtolower($fields["status"] ?? "");
             if (empty($status)) {
                 switch ($summary) {
                     case "Unavailable":
@@ -259,7 +433,7 @@ class BookingSyncIcal
                     default:
                         $status = "undefined";
                 }
-                $parsed["metadata"]["status"] = $status;
+                $fields["status"] = $status;
                 $event["SUMMARY"] = $summary;
             }
             switch ($status) {
@@ -275,8 +449,12 @@ class BookingSyncIcal
                     break;
             }
 
-            $adults = $parsed["metadata"]["adult"] ?? null;
-            $children = $parsed["metadata"]["child"] ?? null;
+            // Extract fields that exist in Booking model
+            $guests = $fields["guests"] ?? null;
+            $adults = $fields["adults"] ?? null;
+            $children = $fields["children"] ?? null;
+            $groupId = $fields["group_id"] ?? null;
+            $notes = $fields["notes"] ?? $notesText ?: null;
 
             // Track deleted bookings (cancelled/deleted status)
             $isDeleted = in_array($status, [
@@ -298,24 +476,23 @@ class BookingSyncIcal
                 "check_in" => $checkIn,  // Already Y-m-d format from parseIcalDate()
                 "check_out" => $checkOut,  // Already Y-m-d format from parseIcalDate()
                 "status" => $status,
+                "guests" => $guests,
                 "adults" => $adults,
                 "children" => $children,
-                "notes" => $parsed["notes"] ?: null,
+                "group_id" => $groupId,
+                "notes" => $notes,
+                "metadata" => $metadata,  // Additional metadata (email, phone, api_source, etc.)
             ];
 
             // Calculate checksum of processed data to detect source changes
             $newChecksum = $this->calculateChecksum($processed);
 
-            // Get existing booking
-            $booking = Booking::where("uid", $event["UID"])
-                ->where("unit_id", $source->unit_id)
-                ->first();
-
             // Check if data has changed at source (compare checksums)
             $hasSourceChanged = true;
             if ($booking && isset($booking->sync_data[$sourceId])) {
-                $oldChecksum = $booking->sync_data[$sourceId]['checksum'] ?? null;
-                $hasSourceChanged = ($newChecksum !== $oldChecksum);
+                $oldChecksum =
+                    $booking->sync_data[$sourceId]["checksum"] ?? null;
+                $hasSourceChanged = $newChecksum !== $oldChecksum;
             }
 
             // Skip if nothing changed at source (optimization)
@@ -349,16 +526,46 @@ class BookingSyncIcal
                 $booking->save();
                 $stats["new"]++;
             } else {
-                // Use three-way merge to update existing booking
-                $result = $booking->applySyncData($newData, $sourceId, [
-                    "raw" => $event,
-                    "processed" => $processed,
-                    "checksum" => $newChecksum,
-                ]);
+                // Check if existing sync_data is complete (has all essential fields)
+                $oldProcessed =
+                    $booking->sync_data[$sourceId]["processed"] ?? [];
+                $isIncompleteBaseline =
+                    empty($oldProcessed) ||
+                    !isset($oldProcessed["guest_name"]) ||
+                    !isset($oldProcessed["check_in"]) ||
+                    !isset($oldProcessed["check_out"]);
 
-                // Track stats based on what was updated
-                if (!empty($result["updated"])) {
+                if ($isIncompleteBaseline) {
+                    // Old/incomplete sync_data format - force full update without three-way merge
+                    $booking->fill($newData);
+
+                    // Update sync_data with new complete structure
+                    $booking->sync_data = array_merge(
+                        $booking->sync_data ?? [],
+                        [
+                            $sourceId => [
+                                "raw" => $event,
+                                "processed" => $processed,
+                                "checksum" => $newChecksum,
+                                "synced_at" => now()->toIso8601String(),
+                            ],
+                        ],
+                    );
+
+                    $booking->save();
                     $stats["updated"]++;
+                } else {
+                    // Use three-way merge to update existing booking
+                    $result = $booking->applySyncData($newData, $sourceId, [
+                        "raw" => $event,
+                        "processed" => $processed,
+                        "checksum" => $newChecksum,
+                    ]);
+
+                    // Track stats based on what was updated
+                    if (!empty($result["updated"])) {
+                        $stats["updated"]++;
+                    }
                 }
             }
 
@@ -417,19 +624,21 @@ class BookingSyncIcal
 
     /**
      * Calculate checksum of processed data to detect source changes
-     * 
+     *
      * @param array $data Processed data
      * @param array $excludeFields Fields to exclude from checksum (whitelist of exclusions)
      * @return string MD5 checksum
      */
-    protected function calculateChecksum(array $data, array $excludeFields = []): string
-    {
+    protected function calculateChecksum(
+        array $data,
+        array $excludeFields = [],
+    ): string {
         // Remove excluded fields
         $dataForChecksum = array_diff_key($data, array_flip($excludeFields));
-        
+
         // Sort keys for deterministic result
         ksort($dataForChecksum);
-        
+
         // Convert to JSON and calculate MD5
         return md5(json_encode($dataForChecksum, JSON_UNESCAPED_UNICODE));
     }
