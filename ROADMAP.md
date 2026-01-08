@@ -7,7 +7,11 @@ This is a long road. Make sure to always **process one step at a time**, to avoi
 The mission is to be functional  as soon as possible, with the minimum features required to achieve this goal. This includes:
 
 - [x] Calendar, in sync with Channel Manager (at least with iCal)
-- [ ] Booking details (requires some API integration)
+- [ ] Sync should not not override local modifications
+    - [ ] Save pre-processed sync data from separately, meaning data will be stored 3 times: the local data (as current, direct model attributes), the current raw sync data (currently in raw_data), and the pre_processed sync data. raw and pre-processed data must be stored in a subarray per source (currently ical only)
+    - [ ] Update styles to show first-level fields label on the left of the value with fixed size, instead of above, and the diff with sync after the value, keeping description and errors below
+    - [ ] Only first source is considered to evaluate if there is a difference between local data and sync data
+- [ ] Sync Booking details (requires some API integration)
     - [x] status, name, phone, mail address, guests, notes
     - [ ] adults, children
     - [ ] price, paid, balance
@@ -17,6 +21,7 @@ The mission is to be functional  as soon as possible, with the minimum features 
         - [x] Airbnb
         - [ ] booking.com
         - [ ] beds24
+- [ ] Restore filter by units in Bookings list
 - [ ] Same booking details popup in Calendar and admin List views
 - [ ] Add OTA icon to booking block in calendar (same icon, but not the same treatment as in admin list: only display actual OTA, not cm, and display even if no management action link)
 - [ ] Add notes to booking (not overridden by CM sync)
