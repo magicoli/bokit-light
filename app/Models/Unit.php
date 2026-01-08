@@ -17,7 +17,7 @@ class Unit extends Model
         "name",
         "description",
         "is_active",
-        "settings",
+        "options",
         "unit_type",
         "bedrooms",
         "max_guests",
@@ -25,7 +25,7 @@ class Unit extends Model
 
     protected $casts = [
         "is_active" => "boolean",
-        "settings" => "array",
+        "options" => "array",
         "unit_type" => "string",
     ];
 

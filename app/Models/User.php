@@ -20,11 +20,13 @@ class User extends Authenticatable
         "auth_provider_id",
         "is_admin",
         "roles",
+        "options",
     ];
 
     protected $casts = [
         "is_admin" => "boolean",
         "roles" => "array",
+        "options" => "array",
     ];
 
     protected $appends = ["actions"];
