@@ -134,7 +134,7 @@ trait AdminResourceTrait
                 \App\Http\Controllers\AdminResourceController::class,
             )->edit($resourceName, $id);
         })->name("{$resourceName}.edit");
-        Route::put("/{$resourceName}/{id}", function ($id) use ($resourceName) {
+        Route::post("/{$resourceName}/{id}", function ($id) use ($resourceName) {
             return app(
                 \App\Http\Controllers\AdminResourceController::class,
             )->update(request(), $resourceName, $id);
