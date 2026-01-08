@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Services\BookingMetadataParser;
+// use App\Services\BookingMetadataParser;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use BladeUI\Icons\Components\Icon;
@@ -38,6 +38,7 @@ class Booking extends Model
         "is_manual",
         "group_id",
         "sync_data",
+        "metadata",
     ];
 
     protected $casts = [
@@ -51,6 +52,7 @@ class Booking extends Model
         "price" => "decimal:2",
         "commission" => "decimal:2",
         "ota" => "array",
+        "metadata" => "array",
     ];
 
     protected static $capability = "property_manager";
@@ -515,27 +517,30 @@ class Booking extends Model
 
     /**
      * Apply sync data with three-way merge
-     * 
+     *
      * @param array $newData New data from sync source
      * @param string $source Sync source identifier (e.g., 'airbnb_ical', 'beds24_api')
      * @param array|null $metadata Optional metadata to store (raw, processed)
      * @return array ['updated' => [...], 'diffs' => [...]]
      */
-    public function applySyncData(array $newData, string $source, ?array $metadata = null): array
-    {
+    public function applySyncData(
+        array $newData,
+        string $source,
+        ?array $metadata = null,
+    ): array {
         return \App\Support\SyncResolver::applySyncData(
             $this,
             $newData,
             $source,
-            $metadata
+            $metadata,
         );
     }
 
     /**
      * Get sync differences (fields where local != remote)
-     * 
+     *
      * These are intentional local edits, not conflicts.
-     * 
+     *
      * @param string|null $source Source to check (default: first source)
      * @return array ['field' => ['local' => ..., 'remote' => ...], ...]
      */
@@ -546,11 +551,16 @@ class Booking extends Model
 
     /**
      * Get sync logs for this booking
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function syncLogs()
     {
-        return $this->morphMany(\App\Models\SyncLog::class, 'model', 'model_type', 'model_id');
+        return $this->morphMany(
+            \App\Models\SyncLog::class,
+            "model",
+            "model_type",
+            "model_id",
+        );
     }
 }
