@@ -16,7 +16,6 @@
     <form id="unit-edit-form" method="POST" action="{{ route('units.update', [$unit->property, $unit]) }}" class=""
           data-sources="{{ $unit->icalSources->toJson() }}">
         @csrf
-        @method('PUT')
     <div class="card">
         <h2 class="title">{{ __('app.basic_information') }}</h2>
         <!-- Basic Information -->

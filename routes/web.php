@@ -64,7 +64,9 @@ if ($isInstalled) {
     } elseif ($authMethod === "laravel") {
         Route::get("/login", function () {
             return view("auth.login");
-        })->middleware("guest")->name("login");
+        })
+            ->middleware("guest")
+            ->name("login");
 
         Route::post("/login", function (\Illuminate\Http\Request $request) {
             $credentials = $request->validate([
@@ -144,7 +146,7 @@ if ($isInstalled) {
         Route::get("/dashboard", function () {
             return view("dashboard");
         })->name("dashboard");
-        
+
         Route::get("/calendar", [CalendarController::class, "index"])->name(
             "calendar",
         );
@@ -164,18 +166,19 @@ if ($isInstalled) {
         );
 
         // Admin routes (protected by admin middleware)
-        Route::middleware('admin')->group(function () {
+        Route::middleware("admin")->group(function () {
             Route::get("/admin", function () {
                 return view("admin.dashboard");
             })->name("admin.dashboard");
         });
 
-        // Rates management
+        // DEPRECATED Rates management
+        // rate edit should not be front-end, end use AdminResourceTrait routes instead
         Route::get("/rates", [RatesController::class, "index"])->name("rates");
         Route::post("/rates", [RatesController::class, "store"])->name(
             "rates.store",
         );
-        Route::put("/rates/{rate}", [RatesController::class, "update"])->name(
+        Route::post("/rates/{rate}", [RatesController::class, "update"])->name(
             "rates.update",
         );
         Route::delete("/rates/{rate}", [
@@ -183,7 +186,7 @@ if ($isInstalled) {
             "destroy",
         ])->name("rates.destroy");
 
-        // Rates calculator
+        // Rates calculator (kept, this is front-end)
         Route::get("/rates/calculator", [
             RatesController::class,
             "calculator",
@@ -199,12 +202,13 @@ if ($isInstalled) {
             "parentRates",
         ]);
 
-        // Units (edit/update)
+        // DEPRECATED Units (edit/update)
+        // units edit should not be front-end, end use AdminResourceTrait routes instead
         Route::get("/{property:slug}/{unit:slug}/edit", [
             UnitController::class,
             "edit",
         ])->name("units.edit");
-        Route::put("/{property:slug}/{unit:slug}", [
+        Route::post("/{property:slug}/{unit:slug}", [
             UnitController::class,
             "update",
         ])->name("units.update");
