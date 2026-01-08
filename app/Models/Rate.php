@@ -32,7 +32,7 @@ class Rate extends Model
         "stay_from",
         "stay_to",
         "conditions",
-        "settings",
+        "options",
     ];
 
     protected $casts = [
@@ -42,7 +42,7 @@ class Rate extends Model
         "stay_from" => "date",
         "stay_to" => "date",
         "conditions" => "array",
-        "settings" => "array",
+        "options" => "array",
     ];
 
     protected $appends = ["actions"];

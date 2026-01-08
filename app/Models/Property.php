@@ -11,10 +11,10 @@ class Property extends Model
     use AdminResourceTrait;
     use TimezoneTrait;
 
-    protected $fillable = ["name", "slug", "settings"];
+    protected $fillable = ["name", "slug", "options"];
 
     protected $casts = [
-        "settings" => "array",
+        "options" => "array",
     ];
 
     protected $appends = ["actions"];

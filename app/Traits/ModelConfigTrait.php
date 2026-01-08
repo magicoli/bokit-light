@@ -5,6 +5,7 @@ namespace App\Traits;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Exception;
 
 /**
  * Centralized model configuration trait
