@@ -13,23 +13,44 @@ return new class extends Migration
     {
         // Rename settings to options in properties table
         if (Schema::hasColumn('properties', 'settings')) {
-            Schema::table('properties', function (Blueprint $table) {
-                $table->renameColumn('settings', 'options');
-            });
+            // If options already exists, just drop settings
+            if (Schema::hasColumn('properties', 'options')) {
+                Schema::table('properties', function (Blueprint $table) {
+                    $table->dropColumn('settings');
+                });
+            } else {
+                Schema::table('properties', function (Blueprint $table) {
+                    $table->renameColumn('settings', 'options');
+                });
+            }
         }
 
         // Rename settings to options in rates table
         if (Schema::hasColumn('rates', 'settings')) {
-            Schema::table('rates', function (Blueprint $table) {
-                $table->renameColumn('settings', 'options');
-            });
+            // If options already exists, just drop settings
+            if (Schema::hasColumn('rates', 'options')) {
+                Schema::table('rates', function (Blueprint $table) {
+                    $table->dropColumn('settings');
+                });
+            } else {
+                Schema::table('rates', function (Blueprint $table) {
+                    $table->renameColumn('settings', 'options');
+                });
+            }
         }
 
         // Rename settings to options in units table
         if (Schema::hasColumn('units', 'settings')) {
-            Schema::table('units', function (Blueprint $table) {
-                $table->renameColumn('settings', 'options');
-            });
+            // If options already exists, just drop settings
+            if (Schema::hasColumn('units', 'options')) {
+                Schema::table('units', function (Blueprint $table) {
+                    $table->dropColumn('settings');
+                });
+            } else {
+                Schema::table('units', function (Blueprint $table) {
+                    $table->renameColumn('settings', 'options');
+                });
+            }
         }
 
         // Add options column to users table if it doesn't exist

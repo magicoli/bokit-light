@@ -37,7 +37,7 @@ class Booking extends Model
         "notes",
         "is_manual",
         "group_id",
-        "raw_data",
+        "sync_data",
     ];
 
     protected $casts = [
@@ -47,7 +47,7 @@ class Booking extends Model
         "adults" => "integer",
         "children" => "integer",
         "is_manual" => "boolean",
-        "raw_data" => "array",
+        "sync_data" => "array",
         "price" => "decimal:2",
         "commission" => "decimal:2",
         "ota" => "array",
@@ -511,5 +511,44 @@ class Booking extends Model
     public function sourceMappings()
     {
         return $this->hasMany(SourceMapping::class);
+    }
+
+    /**
+     * Apply sync data with three-way merge
+     * 
+     * @param array $newData New data from sync source
+     * @param string $source Sync source identifier (e.g., 'airbnb_ical', 'beds24_api')
+     * @return array ['updated' => [...], 'diffs' => [...]]
+     */
+    public function applySyncData(array $newData, string $source): array
+    {
+        return \App\Support\SyncResolver::applySyncData(
+            $this,
+            $newData,
+            $source
+        );
+    }
+
+    /**
+     * Get sync differences (fields where local != remote)
+     * 
+     * These are intentional local edits, not conflicts.
+     * 
+     * @param string|null $source Source to check (default: first source)
+     * @return array ['field' => ['local' => ..., 'remote' => ...], ...]
+     */
+    public function getSyncDiffs(?string $source = null): array
+    {
+        return \App\Support\SyncResolver::getDiffs($this, $source);
+    }
+
+    /**
+     * Get sync logs for this booking
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function syncLogs()
+    {
+        return $this->morphMany(\App\Models\SyncLog::class, 'model', 'model_type', 'model_id');
     }
 }
