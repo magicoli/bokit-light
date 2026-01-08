@@ -28,6 +28,7 @@ class SyncResolver
      * @param Model $model Model to update
      * @param array $newData New data from sync source
      * @param string $source Sync source identifier (e.g., 'airbnb_ical', 'beds24_api')
+     * @param array|null $metadata Optional metadata to store (raw, processed). If null, uses $newData for both
      * @param array $fieldMapping Optional mapping of sync fields to model attributes
      * @return array ['updated' => [...], 'diffs' => [...]]
      */
@@ -35,6 +36,7 @@ class SyncResolver
         Model $model,
         array $newData,
         string $source,
+        ?array $metadata = null,
         array $fieldMapping = []
     ): array {
         $updated = [];
@@ -91,13 +93,16 @@ class SyncResolver
             }
         }
 
-        // Update sync_data with new baseline
-        $syncData[$source] = [
-            'raw' => $newData, // Store raw data
-            'processed' => $newData, // Store processed data (same for now)
-            'synced_at' => now()->toIso8601String(),
-        ];
-        $model->sync_data = $syncData;
+        // Update sync_data with new baseline only if metadata provided
+        // (external sync). Internal edits don't update sync_data.
+        if ($metadata !== null) {
+            $syncData[$source] = [
+                'raw' => $metadata['raw'],
+                'processed' => $metadata['processed'],
+                'synced_at' => now()->toIso8601String(),
+            ];
+            $model->sync_data = $syncData;
+        }
 
         if (!empty($updated)) {
             $model->save();
@@ -110,13 +115,21 @@ class SyncResolver
     }
 
     /**
-     * Compare two values for equality (handles nulls and type juggling)
+     * Compare two values for equality (handles nulls, dates, and type juggling)
      */
     private static function valuesEqual($a, $b): bool
     {
         // Both null/empty
         if (empty($a) && empty($b)) {
             return true;
+        }
+
+        // Normalize dates to Y-m-d strings (without time) for comparison
+        if ($a instanceof \DateTime || $a instanceof \DateTimeInterface) {
+            $a = $a->format('Y-m-d');
+        }
+        if ($b instanceof \DateTime || $b instanceof \DateTimeInterface) {
+            $b = $b->format('Y-m-d');
         }
 
         // Type-safe comparison

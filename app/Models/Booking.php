@@ -518,14 +518,16 @@ class Booking extends Model
      * 
      * @param array $newData New data from sync source
      * @param string $source Sync source identifier (e.g., 'airbnb_ical', 'beds24_api')
+     * @param array|null $metadata Optional metadata to store (raw, processed)
      * @return array ['updated' => [...], 'diffs' => [...]]
      */
-    public function applySyncData(array $newData, string $source): array
+    public function applySyncData(array $newData, string $source, ?array $metadata = null): array
     {
         return \App\Support\SyncResolver::applySyncData(
             $this,
             $newData,
-            $source
+            $source,
+            $metadata
         );
     }
 
