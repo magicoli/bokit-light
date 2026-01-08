@@ -7,9 +7,10 @@ This is a long road. Make sure to always **process one step at a time**, to avoi
 The mission is to be functional  as soon as possible, with the minimum features required to achieve this goal. This includes:
 
 - [x] Calendar, in sync with Channel Manager (at least with iCal)
-- [ ] Sync should not override local modifications (three-way merge)
-    - [x] Three-way merge system: sync_data stores raw+processed per source, sync_logs tracks all changes, SyncResolver compares local/baseline/remote
-    - [ ] Integrate SyncResolver with existing iCal sync workflow
+- [x] Sync should not override local modifications (three-way merge)
+    - [x] Three-way merge system: sync_data stores raw+processed+checksum per source, sync_logs tracks all changes, SyncResolver compares local/baseline/remote
+    - [x] Checksum-based change detection: skip sync if source data unchanged (optimization)
+    - [x] Integrate SyncResolver with existing iCal sync workflow
     - [ ] Update styles to show first-level fields label on the left of the value with fixed size, instead of above, and the diff with sync after the value, keeping description and errors below
         - Only first source is considered to evaluate if there is a difference between local data and sync data
 - [ ] Sync Booking details (requires some API integration)
