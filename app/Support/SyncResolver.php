@@ -59,6 +59,13 @@ class SyncResolver
             $baselineValue = $lastSynced[$syncField] ?? null;
 
             // Three-way merge logic
+            // Special case: if baseline is null (first sync after migration),
+            // accept remote if current equals new (no actual local edit)
+            if ($baselineValue === null && self::valuesEqual($currentValue, $newValue)) {
+                // First sync and values match → no action needed
+                continue;
+            }
+
             if (self::valuesEqual($currentValue, $baselineValue)) {
                 // No local modification → accept remote
                 if (!self::valuesEqual($currentValue, $newValue)) {
@@ -99,6 +106,7 @@ class SyncResolver
             $syncData[$source] = [
                 'raw' => $metadata['raw'],
                 'processed' => $metadata['processed'],
+                'checksum' => $metadata['checksum'] ?? null,
                 'synced_at' => now()->toIso8601String(),
             ];
             $model->sync_data = $syncData;

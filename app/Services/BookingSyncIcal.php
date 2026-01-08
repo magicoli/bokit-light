@@ -291,16 +291,41 @@ class BookingSyncIcal
                 ->where("unit_id", $source->unit_id)
                 ->first();
 
-            // New booking data from sync
-            $newData = [
+            // PROCESSED: Map raw iCal data to model fields
+            // This is the single source of truth for what goes into the model
+            $processed = [
                 "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
-                "check_in" => $checkIn,
-                "check_out" => $checkOut,
+                "check_in" => $checkIn,  // Already Y-m-d format from parseIcalDate()
+                "check_out" => $checkOut,  // Already Y-m-d format from parseIcalDate()
                 "status" => $status,
                 "adults" => $adults,
                 "children" => $children,
                 "notes" => $parsed["notes"] ?: null,
             ];
+
+            // Calculate checksum of processed data to detect source changes
+            $newChecksum = $this->calculateChecksum($processed);
+
+            // Get existing booking
+            $booking = Booking::where("uid", $event["UID"])
+                ->where("unit_id", $source->unit_id)
+                ->first();
+
+            // Check if data has changed at source (compare checksums)
+            $hasSourceChanged = true;
+            if ($booking && isset($booking->sync_data[$sourceId])) {
+                $oldChecksum = $booking->sync_data[$sourceId]['checksum'] ?? null;
+                $hasSourceChanged = ($newChecksum !== $oldChecksum);
+            }
+
+            // Skip if nothing changed at source (optimization)
+            if ($booking && !$hasSourceChanged) {
+                $stats["total"]++;
+                continue;
+            }
+
+            // $newData is exactly what's in processed (same data, used for model update)
+            $newData = $processed;
 
             if (!$booking) {
                 // Create new booking with sync data
@@ -311,11 +336,12 @@ class BookingSyncIcal
                 ]);
                 $booking->fill($newData);
 
-                // Store raw and processed data in sync_data
+                // Store raw, processed, and checksum in sync_data
                 $booking->sync_data = [
                     $sourceId => [
                         "raw" => $event,
-                        "processed" => $parsed["metadata"],
+                        "processed" => $processed,
+                        "checksum" => $newChecksum,
                         "synced_at" => now()->toIso8601String(),
                     ],
                 ];
@@ -326,7 +352,8 @@ class BookingSyncIcal
                 // Use three-way merge to update existing booking
                 $result = $booking->applySyncData($newData, $sourceId, [
                     "raw" => $event,
-                    "processed" => $parsed["metadata"],
+                    "processed" => $processed,
+                    "checksum" => $newChecksum,
                 ]);
 
                 // Track stats based on what was updated
@@ -386,6 +413,25 @@ class BookingSyncIcal
         // When API sources are added, this method should check if this is the first/primary source
         // For example: return $source->is_primary || $source->id === $this->getPrimarySourceId($source->unit_id);
         return true;
+    }
+
+    /**
+     * Calculate checksum of processed data to detect source changes
+     * 
+     * @param array $data Processed data
+     * @param array $excludeFields Fields to exclude from checksum (whitelist of exclusions)
+     * @return string MD5 checksum
+     */
+    protected function calculateChecksum(array $data, array $excludeFields = []): string
+    {
+        // Remove excluded fields
+        $dataForChecksum = array_diff_key($data, array_flip($excludeFields));
+        
+        // Sort keys for deterministic result
+        ksort($dataForChecksum);
+        
+        // Convert to JSON and calculate MD5
+        return md5(json_encode($dataForChecksum, JSON_UNESCAPED_UNICODE));
     }
 
     /**
