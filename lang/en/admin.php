@@ -4,6 +4,8 @@ return [
     // App
     "dashboard" => "Dashboard",
     "admin_dashboard" => "Admin Dashboard",
+    "settings_resource" => ":resource Settings",
+    "add_resource" => "Add :resource",
     "settings" => "Settings",
     "general_settings" => "General Settings",
 

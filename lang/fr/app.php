@@ -40,6 +40,7 @@ return [
     "unit" => "Unité",
     "rental_units" => "Unités de location",
     "users" => "Utilisateurs",
+    "rates" => "Tarifs",
 
     // Units
     "website" => "Site web",

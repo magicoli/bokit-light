@@ -3,7 +3,7 @@
     @parent resource-list {{ $resource }}-list
 @endsection
 
-@section('title', __('admin.' . $resource))
+@section('title', __('app.' . $resource))
 
 @section('styles')
 @vite('resources/css/list.css')
