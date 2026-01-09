@@ -15,9 +15,11 @@ class User extends Authenticatable
     protected $fillable = [
         "name",
         "email",
+        "email_verified_at",
         "password",
-        "auth_provider",
-        "auth_provider_id",
+        "remember_token",
+        // "auth_provider",
+        // "auth_provider_id",
         "is_admin",
         "roles",
         "options",
@@ -27,6 +29,7 @@ class User extends Authenticatable
         "is_admin" => "boolean",
         "roles" => "array",
         "options" => "array",
+        "email_verified_at" => "datetime",
     ];
 
     protected $appends = ["actions"];
