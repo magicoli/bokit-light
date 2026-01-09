@@ -15,27 +15,6 @@
                     <a href="{{ route('about') }}" class="nav-link">
                         {{ __('app.about') }}
                     </a>
-
-                    @if(auth()->check())
-                        <!-- Calendar menu -->
-                        @if(user_can('property_manager'))
-                        <a href="{{ route('calendar') }}" class="nav-link badge-manage">
-                            {{ __('app.calendar') }}
-                        </a>
-                        @endif
-
-                        @if(user_can('super_admin'))
-                        <!-- Properties menu -->
-                        <a href="{{ route('properties') }}" class="nav-link badge-admin">
-                            {{ __('app.properties') }}
-                        </a>
-
-                        <!-- Rates menu -->
-                        <a href="{{ route('rates') }}" class="nav-link badge-admin">
-                            {{ __('rates.menu') }}
-                        </a>
-                        @endif
-                    @endif
                 </div>
 
                 <div class="nav-actions">
@@ -52,12 +31,35 @@
                         </svg>
                     </button>
                     @if(auth()->check())
-                        <!-- Admin menu (visible for users who can manage properties) -->
-                        {{-- @if(user_can('property_manager')) is the right call --}}
+                        <!-- Calendar menu -->
                         @if(user_can('property_manager'))
-                            <a href="{{ route('admin.dashboard') }}" class="nav-link badge-admin">
-                                {{ __('app.admin') }}
+                            <a href="{{ route('calendar') }}" class="nav-link badge-manage">
+                                {{ __('app.calendar') }}
                             </a>
+
+                        <!-- Admin menu (visible for users who can manage properties) -->
+                        <div class="dropdown"
+                             x-data="{ open: false }"
+                             @mouseenter="open = true"
+                             @mouseleave="open = false">
+                            <a href="{{ route('admin.dashboard') }}"
+                               class="dropdown-button nav-link badge-admin">
+                                <span>{{ __('app.admin') }}</span>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </a>
+                            <div x-show="open"
+                                 x-cloak
+                                 class="dropdown-menu">
+                                <a href="{{ route('properties') }}" class="dropdown-item">
+                                    {{ __('app.properties') }}
+                                </a>
+                                <a href="{{ route('rates') }}" class="dropdown-item">
+                                    {{ __('rates.menu') }}
+                                </a>
+                            </div>
+                        </div>
                         @endif
 
                         <!-- User menu -->
@@ -121,13 +123,11 @@
                     </a>
 
                     @if(auth()->check())
+                        @if(user_can('property_manager'))
                         <a href="{{ route('calendar') }}" class="nav-link">
                             {{ __('app.calendar') }}
                         </a>
-
-                        <a href="{{ route('properties') }}" class="nav-link">
-                            {{ __('app.properties') }}
-                        </a>
+                        @endif
                     @endif
                 </div>
 
@@ -151,7 +151,13 @@
                         <div class="menu-section">
                             <div class="menu-title">{{ __('app.admin') }}</div>
                             <a href="{{ route('admin.dashboard') }}" class="nav-link">
-                                {{ __('app.admin') }}
+                                {{ __('app.dashboard') }}
+                            </a>
+                            <a href="{{ route('properties') }}" class="nav-link">
+                                {{ __('app.properties') }}
+                            </a>
+                            <a href="{{ route('rates') }}" class="nav-link">
+                                {{ __('rates.menu') }}
                             </a>
                         </div>
                     @endif
