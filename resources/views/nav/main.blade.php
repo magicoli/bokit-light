@@ -18,17 +18,20 @@
 
                     @if(auth()->check())
                         <!-- Calendar menu -->
+                        @if(user_can('property_manager'))
                         <a href="{{ route('calendar') }}" class="nav-link badge-manage">
                             {{ __('app.calendar') }}
                         </a>
+                        @endif
 
+                        @if(user_can('super_admin'))
                         <!-- Properties menu -->
-                        <a href="{{ route('properties') }}" class="nav-link badge-manage">
+                        <a href="{{ route('properties') }}" class="nav-link badge-admin">
                             {{ __('app.properties') }}
                         </a>
-                        @if(user_can('super_admin'))
-                        {{-- @if(user_can('property_manager')) is the right call --}}
-                        <a href="{{ route('rates') }}" class="nav-link badge-manage">
+
+                        <!-- Rates menu -->
+                        <a href="{{ route('rates') }}" class="nav-link badge-admin">
                             {{ __('rates.menu') }}
                         </a>
                         @endif
@@ -58,15 +61,17 @@
                         @endif
 
                         <!-- User menu -->
-                        <div class="dropdown" x-data="{ open: false }">
-                            <button @click="open = !open"
-                                    @click.away="open = false"
-                                    class="dropdown-button">
+                        <div class="dropdown"
+                             x-data="{ open: false }"
+                             @mouseenter="open = true"
+                             @mouseleave="open = false">
+                            <a href="{{ route('dashboard') }}"
+                               class="dropdown-button">
                                 <span>{{ auth()->user()->name }}</span>
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
-                            </button>
+                            </a>
                             <div x-show="open"
                                  x-cloak
                                  class="dropdown-menu">

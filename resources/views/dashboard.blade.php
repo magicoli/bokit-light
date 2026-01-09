@@ -6,11 +6,11 @@
 @section('content')
 <div class="quicklinks buttons flex flex-wrap justify-center gap-4">
     @if(user_can('property_manager'))
-        <a class="button" href="{{ route('calendar') }}">{{ __('app.calendar') }}</a>
-        <a class="button" href="{{ route('admin.properties.list') }}">{{ __('app.properties') }}</a>
+        <a class="button badge-manage" href="{{ route('calendar') }}">{{ __('app.calendar') }}</a>
+        <a class="button badge-manage" href="{{ route('admin.properties.list') }}">{{ __('app.properties') }}</a>
     @endif
     @if(auth()->user()->isAdmin())
-        <a class="button" href="{{ route('admin.dashboard') }}">{{ __('app.admin') }}</a>
+        <a class="button badge-admin" href="{{ route('admin.dashboard') }}">{{ __('app.admin') }}</a>
     @endif
     <a class="button" href="{{ route('user.settings') }}">{{ __('app.account') }}</a>
 </div>
