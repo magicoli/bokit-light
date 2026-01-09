@@ -1,0 +1,33 @@
+/**
+ * GRID-BASED SEMANTIC LAYOUT
+ * Uses grid-template-areas for clean, accessible structure
+ *
+ * PREFER TAILWIND UTILITY CLASSES WHENEVER POSSIBLE
+ *
+ * Breakpoints:
+ * sm = 640px  | md = 768px | lg = 1024px | xl = 1280px | 2xl = 1536px
+**/
+
+@import "tailwindcss";
+@import "./_theme.css";
+
+@layer utilities {
+    /* ... */
+}
+
+body.login-page {
+    main > header,
+    nav .nav-login {
+        @apply hidden;
+    }
+    #page-layout {
+        > #main-area {
+            grid-template: "main" !important;
+            @apply bg-transparent;
+            > main,
+            #main-content {
+                @apply bg-white rounded-lg max-w-md w-full p-4 mx-auto my-auto space-y-4;
+            }
+        }
+    }
+}
