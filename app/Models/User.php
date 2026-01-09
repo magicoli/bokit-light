@@ -30,6 +30,7 @@ class User extends Authenticatable
         "roles" => "array",
         "options" => "array",
         "email_verified_at" => "datetime",
+        "password" => \App\Casts\Password::class,
     ];
 
     protected $appends = ["actions"];

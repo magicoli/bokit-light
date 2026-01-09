@@ -280,6 +280,11 @@ class Form
 
         // Type-specific conversions for HTML forms
         switch ($field["type"]) {
+            case "password":
+                // Always empty password fields - never show hash
+                $field["value"] = "";
+                break;
+
             case "boolean":
             case "bool":
                 $field["type"] = "checkbox";
