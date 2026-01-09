@@ -156,8 +156,34 @@ class BookingSyncIcal
      * @param string $description Raw iCal DESCRIPTION field
      * @return array ['metadata' => [...], 'notes' => '...']
      */
-    public static function parse(string $description): array
+    /**
+     * Parse iCal event to extract all booking data
+     *
+     * This method handles all iCal-specific parsing and returns a standardized
+     * $processed array ready for database storage. It's the single source of truth
+     * for how iCal data maps to Booking model fields.
+     *
+     * @param array $event iCal event with SUMMARY, DTSTART, DTEND, DESCRIPTION, etc.
+     * @param object $source IcalSource model instance
+     * @return array Standardized $processed array ready for storage
+     */
+    public static function parse(array $event, object $source): array
     {
+        // Parse dates from iCal format
+        $instance = new self();
+        $checkIn = $instance->parseIcalDate($event["DTSTART"]);
+        $checkOut = $instance->parseIcalDate($event["DTEND"]);
+
+        if (!$checkIn || !$checkOut) {
+            throw new \InvalidArgumentException("Invalid dates in iCal event");
+        }
+
+        // Decode and parse DESCRIPTION field
+        $description = $instance->decodeIcalText($event["DESCRIPTION"] ?? "");
+        $summary = $instance->decodeIcalText(
+            $event["SUMMARY"] ?? "Unknown Guest",
+        );
+
         $metadata = [];
         $remainingLines = [];
 
@@ -183,7 +209,7 @@ class BookingSyncIcal
                     switch ($key) {
                         case "status":
                             $parts = explode("/", $value);
-                            $metadata["status"] = $parts[0] ?? null;
+                            $metadata["status"] = strtolower($parts[0] ?? null);
                             $metadata["group_id"] = $parts[1] ?? null;
                             break;
 
@@ -191,8 +217,8 @@ class BookingSyncIcal
                             // Split guests/adult/child
                             $parts = explode("/", $value);
                             $metadata["guests"] = (int) $parts[0];
-                            $metadata["adults"] = (int) $parts[1] ?? null;
-                            $metadata["children"] = (int) $parts[2] ?? null;
+                            $metadata["adults"] = (int) ($parts[1] ?? 0);
+                            $metadata["children"] = (int) ($parts[2] ?? 0);
                             break;
 
                         case "adult":
@@ -216,7 +242,7 @@ class BookingSyncIcal
                             break;
 
                         case "mobile":
-                            $metadata[$key] = $value;
+                            $metadata["mobile"] = $value;
                             break;
 
                         case "email":
@@ -230,7 +256,7 @@ class BookingSyncIcal
                             break;
 
                         case "comments":
-                            $metadata["guest_comments"] = $value;
+                            $metadata["ota_comments"] = $value;
                             break;
 
                         case "notes":
@@ -247,64 +273,119 @@ class BookingSyncIcal
                             }
                             break;
 
-                        case "time":
-                            $metadata["time"] = $value;
-                            break;
-
                         default:
                             // Store any other KEY: value pairs
                             $metadata[$key] = $value;
                     }
                 }
-
-                /*
-                // TODO: properly normalize phone numbers, see if Laravel-Phone package allow this
-                // https://github.com/Propaganistas/Laravel-Phone
-                $phone = new PhoneNumber('012/34.56.78', 'BE');
-                $phone->format($format);       // See libphonenumber\PhoneNumberFormat
-                $phone->formatE164();          // +3212345678
-                $phone->formatInternational(); // +32 12 34 56 78
-                $phone->formatRFC3966();       // tel:+32-12-34-56-78
-                $phone->formatNational();      // 012 34 56 78
-                */
-                // For now, assume if it contains only numbers and doesn't start with a zero, it's
-                // missing the plus sign
-                $metadata["phone"] = preg_replace(
-                    '/^([1-9][0-9]+)$/',
-                    '+$1',
-                    $metadata["phone"] ?? "",
-                );
-                $metadata["mobile"] = preg_replace(
-                    '/^([1-9][0-9]+)$/',
-                    '+$1',
-                    $metadata["mobile"] ?? "",
-                );
             } else {
-                // Not a "KEY: value" line, keep it as notes
+                // Not a "KEY: value" line, keep it
                 $remainingLines[] = $line;
             }
         }
 
-        // Separate data into model fields vs additional metadata
-        // Fields that have corresponding columns in bookings table
-        $modelFields = ['status', 'group_id', 'guests', 'adults', 'children', 'notes'];
-        
-        $fields = [];
-        $additionalMetadata = [];
-        
+        /*
+        // KEEP THIS NOTE until properly implemented.
+        // Current method of adding + is only a workaround, it is not proper phone normalization
+        //
+        // TODO: properly normalize phone numbers, see if Laravel-Phone package allow this
+        // https://github.com/Propaganistas/Laravel-Phone
+        $phone = new PhoneNumber('012/34.56.78', 'BE');
+        $phone->format($format);       // See libphonenumber\PhoneNumberFormat
+        $phone->formatE164();          // +3212345678
+        $phone->formatInternational(); // +32 12 34 56 78
+        $phone->formatRFC3966();       // tel:+32-12-34-56-78
+        $phone->formatNational();      // 012 34 56 78
+        */
+        // For now, assume if it contains only numbers and doesn't start with a zero, it's
+        // missing the plus sign.
+        if (isset($metadata["phone"])) {
+            $metadata["phone"] = preg_replace(
+                '/^([1-9][0-9]+)$/',
+                '+$1',
+                $metadata["phone"],
+            );
+        }
+        if (isset($metadata["mobile"])) {
+            $metadata["mobile"] = preg_replace(
+                '/^([1-9][0-9]+)$/',
+                '+$1',
+                $metadata["mobile"],
+            );
+        }
+
+        // Add remaining lines to description
+        if (!empty($remainingLines)) {
+            $metadata["ota_comments"] = implode("\n", $remainingLines);
+        }
+
+        // Handle special statuses based on SUMMARY
+        $status = strtolower($metadata["status"] ?? "");
+        if (empty($status)) {
+            switch ($summary) {
+                case "Unavailable":
+                case "Airbnb (Not available)":
+                    $status = "unavailable";
+                    $summary = __("Unavailable");
+                    break;
+                case "Reserved":
+                    $status = "confirmed";
+                    $summary = __("Reserved (Airbnb)");
+                    break;
+                default:
+                    $status = "undefined";
+            }
+            $metadata["status"] = $status;
+        }
+
+        // Prepend status to summary for cancelled/deleted bookings
+        switch ($status) {
+            case "cancelled":
+            case "cancelled_by_owner":
+            case "cancelled_by_guest":
+            case "deleted":
+            case "vanished":
+                if (!preg_match("/{$status}/", $summary)) {
+                    $summary = "[{$status}] {$summary}";
+                }
+                break;
+        }
+
+        // Get fillable fields from Booking model (exclude system fields)
+        $bookingModel = new \App\Models\Booking();
+        $fillable = $bookingModel->getFillable();
+        $systemFields = [
+            "id",
+            "slug",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+            "sync_data",
+        ];
+        $modelFields = array_diff($fillable, $systemFields);
+
+        // Build $processed array
+        $processed = [];
+
+        // Add standard iCal fields
+        $processed["guest_name"] = $summary;
+        $processed["check_in"] = $checkIn; // Y-m-d format
+        $processed["check_out"] = $checkOut; // Y-m-d format
+        $processed["uid"] = $event["UID"];
+        $processed["unit_id"] = $source->unit_id;
+        $processed["source_name"] = $source->name ?? "undefined";
+
+        // Separate metadata into model fields vs additional metadata
+        $processed["metadata"] = [];
         foreach ($metadata as $key => $value) {
             if (in_array($key, $modelFields)) {
-                $fields[$key] = $value;
+                $processed[$key] = $value;
             } else {
-                $additionalMetadata[$key] = $value;
+                $processed["metadata"][$key] = $value;
             }
         }
 
-        return [
-            "fields" => $fields,
-            "metadata" => $additionalMetadata,
-            "notes" => implode("\n", $remainingLines),
-        ];
+        return $processed;
     }
 
     /**
@@ -397,64 +478,17 @@ class BookingSyncIcal
 
             $feedUids[] = $event["UID"];
 
-            // Skip "Unavailable" bookings
-            $summary = trim($event["SUMMARY"] ?? "");
-
-            // Parse dates
-            $checkIn = $this->parseIcalDate($event["DTSTART"]);
-            $checkOut = $this->parseIcalDate($event["DTEND"]);
-
-            if (!$checkIn || !$checkOut) {
+            // Parse event to get standardized $processed array
+            // This is format-specific (iCal) and handles all data mapping
+            try {
+                $processed = self::parse($event, $source);
+            } catch (\InvalidArgumentException $e) {
+                // Skip events with invalid dates
                 continue;
             }
 
-            // Decode and parse metadata from DESCRIPTION field
-            $description = $this->decodeIcalText($event["DESCRIPTION"] ?? "");
-            $parsed = self::parse($description);
-
-            // Extract parsed data
-            $fields = $parsed["fields"];  // Data for model columns
-            $metadata = $parsed["metadata"];  // Additional metadata (email, phone, etc.)
-            $notesText = $parsed["notes"];  // Free text
-
-            // Set special statuses
-            $status = strtolower($fields["status"] ?? "");
-            if (empty($status)) {
-                switch ($summary) {
-                    case "Unavailable":
-                    case "Airbnb (Not available)":
-                        $status = "unavailable";
-                        $summary = __("Unavailable");
-                        break;
-                    case "Reserved":
-                        $status = "confirmed";
-                        $summary = __("Reserved (Airbnb)");
-                        break;
-                    default:
-                        $status = "undefined";
-                }
-                $fields["status"] = $status;
-                $event["SUMMARY"] = $summary;
-            }
-            switch ($status) {
-                case "cancelled":
-                case "cancelled_by_owner":
-                case "cancelled_by_guest":
-                case "deleted":
-                case "vanished":
-                    if (!preg_match($status, $summary)) {
-                        $summary = "[{$status}] {$summary}";
-                    }
-                    $event["SUMMARY"] = $summary;
-                    break;
-            }
-
-            // Extract fields that exist in Booking model
-            $guests = $fields["guests"] ?? null;
-            $adults = $fields["adults"] ?? null;
-            $children = $fields["children"] ?? null;
-            $groupId = $fields["group_id"] ?? null;
-            $notes = $fields["notes"] ?? $notesText ?: null;
+            // Extract for convenience
+            $status = $processed["status"] ?? "undefined";
 
             // Track deleted bookings (cancelled/deleted status)
             $isDeleted = in_array($status, [
@@ -469,21 +503,6 @@ class BookingSyncIcal
                 ->where("unit_id", $source->unit_id)
                 ->first();
 
-            // PROCESSED: Map raw iCal data to model fields
-            // This is the single source of truth for what goes into the model
-            $processed = [
-                "guest_name" => $event["SUMMARY"] ?? "Unknown Guest",
-                "check_in" => $checkIn,  // Already Y-m-d format from parseIcalDate()
-                "check_out" => $checkOut,  // Already Y-m-d format from parseIcalDate()
-                "status" => $status,
-                "guests" => $guests,
-                "adults" => $adults,
-                "children" => $children,
-                "group_id" => $groupId,
-                "notes" => $notes,
-                "metadata" => $metadata,  // Additional metadata (email, phone, api_source, etc.)
-            ];
-
             // Calculate checksum of processed data to detect source changes
             $newChecksum = $this->calculateChecksum($processed);
 
@@ -492,7 +511,7 @@ class BookingSyncIcal
             if ($booking && isset($booking->sync_data[$sourceId])) {
                 $oldChecksum =
                     $booking->sync_data[$sourceId]["checksum"] ?? null;
-                $hasSourceChanged = $newChecksum !== $oldChecksum;
+                // $hasSourceChanged = $newChecksum !== $oldChecksum;
             }
 
             // Skip if nothing changed at source (optimization)

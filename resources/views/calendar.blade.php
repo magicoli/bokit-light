@@ -298,10 +298,10 @@ use App\Traits\TimezoneTrait;
                         </div>
 
                         <!-- Guests / Adults / Children -->
-                        <div x-show="selectedBooking.raw_data?.guests || selectedBooking.adults || selectedBooking.children" class="detail-section">
-                            <div x-show="selectedBooking.raw_data?.guests" class="detail-line">
+                        <div x-show="selectedBooking.metadata?.guests || selectedBooking.adults || selectedBooking.children" class="detail-section">
+                            <div x-show="selectedBooking.metadata?.guests" class="detail-line">
                                 <span class="label">Guests:</span>
-                                <span class="value" x-text="selectedBooking.raw_data?.guests"></span>
+                                <span class="value" x-text="selectedBooking.metadata?.guests"></span>
                             </div>
                             <div x-show="selectedBooking.adults" class="detail-line">
                                 <span class="label">Adults:</span>
@@ -315,38 +315,45 @@ use App\Traits\TimezoneTrait;
 
                         <!-- Phone / Mobile / Country / Arrival time -->
                         <div class="detail-section">
-                            <div x-show="selectedBooking.raw_data?.phone" class="detail-line">
+                            <div x-show="selectedBooking.metadata?.phone" class="detail-line">
                                 <span class="label">Phone:</span>
-                                <a :href="'tel:' + selectedBooking.raw_data?.phone" class="link" x-text="selectedBooking.raw_data?.phone"></a>
+                                <a :href="'tel:' + selectedBooking.metadata?.phone" class="link" x-text="selectedBooking.metadata?.phone"></a>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.mobile" class="detail-line">
+                            <div x-show="selectedBooking.metadata?.mobile" class="detail-line">
                                 <span class="label">Mobile:</span>
-                                <a :href="'tel:' + selectedBooking.raw_data?.mobile" class="link" x-text="selectedBooking.raw_data?.mobile"></a>
+                                <a :href="'tel:' + selectedBooking.metadata?.mobile" class="link" x-text="selectedBooking.metadata?.mobile"></a>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.email" class="detail-line">
+                            <div x-show="selectedBooking.metadata?.email" class="detail-line">
                                 <span class="label">Email:</span>
-                                <a :href="'mailto:' + selectedBooking.raw_data?.email" class="link" x-text="selectedBooking.raw_data?.email"></a>
+                                <a :href="'mailto:' + selectedBooking.metadata?.email" class="link" x-text="selectedBooking.metadata?.email"></a>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.country" class="detail-line">
+                            <div x-show="selectedBooking.metadata?.country" class="detail-line">
                                 <span class="label">Country:</span>
-                                <span class="value" x-text="selectedBooking.raw_data?.country"></span>
+                                <span class="value" x-text="selectedBooking.metadata?.country"></span>
                             </div>
-                            <div x-show="selectedBooking.raw_data?.arrival_time" class="detail-line">
+                            <div x-show="selectedBooking.metadata?.arrival_time" class="detail-line">
                                 <span class="label">Arrival time:</span>
-                                <span class="value" x-text="selectedBooking.raw_data?.arrival_time"></span>
+                                <span class="value" x-text="selectedBooking.metadata?.arrival_time"></span>
                             </div>
                         </div>
 
-                        <!-- Guest Comments -->
-                        <div x-show="selectedBooking.raw_data?.guest_comments" class="comments-section">
-                            <label>Guest comments:</label>
-                            <div class="comments-text" x-text="selectedBooking.raw_data?.guest_comments"></div>
-                        </div>
-
-                        <!-- Notes (unprocessed data) -->
+                        <!-- Notes -->
                         <div x-show="selectedBooking.notes" class="comments-section">
                             <label>Notes:</label>
                             <div class="comments-text" x-text="selectedBooking.notes"></div>
+                        </div>
+
+                        <!-- Guest Comments -->
+                        <div x-show="selectedBooking.metadata?.ota_comments" class="comments-section">
+                            <label>{{ __('booking.field.comments') }}</label>
+                            <div class="comments-text" x-text="selectedBooking.metadata?.ota_comments"></div>
+                        </div>
+
+
+                        <!-- Description (unprocessed data) -->
+                        <div x-show="selectedBooking.metadata?.description" class="comments-section">
+                            <label>Description:</label>
+                            <div class="comments-text" x-text="selectedBooking.metadata?.description"></div>
                         </div>
                     </div>
                     <div class="modal-footer card-footer">
@@ -354,8 +361,8 @@ use App\Traits\TimezoneTrait;
                             <span class="label">{{ __('Source:') }}</span>
                             <span class="value" x-text="selectedBooking.source_name"></span>
                             <span class="value">
-                                <span x-text="selectedBooking.raw_data?.api_source"></span>
-                                <span x-show="selectedBooking.raw_data?.api_ref" x-text="' ' + selectedBooking.raw_data?.api_ref"></span>
+                                <span x-text="selectedBooking.metadata?.api_source"></span>
+                                <span x-show="selectedBooking.metadata?.api_ref" x-text="' ' + selectedBooking.metadata?.api_ref"></span>
                             </span>
                         </div>
                         {{-- <div class="actions action-links">
