@@ -139,9 +139,20 @@ class AdminResourceController extends Controller
 
         $model = new $modelClass();
 
+        // Get model configuration
+        $config = $modelClass::getConfig();
+
+        // Create form with model's edit fields configuration
+        $form = new Form(
+            $model,
+            fn() => $config["editFields"] ?? [],
+            route("admin.{$resource}.store"),
+        );
+
         return view("admin.resource.create", [
             "resource" => $resource,
             "model" => $model,
+            "formContent" => $form->render(),
         ]);
     }
 
