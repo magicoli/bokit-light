@@ -173,12 +173,6 @@ nav {
         @apply w-full text-left block px-4 py-2 text-sm text-dark;
     }
 
-    .badge-admin,
-    .badge-manage {
-        /*@apply px-2 py-1 rounded;*/
-        @apply bg-blue-100 text-blue-900 hover:opacity-75;
-    }
-
     .nav-login {
         @apply text-sm text-primary hover:text-blue-800 font-medium;
     }
@@ -226,7 +220,7 @@ nav {
 
 .role-admin,
 .role-super_admin {
-    nav .badge-admin {
+    .badge-admin {
         @apply bg-red-100 text-red-800;
     }
 }
@@ -354,6 +348,12 @@ footer {
 
 .button {
     @apply px-4 py-2 rounded-md bg-light text-white hover:opacity-75 transition-colors duration-200 border border-secondary;
+}
+
+.badge-admin,
+.badge-manage {
+    /*@apply px-2 py-1 rounded;*/
+    @apply bg-blue-100 text-blue-900 hover:opacity-75;
 }
 
 /*.quicklinks.buttons {
