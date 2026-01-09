@@ -1,6 +1,6 @@
 {
   "resources/css/admin.css": {
-    "file": "assets/admin-cJnEezoa.css",
+    "file": "assets/admin-6hgEqwri.css",
     "src": "resources/css/admin.css",
     "isEntry": true,
     "name": "admin",
@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BezjPCoL.css",
+    "file": "assets/app-DalPvf6X.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -18,7 +18,7 @@
     ]
   },
   "resources/css/calendar.css": {
-    "file": "assets/calendar-B5yVv4ra.css",
+    "file": "assets/calendar-HAZC-PS0.css",
     "src": "resources/css/calendar.css",
     "isEntry": true,
     "name": "calendar",
@@ -27,7 +27,7 @@
     ]
   },
   "resources/css/flatpickr.css": {
-    "file": "assets/units-BTfXBZd5.css",
+    "file": "assets/units-CeQoeN5W.css",
     "src": "resources/css/units.css",
     "isEntry": true,
     "name": "flatpickr",
@@ -37,7 +37,7 @@
     ]
   },
   "resources/css/form.css": {
-    "file": "assets/form-CGny5V1y.css",
+    "file": "assets/form-Bx41CWNt.css",
     "src": "resources/css/form.css",
     "isEntry": true,
     "name": "form",
@@ -46,7 +46,7 @@
     ]
   },
   "resources/css/layout-flex.css": {
-    "file": "assets/layout-flex-pt-oatV0.css",
+    "file": "assets/layout-flex-C-Y3gYOm.css",
     "src": "resources/css/layout-flex.css",
     "isEntry": true,
     "name": "layout-flex",
@@ -55,7 +55,7 @@
     ]
   },
   "resources/css/layout-grid.css": {
-    "file": "assets/layout-grid-DIOr4A-l.css",
+    "file": "assets/layout-grid-CA--AX4H.css",
     "src": "resources/css/layout-grid.css",
     "isEntry": true,
     "name": "layout-grid",
@@ -64,7 +64,7 @@
     ]
   },
   "resources/css/list.css": {
-    "file": "assets/list-6L74sWJ6.css",
+    "file": "assets/list-BO09oCnj.css",
     "src": "resources/css/list.css",
     "isEntry": true,
     "name": "list",
@@ -72,8 +72,17 @@
       "list.css"
     ]
   },
+  "resources/css/login.css": {
+    "file": "assets/login-6zuhh7IH.css",
+    "src": "resources/css/login.css",
+    "isEntry": true,
+    "name": "login",
+    "names": [
+      "login.css"
+    ]
+  },
   "resources/css/markdown.css": {
-    "file": "assets/markdown-DgjgkQLj.css",
+    "file": "assets/markdown-D9xZa4AZ.css",
     "src": "resources/css/markdown.css",
     "isEntry": true,
     "name": "markdown",
@@ -82,7 +91,7 @@
     ]
   },
   "resources/css/properties.css": {
-    "file": "assets/properties-DSvTbHVV.css",
+    "file": "assets/properties-B-ILW4o7.css",
     "src": "resources/css/properties.css",
     "isEntry": true,
     "name": "properties",
@@ -91,7 +100,7 @@
     ]
   },
   "resources/css/rates-widget.css": {
-    "file": "assets/rates-widget-BTb_UiEc.css",
+    "file": "assets/rates-widget-CNcnMpRW.css",
     "src": "resources/css/rates-widget.css",
     "isEntry": true,
     "name": "rates-widget",
@@ -100,7 +109,7 @@
     ]
   },
   "resources/css/rates.css": {
-    "file": "assets/rates-S43HL3_U.css",
+    "file": "assets/rates-Bdeoli85.css",
     "src": "resources/css/rates.css",
     "isEntry": true,
     "name": "rates",
@@ -109,7 +118,7 @@
     ]
   },
   "resources/css/units.css": {
-    "file": "assets/units-BTfXBZd5.css",
+    "file": "assets/units-CeQoeN5W.css",
     "src": "resources/css/units.css",
     "isEntry": true,
     "name": "flatpickr",

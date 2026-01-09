@@ -1,91 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - {{ config('app.name') }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-light min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        {!! appBrandingHtml() !!}
+@extends('layouts.app')
+@section('body-class', 'login login-page')
 
-        @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {{ session('error') }}
-            </div>
-        @endif
+@section('title', __('app.login'))
 
-        @if($errors->any())
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <ul>
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+@section('styles')
+@vite('resources/css/login.css')
+@endsection
 
-        <form method="POST" action="/login">
-            @csrf
-            <div class="mb-4">
-                <label class="block text-dark text-sm font-bold mb-2" for="username">
-                    Username or Email
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-dark leading-tight focus:outline-none focus:shadow-outline"
-                    id="username"
-                    name="username"
-                    type="text"
-                    placeholder="Enter username or email"
-                    required
-                    autofocus
-                >
-            </div>
-            <div class="mb-6">
-                <label class="block text-dark text-sm font-bold mb-2" for="password">
-                    Password
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-dark leading-tight focus:outline-none focus:shadow-outline"
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                >
-            </div>
-            <div class="mb-6">
-                <label class="flex items-center">
-                    <input
-                        type="checkbox"
-                        name="remember"
-                        class="mr-2 leading-tight"
-                    >
-                    <span class="text-sm text-dark">
-                        {{ __('app.remember_me') }}
-                    </span>
-                </label>
-            </div>
-            <div class="flex items-center justify-between">
-                <button
-                    class="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-                    type="submit"
-                >
-                    Sign In
-                </button>
-            </div>
-        </form>
+@section('content')
+{!! appBrandingHtml() !!}
 
-        @if(isset($authMessage) || isset($authDetails))
-        <div class="mt-4 text-center text-sm text-secondary">
-            @if(isset($authMessage))
-                <p>{{ $authMessage }}</p>
-            @endif
-            @if(isset($authDetails))
-                <p class="text-xs text-secondary mt-1">{{ $authDetails }}</p>
-            @endif
-        </div>
-        @endif
+@if($errors->any())
+        <ul class="notices">
+            @foreach($errors->all() as $error)
+                <li class="notice notice-error">{{ $error }}</li>
+            @endforeach
+        </ul>
+@endif
+
+<form class="space-y-4" method="POST" action="/login">
+    @csrf
+    <fieldset>
+        <label class="block text-dark text-sm font-bold mb-2" for="username">
+            {{ __('app.username_or_email') }}
+        </label>
+        <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-dark leading-tight focus:outline-none focus:shadow-outline"
+            id="username"
+            name="username"
+            type="text"
+            required
+            autofocus
+        >
+    </fieldset>
+    <fieldset>
+        <label class="block text-dark text-sm font-bold mb-2" for="password">
+            {{ __('app.password') }}
+        </label>
+        <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-dark leading-tight focus:outline-none focus:shadow-outline"
+            id="password"
+            name="password"
+            type="password"
+            required
+        >
+    </fieldset>
+    <fieldset>
+        <label class="flex items-center">
+            <input
+                type="checkbox"
+                name="remember"
+                class="mr-2 leading-tight"
+                checked
+            >
+            <span class="text-sm text-dark">
+                {{ __('app.remember_me') }}
+            </span>
+        </label>
+    </fieldset>
+    <div class="buttons items-right text-right">
+        <button class="button-primary bg-primary text-black button submit-button" type="submit">
+            {{ __('app.sign_in') }}
+        </button>
     </div>
-</body>
-</html>
+</form>
+
+@if(isset($authMessage) || isset($authDetails))
+<div class="mt-4 text-center text-sm text-secondary">
+    @if(isset($authMessage))
+        <p>{{ $authMessage }}</p>
+    @endif
+    @if(isset($authDetails))
+        <p class="text-xs text-secondary mt-1">{{ $authDetails }}</p>
+    @endif
+</div>
+@endif
+@endsection

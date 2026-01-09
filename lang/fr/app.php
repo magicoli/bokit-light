@@ -14,6 +14,11 @@ return [
     "user_account" => "Compte",
     "language" => "Langue",
 
+    // Login page
+    "username_or_email" => "Nom d'utilisateur ou adresse e-mail",
+    "password" => "Mot de passe",
+    "sign_in" => "Se connecter",
+
     // Calendar
     "calendar" => "Calendrier",
     "booking" => "Réservation",
