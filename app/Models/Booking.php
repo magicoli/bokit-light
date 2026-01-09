@@ -118,8 +118,8 @@ class Booking extends Model
      * Priority:
      * 1. Use guests column if set
      * 2. Calculate from adults + children if available
-     * 3. Use raw_data[guests] if available
-     * 4. Calculate from raw_data[adults] + raw_data[children]
+     * 3. Use metadata[guests] if available
+     * 4. Calculate from metadata[adults] + metadata[children]
      */
     protected function guests(): Attribute
     {
@@ -128,7 +128,7 @@ class Booking extends Model
                 // Priority 1: return as it is if set
                 $guests =
                     $this->attributes["guests"] ??
-                    ($this->raw_data["guests"] ?? null);
+                    ($this->metadata["guests"] ?? null);
                 if ($guests) {
                     return $guests;
                 }
@@ -142,17 +142,17 @@ class Booking extends Model
                         ($this->attributes["children"] ?? 0);
                 }
 
-                // Priority 3: raw_data[guests]
+                // Priority 3: metadata[guests]
                 if (
-                    isset($this->raw_data["guests"]) &&
-                    $this->raw_data["guests"] !== null
+                    isset($this->metadata["guests"]) &&
+                    $this->metadata["guests"] !== null
                 ) {
-                    return $this->raw_data["guests"];
+                    return $this->metadata["guests"];
                 }
 
-                // Priority 4: raw_data[adults] + raw_data[children]
-                return ($this->raw_data["adults"] ?? 0) +
-                    ($this->raw_data["children"] ?? 0);
+                // Priority 4: metadata[adults] + metadata[children]
+                return ($this->metadata["adults"] ?? 0) +
+                    ($this->metadata["children"] ?? 0);
             },
         );
     }
@@ -162,7 +162,7 @@ class Booking extends Model
         return Attribute::make(
             get: function () {
                 return $this->attributes["adults"] ??
-                    ($this->raw_data["adults"] ?? null);
+                    ($this->metadata["adults"] ?? null);
             },
         );
     }
@@ -172,7 +172,7 @@ class Booking extends Model
         return Attribute::make(
             get: function () {
                 return $this->attributes["children"] ??
-                    ($this->raw_data["children"] ?? null);
+                    ($this->metadata["children"] ?? null);
             },
         );
     }
@@ -239,7 +239,7 @@ class Booking extends Model
                 ->where("check_out", $checkOut)
                 ->where(function ($query) use ($guestEmail) {
                     $query
-                        ->whereJsonContains("raw_data->email", $guestEmail)
+                        ->whereJsonContains("metadata->email", $guestEmail)
                         ->orWhere("notes", "like", "%" . $guestEmail . "%");
                 })
                 ->first();
@@ -292,7 +292,7 @@ class Booking extends Model
                 $sourceId,
                 $sourceEventId,
                 $propertyId,
-                $values["raw_data"]["email"] ?? null,
+                $values["metadata"]["email"] ?? null,
                 $values["check_in"] ?? null,
                 $values["check_out"] ?? null,
                 $values["unit_id"] ?? null,
@@ -397,7 +397,7 @@ class Booking extends Model
      */
     public function getMetadata(string $key, $default = null)
     {
-        return $this->raw_data[$key] ?? $default;
+        return $this->metadata[$key] ?? $default;
     }
 
     /**

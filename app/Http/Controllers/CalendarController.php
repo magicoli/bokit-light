@@ -132,7 +132,7 @@ class CalendarController extends Controller
             "adults" => $booking->adults,
             "children" => $booking->children,
             "notes" => $booking->notes,
-            "raw_data" => $booking->raw_data,
+            "metadata" => $booking->metadata,
             "source_name" => $booking->source_name,
             "unit" => [
                 "id" => $booking->unit->id,
