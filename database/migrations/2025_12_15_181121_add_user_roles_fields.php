@@ -15,14 +15,25 @@ return new class extends Migration
             }
             
             // Ajouter le champ roles pour la gestion fine des permissions
-            $table->json('roles')->nullable()->after('is_admin');
+            if (!Schema::hasColumn('users', 'roles')) {
+                $table->json('roles')->nullable()->after('is_admin');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['is_admin', 'roles']);
+            $columns = [];
+            if (Schema::hasColumn('users', 'is_admin')) {
+                $columns[] = 'is_admin';
+            }
+            if (Schema::hasColumn('users', 'roles')) {
+                $columns[] = 'roles';
+            }
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };

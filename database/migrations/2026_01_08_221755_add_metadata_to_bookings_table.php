@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->json('metadata')->nullable()->after('sync_data');
+            if (!Schema::hasColumn('bookings', 'metadata')) {
+                $table->json('metadata')->nullable()->after('sync_data');
+            }
         });
     }
 

@@ -12,15 +12,18 @@ return new class extends Migration {
     {
         // Step 1: Add property_id to bookings table (useful for direct queries)
         Schema::table("bookings", function (Blueprint $table) {
-            $table
-                ->unsignedBigInteger("property_id")
-                ->nullable()
-                ->after("unit_id");
-            $table->index(["property_id"]);
+            if (!Schema::hasColumn('bookings', 'property_id')) {
+                $table
+                    ->unsignedBigInteger("property_id")
+                    ->nullable()
+                    ->after("unit_id");
+                $table->index(["property_id"]);
+            }
         });
 
         // Step 2: Create source_events table for mapping multiple sources to bookings
-        Schema::create("source_events", function (Blueprint $table) {
+        if (!Schema::hasTable("source_events")) {
+            Schema::create("source_events", function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger("booking_id");
             $table->string("source_type", 20); // ical, api, manual, etc.
@@ -49,6 +52,7 @@ return new class extends Migration {
             $table->index(["source_type", "source_id"]);
             $table->index(["property_id", "source_type"]);
         });
+        }
     }
 
     /**
