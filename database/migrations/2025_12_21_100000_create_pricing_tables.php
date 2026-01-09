@@ -15,10 +15,11 @@ return new class extends Migration {
             });
         }
 
-        Schema::create("rates", function (Blueprint $table) {
-            $table->id();
-            $table->string("name");
-            $table->string("slug")->unique();
+        if (!Schema::hasTable("rates")) {
+            Schema::create("rates", function (Blueprint $table) {
+                $table->id();
+                $table->string("name");
+                $table->string("slug")->unique();
 
             // Rate scope - one of these must be set
             $table
@@ -48,8 +49,10 @@ return new class extends Migration {
 
             $table->index(["is_active", "priority"]);
         });
+        }
 
-        Schema::create("rates_calculations", function (Blueprint $table) {
+        if (!Schema::hasTable("rates_calculations")) {
+            Schema::create("rates_calculations", function (Blueprint $table) {
             $table->id();
             $table->foreignId("booking_id")->constrained()->onDelete("cascade");
             $table->decimal("total_amount", 10, 2);
@@ -59,6 +62,7 @@ return new class extends Migration {
 
             $table->index("booking_id");
         });
+        }
     }
 
     public function down(): void

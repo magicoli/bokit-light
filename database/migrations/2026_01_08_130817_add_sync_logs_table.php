@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sync_logs', function (Blueprint $table) {
+        if (!Schema::hasTable("sync_logs")) {
+            Schema::create('sync_logs', function (Blueprint $table) {
             $table->id();
             $table->string('model_type'); // Booking, Property, etc.
             $table->unsignedBigInteger('model_id');
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->index(['model_type', 'model_id']);
             $table->index('created_at');
         });
+        }
     }
 
     /**

@@ -12,11 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            // Add sync_data to replace raw_data
-            $table->json('sync_data')->nullable()->after('raw_data');
+            // Add sync_data to replace raw_data (if not exists)
+            if (!Schema::hasColumn('bookings', 'sync_data')) {
+                $table->json('sync_data')->nullable()->after('raw_data');
+            }
             
-            // Remove old raw_data column
-            $table->dropColumn('raw_data');
+            // Remove old raw_data column (if exists)
+            if (Schema::hasColumn('bookings', 'raw_data')) {
+                $table->dropColumn('raw_data');
+            }
         });
     }
 

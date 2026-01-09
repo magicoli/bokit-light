@@ -23,7 +23,8 @@ return new class extends Migration {
         }
 
         // Step 2: Create source_mappings table for mapping multiple sources to bookings
-        Schema::create("source_mappings", function (Blueprint $table) {
+        if (!Schema::hasTable("source_mappings")) {
+            Schema::create("source_mappings", function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger("booking_id");
             $table->string("control_string"); // Control string for source event matching
@@ -43,6 +44,7 @@ return new class extends Migration {
             $table->index(["booking_id"]);
             $table->index(["control_string"]);
         });
+        }
     }
 
     /**

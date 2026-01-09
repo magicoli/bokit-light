@@ -10,7 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create("bookings", function (Blueprint $table) {
+        if (!Schema::hasTable("bookings")) {
+            Schema::create("bookings", function (Blueprint $table) {
             $table->id();
             $table->foreignId("unit_id")->constrained()->onDelete("cascade");
             $table->string("uid")->nullable();
@@ -37,6 +38,7 @@ return new class extends Migration {
 
             $table->foreign("unit_id")->references("id")->on("units");
         });
+        }
     }
 
     /**

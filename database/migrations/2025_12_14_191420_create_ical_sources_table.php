@@ -10,7 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create("ical_sources", function (Blueprint $table) {
+        if (!Schema::hasTable("ical_sources")) {
+            Schema::create("ical_sources", function (Blueprint $table) {
             $table->id();
             $table->foreignId("unit_id")->constrained()->onDelete("cascade");
             $table->string("name");
@@ -21,6 +22,7 @@ return new class extends Migration {
             $table->timestamp("last_synced_at")->nullable();
             $table->text("last_error")->nullable();
         });
+        }
     }
 
     /**
