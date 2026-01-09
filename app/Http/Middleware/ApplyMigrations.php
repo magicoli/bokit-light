@@ -37,6 +37,8 @@ class ApplyMigrations
             Log::notice("[AutoUpdate] Migrations are pending");
             // Run migrations automatically (silent update)
             $this->runMigrationsAutomatically();
+            // } else {
+            //     Log::debug("[AutoUpdate] No migrations pending");
         }
 
         return $next($request);
@@ -187,7 +189,14 @@ class ApplyMigrations
             foreach ($migrationFiles as $file) {
                 $migrationName = $this->getMigrationName($file);
                 if (!in_array($migrationName, $ranMigrations)) {
+                    // Log::debug(
+                    //     "[AutoUpdate] Migration pending: $migrationName",
+                    // );
                     return true;
+                    // } else {
+                    //     Log::debug(
+                    //         "[AutoUpdate] Migration already run: $migrationName",
+                    //     );
                 }
             }
 
