@@ -272,8 +272,14 @@ trait ModelConfigTrait
         if (!isset($field["type"])) {
             if ($defaults["casts"] && isset($defaults["casts"][$fieldName])) {
                 $cast = $defaults["casts"][$fieldName];
-                // Use cast as-is, the switch will handle it later
-                $field["type"] = $cast;
+                
+                // Convert custom cast classes to simple types
+                if ($cast === \App\Casts\Password::class || $cast === 'App\Casts\Password') {
+                    $field["type"] = "password";
+                } else {
+                    // Use cast as-is, the switch will handle it later
+                    $field["type"] = $cast;
+                }
             } else {
                 // Leave HTML handle fields without type
                 $field["type"] = "text";
