@@ -162,7 +162,7 @@ nav {
     }
 
     .dropdown-menu {
-        @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-light;
+        @apply absolute right-0 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-light;
     }
 
     .dropdown-item {
