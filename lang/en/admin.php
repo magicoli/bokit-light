@@ -3,6 +3,7 @@
 return [
     // App
     "dashboard" => "Dashboard",
+    "admin_dashboard" => "Admin Dashboard",
     "settings" => "Settings",
     "general_settings" => "General Settings",
 

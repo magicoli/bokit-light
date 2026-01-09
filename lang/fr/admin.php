@@ -3,6 +3,7 @@
 return [
     // App
     "dashboard" => "Tableau de bord",
+    "admin_dashboard" => "Tableau de bord administration",
     "settings" => "Paramètres",
     "general_settings" => "Paramètres généraux",
 

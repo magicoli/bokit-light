@@ -1,32 +1,17 @@
 @extends('layouts.app')
 
-@section('title', __('Dashboard'))
+{{-- @section('title', __('user.dashboard')) --}}
+@section('title', __('user.welcome_back_name', ['name' => auth()->user()->name]))
 
 @section('content')
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1>{{ __('Dashboard') }}</h1>
-        <p class="text-muted">{{ __('Welcome back, :name', ['name' => auth()->user()->name]) }}</p>
-    </div>
-
-    <div class="dashboard-content">
-        <div class="dashboard-placeholder">
-            <p>{{ __('Your personalized dashboard will appear here.') }}</p>
-            
-            <div class="quick-links">
-                <h2>{{ __('Quick Links') }}</h2>
-                <ul>
-                    <li><a href="{{ route('calendar') }}">{{ __('Calendar') }}</a></li>
-                    @if(user_can('property_manager'))
-                        <li><a href="{{ route('admin.properties.list') }}">{{ __('My Properties') }}</a></li>
-                    @endif
-                    @if(auth()->user()->isAdmin())
-                        <li><a href="{{ route('admin.dashboard') }}">{{ __('Admin Dashboard') }}</a></li>
-                    @endif
-                    <li><a href="{{ route('user.settings') }}">{{ __('Settings') }}</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
+<div class="quicklinks buttons flex flex-wrap justify-center gap-4">
+    @if(user_can('property_manager'))
+        <a class="button" href="{{ route('calendar') }}">{{ __('app.calendar') }}</a>
+        <a class="button" href="{{ route('admin.properties.list') }}">{{ __('app.properties') }}</a>
+    @endif
+    @if(auth()->user()->isAdmin())
+        <a class="button" href="{{ route('admin.dashboard') }}">{{ __('app.admin') }}</a>
+    @endif
+    <a class="button" href="{{ route('user.settings') }}">{{ __('app.account') }}</a>
 </div>
 @endsection

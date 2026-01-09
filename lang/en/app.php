@@ -9,6 +9,7 @@ return [
     "logout" => "Logout",
     "login" => "Login",
     "admin" => "Admin",
+    "account" => "Account",
     "admin_settings" => "Admin Settings",
     "user_account" => "Account",
     "language" => "Language",
