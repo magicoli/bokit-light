@@ -40,12 +40,14 @@ return [
     "bookings" => "Réservations",
     "properties" => "Propriétés",
     "property" => "Propriété",
-    // "rates" => "Tarifs",
     "units" => "Unités",
     "unit" => "Unité",
     "rental_units" => "Unités de location",
+    "rental_unit" => "Unité de location",
     "users" => "Utilisateurs",
+    "user" => "Utilisateur",
     "rates" => "Tarifs",
+    "rate" => "Tarif",
 
     // Units
     "website" => "Site web",
