@@ -360,6 +360,9 @@ class Rate extends Model
     public static function listColumns(): array
     {
         return [
+            "actions" => [
+                "label" => "",
+            ],
             "display_name" => [
                 "label" => __("rates.field.display_name"),
             ],
