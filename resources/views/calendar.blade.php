@@ -169,26 +169,37 @@ use App\Traits\TimezoneTrait;
                                 @endphp
                                 @foreach($unit->bookings as $booking)
                                 @php
+                                try {
+
                                     // Debug: show all bookings including their status
                                     if ($booking->status === 'cancelled' || $booking->status === 'vanished') {
                                         // Log these bookings to see if they are being processed
                                         // \Log::info("Processing booking: {$booking->guest_name} - {$booking->status}");
                                     }
-                                @endphp
-                                @php
                                     // Real check-in/check-out dates (hotel format)
+                                    // $checkIn = \Carbon\Carbon::parse($booking->check_in);
+                                    // $checkOut = \Carbon\Carbon::parse($booking->check_out);
                                     $checkIn = $booking->check_in;
                                     $checkOut = $booking->check_out;
 
-                                    $startsBeforePeriod = $checkIn->lt($startDate);
-                                    $endsAfterPeriod = $checkOut->gt($endDate);
+                                    // $startsBeforePeriod = $checkIn->lt($startDate);
+                                    // $endsAfterPeriod = $checkOut->gt($endDate);
+                                    $startsBeforePeriod = false; // DEBUG
+                                    $endsAfterPeriod = false; // DEBUG
+
                                     $continued = $startsBeforePeriod ? 'continued' : '';
                                     $continues = $endsAfterPeriod ? 'continues' : '';
                                     // Determine if this is the first visible day for this booking
+
                                     $isFirstVisibleDay = ($checkIn->isSameDay($day)) || ($startsBeforePeriod && $day->isSameDay($startDate));
+
 
                                     // Display block from check-in noon to check-out noon
                                     $shouldDisplay = $day->gte($checkIn) && $day->lt($checkOut);
+                                } catch (\Error $e) {
+                                    notice($e->getMessage(), 'error');
+                                    $shouldDisplay = false;
+                                }
                                 @endphp
 
                                 @if($shouldDisplay && $isFirstVisibleDay)

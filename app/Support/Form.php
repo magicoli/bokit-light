@@ -279,7 +279,9 @@ class Form
         }
 
         // Type-specific conversions for HTML forms
-        switch ($field["type"]) {
+        $typeCheck = preg_replace("/:.*/", "", $field["type"]);
+        // $typeArg = preg_match('/^(.*?):(\d+)$/', $field["type"], $matches)) ? $matches[1] : '';
+        switch ($typeCheck) {
             case "password":
                 // Always empty password fields - never show hash
                 $field["value"] = "";
@@ -300,17 +302,12 @@ class Form
             case "decimal":
             case "float":
             case "double":
+                $field["type"] = "number";
                 $precision = $decimalPrecision ?? 2;
                 $step = "0." . str_repeat("0", $precision - 1) . "1";
                 $field["attributes"]["step"] =
                     $field["attributes"]["step"] ?? $step;
                 $field["size"] = $field["size"] ?? 8;
-                $field["type"] = "number";
-                break;
-
-            case "datetime":
-            case "timestamp":
-                $field["type"] = "date";
                 break;
 
             case "textarea":
@@ -323,11 +320,14 @@ class Form
                 $field["value"] = 1;
                 break;
 
-            case "date":
             case "date-range":
-                if ($field["type"] === "date-range") {
-                    $field["attributes"]["flatpickr-mode"] = "range";
-                }
+                $field["attributes"]["flatpickr-mode"] = "range";
+            case "date":
+            case "date":
+            case "datetime":
+            case "timestamp":
+                // $field["type"] = "date";
+                // break;
                 $field["type"] = "text";
                 $field["attributes"]["class"] = trim(
                     "flatpickr-input " . ($field["attributes"]["class"] ?? ""),
@@ -471,7 +471,7 @@ class Form
                 '<p class="error">Form rendering error: ' .
                 htmlspecialchars($e->getMessage()) .
                 "</p>" .
-                    '<p class="text-sm text-secondary">Details in debug section below.</p>' .
+                '<p class="text-sm text-secondary">Details in debug section below.</p>' .
                 "</div>";
         }
     }

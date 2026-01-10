@@ -79,8 +79,10 @@ class CalendarController extends Controller
         // Load properties with their units and bookings
         // Filter by user access if not admin
         $query = Property::with([
+            "units",
             "units.bookings" => function ($query) use ($startDate, $endDate) {
                 $query
+                    ->with(['unit', 'property']) // Eager-load for timezone() accessor
                     ->where("check_out", ">=", $startDate->format("Y-m-d"))
                     ->where("check_in", "<=", $endDate->format("Y-m-d"));
             },
