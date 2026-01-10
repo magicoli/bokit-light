@@ -39,7 +39,7 @@ class User extends Authenticatable
 
     protected static $icon = "users";
 
-    protected static $order = 5;
+    protected static $order = 20;
 
     /**
      * Get the properties for this user

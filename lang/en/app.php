@@ -38,13 +38,16 @@ return [
 
     // Resources
     "bookings" => "Bookings",
-    // "properties" => "Properties",
-    // "property" => "Property",
+    "properties" => "Properties",
+    "property" => "Property",
     "rates" => "Rates",
+    "rate" => "Rate",
     "units" => "Units",
     "unit" => "Unit",
     "rental_units" => "Rental Units",
+    "rental_unit" => "Rental Unit",
     "users" => "Users",
+    "user" => "User",
 
     // Units
     "website" => "Website",

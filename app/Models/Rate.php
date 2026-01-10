@@ -60,7 +60,7 @@ class Rate extends Model
 
     protected static $icon = "cash-outline";
 
-    protected static $order = 20;
+    protected static $order = 15;
 
     /**
      * Boot method - auto-generate slug and setup observers
