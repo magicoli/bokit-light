@@ -2,9 +2,9 @@
 
 @section('title', __('app.calendar'))
 
-@section('styles')
+@push('styles')
 @vite('resources/css/calendar.css')
-@endsection
+@endpush
 
 @php
 use App\Traits\TimezoneTrait;

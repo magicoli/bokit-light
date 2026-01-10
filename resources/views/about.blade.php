@@ -2,11 +2,11 @@
 
 @section('title', __('app.about'))
 
-@section('styles')
+@push('styles')
 @vite('resources/css/markdown.css')
-@endsection
+@endpush
 
-@section('scripts')
+@push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -15,7 +15,7 @@
             contentDiv.innerHTML = marked.parse(readmeContent);
         });
     </script>
-@endsection
+@endpush
 
 @section('content')
     <div id="readme-content" class="prose prose-slate max-w-none">

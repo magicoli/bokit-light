@@ -42,12 +42,24 @@
     <!-- App Styles -->
     @vite('resources/css/layout-grid.css')
     @vite('resources/css/app.css')
-    @yield('styles')
 
-    <!-- Alpine.js -->
+    @yield('styles')
+    @stack('styles')
+    {{-- Dynamically added styles via addStyle() helper --}}
+    @foreach($__pageStyles ?? [] as $style)
+        @vite($style)
+    @endforeach
+
+    <!-- App Scripts -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @yield('scripts')
+    @stack('scripts')
+    {{-- Dynamically added scripts via addScript() helper --}}
+    @foreach($__pageScripts ?? [] as $script)
+        @vite($script)
+    @endforeach
+
     {!! ToastMagic::styles() !!}
 </head>
 <body class="@yield('body-class') {{ user_classes() }}">

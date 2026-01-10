@@ -3,9 +3,9 @@
 
 @section('title', __('app.login'))
 
-@section('styles')
+@push('styles')
 @vite('resources/css/login.css')
-@endsection
+@endpush
 
 @section('content')
 {!! appBrandingHtml() !!}

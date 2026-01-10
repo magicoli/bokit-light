@@ -144,6 +144,10 @@ class Rate extends Model
      */
     public static function formEdit(): array
     {
+        // Add required assets for this form
+        addStyle("resources/css/rates.css");
+        addScript("resources/js/rates.js");
+
         $minimumStay = options("rates.default-stay", 3);
         $defaultStay = options("rates.default-stay", 7);
         return [
