@@ -3,11 +3,11 @@
 @section('title', __('app.properties'))
 @section('subtitle', __('app.manage_properties_subtitle'))
 
-@section('styles')
+@push('styles')
 @vite('resources/css/form.css')
 @vite('resources/css/properties.css')
 @vite('resources/css/flatpickr.css')
-@endsection
+@endpush
 
 @section('sidebar-left')
 <!-- Rate Calculator Widget -->
@@ -79,7 +79,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 @vite('resources/js/flatpickr.js')
 @vite('resources/js/forms.js')
-@endsection
+@endpush

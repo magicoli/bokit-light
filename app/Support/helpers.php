@@ -475,3 +475,39 @@ if (!function_exists("debug_error")) {
         $factory->appendSection();
     }
 }
+
+if (!function_exists('addStyle')) {
+    /**
+     * Add a CSS file to be included in page headers
+     * Can be called from anywhere (controllers, models, etc.)
+     *
+     * @param string $path Path to CSS file (e.g., 'resources/css/rates.css')
+     * @return void
+     */
+    function addStyle(string $path): void
+    {
+        $styles = view()->shared('__pageStyles', []);
+        if (!in_array($path, $styles)) {
+            $styles[] = $path;
+            view()->share('__pageStyles', $styles);
+        }
+    }
+}
+
+if (!function_exists('addScript')) {
+    /**
+     * Add a JS file to be included in page headers
+     * Can be called from anywhere (controllers, models, etc.)
+     *
+     * @param string $path Path to JS file (e.g., 'resources/js/rates.js')
+     * @return void
+     */
+    function addScript(string $path): void
+    {
+        $scripts = view()->shared('__pageScripts', []);
+        if (!in_array($path, $scripts)) {
+            $scripts[] = $path;
+            view()->share('__pageScripts', $scripts);
+        }
+    }
+}

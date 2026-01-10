@@ -5,10 +5,10 @@
 
 @section('title', __('app.' . $resource))
 
-@section('styles')
+@push('styles')
 @vite('resources/css/list.css')
 @vite('resources/css/form.css')
-@endsection
+@endpush
 
 @section('content')
 @if($model)

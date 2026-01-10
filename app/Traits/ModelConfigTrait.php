@@ -463,4 +463,27 @@ trait ModelConfigTrait
         }
         return implode($separator, $value);
     }
+
+    /**
+     * Default form configuration for editing
+     * Override in model for custom form layout
+     *
+     * @return array
+     */
+    public static function formEdit(): array
+    {
+        $config = static::getConfig();
+        return $config['editFields'] ?? [];
+    }
+
+    /**
+     * Default form configuration for adding
+     * Override in model for custom form layout, defaults to formEdit()
+     *
+     * @return array
+     */
+    public static function formAdd(): array
+    {
+        return static::formEdit();
+    }
 }

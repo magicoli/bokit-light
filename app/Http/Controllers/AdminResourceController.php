@@ -139,13 +139,10 @@ class AdminResourceController extends Controller
 
         $model = new $modelClass();
 
-        // Get model configuration
-        $config = $modelClass::getConfig();
-
-        // Create form with model's edit fields configuration
+        // Create form - formAdd() exists in ModelConfigTrait by default
         $form = new Form(
             $model,
-            fn() => $config["editFields"] ?? [],
+            [$modelClass, 'formAdd'],
             route("admin.{$resource}.store"),
         );
 
@@ -183,13 +180,10 @@ class AdminResourceController extends Controller
         $model = $modelClass::findOrFail($id);
         $this->checkObjectAccess($modelClass, $model);
 
-        // Get model configuration
-        $config = $modelClass::getConfig();
-
-        // Create form with model's edit fields configuration
+        // Create form - formEdit() exists in ModelConfigTrait by default
         $form = new Form(
             $model,
-            fn() => $config["editFields"] ?? [],
+            [$modelClass, 'formEdit'],
             route("admin.{$resource}.update", $id),
         );
 

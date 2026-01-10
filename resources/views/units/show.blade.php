@@ -2,9 +2,9 @@
 
 @section('title', $unit->name . ' - ' . $unit->property->name)
 
-@section('styles')
+@push('styles')
 @vite('resources/css/properties.css')
-@endsection
+@endpush
 
 @section('content')
 <div class="unit-show-container">
