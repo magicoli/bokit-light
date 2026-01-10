@@ -74,4 +74,16 @@ class Unit extends Model
     {
         return trim("{$this->property->name} {$this->name}");
     }
+
+    /**
+     * Get an option value with cascade: unit options -> property options -> global options
+     *
+     * @param string $key Option key
+     * @param mixed $default Default value if not found anywhere
+     * @return mixed
+     */
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->options[$key] ?? $this->property->options($key, $default);
+    }
 }

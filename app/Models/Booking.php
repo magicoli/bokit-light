@@ -42,8 +42,8 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        "check_in" => "date",
-        "check_out" => "date",
+        "check_in" => "date:c",
+        "check_out" => "date:c",
         "guests" => "integer",
         "adults" => "integer",
         "children" => "integer",
@@ -56,6 +56,11 @@ class Booking extends Model
     ];
 
     protected static $capability = "property_manager";
+
+    /**
+     * Always eager-load relationships for timezone() accessor
+     */
+    protected $with = ["unit", "property"];
 
     protected $appends = [
         "actions",
@@ -109,6 +114,22 @@ class Booking extends Model
                 // Now: build unit filter link
                 return $this->unit ? $this->unit->name : null;
             },
+        );
+    }
+
+    protected function checkIn(): Attribute
+    {
+        return Attribute::make(
+            get: fn(string $value) => Carbon::parse($value),
+            set: fn(string $value) => $this->unit->shiftAndFormat($value),
+        );
+    }
+
+    protected function checkOut(): Attribute
+    {
+        return Attribute::make(
+            get: fn(string $value) => Carbon::parse($value),
+            set: fn(string $value) => $this->unit->shiftAndFormat($value),
         );
     }
 

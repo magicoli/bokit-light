@@ -169,20 +169,22 @@ class BookingSyncIcal
      */
     public static function parse(array $event, object $source): array
     {
-        // Parse dates from iCal format
-        $instance = new self();
-        $checkIn = $instance->parseIcalDate($event["DTSTART"]);
-        $checkOut = $instance->parseIcalDate($event["DTEND"]);
+        // Parse iCal dates - no timezone conversion, save as-is
+        // Dates will be converted to unit timezone on read via Booking accessors
+        if (!isset($event["DTSTART"]) || !isset($event["DTEND"])) {
+            throw new \InvalidArgumentException("Missing dates in iCal event");
+        }
+
+        $checkIn = $event["DTSTART"]; // e.g., "20260110"
+        $checkOut = $event["DTEND"]; // e.g., "20260117"
 
         if (!$checkIn || !$checkOut) {
             throw new \InvalidArgumentException("Invalid dates in iCal event");
         }
 
         // Decode and parse DESCRIPTION field
-        $description = $instance->decodeIcalText($event["DESCRIPTION"] ?? "");
-        $summary = $instance->decodeIcalText(
-            $event["SUMMARY"] ?? "Unknown Guest",
-        );
+        $description = self::decodeIcalText($event["DESCRIPTION"] ?? "");
+        $summary = self::decodeIcalText($event["SUMMARY"] ?? "Unknown Guest");
 
         $metadata = [];
         $remainingLines = [];
@@ -663,22 +665,6 @@ class BookingSyncIcal
     }
 
     /**
-     * Parse iCal date format
-     */
-    protected function parseIcalDate(string $date): ?string
-    {
-        // Remove timezone info
-        $date = preg_replace("/^TZID=.*?:/", "", $date);
-
-        // Format: YYYYMMDD or YYYYMMDDTHHMMSS
-        if (preg_match("/^(\d{4})(\d{2})(\d{2})/", $date, $matches)) {
-            return "{$matches[1]}-{$matches[2]}-{$matches[3]}";
-        }
-
-        return null;
-    }
-
-    /**
      * Decode iCal text escaping
      *
      * iCal spec escapes special characters:
@@ -687,7 +673,7 @@ class BookingSyncIcal
      * - \; -> semicolon
      * - \\ -> backslash
      */
-    protected function decodeIcalText(string $text): string
+    protected static function decodeIcalText(string $text): string
     {
         // Decode escape sequences
         $text = str_replace('\\n', "\n", $text); // \n -> actual newline

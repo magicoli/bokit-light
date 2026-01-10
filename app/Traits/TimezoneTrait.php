@@ -81,10 +81,7 @@ trait TimezoneTrait
 
     public static function defaultTimezone($short = false): string
     {
-        $tzString = Options::get(
-            "timezone",
-            config("app.timezone", "UTC"),
-        );
+        $tzString = Options::get("timezone", config("app.timezone", "UTC"));
         if ($short) {
             $tzString = self::timezoneShort($tzString);
         }
@@ -271,5 +268,27 @@ trait TimezoneTrait
                 " - " .
                 $end->translatedFormat("j F Y");
         }
+    }
+
+    function fixTimezone($date): string
+    {
+        if (is_string($date)) {
+            $date = Carbon::parse($date);
+        }
+
+        return $date->shiftTimezone($this->timezone());
+    }
+
+    function shiftAndFormat(
+        $date,
+        string $format = "c",
+        bool $showTimezone = false,
+    ): string {
+        if (is_string($date)) {
+            $date = Carbon::parse($date);
+        }
+
+        $date = $date->shiftTimezone($this->timezone());
+        return $this->formatDate($date, $format, $showTimezone);
     }
 }
