@@ -165,7 +165,6 @@ use App\Traits\TimezoneTrait;
                                 @php
                                     // Debug: count bookings by status
                                     $bookingStatuses = $unit->bookings->pluck('status')->countBy();
-                                    // \Log::info("Unit {$unit->name} has bookings:", $bookingStatuses->toArray());
                                 @endphp
                                 @foreach($unit->bookings as $booking)
                                 @php
@@ -195,10 +194,14 @@ use App\Traits\TimezoneTrait;
 
 
                                     // Display block from check-in noon to check-out noon
-                                    $shouldDisplay = $day->gte($checkIn) && $day->lt($checkOut);
+                                    // $shouldDisplay = $day->gte($checkIn) && $day->lt($checkOut);
+                                    // In theory, the list already only includes booking to show
+                                    // $shouldDisplay should be used for optional filters like hiding deleted
+                                    $shouldDisplay = true;
                                 } catch (\Error $e) {
                                     notice($e->getMessage(), 'error');
                                     $shouldDisplay = false;
+                                    continue;
                                 }
                                 @endphp
 
