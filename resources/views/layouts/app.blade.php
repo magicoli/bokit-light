@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,9 +49,11 @@
     @foreach($__pageStyles ?? [] as $style)
         @vite($style)
     @endforeach
+    @livewireStyles
 
     <!-- App Scripts -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @vite('resources/js/app.js')
 
     @yield('scripts')
     @stack('scripts')
@@ -103,6 +105,7 @@
 
                 {{-- Main content area --}}
                 <div id="main-content">
+                    {{ $slot ?? '' }}
                     {{-- Page content --}}
                     @yield('content')
                 </div>
@@ -151,5 +154,6 @@
         }
     </script>
     {!! ToastMagic::scripts() !!}
+    @livewireScripts
 </body>
 </html>
