@@ -15,7 +15,7 @@ The mission is to be functional  as soon as possible, with the minimum features 
         - Only first source is considered to evaluate if there is a difference between local data and sync data
 - [ ] Sync Booking details (requires some API integration)
     - [x] status, name, phone, mail address, guests, notes
-    - [ ] adults, children
+    - [x] adults, children
     - [ ] price, paid, balance
 - [ ] Actions column with inline links 
     - [x] status, view, edit
