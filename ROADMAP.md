@@ -50,12 +50,12 @@ All API integrations are optional modules. They are included in Pro version, not
 - each unit **needs** it's own mapping config, though
 - must add a sync method option to the current iCal method, with method-specific parameters (for iCal it's currently only an url, for OTA it will require mapping details)
 - current required settings pages updates (to be added added by beds24 module)
-  - [x] General settings (/admin/settings):
+  - [x] General settings (/legacy-admin/settings):
     - [x] The settings page should be adapted to properly use Form class
     - [ ] Beds24 section with API id/keys/secrets
-  - ~~Per-model settings (/admin/<bookings|properties|...>}/settings): not needed at this stage~~
+  - ~~Per-model settings (/legacy-admin/<bookings|properties|...>}/settings): not needed at this stage~~
   - [ ] Activate universal actions view and edit for ModelConfigTrait
-  - [ ] -> Unit Edit page (/admin/units/{id}/edit):
+  - [ ] -> Unit Edit page (/legacy-admin/units/{id}/edit):
     - [ ] Implement basic edit page with $fillable defined by model
     - [ ] Verify that current iCal settings (as seen in former /{property}/{unit}/edit page) are properly displayed and editable in the new edit page
     - [ ] Rewrite source section to allow additional source types nd parameters (iCal url, APIs will need other kind of parameters, add dumb API type and parameters for testing)
@@ -131,8 +131,8 @@ Route::get('/user/{user:slug}', [UserController::class, 'show']);  // Default pa
 Route::get('/booking/{booking}', [BookingController::class, 'show']);  // ID fallback
 
 // Print views
-Route::get('/admin/bookings/{id}/print', [AdminResourceController::class, 'print']);
-Route::get('/admin/properties/{id}/print', [AdminResourceController::class, 'print']);
+Route::get('/legacy-admin/bookings/{id}/print', [AdminResourceController::class, 'print']);
+Route::get('/legacy-admin/properties/{id}/print', [AdminResourceController::class, 'print']);
 
 // CMS Pages
 Route::get('/{page:slug}', [PageController::class, 'show']);  // Catch-all for pages

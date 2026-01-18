@@ -4,22 +4,22 @@ namespace App\Services;
 
 /**
  * AdminRegistry - Central registry for admin interface items
- * 
+ *
  * DRAFT - Not yet fully implemented
- * 
+ *
  * Inspired by WordPress add_menu_page(), this registry allows ANY class or script
  * to add items to the admin menu and register corresponding routes.
- * 
+ *
  * USE CASES:
  * 1. Models with AdminResourceTrait (auto-registered)
  * 2. Custom pages tied to models (e.g., Bookings Calendar, Categories)
  * 3. Standalone admin pages (Health/Status, Dashboard, External Bridges)
- * 
+ *
  * USAGE EXAMPLES:
- * 
+ *
  * // Auto-register a model (called by AdminResourceTrait)
  * AdminRegistry::registerModel(Booking::class);
- * 
+ *
  * // Register a custom page
  * AdminRegistry::registerPage([
  *     'id' => 'bookings-calendar',
@@ -34,7 +34,7 @@ namespace App\Services;
  *     'route_name' => 'bookings.calendar',
  *     'route_methods' => ['GET'],
  * ]);
- * 
+ *
  * // Register a standalone page (no parent)
  * AdminRegistry::registerPage([
  *     'id' => 'system-health',
@@ -46,7 +46,7 @@ namespace App\Services;
  *     'route_path' => '/health',
  *     'route_name' => 'health',
  * ]);
- * 
+ *
  * FUTURE IMPLEMENTATION:
  * - routes/admin.php will call AdminRegistry::registerRoutes()
  * - AdminMenuService will call AdminRegistry::all() to build menu
@@ -78,7 +78,7 @@ class AdminRegistry
 
     /**
      * Register a custom admin page
-     * 
+     *
      * @param array $config Page configuration with keys:
      *   - id: Unique identifier
      *   - label: Display label
@@ -88,32 +88,37 @@ class AdminRegistry
      *   - permission: Closure or callback to check permission
      *   - view: View name
      *   - controller: Optional controller method [Class, 'method']
-     *   - route_path: URL path (relative to /admin)
+     *   - route_path: URL path (relative to /legacy-admin)
      *   - route_name: Route name (relative to admin.)
      *   - route_methods: HTTP methods (default: ['GET'])
      */
     public static function registerPage(array $config): void
     {
         // Validate required fields
-        $required = ['id', 'label', 'route_path', 'route_name'];
+        $required = ["id", "label", "route_path", "route_name"];
         foreach ($required as $field) {
             if (!isset($config[$field])) {
-                throw new \InvalidArgumentException("Missing required field: {$field}");
+                throw new \InvalidArgumentException(
+                    "Missing required field: {$field}",
+                );
             }
         }
 
         // Set defaults
-        $config = array_merge([
-            'parent' => null,
-            'icon' => null,
-            'order' => 100,
-            'permission' => fn() => true,
-            'view' => null,
-            'controller' => null,
-            'route_methods' => ['GET'],
-        ], $config);
+        $config = array_merge(
+            [
+                "parent" => null,
+                "icon" => null,
+                "order" => 100,
+                "permission" => fn() => true,
+                "view" => null,
+                "controller" => null,
+                "route_methods" => ["GET"],
+            ],
+            $config,
+        );
 
-        static::$pages[$config['id']] = $config;
+        static::$pages[$config["id"]] = $config;
     }
 
     /**
@@ -141,7 +146,7 @@ class AdminRegistry
 
         // Add models
         foreach (static::$models as $modelClass) {
-            if (method_exists($modelClass, 'adminMenuConfig')) {
+            if (method_exists($modelClass, "adminMenuConfig")) {
                 $items[] = $modelClass::adminMenuConfig();
             }
         }
@@ -160,13 +165,13 @@ class AdminRegistry
     protected static function pageToMenuItem(array $page): array
     {
         return [
-            'label' => $page['label'],
-            'url' => route('admin.' . $page['route_name']),
-            'icon' => $page['icon'],
-            'order' => $page['order'],
-            'resource_name' => $page['id'],
-            'parent' => $page['parent'],
-            'children' => [],
+            "label" => $page["label"],
+            "url" => route("admin." . $page["route_name"]),
+            "icon" => $page["icon"],
+            "order" => $page["order"],
+            "resource_name" => $page["id"],
+            "parent" => $page["parent"],
+            "children" => [],
         ];
     }
 
@@ -178,7 +183,7 @@ class AdminRegistry
     {
         // Register model routes
         foreach (static::$models as $modelClass) {
-            if (method_exists($modelClass, 'registerAdminRoutes')) {
+            if (method_exists($modelClass, "registerAdminRoutes")) {
                 $modelClass::registerAdminRoutes();
             }
         }
@@ -194,26 +199,31 @@ class AdminRegistry
      */
     protected static function registerPageRoute(array $page): void
     {
-        $methods = $page['route_methods'];
-        $path = $page['route_path'];
-        $name = $page['route_name'];
+        $methods = $page["route_methods"];
+        $path = $page["route_path"];
+        $name = $page["route_name"];
 
         // Build route action
-        if ($page['controller']) {
+        if ($page["controller"]) {
             // Use controller method
-            $action = $page['controller'];
-        } elseif ($page['view']) {
+            $action = $page["controller"];
+        } elseif ($page["view"]) {
             // Use view directly
             $action = function () use ($page) {
-                return view($page['view']);
+                return view($page["view"]);
             };
         } else {
-            throw new \RuntimeException("Page {$page['id']} must have either 'controller' or 'view'");
+            throw new \RuntimeException(
+                "Page {$page["id"]} must have either 'controller' or 'view'",
+            );
         }
 
         // Register route
-        \Illuminate\Support\Facades\Route::match($methods, $path, $action)
-            ->name($name);
+        \Illuminate\Support\Facades\Route::match(
+            $methods,
+            $path,
+            $action,
+        )->name($name);
     }
 
     /**
@@ -222,20 +232,20 @@ class AdminRegistry
      */
     public static function discoverModels(): void
     {
-        $modelsPath = app_path('Models');
-        
+        $modelsPath = app_path("Models");
+
         if (!is_dir($modelsPath)) {
             return;
         }
 
         $files = \Illuminate\Support\Facades\File::files($modelsPath);
-        
+
         foreach ($files as $file) {
             $className = "App\\Models\\" . $file->getFilenameWithoutExtension();
-            
+
             if (class_exists($className)) {
                 $uses = class_uses_recursive($className);
-                
+
                 if (in_array("App\\Traits\\AdminResourceTrait", $uses)) {
                     static::registerModel($className);
                 }

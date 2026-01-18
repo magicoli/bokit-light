@@ -165,14 +165,6 @@ if ($isInstalled) {
             "user.settings",
         );
 
-        // Admin routes (protected by admin middleware)
-        Route::middleware("admin")->group(function () {
-            Route::get("/admin", function () {
-                return view("admin.dashboard");
-            })->name("admin.dashboard");
-        });
-
-        // DEPRECATED Rates management
         // rate edit should not be front-end, end use AdminResourceTrait routes instead
         Route::get("/rates", [RatesController::class, "index"])->name("rates");
         Route::post("/rates", [RatesController::class, "store"])->name(

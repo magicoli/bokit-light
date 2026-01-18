@@ -104,7 +104,7 @@ AdminRegistry::registerPage([
     // Required
     'id' => 'unique-identifier',
     'label' => 'Display Label',
-    'route_path' => '/path/relative/to/admin',
+    'route_path' => '/path/relative/to/legacy-admin',
     'route_name' => 'name.relative.to.admin',
     
     // Optional

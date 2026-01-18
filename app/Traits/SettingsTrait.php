@@ -37,7 +37,7 @@ trait SettingsTrait
         );
 
         if ($isModel) {
-            // Model settings routes: /admin/{resource}/{id}/settings
+            // Model settings routes: /legacy-admin/{resource}/{id}/settings
             $resource = str_replace(
                 "_",
                 "-",
@@ -50,17 +50,17 @@ trait SettingsTrait
                 $resource,
                 $class,
             ) {
-                Route::get("/admin/{$resource}/{id}/settings", [
+                Route::get("/legacy-admin/{$resource}/{id}/settings", [
                     $class,
                     "settings",
                 ])->name("admin.{$resource}.settings");
-                Route::post("/admin/{$resource}/{id}/settings", [
+                Route::post("/legacy-admin/{$resource}/{id}/settings", [
                     $class,
                     "saveSettings",
                 ])->name("admin.{$resource}.settings.save");
             });
         } else {
-            // Controller settings routes: /admin/settings (already defined in web.php)
+            // Controller settings routes: /legacy-admin/settings (already defined in web.php)
             // No need to register here
         }
     }

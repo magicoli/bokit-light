@@ -20,8 +20,8 @@ $authMiddleware = match ($authMethod) {
     default => "auth.none",
 };
 
-Route::middleware([$authMiddleware, "admin"])  // Auth THEN admin check
-    ->prefix("admin")
+Route::middleware([$authMiddleware, "admin"]) // Auth THEN admin check
+    ->prefix("legacy-admin")
     ->name("admin.")
     ->group(function () {
         // Dashboard
@@ -47,7 +47,8 @@ Route::middleware([$authMiddleware, "admin"])  // Auth THEN admin check
         if (is_dir($modelsPath)) {
             $files = \Illuminate\Support\Facades\File::files($modelsPath);
             foreach ($files as $file) {
-                $className = "App\\Models\\" . $file->getFilenameWithoutExtension();
+                $className =
+                    "App\\Models\\" . $file->getFilenameWithoutExtension();
                 if (class_exists($className)) {
                     $uses = class_uses_recursive($className);
                     if (in_array("App\\Traits\\AdminResourceTrait", $uses)) {
@@ -56,7 +57,7 @@ Route::middleware([$authMiddleware, "admin"])  // Auth THEN admin check
                 }
             }
         }
-        
+
         // Future implementation (when AdminRegistry is fully active):
         // \App\Services\AdminRegistry::discoverModels();
         // \App\Services\AdminRegistry::registerRoutes();
