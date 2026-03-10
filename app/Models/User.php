@@ -35,7 +35,7 @@ class User extends Authenticatable
 
     protected $appends = ["actions"];
 
-    protected $list_columns = ["actions", "name", "email", "is_admin", "roles"];
+    protected $list_columns = ["actions", "name", "email", "roles"];
 
     protected static $icon = "users";
 

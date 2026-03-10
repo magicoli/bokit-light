@@ -5,7 +5,6 @@ namespace App\Models;
 // use App\Services\BookingMetadataParser;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
-use BladeUI\Icons\Components\Icon;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -90,6 +89,8 @@ class Booking extends Model
         "adults",
         "children",
         "price",
+        "paid",
+        "balance",
         "notes",
     ];
 
@@ -223,15 +224,14 @@ class Booking extends Model
     /**
      * Find booking by source identifiers with priority order
      *
-     * @param string $sourceType Type of source (ical, api, etc.)
-     * @param int $sourceId ID of the external source
-     * @param string $sourceEventId Event ID from the external source
-     * @param int $propertyId Property ID
-     * @param string|null $guestEmail Guest email for additional matching
-     * @param string $checkIn Check-in date
-     * @param string $checkOut Check-out date
-     * @param int $unitId Unit ID
-     * @return Booking|null
+     * @param  string  $sourceType  Type of source (ical, api, etc.)
+     * @param  int  $sourceId  ID of the external source
+     * @param  string  $sourceEventId  Event ID from the external source
+     * @param  int  $propertyId  Property ID
+     * @param  string|null  $guestEmail  Guest email for additional matching
+     * @param  string  $checkIn  Check-in date
+     * @param  string  $checkOut  Check-out date
+     * @param  int  $unitId  Unit ID
      */
     public static function findBySourceWithPriority(
         string $sourceType,
@@ -291,10 +291,6 @@ class Booking extends Model
 
     /**
      * Update or create booking with source identifiers
-     *
-     * @param array $attributes
-     * @param array $values
-     * @return Booking
      */
     public static function updateOrCreateWithSource(
         array $attributes,
@@ -322,6 +318,7 @@ class Booking extends Model
             if ($existing) {
                 // Update existing booking
                 $existing->update($values);
+
                 return $existing;
             }
         }
@@ -344,6 +341,7 @@ class Booking extends Model
     public function isCurrent(): bool
     {
         $today = Carbon::today();
+
         return $this->check_in->lte($today) && $this->check_out->gt($today);
     }
 
@@ -427,7 +425,7 @@ class Booking extends Model
     public function sourceName(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value) => self::sourceSlug($value),
+            get: fn(?string $value) => $value ? self::sourceSlug($value) : null,
         );
     }
 
@@ -462,6 +460,7 @@ class Booking extends Model
             // default:
             //     $url = null;
         }
+
         return Attribute::make(get: fn($value) => $source);
     }
 
@@ -523,6 +522,7 @@ class Booking extends Model
         } else {
             $link = $url;
         }
+
         return Attribute::make(get: fn($value) => $link);
     }
 
@@ -539,9 +539,9 @@ class Booking extends Model
     /**
      * Apply sync data with three-way merge
      *
-     * @param array $newData New data from sync source
-     * @param string $source Sync source identifier (e.g., 'airbnb_ical', 'beds24_api')
-     * @param array|null $metadata Optional metadata to store (raw, processed)
+     * @param  array  $newData  New data from sync source
+     * @param  string  $source  Sync source identifier (e.g., 'airbnb_ical', 'beds24_api')
+     * @param  array|null  $metadata  Optional metadata to store (raw, processed)
      * @return array ['updated' => [...], 'diffs' => [...]]
      */
     public function applySyncData(
@@ -562,7 +562,7 @@ class Booking extends Model
      *
      * These are intentional local edits, not conflicts.
      *
-     * @param string|null $source Source to check (default: first source)
+     * @param  string|null  $source  Source to check (default: first source)
      * @return array ['field' => ['local' => ..., 'remote' => ...], ...]
      */
     public function getSyncDiffs(?string $source = null): array
