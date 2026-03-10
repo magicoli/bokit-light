@@ -33,7 +33,7 @@ class BookingsTable
         }
 
         return $table
-            ->defaultSort('check_in', 'desc')
+            ->defaultSort('check_in', 'asc')
             ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->columns([
                 ...DynamicTable::columns(Booking::class, self::LANG, [
