@@ -2,6 +2,22 @@
 
 This is a long road. Make sure to always **process one step at a time**, to avoid drowning the user with too much changes at once, and allow efficient **verification and validation** of each step before proceeding to the next one.
 
+## For immediate consideration
+
+Bookings:
+- [ ] Smart lists (or views, preselect, quick filter...): current and upcoming, past, unconfirmed, balance due, canceled, deleted, etc. This should appear as a simple line of links with the number of bookings in each pseudo-category, allowing for immediate clicks. The default view should be current and upcoming. The quick link concept must be generic to be easily implementable with any object type, not just bookings.
+- [ ] Bookings should be sortable by unit.
+- [ ] Add booking date column (based on the time the customer made the reservation, actual date if available, empty otherwise)
+
+Lists:
+- [x] Dates should be sorted in ascending order by default.
+- [ ] The source is not displayed as a column, but as an icon/external link in the action column (this was the case in the previous version and worked for Airbnb; the calculation of the Booking.com or Beds24 link still needs to be implemented).
+
+Layout:
+- [ ] Filters overflow on mobile; they need to be responsive. The filter button with a popup for mobile devices needs to be reinstated, as you initially did for all screen sizes.
+- [ ] Rows overflow on mobile; they should be replaced with a simple list, with a popup for details and buttons.
+- [ ] The admin menu (the left column) should be replaced with a hamburger menu on mobile.
+
 ## Most critical for basic functional deployment
 
 The mission is to be functional  as soon as possible, with the minimum features required to achieve this goal. This includes:
