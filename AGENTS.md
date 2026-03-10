@@ -101,6 +101,57 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
 
 ===
 
+# Project-Specific Conventions
+
+## Internationalization (i18n) — CRITICAL
+
+- **All PHP code text must be in English.** Never hardcode French (or any other language) in PHP or Blade files.
+- All user-facing strings must use `__()` translation keys.
+- Translations live in `lang/en/` (source of truth) and `lang/fr/` (French translations).
+- Translation files are named after the resource (singular): `booking.php`, `property.php`, `unit.php`, `user.php`. Exception: `rates.php` (plural).
+- Common/shared labels go in `app.php`.
+
+### Translation Key Patterns
+
+| Pattern | Example | Result |
+|---------|---------|--------|
+| `{resource}.field.{column}` | `booking.field.check_in` | "Check-in" |
+| `{resource}.status.{key}` | `booking.status.confirmed` | "Confirmed" |
+| `{resource}.section.{name}` | `booking.section.guests` | "Guests" |
+| `app.{noun}` | `app.booking` | "Booking" |
+
+## Filament Admin Panel
+
+The admin panel (`/admin`) uses Filament v5. Follow existing conventions in `app/Filament/Resources/`.
+
+### Resource File Structure
+
+Each resource has its own directory with separate files for Form, Infolist, Table, and Pages:
+```
+app/Filament/Resources/{Model}/
+├── {Model}Resource.php
+├── Forms/{Model}Form.php
+├── Infolists/{Model}Infolist.php
+├── Tables/{Models}Table.php    # Plural for table class
+└── Pages/
+```
+
+### DynamicTable Helper
+
+`app/Filament/Support/DynamicTable.php` generates table columns from model configuration (`$list_columns`, `$casts`, `$appends`). Table classes call:
+```php
+DynamicTable::columns(Model::class, $langPrefix, $overrides);
+DynamicTable::recordActions(Model::class, $langPrefix);
+```
+
+The `$langPrefix` is the translation file prefix (e.g., `'booking'`, `'rates'`).
+
+### Key Rules for Filament Code
+
+- All field labels, section headings, placeholders, and select options must use `__()` with the resource's lang prefix
+- Never hardcode display text in Filament form/table/infolist definitions
+- Filament has its own CSS pipeline — custom Tailwind classes don't work in panel views; use Filament components or `fi-*` classes
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

@@ -30,17 +30,18 @@ This document outlines the development principles, conventions, and workflows fo
 bokit-light/
 ├── app/
 │   ├── Console/Commands/      # Artisan commands
+│   ├── Filament/Resources/    # Filament admin panel resources
 │   ├── Http/Controllers/      # Request handlers
 │   ├── Models/                # Eloquent models
 │   ├── Services/              # Business logic
 │   └── Support/               # Helpers (DataList, etc.)
 ├── database/
 │   └── migrations/            # Database schema versions
+├── lang/                      # Translations (en/, fr/)
 ├── modules/                   # Optional premium/integration modules
 ├── resources/
 │   ├── css/                   # Modular stylesheets
 │   ├── js/                    # JavaScript components
-│   ├── lang/                  # Translations (en, fr)
 │   └── views/                 # Blade templates
 ├── routes/
 │   ├── admin.php             # Admin zone routes
@@ -213,6 +214,38 @@ php artisan make:migration add_capacity_to_units
     ->render() !!}
 ```
 
+### Filament Admin Panel
+
+The admin panel at `/admin` is built with Filament v5. Resources live in `app/Filament/Resources/`.
+
+**Resource Structure**:
+```
+app/Filament/Resources/
+├── Bookings/
+│   ├── BookingResource.php          # Resource definition (navigation, pages)
+│   ├── Forms/BookingForm.php        # Create/Edit form schema
+│   ├── Infolists/BookingInfolist.php # View (read-only) schema
+│   ├── Tables/BookingsTable.php     # Table columns, filters, actions
+│   └── Pages/                       # List, Create, Edit, View pages
+├── Properties/
+├── Units/
+├── Rates/
+├── Users/
+└── Support/
+    └── DynamicTable.php             # Shared table column generator
+```
+
+**DynamicTable** (`app/Filament/Support/DynamicTable.php`):
+Generates Filament table columns automatically from model configuration (`$list_columns`, `$casts`, `$appends`). Each Table class calls:
+```php
+DynamicTable::columns(Booking::class, 'booking', $overrides);
+DynamicTable::recordActions(Booking::class, 'booking');
+```
+
+The second argument is the **lang prefix** used for `__("{prefix}.field.{col}")` labels.
+
+**Translation keys in Filament**: All field labels, section headings, placeholders, and status options must use `__()` with the appropriate resource lang prefix. Never hardcode display text.
+
 ### CSS Architecture
 
 **Use @apply with Tailwind utilities**:
@@ -285,27 +318,66 @@ function setupDateValidation() {
 
 ## Internationalization (i18n)
 
-**All displayed text must be localizable**:
-```php
-// ✅ GOOD - User-facing text
-<h1>{{ __('rates.calculator_title') }}</h1>
-notice(__('rates.calculation_success'), 'success');
+### Golden Rule
 
-// ✅ GOOD - Logs and internal messages are English only
-Log::info("Rate calculation completed for booking {$booking->id}");
+**All PHP code text is in English.** User-facing strings use `__()` translation keys. French (and other languages) are provided via translation files in `lang/fr/`, never hardcoded in PHP or Blade.
+
+### Translation Key Conventions
+
+```php
+// Field labels follow the pattern: {resource}.field.{column}
+__('booking.field.check_in')    // "Check-in"
+__('rates.field.display_name')  // "Display Name"
+__('unit.field.name')           // "Name"
+__('user.field.email')          // "Email"
+
+// Status values: {resource}.status.{key}
+__('booking.status.confirmed')  // "Confirmed"
+__('booking.status.cancelled')  // "Cancelled"
+
+// Form sections: {resource}.section.{name}
+__('booking.section.guests')    // "Guests"
+__('booking.section.pricing')   // "Pricing"
+
+// Common/shared labels
+__('app.booking')               // "Booking"
+__('app.property')              // "Property"
+__('app.yes')                   // "Yes"
+__('app.no')                    // "No"
 ```
 
-**Translation files**:
+### Translation Files
+
 ```
 lang/
 ├── en/
-│   ├── app.php      # Common translations
-│   ├── rates.php    # Rates module
-│   └── forms.php    # Form labels
+│   ├── app.php        # Common/shared translations
+│   ├── booking.php    # Booking resource (singular)
+│   ├── property.php   # Property resource (singular)
+│   ├── unit.php       # Unit resource (singular)
+│   ├── rates.php      # Rates resource (exception: plural)
+│   └── user.php       # User resource (singular)
 └── fr/
-    ├── app.php
-    ├── rates.php
-    └── forms.php
+    └── (same structure, French translations)
+```
+
+File names are **singular** (matching the model name), except `rates.php` which is plural for historical reasons.
+
+### Rules
+
+```php
+// ✅ GOOD - User-facing text uses translation keys
+<h1>{{ __('rates.calculator_title') }}</h1>
+notice(__('rates.calculation_success'), 'success');
+
+// ✅ GOOD - Logs and internal messages are English only, no translation
+Log::info("Rate calculation completed for booking {$booking->id}");
+
+// ❌ BAD - Hardcoded French in PHP
+$label = 'Réservation';
+
+// ❌ BAD - Hardcoded English user-facing text
+$label = 'Booking'; // Should be __('app.booking')
 ```
 
 ## Testing
