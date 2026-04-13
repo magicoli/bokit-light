@@ -37,7 +37,8 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\Beds24\\": "modules/beds24/src/"
+            "Modules\\Beds24\\": "modules/beds24/src/",
+            "Modules\\WpConnector\\": "modules/wp-connector/src/"
         },
         "files": [
             "app/Support/helpers.php"

@@ -31,7 +31,8 @@ class AppServiceProvider extends ServiceProvider
         foreach (glob(base_path('modules/*/src/*ServiceProvider.php')) as $path) {
             $parts = explode('/', str_replace(base_path('/'), '', $path));
             // parts: ['modules', '{name}', 'src', '{Class}.php']
-            $moduleName = ucfirst($parts[1]);
+            // Convert hyphenated names to PascalCase: wp-connector → WpConnector
+            $moduleName = str_replace('-', '', ucwords($parts[1], '-'));
             $className  = basename($path, '.php');
             $class      = "Modules\\{$moduleName}\\{$className}";
 
