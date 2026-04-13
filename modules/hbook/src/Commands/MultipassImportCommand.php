@@ -121,6 +121,27 @@ class MultipassImportCommand extends Command
             }
 
             foreach ($units as $detail) {
+                // 'status' added in plugin v0.3.0 — absent means old endpoint, treat as confirmed.
+                $detailStatus = $detail['status'] ?? 'publish';
+                $detailConfirmed = in_array($detailStatus, ['publish', 'private'], true);
+                $uid = 'multipass-'.$detail['detail_id'];
+
+                // If not confirmed, soft-delete if already in DB, then skip.
+                if (! $detailConfirmed) {
+                    $toDelete = Booking::where('uid', $uid)->first();
+                    if ($toDelete) {
+                        $this->line("  Delete: uid={$uid} (detail status={$detailStatus})");
+                        if (! $dryRun) {
+                            $toDelete->delete();
+                        }
+                        $updated++;
+                    } else {
+                        $skipped++;
+                    }
+
+                    continue;
+                }
+
                 $unitName = strtolower($detail['unit'] ?? '');
                 $unit = $unitMap[$unitName] ?? null;
 
@@ -131,7 +152,6 @@ class MultipassImportCommand extends Command
                     continue;
                 }
 
-                $uid = 'multipass-'.$detail['detail_id'];
                 $rawIn = $detail['check_in'];
                 $rawOut = $detail['check_out'];
                 $price = (float) ($detail['subtotal'] ?? 0);

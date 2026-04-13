@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -12,55 +12,55 @@
  */
 
 // If this file is called directly, abort.
-if (!defined("WPINC")) {
-    die();
+if (! defined('WPINC')) {
+    exit();
 }
 
-define("BOKIT_CONNECTOR_VERSION", "0.2.0");
-define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
+define('BOKIT_CONNECTOR_VERSION', '0.3.0');
+define('BOKIT_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
  * Register REST API endpoints
  */
-add_action("rest_api_init", "bokit_connector_register_rest_routes");
+add_action('rest_api_init', 'bokit_connector_register_rest_routes');
 function bokit_connector_register_rest_routes()
 {
     // Authentication
-    register_rest_route("bokit/v1", "/auth", [
-        "methods" => "POST",
-        "callback" => "bokit_connector_authenticate_user",
-        "permission_callback" => "__return_true",
-        "args" => [
-            "username" => ["required" => true, "type" => "string"],
-            "password" => ["required" => true, "type" => "string"],
+    register_rest_route('bokit/v1', '/auth', [
+        'methods' => 'POST',
+        'callback' => 'bokit_connector_authenticate_user',
+        'permission_callback' => '__return_true',
+        'args' => [
+            'username' => ['required' => true, 'type' => 'string'],
+            'password' => ['required' => true, 'type' => 'string'],
         ],
     ]);
 
-    register_rest_route("bokit/v1", "/status", [
-        "methods" => "GET",
-        "callback" => "bokit_connector_get_status",
-        "permission_callback" => "__return_true",
+    register_rest_route('bokit/v1', '/status', [
+        'methods' => 'GET',
+        'callback' => 'bokit_connector_get_status',
+        'permission_callback' => '__return_true',
     ]);
 
     // HBook bookings
-    register_rest_route("bokit/v1", "/bookings/hbook", [
-        "methods" => "GET",
-        "callback" => "bokit_connector_get_hbook_bookings",
-        "permission_callback" => "bokit_connector_check_permission",
-        "args" => [
-            "from" => ["type" => "string", "default" => ""],
-            "to"   => ["type" => "string", "default" => ""],
+    register_rest_route('bokit/v1', '/bookings/hbook', [
+        'methods' => 'GET',
+        'callback' => 'bokit_connector_get_hbook_bookings',
+        'permission_callback' => 'bokit_connector_check_permission',
+        'args' => [
+            'from' => ['type' => 'string', 'default' => ''],
+            'to' => ['type' => 'string', 'default' => ''],
         ],
     ]);
 
     // Multipass prestations
-    register_rest_route("bokit/v1", "/bookings/multipass", [
-        "methods" => "GET",
-        "callback" => "bokit_connector_get_multipass_bookings",
-        "permission_callback" => "bokit_connector_check_permission",
-        "args" => [
-            "from" => ["type" => "string", "default" => ""],
-            "to"   => ["type" => "string", "default" => ""],
+    register_rest_route('bokit/v1', '/bookings/multipass', [
+        'methods' => 'GET',
+        'callback' => 'bokit_connector_get_multipass_bookings',
+        'permission_callback' => 'bokit_connector_check_permission',
+        'args' => [
+            'from' => ['type' => 'string', 'default' => ''],
+            'to' => ['type' => 'string', 'default' => ''],
         ],
     ]);
 }
@@ -70,11 +70,12 @@ function bokit_connector_register_rest_routes()
  */
 function bokit_connector_check_permission(WP_REST_Request $request): bool
 {
-    if (!is_user_logged_in()) {
+    if (! is_user_logged_in()) {
         return false;
     }
     $user = wp_get_current_user();
-    return array_intersect(["administrator", "bokit_manager"], (array) $user->roles) !== [];
+
+    return array_intersect(['administrator', 'bokit_manager'], (array) $user->roles) !== [];
 }
 
 /**
@@ -83,8 +84,8 @@ function bokit_connector_check_permission(WP_REST_Request $request): bool
 function bokit_connector_get_status(): WP_REST_Response
 {
     return new WP_REST_Response([
-        "status"  => "OK",
-        "version" => BOKIT_CONNECTOR_VERSION,
+        'status' => 'OK',
+        'version' => BOKIT_CONNECTOR_VERSION,
     ]);
 }
 
@@ -94,20 +95,20 @@ function bokit_connector_get_status(): WP_REST_Response
 function bokit_connector_authenticate_user(WP_REST_Request $request)
 {
     $user = wp_authenticate(
-        $request->get_param("username"),
-        $request->get_param("password")
+        $request->get_param('username'),
+        $request->get_param('password')
     );
 
     if (is_wp_error($user)) {
-        return new WP_Error("authentication_failed", $user->get_error_message(), ["status" => 401]);
+        return new WP_Error('authentication_failed', $user->get_error_message(), ['status' => 401]);
     }
 
     return new WP_REST_Response([
-        "id"       => $user->ID,
-        "username" => $user->user_login,
-        "name"     => $user->display_name,
-        "email"    => $user->user_email,
-        "roles"    => $user->roles,
+        'id' => $user->ID,
+        'username' => $user->user_login,
+        'name' => $user->display_name,
+        'email' => $user->user_email,
+        'roles' => $user->roles,
     ], 200);
 }
 
@@ -129,24 +130,30 @@ function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_R
     global $wpdb;
 
     $unit_map = [
-        "3539_1" => "Sun",
-        "3539_2" => "Moon",
-        "3539_3" => "Violeta",
-        "3539_4" => "Zandoli",
-        "3573_1" => "Zetoil",
+        '3539_1' => 'Sun',
+        '3539_2' => 'Moon',
+        '3539_3' => 'Violeta',
+        '3539_4' => 'Zandoli',
+        '3573_1' => 'Zetoil',
     ];
 
-    $excluded_origins = ["Beds24", "Lodgify", "Lodgify Moon", "Lodgify Sun",
-                         "Lodgify Violeta", "Lodgify Zandoli", "Lodgify Zetoil", "Zandoli"];
-    $placeholders = implode(",", array_fill(0, count($excluded_origins), "%s"));
+    $excluded_origins = ['Beds24', 'Lodgify', 'Lodgify Moon', 'Lodgify Sun',
+        'Lodgify Violeta', 'Lodgify Zandoli', 'Lodgify Zetoil', 'Zandoli'];
+    $placeholders = implode(',', array_fill(0, count($excluded_origins), '%s'));
 
-    $where  = "r.status NOT IN ('cancelled','deleted') AND r.origin NOT IN ($placeholders)";
+    $where = "r.status NOT IN ('cancelled','deleted') AND r.origin NOT IN ($placeholders)";
     $params = $excluded_origins;
 
-    $from = $request->get_param("from");
-    $to   = $request->get_param("to");
-    if ($from) { $where .= " AND r.check_in >= %s"; $params[] = $from; }
-    if ($to)   { $where .= " AND r.check_in <= %s"; $params[] = $to; }
+    $from = $request->get_param('from');
+    $to = $request->get_param('to');
+    if ($from) {
+        $where .= ' AND r.check_in >= %s';
+        $params[] = $from;
+    }
+    if ($to) {
+        $where .= ' AND r.check_in <= %s';
+        $params[] = $to;
+    }
 
     $query = $wpdb->prepare(
         "SELECT r.id, r.check_in, r.check_out, r.accom_id, r.accom_num,
@@ -162,26 +169,27 @@ function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_R
     $rows = $wpdb->get_results($query, ARRAY_A);
 
     $bookings = array_map(function ($r) use ($unit_map) {
-        $key   = "{$r['accom_id']}_{$r['accom_num']}";
+        $key = "{$r['accom_id']}_{$r['accom_num']}";
         $guest = [];
-        if ($r["guest_info"]) {
-            $guest = json_decode($r["guest_info"], true) ?? [];
+        if ($r['guest_info']) {
+            $guest = json_decode($r['guest_info'], true) ?? [];
         }
+
         return [
-            "id"         => (int) $r["id"],
-            "check_in"   => $r["check_in"],
-            "check_out"  => $r["check_out"],
-            "accom_id"   => (int) $r["accom_id"],
-            "accom_num"  => (int) $r["accom_num"],
-            "unit"       => $unit_map[$key] ?? null,
-            "price"      => (float) $r["price"],
-            "deposit"    => (float) $r["deposit"],
-            "paid"       => (float) $r["paid"],
-            "status"     => $r["status"],
-            "origin"     => $r["origin"],
-            "guest_name" => trim(($guest["first_name"] ?? "") . " " . ($guest["last_name"] ?? "")),
-            "guest_email"=> $guest["email"] ?? "",
-            "guest_phone"=> $guest["phone"] ?? "",
+            'id' => (int) $r['id'],
+            'check_in' => $r['check_in'],
+            'check_out' => $r['check_out'],
+            'accom_id' => (int) $r['accom_id'],
+            'accom_num' => (int) $r['accom_num'],
+            'unit' => $unit_map[$key] ?? null,
+            'price' => (float) $r['price'],
+            'deposit' => (float) $r['deposit'],
+            'paid' => (float) $r['paid'],
+            'status' => $r['status'],
+            'origin' => $r['origin'],
+            'guest_name' => trim(($guest['first_name'] ?? '').' '.($guest['last_name'] ?? '')),
+            'guest_email' => $guest['email'] ?? '',
+            'guest_phone' => $guest['phone'] ?? '',
         ];
     }, $rows);
 
@@ -205,15 +213,15 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
     global $wpdb;
 
     $resource_map = [
-        9586 => "Moon",
-        9587 => "Sun",
-        9588 => "Violeta",
-        9589 => "Zandoli",
-        9590 => "Zetoil",
+        9586 => 'Moon',
+        9587 => 'Sun',
+        9588 => 'Violeta',
+        9589 => 'Zandoli',
+        9590 => 'Zetoil',
     ];
 
-    $from = $request->get_param("from");
-    $to   = $request->get_param("to");
+    $from = $request->get_param('from');
+    $to = $request->get_param('to');
 
     // Fetch prestations with their meta
     $prestations = $wpdb->get_results(
@@ -255,67 +263,74 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
     // Index details by prestation_id
     $details_by_prestation = [];
     foreach ($details as $d) {
-        if ($d["prestation_id"]) {
-            $details_by_prestation[$d["prestation_id"]][] = $d;
+        if ($d['prestation_id']) {
+            $details_by_prestation[$d['prestation_id']][] = $d;
         }
     }
 
     $bookings = [];
     foreach ($prestations as $p) {
-        $date_from = $p["date_from_ts"] ? date("Y-m-d", (int) $p["date_from_ts"]) : null;
-        $date_to   = $p["date_to_ts"]   ? date("Y-m-d", (int) $p["date_to_ts"])   : null;
+        $date_from = $p['date_from_ts'] ? date('Y-m-d', (int) $p['date_from_ts']) : null;
+        $date_to = $p['date_to_ts'] ? date('Y-m-d', (int) $p['date_to_ts']) : null;
 
         // Apply date filter
-        if ($from && $date_from && $date_from < $from) continue;
-        if ($to   && $date_from && $date_from > $to)   continue;
+        if ($from && $date_from && $date_from < $from) {
+            continue;
+        }
+        if ($to && $date_from && $date_from > $to) {
+            continue;
+        }
 
         // Decode deposit (serialized array)
         $deposit = 0;
-        if ($p["deposit_raw"]) {
-            $dep = @unserialize($p["deposit_raw"]);
-            $deposit = is_array($dep) ? (float) ($dep["amount"] ?? 0) : (float) $p["deposit_raw"];
+        if ($p['deposit_raw']) {
+            $dep = @unserialize($p['deposit_raw']);
+            $deposit = is_array($dep) ? (float) ($dep['amount'] ?? 0) : (float) $p['deposit_raw'];
         }
 
         // Per-unit details
         $units = [];
-        foreach ($details_by_prestation[$p["ID"]] ?? [] as $d) {
-            $rid = (int) $d["resource_id"];
-            if (!isset($resource_map[$rid])) continue;
+        foreach ($details_by_prestation[$p['ID']] ?? [] as $d) {
+            $rid = (int) $d['resource_id'];
+            if (! isset($resource_map[$rid])) {
+                continue;
+            }
             $units[] = [
-                "detail_id"  => (int) $d["ID"],
-                "unit"       => $resource_map[$rid],
-                "resource_id"=> $rid,
-                "check_in"   => $d["date_from_ts"] ? date("Y-m-d", (int) $d["date_from_ts"]) : null,
-                "check_out"  => $d["date_to_ts"]   ? date("Y-m-d", (int) $d["date_to_ts"])   : null,
-                "subtotal"   => (float) ($d["subtotal"] ?? 0),
+                'detail_id' => (int) $d['ID'],
+                'status' => $d['post_status'],
+                'unit' => $resource_map[$rid],
+                'resource_id' => $rid,
+                'check_in' => $d['date_from_ts'] ? date('Y-m-d', (int) $d['date_from_ts']) : null,
+                'check_out' => $d['date_to_ts'] ? date('Y-m-d', (int) $d['date_to_ts']) : null,
+                'subtotal' => (float) ($d['subtotal'] ?? 0),
             ];
         }
 
         $bookings[] = [
-            "id"            => (int) $p["ID"],
-            "title"         => $p["post_title"],
-            "status"        => $p["post_status"],
-            "check_in"      => $date_from,
-            "check_out"     => $date_to,
-            "total"         => (float) $p["total"],
-            "deposit"       => $deposit,
-            "paid"          => (float) ($p["paid"] ?? 0),
-            "contact_name"  => $p["contact_name"],
-            "contact_email" => $p["contact_email"],
-            "contact_phone" => $p["contact_phone"],
-            "units"         => $units,
+            'id' => (int) $p['ID'],
+            'title' => $p['post_title'],
+            'status' => $p['post_status'],
+            'check_in' => $date_from,
+            'check_out' => $date_to,
+            'total' => (float) $p['total'],
+            'deposit' => $deposit,
+            'paid' => (float) ($p['paid'] ?? 0),
+            'contact_name' => $p['contact_name'],
+            'contact_email' => $p['contact_email'],
+            'contact_phone' => $p['contact_phone'],
+            'units' => $units,
         ];
     }
 
     return new WP_REST_Response($bookings, 200);
 }
 
-add_action("init", "bokit_connector_add_roles");
+add_action('init', 'bokit_connector_add_roles');
 
 /**
  * Register Bokit Manager role for external API authentication.
  */
 function bokit_connector_add_roles(): void
 {
-    add_role("bokit_manager", "Bokit Manager", ["read" => true]);
+    add_role('bokit_manager', 'Bokit Manager', ['read' => true]);
 }
