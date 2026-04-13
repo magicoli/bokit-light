@@ -36,7 +36,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Modules\\Beds24\\": "modules/beds24/src/"
         },
         "files": [
             "app/Support/helpers.php"

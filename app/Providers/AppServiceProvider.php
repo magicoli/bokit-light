@@ -16,6 +16,29 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register AdminMenuService as singleton
         $this->app->singleton(\App\Services\AdminMenuService::class);
+
+        $this->registerModules();
+    }
+
+    /**
+     * Auto-discover and register module service providers from modules/ directory.
+     *
+     * Convention: modules/{name}/src/{Name}ServiceProvider.php
+     * Namespace:  Modules\{Name}\{Name}ServiceProvider
+     */
+    private function registerModules(): void
+    {
+        foreach (glob(base_path('modules/*/src/*ServiceProvider.php')) as $path) {
+            $parts = explode('/', str_replace(base_path('/'), '', $path));
+            // parts: ['modules', '{name}', 'src', '{Class}.php']
+            $moduleName = ucfirst($parts[1]);
+            $className  = basename($path, '.php');
+            $class      = "Modules\\{$moduleName}\\{$className}";
+
+            if (class_exists($class)) {
+                $this->app->register($class);
+            }
+        }
     }
 
     /**
