@@ -103,6 +103,12 @@ class MultipassImportCommand extends Command
         $now = now();
 
         foreach ($prestations as $prestation) {
+            if ($prestation['status'] === 'canceled') {
+                $skipped++;
+
+                continue;
+            }
+
             $units = $prestation['units'] ?? [];
 
             if (empty($units)) {
@@ -224,8 +230,8 @@ class MultipassImportCommand extends Command
     {
         return match ($status) {
             'publish', 'private' => 'confirmed',
-            'draft' => 'pending',
-            default => 'confirmed',
+            'open', 'draft' => 'pending',
+            default => 'pending',
         };
     }
 
