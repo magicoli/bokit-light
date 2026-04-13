@@ -103,7 +103,9 @@ class MultipassImportCommand extends Command
         $now = now();
 
         foreach ($prestations as $prestation) {
-            if ($prestation['status'] === 'canceled') {
+            // Only import confirmed prestations — skip everything else.
+            // Multipass statuses: publish/private = confirmed, everything else = not ready.
+            if (! in_array($prestation['status'], ['publish', 'private'], true)) {
                 $skipped++;
 
                 continue;
@@ -157,19 +159,34 @@ class MultipassImportCommand extends Command
                 }
 
                 if ($existing) {
+                    $changes = [];
+
+                    if ($existing->uid !== $uid) {
+                        $changes['uid'] = $uid;
+                    }
+
+                    if ($existing->status !== 'confirmed') {
+                        $changes['status'] = 'confirmed';
+                    }
+
                     if (! $existing->price && $price > 0) {
-                        $this->line("  Update: [{$unit->name}] {$rawIn} — add price {$price}€");
+                        $changes['price'] = $price;
+                    }
+
+                    $newMeta = $this->buildMeta($prestation, $detail);
+                    $currentMeta = $existing->metadata ?? [];
+
+                    if (array_diff_assoc($newMeta, array_intersect_key($currentMeta, $newMeta))) {
+                        $changes['metadata'] = json_encode(array_merge($currentMeta, $newMeta));
+                    }
+
+                    if (! empty($changes)) {
+                        $changeKeys = implode(', ', array_keys($changes));
+                        $this->line("  Update: [{$unit->name}] {$rawIn} — {$changeKeys}");
 
                         if (! $dryRun) {
-                            DB::table('bookings')->where('id', $existing->id)->update([
-                                'uid' => $existing->uid ?? $uid,
-                                'price' => $price,
-                                'metadata' => json_encode(array_merge(
-                                    $existing->metadata ?? [],
-                                    $this->buildMeta($prestation, $detail),
-                                )),
-                                'updated_at' => $now,
-                            ]);
+                            $changes['updated_at'] = $now;
+                            DB::table('bookings')->where('id', $existing->id)->update($changes);
                         }
 
                         $updated++;
@@ -191,7 +208,7 @@ class MultipassImportCommand extends Command
                         'check_in' => $checkIn,
                         'check_out' => $checkOut,
                         'guest_name' => $guestName,
-                        'status' => $this->mapStatus($prestation['status'] ?? ''),
+                        'status' => 'confirmed',
                         'price' => $price ?: null,
                         'source_name' => 'multipass',
                         'is_manual' => false,
@@ -224,15 +241,6 @@ class MultipassImportCommand extends Command
             'deposit' => $prestation['deposit'] ?? null,
             'paid' => $prestation['paid'] ?? null,
         ]);
-    }
-
-    private function mapStatus(string $status): string
-    {
-        return match ($status) {
-            'publish', 'private' => 'confirmed',
-            'open', 'draft' => 'pending',
-            default => 'pending',
-        };
     }
 
     private function resolveProperties()
