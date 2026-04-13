@@ -3,26 +3,35 @@
 namespace Modules\Beds24;
 
 use App\Filament\Resources\Properties\Schemas\PropertyForm;
+use App\Filament\Resources\Units\Schemas\UnitForm;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Illuminate\Support\ServiceProvider;
+use Modules\Beds24\Commands\Beds24SyncCommand;
 
 class Beds24ServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/beds24.php', 'beds24');
+        $this->mergeConfigFrom(__DIR__.'/../config/beds24.php', 'beds24');
     }
 
     public function boot(): void
     {
-        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'beds24');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'beds24');
 
         $this->extendPropertyForm();
+        $this->extendUnitForm();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Beds24SyncCommand::class,
+            ]);
+        }
     }
 
     /**
-     * Inject Beds24 settings section into the property edit form.
+     * Inject Beds24 API settings section into the property edit form.
      */
     private function extendPropertyForm(): void
     {
@@ -42,6 +51,26 @@ class Beds24ServiceProvider extends ServiceProvider
                         ->password()
                         ->revealable()
                         ->maxLength(255),
+                ]);
+
+            return $components;
+        });
+    }
+
+    /**
+     * Inject Beds24 room ID field into the unit edit form.
+     */
+    private function extendUnitForm(): void
+    {
+        UnitForm::extend(function (array $components): array {
+            $components[] = Section::make(__('beds24::unit.section.beds24'))
+                ->description(__('beds24::unit.section.beds24_description'))
+                ->schema([
+                    TextInput::make('options.beds24_room_id')
+                        ->label(__('beds24::unit.field.beds24_room_id'))
+                        ->helperText(__('beds24::unit.field.beds24_room_id_help'))
+                        ->numeric()
+                        ->maxLength(20),
                 ]);
 
             return $components;

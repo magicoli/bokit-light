@@ -15,10 +15,15 @@ use Modules\WpConnector\Services\WpConnectorService;
  * OTA bookings (Beds24/Lodgify-synced) are excluded by the WP endpoint.
  *
  * Deduplication:
- *   - Primary key: uid = "hbook-{hbook_id}"
- *   - Fallback: unit_id + check_in date (LIKE match to handle ISO timezone suffix)
+ *   - Sole key: uid = "hbook-{hbook_id}"
+ *   - No date fallback: hbook booking dates can change on modification.
  *
- * Run on dev and live server: reads wp_url/wp_user/wp_app_password from property options.
+ * Timezone:
+ *   - Dates from WP are plain Y-m-d strings (local date, no tz info).
+ *   - The Booking model mutators (checkIn/checkOut) apply the unit timezone
+ *     via shiftAndFormat(), so we pass raw Y-m-d and let the model handle it.
+ *   - unit_id must be set before check_in/check_out in create() for the
+ *     mutator to resolve the unit's timezone.
  */
 class HbookImportCommand extends Command
 {
@@ -117,39 +122,31 @@ class HbookImportCommand extends Command
             $checkIn = $row['check_in'];
             $checkOut = $row['check_out'];
             $price = (float) ($row['price'] ?? 0);
+            $guestName = trim($row['guest_name'] ?? '') ?: 'Guest';
+            $status = $this->mapStatus($row['status'] ?? '');
 
-            // Primary dedup: uid
             $existing = Booking::where('uid', $uid)->first();
 
-            // Fallback dedup: unit + check_in (LIKE handles ISO timezone suffix in stored value)
-            if (! $existing) {
-                $existing = Booking::where('unit_id', $unit->id)
-                    ->where('check_in', 'LIKE', $checkIn.'%')
-                    ->first();
-            }
-
             if ($existing) {
-                // Only update if the booking has no price and hbook has one
-                if (! $existing->price && $price > 0) {
-                    $this->line("  Update: [{$unit->name}] {$checkIn} — add price {$price}€");
+                $changes = $this->buildChanges($existing, $checkIn, $checkOut, $guestName, $status, $price, $row);
 
-                    if (! $dryRun) {
-                        $existing->update([
-                            'uid' => $existing->uid ?? $uid,
-                            'price' => $price,
-                            'metadata' => array_merge($existing->metadata ?? [], $this->buildMeta($row)),
-                        ]);
-                    }
-
-                    $updated++;
-                } else {
+                if (empty($changes)) {
                     $skipped++;
+
+                    continue;
                 }
+
+                $this->line("  Update: [{$unit->name}] {$checkIn} uid={$uid} — ".implode(', ', array_keys($changes)));
+
+                if (! $dryRun) {
+                    $existing->update($changes);
+                }
+
+                $updated++;
 
                 continue;
             }
 
-            $guestName = trim($row['guest_name'] ?? '') ?: 'Guest';
             $this->line("  Create: [{$unit->name}] {$checkIn}→{$checkOut} — {$guestName} ({$price}€)");
 
             if (! $dryRun) {
@@ -160,7 +157,7 @@ class HbookImportCommand extends Command
                     'check_in' => $checkIn,
                     'check_out' => $checkOut,
                     'guest_name' => $guestName,
-                    'status' => $this->mapStatus($row['status'] ?? ''),
+                    'status' => $status,
                     'price' => $price ?: null,
                     'source_name' => 'hbook',
                     'is_manual' => false,
@@ -172,6 +169,56 @@ class HbookImportCommand extends Command
         }
 
         return [$created, $updated, $skipped];
+    }
+
+    /**
+     * Compute fields that need updating for an existing booking.
+     *
+     * hbook is the source of truth: sync dates (can change on modification),
+     * guest name, status, price, and metadata.
+     *
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private function buildChanges(
+        Booking $existing,
+        string $checkIn,
+        string $checkOut,
+        string $guestName,
+        string $status,
+        float $price,
+        array $row,
+    ): array {
+        $changes = [];
+
+        if ($existing->check_in->format('Y-m-d') !== $checkIn) {
+            $changes['check_in'] = $checkIn;
+        }
+
+        if ($existing->check_out->format('Y-m-d') !== $checkOut) {
+            $changes['check_out'] = $checkOut;
+        }
+
+        if ($existing->guest_name !== $guestName) {
+            $changes['guest_name'] = $guestName;
+        }
+
+        if ($existing->status !== $status) {
+            $changes['status'] = $status;
+        }
+
+        if ($price > 0 && (float) $existing->getRawOriginal('price') !== $price) {
+            $changes['price'] = $price;
+        }
+
+        $newMeta = $this->buildMeta($row);
+        $currentMeta = $existing->metadata ?? [];
+
+        if (array_diff_assoc($newMeta, array_intersect_key($currentMeta, $newMeta))) {
+            $changes['metadata'] = array_merge($currentMeta, $newMeta);
+        }
+
+        return $changes;
     }
 
     /**
