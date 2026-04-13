@@ -120,6 +120,13 @@ class MultipassImportCommand extends Command
                 continue;
             }
 
+            // Count confirmed units to pro-rate prestation.total when no subtotals.
+            $confirmedUnits = array_filter($units, fn ($d) => in_array(
+                $d['status'] ?? 'publish', ['publish', 'private'], true
+            ));
+            $nbConfirmed = max(1, count($confirmedUnits));
+            $prestationTotal = (float) ($prestation['total'] ?? 0);
+
             foreach ($units as $detail) {
                 // 'status' added in plugin v0.3.0 — absent means old endpoint, treat as confirmed.
                 $detailStatus = $detail['status'] ?? 'publish';
@@ -154,7 +161,12 @@ class MultipassImportCommand extends Command
 
                 $rawIn = $detail['check_in'];
                 $rawOut = $detail['check_out'];
-                $price = (float) ($detail['subtotal'] ?? 0);
+
+                // Price priority:
+                // 1. detail.subtotal (per-unit price, set when units have different rates)
+                // 2. prestation.total / nb_confirmed_units (equal split of contract total)
+                $subtotal = (float) ($detail['subtotal'] ?? 0);
+                $price = $subtotal > 0 ? $subtotal : ($prestationTotal > 0 ? round($prestationTotal / $nbConfirmed, 2) : 0);
 
                 if (! $rawIn || ! $rawOut) {
                     $this->warn("  Skip: missing dates for detail {$detail['detail_id']}");
