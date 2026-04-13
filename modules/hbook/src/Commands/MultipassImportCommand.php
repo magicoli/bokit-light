@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Modules\WpConnector\Services\WpConnectorService;
 
 /**
@@ -99,12 +100,12 @@ class MultipassImportCommand extends Command
         $updated = 0;
         $skipped = 0;
         $dryRun = $this->option('dry-run');
+        $now = now();
 
         foreach ($prestations as $prestation) {
             $units = $prestation['units'] ?? [];
 
             if (empty($units)) {
-                // No unit details — use prestation-level data as a single booking
                 $this->warn("  Skip: prestation {$prestation['id']} has no unit details.");
                 $skipped++;
 
@@ -122,40 +123,46 @@ class MultipassImportCommand extends Command
                     continue;
                 }
 
-                $uid = "multipass-{$detail['detail_id']}";
-                $checkIn = $detail['check_in'];
-                $checkOut = $detail['check_out'];
+                $uid = 'multipass-'.$detail['detail_id'];
+                $rawIn = $detail['check_in'];
+                $rawOut = $detail['check_out'];
                 $price = (float) ($detail['subtotal'] ?? 0);
 
-                if (! $checkIn || ! $checkOut) {
+                if (! $rawIn || ! $rawOut) {
                     $this->warn("  Skip: missing dates for detail {$detail['detail_id']}");
                     $skipped++;
 
                     continue;
                 }
 
+                // Pre-convert to unit local timezone (DB::table bypasses mutators).
+                $checkIn = $unit->shiftAndFormat($rawIn);
+                $checkOut = $unit->shiftAndFormat($rawOut);
+
                 // Primary dedup: uid
                 $existing = Booking::where('uid', $uid)->first();
 
-                // Fallback dedup: unit + check_in
+                // Fallback dedup for one-shot import: unit + check_in date
+                // (multipass has no stable ID that we could have stored previously)
                 if (! $existing) {
                     $existing = Booking::where('unit_id', $unit->id)
-                        ->where('check_in', 'LIKE', $checkIn.'%')
+                        ->where('check_in', 'LIKE', $rawIn.'%')
                         ->first();
                 }
 
                 if ($existing) {
                     if (! $existing->price && $price > 0) {
-                        $this->line("  Update: [{$unit->name}] {$checkIn} — add price {$price}€");
+                        $this->line("  Update: [{$unit->name}] {$rawIn} — add price {$price}€");
 
                         if (! $dryRun) {
-                            $existing->update([
+                            DB::table('bookings')->where('id', $existing->id)->update([
                                 'uid' => $existing->uid ?? $uid,
                                 'price' => $price,
-                                'metadata' => array_merge(
+                                'metadata' => json_encode(array_merge(
                                     $existing->metadata ?? [],
                                     $this->buildMeta($prestation, $detail),
-                                ),
+                                )),
+                                'updated_at' => $now,
                             ]);
                         }
 
@@ -168,10 +175,10 @@ class MultipassImportCommand extends Command
                 }
 
                 $guestName = trim($prestation['contact_name'] ?? '') ?: 'Guest';
-                $this->line("  Create: [{$unit->name}] {$checkIn}→{$checkOut} — {$guestName} ({$price}€)");
+                $this->line("  Create: [{$unit->name}] {$rawIn}→{$rawOut} — {$guestName} ({$price}€)");
 
                 if (! $dryRun) {
-                    Booking::create([
+                    DB::table('bookings')->insert([
                         'unit_id' => $unit->id,
                         'property_id' => $property->id,
                         'uid' => $uid,
@@ -182,7 +189,9 @@ class MultipassImportCommand extends Command
                         'price' => $price ?: null,
                         'source_name' => 'multipass',
                         'is_manual' => false,
-                        'metadata' => $this->buildMeta($prestation, $detail),
+                        'metadata' => json_encode($this->buildMeta($prestation, $detail)),
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ]);
                 }
 
