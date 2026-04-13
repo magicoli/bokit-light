@@ -205,6 +205,19 @@ class MultipassImportCommand extends Command
                         $changes['price'] = $price;
                     }
 
+                    $adults = $prestation['adults'] ?? null;
+                    $children = isset($prestation['children']) || isset($prestation['babies'])
+                        ? ($prestation['children'] ?? 0) + ($prestation['babies'] ?? 0)
+                        : null;
+
+                    if ($adults !== null && ! $existing->getRawOriginal('adults')) {
+                        $changes['adults'] = $adults;
+                    }
+
+                    if ($children !== null && ! $existing->getRawOriginal('children')) {
+                        $changes['children'] = $children;
+                    }
+
                     $newMeta = $this->buildMeta($prestation, $detail);
                     $currentMeta = $existing->metadata ?? [];
 
@@ -243,6 +256,8 @@ class MultipassImportCommand extends Command
                         'status' => 'confirmed',
                         'price' => $price ?: null,
                         'source_name' => 'multipass',
+                        'adults' => $prestation['adults'] ?? null,
+                        'children' => ($prestation['children'] ?? 0) + ($prestation['babies'] ?? 0),
                         'is_manual' => false,
                         'metadata' => json_encode($this->buildMeta($prestation, $detail)),
                         'created_at' => $now,
@@ -269,10 +284,14 @@ class MultipassImportCommand extends Command
             'multipass_detail_id' => $detail['detail_id'],
             'email' => $prestation['contact_email'] ?? null,
             'phone' => $prestation['contact_phone'] ?? null,
+            'origin' => $prestation['origin'] ?? null,
+            'adults' => $prestation['adults'] ?? null,
+            'children' => $prestation['children'] ?? null,
+            'babies' => $prestation['babies'] ?? null,
             'total' => $prestation['total'] ?? null,
             'deposit' => $prestation['deposit'] ?? null,
             'paid' => $prestation['paid'] ?? null,
-        ]);
+        ], fn ($v) => $v !== null);
     }
 
     private function resolveProperties()

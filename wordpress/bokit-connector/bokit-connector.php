@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.3.0
+ * Version: 0.4.0
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -16,7 +16,7 @@ if (! defined('WPINC')) {
     exit();
 }
 
-define('BOKIT_CONNECTOR_VERSION', '0.3.0');
+define('BOKIT_CONNECTOR_VERSION', '0.4.0');
 define('BOKIT_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
@@ -234,7 +234,11 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
                 MAX(CASE WHEN pm.meta_key='contact_name'  THEN pm.meta_value END) as contact_name,
                 MAX(CASE WHEN pm.meta_key='contact_email' THEN pm.meta_value END) as contact_email,
                 MAX(CASE WHEN pm.meta_key='contact_phone' THEN pm.meta_value END) as contact_phone,
-                MAX(CASE WHEN pm.meta_key='flags'         THEN pm.meta_value END) as flags
+                MAX(CASE WHEN pm.meta_key='flags'         THEN pm.meta_value END) as flags,
+                MAX(CASE WHEN pm.meta_key='origin'        THEN pm.meta_value END) as origin,
+                MAX(CASE WHEN pm.meta_key='adults'        THEN pm.meta_value END) as adults,
+                MAX(CASE WHEN pm.meta_key='children'      THEN pm.meta_value END) as children,
+                MAX(CASE WHEN pm.meta_key='babies'        THEN pm.meta_value END) as babies
          FROM {$wpdb->prefix}posts p
          JOIN {$wpdb->prefix}postmeta pm ON pm.post_id = p.ID
          WHERE p.post_type = 'mltp_prestation'
@@ -315,6 +319,10 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
             'total' => (float) $p['total'],
             'deposit' => $deposit,
             'paid' => (float) ($p['paid'] ?? 0),
+            'origin' => $p['origin'] ?? null,
+            'adults' => $p['adults'] !== null ? (int) $p['adults'] : null,
+            'children' => $p['children'] !== null ? (int) $p['children'] : null,
+            'babies' => $p['babies'] !== null ? (int) $p['babies'] : null,
             'contact_name' => $p['contact_name'],
             'contact_email' => $p['contact_email'],
             'contact_phone' => $p['contact_phone'],
