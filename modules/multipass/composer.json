@@ -1,0 +1,8 @@
+{
+    "name": "modules/multipass",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Multipass\\": "src/"
+        }
+    }
+}

@@ -5,5 +5,6 @@ return [
     App\Providers\Filament\AdminPanelProvider::class,
     Modules\Beds24\Beds24ServiceProvider::class,
     Modules\Hbook\HbookServiceProvider::class,
+    Modules\Multipass\MultipassServiceProvider::class,
     Modules\WpConnector\WpConnectorServiceProvider::class,
 ];
