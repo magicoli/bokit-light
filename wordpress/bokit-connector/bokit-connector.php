@@ -4,78 +4,84 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.0
+ * Version: 0.6.1
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
  * Text Domain: bokit-connector
  */
 
+##
+# DEVELOPERS/AGENTS:
+# bump version and deploy wp plugin after any change before any testing:
+#   source .env && rsync --delete -Wavz wordpress/bokit-connector/ $LIVE_HOST:$LIVE_DOCUMENT_ROOT/wp-content/plugins/bokit-connector/
+##
+
 // If this file is called directly, abort.
-if (! defined('WPINC')) {
+if (!defined("WPINC")) {
     exit();
 }
 
-define('BOKIT_CONNECTOR_VERSION', '0.6.0');
-define('BOKIT_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define("BOKIT_CONNECTOR_VERSION", "0.6.0");
+define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
  * Register REST API endpoints
  */
-add_action('rest_api_init', 'bokit_connector_register_rest_routes');
+add_action("rest_api_init", "bokit_connector_register_rest_routes");
 function bokit_connector_register_rest_routes()
 {
     // Authentication
-    register_rest_route('bokit/v1', '/auth', [
-        'methods' => 'POST',
-        'callback' => 'bokit_connector_authenticate_user',
-        'permission_callback' => '__return_true',
-        'args' => [
-            'username' => ['required' => true, 'type' => 'string'],
-            'password' => ['required' => true, 'type' => 'string'],
+    register_rest_route("bokit/v1", "/auth", [
+        "methods" => "POST",
+        "callback" => "bokit_connector_authenticate_user",
+        "permission_callback" => "__return_true",
+        "args" => [
+            "username" => ["required" => true, "type" => "string"],
+            "password" => ["required" => true, "type" => "string"],
         ],
     ]);
 
-    register_rest_route('bokit/v1', '/status', [
-        'methods' => 'GET',
-        'callback' => 'bokit_connector_get_status',
-        'permission_callback' => '__return_true',
+    register_rest_route("bokit/v1", "/status", [
+        "methods" => "GET",
+        "callback" => "bokit_connector_get_status",
+        "permission_callback" => "__return_true",
     ]);
 
     // HBook bookings
-    register_rest_route('bokit/v1', '/bookings/hbook', [
-        'methods' => 'GET',
-        'callback' => 'bokit_connector_get_hbook_bookings',
-        'permission_callback' => 'bokit_connector_check_permission',
-        'args' => [
-            'from' => ['type' => 'string', 'default' => ''],
-            'to' => ['type' => 'string', 'default' => ''],
+    register_rest_route("bokit/v1", "/bookings/hbook", [
+        "methods" => "GET",
+        "callback" => "bokit_connector_get_hbook_bookings",
+        "permission_callback" => "bokit_connector_check_permission",
+        "args" => [
+            "from" => ["type" => "string", "default" => ""],
+            "to" => ["type" => "string", "default" => ""],
         ],
     ]);
 
     // Multipass prestations
-    register_rest_route('bokit/v1', '/bookings/multipass', [
-        'methods' => 'GET',
-        'callback' => 'bokit_connector_get_multipass_bookings',
-        'permission_callback' => 'bokit_connector_check_permission',
-        'args' => [
-            'from' => ['type' => 'string', 'default' => ''],
-            'to' => ['type' => 'string', 'default' => ''],
+    register_rest_route("bokit/v1", "/bookings/multipass", [
+        "methods" => "GET",
+        "callback" => "bokit_connector_get_multipass_bookings",
+        "permission_callback" => "bokit_connector_check_permission",
+        "args" => [
+            "from" => ["type" => "string", "default" => ""],
+            "to" => ["type" => "string", "default" => ""],
         ],
     ]);
 
     // HBook units
-    register_rest_route('bokit/v1', '/hbook-units', [
-        'methods' => 'GET',
-        'callback' => 'bokit_connector_get_hbook_units',
-        'permission_callback' => 'bokit_connector_check_permission',
+    register_rest_route("bokit/v1", "/hbook-units", [
+        "methods" => "GET",
+        "callback" => "bokit_connector_get_hbook_units",
+        "permission_callback" => "bokit_connector_check_permission",
     ]);
 
     // Multipass units
-    register_rest_route('bokit/v1', '/multipass-units', [
-        'methods' => 'GET',
-        'callback' => 'bokit_connector_get_multipass_units',
-        'permission_callback' => 'bokit_connector_check_permission',
+    register_rest_route("bokit/v1", "/multipass-units", [
+        "methods" => "GET",
+        "callback" => "bokit_connector_get_multipass_units",
+        "permission_callback" => "bokit_connector_check_permission",
     ]);
 }
 
@@ -84,12 +90,15 @@ function bokit_connector_register_rest_routes()
  */
 function bokit_connector_check_permission(WP_REST_Request $request): bool
 {
-    if (! is_user_logged_in()) {
+    if (!is_user_logged_in()) {
         return false;
     }
     $user = wp_get_current_user();
 
-    return array_intersect(['administrator', 'bokit_manager'], (array) $user->roles) !== [];
+    return array_intersect(
+        ["administrator", "bokit_manager"],
+        (array) $user->roles,
+    ) !== [];
 }
 
 /**
@@ -98,8 +107,8 @@ function bokit_connector_check_permission(WP_REST_Request $request): bool
 function bokit_connector_get_status(): WP_REST_Response
 {
     return new WP_REST_Response([
-        'status' => 'OK',
-        'version' => BOKIT_CONNECTOR_VERSION,
+        "status" => "OK",
+        "version" => BOKIT_CONNECTOR_VERSION,
     ]);
 }
 
@@ -109,21 +118,28 @@ function bokit_connector_get_status(): WP_REST_Response
 function bokit_connector_authenticate_user(WP_REST_Request $request)
 {
     $user = wp_authenticate(
-        $request->get_param('username'),
-        $request->get_param('password')
+        $request->get_param("username"),
+        $request->get_param("password"),
     );
 
     if (is_wp_error($user)) {
-        return new WP_Error('authentication_failed', $user->get_error_message(), ['status' => 401]);
+        return new WP_Error(
+            "authentication_failed",
+            $user->get_error_message(),
+            ["status" => 401],
+        );
     }
 
-    return new WP_REST_Response([
-        'id' => $user->ID,
-        'username' => $user->user_login,
-        'name' => $user->display_name,
-        'email' => $user->user_email,
-        'roles' => $user->roles,
-    ], 200);
+    return new WP_REST_Response(
+        [
+            "id" => $user->ID,
+            "username" => $user->user_login,
+            "name" => $user->display_name,
+            "email" => $user->user_email,
+            "roles" => $user->roles,
+        ],
+        200,
+    );
 }
 
 /**
@@ -136,64 +152,66 @@ function bokit_connector_authenticate_user(WP_REST_Request $request)
  * The unit_id field returned is "{accom_id}_{accom_num}" — the same format used
  * as hbook_unit_id in Bokit's unit source configuration.
  */
-function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_Response
-{
+function bokit_connector_get_hbook_bookings(
+    WP_REST_Request $request,
+): WP_REST_Response {
     global $wpdb;
 
-    $excluded_origins = ['Beds24', 'Lodgify', 'Lodgify Moon', 'Lodgify Sun',
-        'Lodgify Violeta', 'Lodgify Zandoli', 'Lodgify Zetoil', 'Zandoli'];
-    $placeholders = implode(',', array_fill(0, count($excluded_origins), '%s'));
+    // origin = 'website' is HBook's canonical value for direct bookings.
+    // iCal-synced bookings (Beds24, Lodgify, etc.) have origin = calendar name.
+    $where = "r.status NOT IN ('cancelled','deleted') AND r.origin = 'website'";
+    $params = [];
 
-    $where = "r.status NOT IN ('cancelled','deleted') AND r.origin NOT IN ($placeholders)";
-    $params = $excluded_origins;
-
-    $from = $request->get_param('from');
-    $to = $request->get_param('to');
+    $from = $request->get_param("from");
+    $to = $request->get_param("to");
     if ($from) {
-        $where .= ' AND r.check_in >= %s';
+        $where .= " AND r.check_in >= %s";
         $params[] = $from;
     }
     if ($to) {
-        $where .= ' AND r.check_in <= %s';
+        $where .= " AND r.check_in <= %s";
         $params[] = $to;
     }
 
-    $query = $wpdb->prepare(
-        "SELECT r.id, r.check_in, r.check_out, r.accom_id, r.accom_num,
-                r.price, r.deposit, r.paid, r.status, r.origin,
-                c.info as guest_info,
-                n.num_name as unit_name
-         FROM {$wpdb->prefix}hb_resa r
-         LEFT JOIN {$wpdb->prefix}hb_accom_num_name n
-               ON n.accom_id = r.accom_id AND n.accom_num = r.accom_num
-         LEFT JOIN {$wpdb->prefix}hb_customers c ON c.id = r.customer_id
-         WHERE $where
-         ORDER BY r.check_in",
-        ...$params
-    );
+    $sql = "SELECT r.id, r.check_in, r.check_out, r.accom_id, r.accom_num,
+                   r.price, r.deposit, r.paid, r.status, r.origin,
+                   c.info as guest_info,
+                   n.num_name as unit_name
+            FROM {$wpdb->prefix}hb_resa r
+            LEFT JOIN {$wpdb->prefix}hb_accom_num_name n
+                  ON n.accom_id = r.accom_id AND n.accom_num = r.accom_num
+            LEFT JOIN {$wpdb->prefix}hb_customers c ON c.id = r.customer_id
+            WHERE $where
+            ORDER BY r.check_in";
+
+    $query = $params ? $wpdb->prepare($sql, ...$params) : $sql;
 
     $rows = $wpdb->get_results($query, ARRAY_A);
 
     $bookings = array_map(function ($r) {
         $guest = [];
-        if ($r['guest_info']) {
-            $guest = json_decode($r['guest_info'], true) ?? [];
+        if ($r["guest_info"]) {
+            $guest = json_decode($r["guest_info"], true) ?? [];
         }
 
         return [
-            'id'          => (int) $r['id'],
-            'check_in'    => $r['check_in'],
-            'check_out'   => $r['check_out'],
-            'unit_id'     => "{$r['accom_id']}_{$r['accom_num']}",
-            'unit'        => $r['unit_name'] ?? null,
-            'price'       => (float) $r['price'],
-            'deposit'     => (float) $r['deposit'],
-            'paid'        => (float) $r['paid'],
-            'status'      => $r['status'],
-            'origin'      => $r['origin'],
-            'guest_name'  => trim(($guest['first_name'] ?? '').' '.($guest['last_name'] ?? '')),
-            'guest_email' => $guest['email'] ?? '',
-            'guest_phone' => $guest['phone'] ?? '',
+            "id" => (int) $r["id"],
+            "check_in" => $r["check_in"],
+            "check_out" => $r["check_out"],
+            "unit_id" => "{$r["accom_id"]}_{$r["accom_num"]}",
+            "unit" => $r["unit_name"] ?? null,
+            "price" => (float) $r["price"],
+            "deposit" => (float) $r["deposit"],
+            "paid" => (float) $r["paid"],
+            "status" => $r["status"],
+            "origin" => $r["origin"],
+            "guest_name" => trim(
+                ($guest["first_name"] ?? "") .
+                    " " .
+                    ($guest["last_name"] ?? ""),
+            ),
+            "guest_email" => $guest["email"] ?? "",
+            "guest_phone" => $guest["phone"] ?? "",
         ];
     }, $rows);
 
@@ -204,28 +222,22 @@ function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_R
  * GET /wp-json/bokit/v1/bookings/multipass
  *
  * Returns multipass prestations with their per-unit details.
- *
- * Resource ID → unit name:
- *   9586 → Moon
- *   9587 → Sun
- *   9588 → Violeta
- *   9589 → Zandoli
- *   9590 → Zetoil
  */
-function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_REST_Response
-{
+function bokit_connector_get_multipass_bookings(
+    WP_REST_Request $request,
+): WP_REST_Response {
     global $wpdb;
-
+    # TODO: remove hardcoded values and use mapping instead, like for hbook bookings
     $resource_map = [
-        9586 => 'Moon',
-        9587 => 'Sun',
-        9588 => 'Violeta',
-        9589 => 'Zandoli',
-        9590 => 'Zetoil',
+        // 9586 => "Moon",
+        // 9587 => "Sun",
+        // 9588 => "Violeta",
+        // 9589 => "Zandoli",
+        // 9590 => "Zetoil",
     ];
 
-    $from = $request->get_param('from');
-    $to = $request->get_param('to');
+    $from = $request->get_param("from");
+    $to = $request->get_param("to");
 
     // Fetch prestations with their meta
     $prestations = $wpdb->get_results(
@@ -253,7 +265,7 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
            AND p.post_status NOT IN ('trash','auto-draft')
          GROUP BY p.ID
          ORDER BY date_from_ts DESC",
-        ARRAY_A
+        ARRAY_A,
     );
 
     // Fetch details (per-unit lines)
@@ -269,21 +281,25 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
          WHERE p.post_type = 'mltp_detail'
            AND p.post_status NOT IN ('trash','auto-draft')
          GROUP BY p.ID",
-        ARRAY_A
+        ARRAY_A,
     );
 
     // Index details by prestation_id
     $details_by_prestation = [];
     foreach ($details as $d) {
-        if ($d['prestation_id']) {
-            $details_by_prestation[$d['prestation_id']][] = $d;
+        if ($d["prestation_id"]) {
+            $details_by_prestation[$d["prestation_id"]][] = $d;
         }
     }
 
     $bookings = [];
     foreach ($prestations as $p) {
-        $date_from = $p['date_from_ts'] ? date('Y-m-d', (int) $p['date_from_ts']) : null;
-        $date_to = $p['date_to_ts'] ? date('Y-m-d', (int) $p['date_to_ts']) : null;
+        $date_from = $p["date_from_ts"]
+            ? date("Y-m-d", (int) $p["date_from_ts"])
+            : null;
+        $date_to = $p["date_to_ts"]
+            ? date("Y-m-d", (int) $p["date_to_ts"])
+            : null;
 
         // Apply date filter
         if ($from && $date_from && $date_from < $from) {
@@ -295,46 +311,55 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
 
         // Decode deposit (serialized array)
         $deposit = 0;
-        if ($p['deposit_raw']) {
-            $dep = @unserialize($p['deposit_raw']);
-            $deposit = is_array($dep) ? (float) ($dep['amount'] ?? 0) : (float) $p['deposit_raw'];
+        if ($p["deposit_raw"]) {
+            $dep = @unserialize($p["deposit_raw"]);
+            $deposit = is_array($dep)
+                ? (float) ($dep["amount"] ?? 0)
+                : (float) $p["deposit_raw"];
         }
 
         // Per-unit details
         $units = [];
-        foreach ($details_by_prestation[$p['ID']] ?? [] as $d) {
-            $rid = (int) $d['resource_id'];
-            if (! isset($resource_map[$rid])) {
+        foreach ($details_by_prestation[$p["ID"]] ?? [] as $d) {
+            $rid = (int) $d["resource_id"];
+            if (!isset($resource_map[$rid])) {
                 continue;
             }
             $units[] = [
-                'detail_id' => (int) $d['ID'],
-                'status' => $d['post_status'],
-                'unit' => $resource_map[$rid],
-                'resource_id' => $rid,
-                'check_in' => $d['date_from_ts'] ? date('Y-m-d', (int) $d['date_from_ts']) : null,
-                'check_out' => $d['date_to_ts'] ? date('Y-m-d', (int) $d['date_to_ts']) : null,
-                'subtotal' => (float) ($d['subtotal'] ?? 0),
+                "detail_id" => (int) $d["ID"],
+                "status" => $d["post_status"],
+                "unit" => $resource_map[$rid],
+                "resource_id" => $rid,
+                "check_in" => $d["date_from_ts"]
+                    ? date("Y-m-d", (int) $d["date_from_ts"])
+                    : null,
+                "check_out" => $d["date_to_ts"]
+                    ? date("Y-m-d", (int) $d["date_to_ts"])
+                    : null,
+                "subtotal" => (float) ($d["subtotal"] ?? 0),
             ];
         }
 
         $bookings[] = [
-            'id' => (int) $p['ID'],
-            'title' => $p['post_title'],
-            'status' => $p['post_status'],
-            'check_in' => $date_from,
-            'check_out' => $date_to,
-            'total' => (float) $p['total'],
-            'deposit' => $deposit,
-            'paid' => (float) ($p['paid'] ?? 0),
-            'origin' => bokit_connector_resolve_origin($p['origin'] ?? null, $p['contact_email'] ?? null),
-            'adults' => $p['adults'] !== null ? (int) $p['adults'] : null,
-            'children' => $p['children'] !== null ? (int) $p['children'] : null,
-            'babies' => $p['babies'] !== null ? (int) $p['babies'] : null,
-            'contact_name' => $p['contact_name'],
-            'contact_email' => $p['contact_email'],
-            'contact_phone' => $p['contact_phone'],
-            'units' => $units,
+            "id" => (int) $p["ID"],
+            "title" => $p["post_title"],
+            "status" => $p["post_status"],
+            "check_in" => $date_from,
+            "check_out" => $date_to,
+            "total" => (float) $p["total"],
+            "deposit" => $deposit,
+            "paid" => (float) ($p["paid"] ?? 0),
+            "origin" => bokit_connector_resolve_origin(
+                $p["origin"] ?? null,
+                $p["contact_email"] ?? null,
+            ),
+            "adults" => $p["adults"] !== null ? (int) $p["adults"] : null,
+            "children" => $p["children"] !== null ? (int) $p["children"] : null,
+            "babies" => $p["babies"] !== null ? (int) $p["babies"] : null,
+            "contact_name" => $p["contact_name"],
+            "contact_email" => $p["contact_email"],
+            "contact_phone" => $p["contact_phone"],
+            "units" => $units,
         ];
     }
 
@@ -351,24 +376,26 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
  *   *@airbnb.com         → airbnb
  *   *@guest.airbnb.com   → airbnb
  */
-function bokit_connector_resolve_origin(?string $origin, ?string $email): ?string
-{
-    if ($origin !== null && $origin !== '') {
+function bokit_connector_resolve_origin(
+    ?string $origin,
+    ?string $email,
+): ?string {
+    if ($origin !== null && $origin !== "") {
         return $origin;
     }
 
-    if (! $email) {
+    if (!$email) {
         return null;
     }
 
-    $domain = strtolower(substr($email, strpos($email, '@') + 1));
+    $domain = strtolower(substr($email, strpos($email, "@") + 1));
 
-    if (str_ends_with($domain, 'booking.com')) {
-        return 'bookingcom';
+    if (str_ends_with($domain, "booking.com")) {
+        return "bookingcom";
     }
 
-    if (str_ends_with($domain, 'airbnb.com')) {
-        return 'airbnb';
+    if (str_ends_with($domain, "airbnb.com")) {
+        return "airbnb";
     }
 
     return null;
@@ -404,25 +431,25 @@ function bokit_connector_get_hbook_units(): WP_REST_Response
          WHERE p.post_type   = 'hb_accommodation'
            AND p.post_status = 'publish'
            AND n.num_name NOT REGEXP '^[0-9]+$'
-         ORDER BY n.accom_id, n.accom_num"
+         ORDER BY n.accom_id, n.accom_num",
     );
 
     $units = array_map(function ($row) {
         return [
-            'id'         => $row->accom_id . '_' . $row->accom_num,
-            'accom_id'   => (int) $row->accom_id,
-            'accom_num'  => (int) $row->accom_num,
-            'name'       => $row->num_name,
-            'post_title' => $row->post_title,
+            "id" => $row->accom_id . "_" . $row->accom_num,
+            "accom_id" => (int) $row->accom_id,
+            "accom_num" => (int) $row->accom_num,
+            "name" => $row->num_name,
+            "post_title" => $row->post_title,
         ];
     }, $rows);
 
-    return new WP_REST_Response(['units' => $units], 200);
+    return new WP_REST_Response(["units" => $units], 200);
 }
 
 /**
  * GET /wp-json/bokit/v1/multipass-units
- * 
+ *
  * Returns all Multipass units. This is a placeholder for now.
  * Multipass structure needs to be analyzed separately.
  */
@@ -430,15 +457,15 @@ function bokit_connector_get_multipass_units(): WP_REST_Response
 {
     // TODO: Implement Multipass units endpoint once we understand the data structure
     // For now, return empty array to avoid errors
-    return new WP_REST_Response(['units' => []], 200);
+    return new WP_REST_Response(["units" => []], 200);
 }
 
-add_action('init', 'bokit_connector_add_roles');
+add_action("init", "bokit_connector_add_roles");
 
 /**
  * Register Bokit Manager role for external API authentication.
  */
 function bokit_connector_add_roles(): void
 {
-    add_role('bokit_manager', 'Bokit Manager', ['read' => true]);
+    add_role("bokit_manager", "Bokit Manager", ["read" => true]);
 }
