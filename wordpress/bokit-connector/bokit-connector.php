@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.4.0
+ * Version: 0.6.0
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -16,7 +16,7 @@ if (! defined('WPINC')) {
     exit();
 }
 
-define('BOKIT_CONNECTOR_VERSION', '0.4.0');
+define('BOKIT_CONNECTOR_VERSION', '0.6.0');
 define('BOKIT_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
@@ -232,7 +232,11 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
                 MAX(CASE WHEN pm.meta_key='deposit'       THEN pm.meta_value END) as deposit_raw,
                 MAX(CASE WHEN pm.meta_key='paid'          THEN pm.meta_value END) as paid,
                 MAX(CASE WHEN pm.meta_key='contact_name'  THEN pm.meta_value END) as contact_name,
-                MAX(CASE WHEN pm.meta_key='contact_email' THEN pm.meta_value END) as contact_email,
+                COALESCE(
+                    MAX(CASE WHEN pm.meta_key='contact_email'  THEN pm.meta_value END),
+                    MAX(CASE WHEN pm.meta_key='customer_email' THEN pm.meta_value END),
+                    MAX(CASE WHEN pm.meta_key='attendee_email' THEN pm.meta_value END)
+                ) as contact_email,
                 MAX(CASE WHEN pm.meta_key='contact_phone' THEN pm.meta_value END) as contact_phone,
                 MAX(CASE WHEN pm.meta_key='flags'         THEN pm.meta_value END) as flags,
                 MAX(CASE WHEN pm.meta_key='origin'        THEN pm.meta_value END) as origin,
@@ -319,7 +323,7 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
             'total' => (float) $p['total'],
             'deposit' => $deposit,
             'paid' => (float) ($p['paid'] ?? 0),
-            'origin' => $p['origin'] ?? null,
+            'origin' => bokit_connector_resolve_origin($p['origin'] ?? null, $p['contact_email'] ?? null),
             'adults' => $p['adults'] !== null ? (int) $p['adults'] : null,
             'children' => $p['children'] !== null ? (int) $p['children'] : null,
             'babies' => $p['babies'] !== null ? (int) $p['babies'] : null,
@@ -331,6 +335,39 @@ function bokit_connector_get_multipass_bookings(WP_REST_Request $request): WP_RE
     }
 
     return new WP_REST_Response($bookings, 200);
+}
+
+/**
+ * Resolve the booking origin/canal from the explicit origin meta or, when absent,
+ * from the contact email domain.
+ *
+ * Multipass does not always store an 'origin' meta key. Guest emails from OTAs
+ * follow predictable patterns:
+ *   *@guest.booking.com  → bookingcom
+ *   *@airbnb.com         → airbnb
+ *   *@guest.airbnb.com   → airbnb
+ */
+function bokit_connector_resolve_origin(?string $origin, ?string $email): ?string
+{
+    if ($origin !== null && $origin !== '') {
+        return $origin;
+    }
+
+    if (! $email) {
+        return null;
+    }
+
+    $domain = strtolower(substr($email, strpos($email, '@') + 1));
+
+    if (str_ends_with($domain, 'booking.com')) {
+        return 'bookingcom';
+    }
+
+    if (str_ends_with($domain, 'airbnb.com')) {
+        return 'airbnb';
+    }
+
+    return null;
 }
 
 add_action('init', 'bokit_connector_add_roles');

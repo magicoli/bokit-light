@@ -142,14 +142,54 @@ class Beds24SyncCommand extends Command
                 continue;
             }
 
+            // Skip Beds24 availability blocks (status 4=block, 5=owner block).
+            // These are not real guest bookings — they block the calendar for other reasons.
+            $rawStatus = (string) ($row['status'] ?? '2');
+            if (in_array($rawStatus, ['4', '5'], true)) {
+                $this->line("  Skip: availability block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, status={$rawStatus})");
+                $skipped++;
+
+                continue;
+            }
+
             $guestName = trim(($row['firstName'] ?? '').' '.($row['lastName'] ?? '')) ?: 'Guest';
-            $status = $this->mapStatus((string) ($row['status'] ?? '2'));
+            $status = $this->mapStatus($rawStatus);
             $price = (float) ($row['price'] ?? 0);
+            $commission = (float) ($row['commission'] ?? 0);
+            $adults = isset($row['numAdult']) ? (int) $row['numAdult'] : null;
+            $children = isset($row['numChild']) ? (int) $row['numChild'] : null;
+            $sourceName = $this->mapSourceName((string) ($row['apiSource'] ?? ''));
 
             $existing = Booking::where('uid', $uid)->first();
 
+            // Fallback 1: iCal-imported booking for the same Beds24 bookId.
+            // iCal bookings have group_id = bookId but a different uid format.
+            if (! $existing) {
+                $existing = Booking::where('group_id', $row['bookId'])
+                    ->where('uid', 'NOT LIKE', 'beds24-%')
+                    ->first();
+            }
+
+            // Fallback 2: same unit + exact dates.
+            // Catches multipass/hbook entries AND other beds24 bookIds for the same physical
+            // booking (Beds24 sometimes has two entries: one direct, one iCal, same dates).
+            if (! $existing) {
+                $existing = Booking::where('unit_id', $unit->id)
+                    ->where('check_in', 'LIKE', $checkIn.'%')
+                    ->where('check_out', 'LIKE', $checkOut.'%')
+                    ->first();
+            }
+
+            // Assign canonical uid so future syncs find this booking reliably.
+            if ($existing && $existing->uid !== $uid && ! $dryRun) {
+                \Illuminate\Support\Facades\DB::table('bookings')
+                    ->where('id', $existing->id)
+                    ->update(['uid' => $uid]);
+                $existing->uid = $uid;
+            }
+
             if ($existing) {
-                $changes = $this->buildChanges($existing, $checkIn, $checkOut, $guestName, $status, $price, $row);
+                $changes = $this->buildChanges($existing, $checkIn, $checkOut, $guestName, $status, $price, $commission, $adults, $children, $sourceName, $row);
 
                 if (empty($changes)) {
                     $skipped++;
@@ -168,6 +208,17 @@ class Beds24SyncCommand extends Command
                 continue;
             }
 
+            // Skip creating entries with no useful guest/price data.
+            // These are calendar blocks (iCal sync, owner blocks entered without a guest name).
+            // If a real booking exists at these dates, the date fallback above already matched it.
+            $apiSourceCode = (string) ($row['apiSource'] ?? '');
+            if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0) {
+                $this->line("  Skip: empty block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, src={$apiSourceCode})");
+                $skipped++;
+
+                continue;
+            }
+
             $this->line("  Create: [{$unit->name}] {$checkIn}→{$checkOut} — {$guestName} ({$price}€)");
 
             if (! $dryRun) {
@@ -180,7 +231,10 @@ class Beds24SyncCommand extends Command
                     'guest_name' => $guestName,
                     'status' => $status,
                     'price' => $price ?: null,
-                    'source_name' => 'beds24',
+                    'commission' => $commission ?: null,
+                    'adults' => $adults,
+                    'children' => $children,
+                    'source_name' => $sourceName,
                     'is_manual' => false,
                     'metadata' => $this->buildMeta($row),
                 ]);
@@ -208,6 +262,10 @@ class Beds24SyncCommand extends Command
         string $guestName,
         string $status,
         float $price,
+        float $commission,
+        ?int $adults,
+        ?int $children,
+        string $sourceName,
         array $row,
     ): array {
         $changes = [];
@@ -220,16 +278,36 @@ class Beds24SyncCommand extends Command
             $changes['check_out'] = $checkOut;
         }
 
-        if ($existing->guest_name !== $guestName) {
+        // Don't overwrite a real guest name with the generic "Guest" placeholder.
+        if ($existing->guest_name !== $guestName && $guestName !== 'Guest') {
             $changes['guest_name'] = $guestName;
         }
 
-        if ($existing->status !== $status) {
+        // Never downgrade confirmed → pending: Beds24 often stores manual/synced entries
+        // as status=0 (new), but they may already be confirmed in our DB from multipass/hbook.
+        // Only allow: pending→confirmed, anything→cancelled.
+        if ($existing->status !== $status && ! ($existing->status === 'confirmed' && $status === 'pending')) {
             $changes['status'] = $status;
         }
 
         if ($price > 0 && (float) $existing->getRawOriginal('price') !== $price) {
             $changes['price'] = $price;
+        }
+
+        if ($commission > 0 && (float) $existing->getRawOriginal('commission') !== $commission) {
+            $changes['commission'] = $commission;
+        }
+
+        if ($adults !== null && $existing->getRawOriginal('adults') !== $adults) {
+            $changes['adults'] = $adults;
+        }
+
+        if ($children !== null && $existing->getRawOriginal('children') !== $children) {
+            $changes['children'] = $children;
+        }
+
+        if ($existing->getRawOriginal('source_name') !== $sourceName) {
+            $changes['source_name'] = $sourceName;
         }
 
         $newMeta = $this->buildMeta($row);
@@ -259,6 +337,20 @@ class Beds24SyncCommand extends Command
             'num_child' => isset($row['numChild']) ? (int) $row['numChild'] : null,
             'notes' => $row['notes'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
+    }
+
+    /**
+     * Map Beds24 apiSource code to Bokit source_name.
+     *
+     * Beds24 apiSource: '0'=Direct, '19'=Booking.com, '28'=iCal, '29'=Airbnb iCal, '46'=Airbnb API
+     */
+    private function mapSourceName(string $apiSource): string
+    {
+        return match ($apiSource) {
+            '46' => 'airbnb',
+            '19' => 'booking.com',
+            default => 'beds24',
+        };
     }
 
     /**

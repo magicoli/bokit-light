@@ -193,7 +193,9 @@ class MultipassImportCommand extends Command
                 if ($existing) {
                     $changes = [];
 
-                    if ($existing->uid !== $uid) {
+                    // Never overwrite a beds24-* uid — beds24:sync is authoritative
+                    // and must win the final uid assignment.
+                    if ($existing->uid !== $uid && ! str_starts_with($existing->uid, 'beds24-')) {
                         $changes['uid'] = $uid;
                     }
 

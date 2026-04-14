@@ -101,6 +101,127 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
 
 ===
 
+# Booking Pipeline — READ THIS FIRST
+
+## Data sources and their roles
+
+| Source | Command | Type | Canal |
+|--------|---------|------|-------|
+| **Beds24 API** | `beds24:sync` | Permanent sync (cron) | Airbnb / Booking.com / Direct |
+| **HBook** (WordPress) | `hbook:import` | One-shot historical import | Direct only (OTAs excluded by WP endpoint) |
+| **Multipass** (WordPress) | `multipass:import` | One-shot historical import | Airbnb / Booking.com / Direct (via `origin` field) |
+
+**Beds24 is the authoritative source for ALL Airbnb and Booking.com bookings.**
+iCal sync is obsolete — only the Beds24 API provides prices, commission, guest counts, notes, full contact details.
+
+## Architecture — sources et doublons
+
+Multipass et Beds24 sont **conçus pour se synchroniser entre eux**. Cela signifie que presque toutes les réservations existent dans LES DEUX sources. L'objectif est : **une réservation physique = une seule ligne en base**.
+
+```
+bokit ↔ API beds24 ↔ API Airbnb         → source_name='beds24', apiSource='46'
+bokit ↔ API beds24 ↔ API Booking.com    → source_name='beds24', apiSource='19'
+bokit ↔ API beds24 ↔ résa directe Beds24 → source_name='beds24', apiSource='0'
+bokit ← WP plugin ← hbook              → source_name='hbook'  (résa directes site WP uniquement)
+bokit ← WP plugin ← multipass          → source_name='multipass'
+```
+
+**Sources iCal — toutes des doublons, à ignorer :**
+- `api.beds24.com` (iCal Beds24) : doublon de la résa beds24 API correspondante
+- `www.airbnb.fr`  (iCal Airbnb) : doublon de la résa beds24/apiSource=46 correspondante
+- iCal ne transporte ni prix, ni commission, ni données guest complètes
+- beds24:sync réassigne leur uid (beds24-{bookId}) et leur source_name → les "absorbe"
+- Les entrées iCal résiduelles (`www.airbnb.fr` "Reserved") sont exclues du CSV
+
+## Déduplication (ordre de priorité dans beds24:sync)
+
+1. `uid = 'beds24-{bookId}'` (correspondance exacte)
+2. `group_id = bookId` (résa iCal Beds24 importée avant l'API)
+3. `unit_id + check_in + check_out exacts` (résa multipass/hbook pour la même résa Beds24)
+
+Règle : si une correspondance est trouvée → mettre à jour (uid, prix, commission, source_name).
+Ne pas écraser un nom d'invité réel avec le placeholder "Guest".
+
+## Fuseaux horaires par source
+
+- **hbook** : le plugin WP renvoie des dates locales `Y-m-d` → `shiftAndFormat()` applique le TZ
+- **multipass** : idem — dates locales `Y-m-d` → `shiftAndFormat()`
+- **beds24 API** : renvoie `firstNight`/`lastNight` en dates locales `Y-m-d`, checkout = lastNight+1
+  → passé à `Booking::create()` qui appelle le mutateur → `shiftAndFormat()` automatique
+- **iCal** : dates en UTC/naive — ne pas s'y fier pour les horaires
+
+## Canal OTA (Airbnb / Booking.com / Direct)
+
+Multipass fait la différence entre la **source de synchro** (comment la résa est arrivée dans multipass) et la **source de réservation** (l'OTA réelle). Le champ `origin` peut ne pas exister — dériver du `contact_email` dans ce cas.
+
+```
+beds24 / apiSource='46' → Airbnb
+beds24 / apiSource='19' → Booking.com
+beds24 / apiSource='0'  → Direct
+
+hbook → Direct (toujours — OTA exclus par le plugin WP)
+
+multipass → metadata.origin si présent, sinon dériver du contact_email :
+    email contient '@airbnb.com' ou '.airbnb.com' → Airbnb
+    email contient '.booking.com' ou '@guest.booking.com' → Booking.com
+    sinon → Direct
+
+airbnb / www.airbnb.fr → Airbnb (iCal placeholder — exclure si guest="Reserved*")
+```
+
+Codes Beds24 `apiSource` : `0`=Direct, `19`=Booking.com, `28`=iCal générique, `29`=Airbnb iCal, `46`=Airbnb API.
+
+## Beds24 room_id → unités (Gîtes Mosaïques)
+
+| beds24_room_id | Unité   |
+|----------------|---------|
+| 552312         | Zetoil  |
+| 552313         | Moon    |
+| 552314         | Violeta |
+| 552315         | Zandoli |
+| 552316         | Sun     |
+| 553491         | inconnu (1 résa Combat Ouvrier Jul 2026) — à configurer |
+
+## Déploiement et séquence d'import complète
+
+```bash
+# 1. Déployer le plugin WordPress (toujours après modification du plugin)
+rsync --delete -Wavz wordpress/bokit-connector/ magic@gites-mosaiques.com:/home/mosaiques/domains/gites-mosaiques.com/www/wp-content/plugins/bokit-connector/
+
+# 2. Reset et réimport complet (si nécessaire)
+echo "delete from bookings" | sqlite3 storage/database/default.sqlite
+php artisan hbook:import
+php artisan multipass:import
+php artisan beds24:sync --from=2025-01-01   # IMPORTANT: --from=2025-01-01 pour récupérer l'historique
+                                             # Sans --from, seules les réservations futures sont récupérées
+
+# 3. Export rapports CSV
+php artisan bookings:export-csv --year=2025
+php artisan bookings:export-csv --year=2026
+```
+
+## Résultats attendus 2025 (référence de validation)
+
+- Airbnb : 5 réservations (Pierrot Perrin, Aurelien Gueno, Françoise Laurent, Armelle Giraud, Fabienne De Broeck)
+- Booking.com : 12 lignes CSV (Sophie Nayrolles compte pour 3 car 3 gîtes = 3 lignes, 9 résas distinctes)
+- Pierrot Perrin (Zetoil Jan28) : origin=airbnb stocké directement dans wp_postmeta (post_id=16962)
+  car multipass n'a pas d'email pour cette résa — la donnée ne peut pas être dérivée automatiquement
+
+## Multipass origin field
+
+Plugin `bokit-connector` v0.6.0 : dérive l'`origin` depuis `contact_email`/`customer_email`/`attendee_email`
+quand le champ `origin` n'est pas renseigné dans WordPress :
+- `*@guest.booking.com` → bookingcom
+- `*@airbnb.com` / `*@reply.airbnb.com` → airbnb
+
+## CSV export
+
+Command: `php artisan bookings:export-csv --year=2025`
+Output columns: Arrivée; Départ; Gîte; Nuits; Locataire; Canal; Prix (€); Commission (€); Adultes; Enfants
+Only confirmed bookings are exported.
+
+---
+
 # Project-Specific Conventions
 
 ## Internationalization (i18n) — CRITICAL
