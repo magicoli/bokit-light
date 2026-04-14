@@ -26,25 +26,29 @@ class MultipassServiceProvider extends ServiceProvider
     protected function extendUnitForm(): void
     {
         UnitForm::extend(function (array $components): array {
-            // Find the sources repeater and extend it
-            foreach ($components as $index => $component) {
-                if (isset($component['schema'][0]['schema'])) {
-                    $schema = $component['schema'][0]['schema'];
-                    
-                    // Find and update the multipass_unit_id field
-                    foreach ($schema as $fieldIndex => $field) {
-                        if (isset($field['name']) && $field['name'] === 'multipass_unit_id') {
-                            // Create a new field with dynamic options from WordPress
-                            $schema[$fieldIndex] = Select::make('multipass_unit_id')
-                                ->label(__('unit.field.source_multipass_unit'))
-                                ->options(fn () => $this->getMultipassUnitsFromWordPress())
-                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'multipass')
-                                ->columnSpan(1);
-                        }
-                    }
-                    
-                    $components[$index]['schema'][0]['schema'] = $schema;
+            foreach ($components as $component) {
+                // Skip if not the sources section
+                if (!isset($component['schema']) || !isset($component['schema'][0]) || !isset($component['schema'][0]['schema'])) {
+                    continue;
                 }
+                
+                $schema = $component['schema'][0]['schema'];
+                $newSchema = [];
+                
+                foreach ($schema as $field) {
+                    if (isset($field['name']) && $field['name'] === 'multipass_unit_id') {
+                        // Replace with dynamic field
+                        $newSchema[] = Select::make('multipass_unit_id')
+                            ->label(__('unit.field.source_multipass_unit'))
+                            ->options(fn () => $this->getMultipassUnitsFromWordPress())
+                            ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'multipass')
+                            ->columnSpan(1);
+                    } else {
+                        $newSchema[] = $field;
+                    }
+                }
+                
+                $component['schema'][0]['schema'] = $newSchema;
             }
             return $components;
         });
@@ -52,12 +56,34 @@ class MultipassServiceProvider extends ServiceProvider
 
     /**
      * Get Multipass units from WordPress API
-     * TODO: Implement actual WordPress API call via WP Connector module
      */
     protected function getMultipassUnitsFromWordPress(): array
     {
-        // This should call the WP Connector module to fetch units from WordPress
-        // For now, return empty array - the actual implementation will be added later
+        try {
+            $wpApi = app(\Modules\WpConnector\Services\WpApiService::class);
+            
+            // Get the current property from request or session
+            $propertyId = request()->route('record') ?? session()->get('current_property_id');
+            
+            if ($propertyId) {
+                $property = \App\Models\Property::find($propertyId);
+                if ($property && !empty($property->options['wp_url'] ?? '')) {
+                    return $wpApi->getMultipassUnits($property->options);
+                }
+            }
+            
+            // Fallback: try to get from any configured property
+            $properties = \App\Models\Property::whereNotNull('options->wp_url')->get();
+            foreach ($properties as $property) {
+                $units = $wpApi->getMultipassUnits($property->options);
+                if (!empty($units)) {
+                    return $units;
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Multipass: Failed to fetch units", ['error' => $e->getMessage()]);
+        }
+        
         return [];
     }
 }
