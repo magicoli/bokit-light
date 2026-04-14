@@ -16,26 +16,34 @@ $displayName = $displayName
 ))
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <ul class="object-actions flex flex-row gap-4">
-            <li><a href="{{ route('admin.' . $resource . '.show', $model->id) }}" class="btn btn-primary">
-                {{ __('forms.view') }}
-            </a></li>
-            <li><a href="{{ route('admin.' . $resource . '.edit', $model->id) }}" class="btn btn-primary">
-                {{ __('forms.edit') }}
-            </a></li>
-            {{-- <li><a href="{{ route('admin.' . $resource . '.delete', $model->id) }}" class="btn btn-primary">
-                {{ __('forms.delete') }}
-            </a></li> --}}
-
-            <a href="{{ route('admin.' . $resource . '.list') }}" class="btn btn-secondary">
-                {{ __('forms.list') }}
-            </a>
-        </ul>
-    </div>
-    <div class="card-body">
+@if($resource_page === 'edit')
+    <!-- Full width for edit pages -->
+    <div class="w-full max-w-full">
         @yield('resource-body')
     </div>
-</div>
+@else
+    <!-- Card layout for other pages -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="object-actions flex flex-row gap-4">
+                <li><a href="{{ route('admin.' . $resource . '.show', $model->id) }}" class="btn btn-primary">
+                    {{ __('forms.view') }}
+                </a></li>
+                <li><a href="{{ route('admin.' . $resource . '.edit', $model->id) }}" class="btn btn-primary">
+                    {{ __('forms.edit') }}
+                </a></li>
+                {{-- <li><a href="{{ route('admin.' . $resource . '.delete', $model->id) }}" class="btn btn-primary">
+                    {{ __('forms.delete') }}
+                </a></li> --}}
+
+                <a href="{{ route('admin.' . $resource . '.list') }}" class="btn btn-secondary">
+                    {{ __('forms.list') }}
+                </a>
+            </ul>
+        </div>
+        <div class="card-body">
+            @yield('resource-body')
+        </div>
+    </div>
+@endif
 @endsection
