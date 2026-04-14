@@ -19,43 +19,12 @@ class HbookServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->extendUnitForm();
-
         if ($this->app->runningInConsole()) {
             $this->commands([
                 HbookImportCommand::class,
                 MultipassImportCommand::class,
             ]);
         }
-    }
-
-    /**
-     * Extend the unit form to add HBook unit mapping
-     */
-    protected function extendUnitForm(): void
-    {
-        UnitForm::extend(function (array $components): array {
-            foreach ($components as &$component) {
-                // Check if this is the sources repeater
-                if (isset($component['schema']) && is_array($component['schema'])) {
-                    foreach ($component['schema'] as &$section) {
-                        if (isset($section['schema']) && is_array($section['schema'])) {
-                            foreach ($section['schema'] as &$field) {
-                                if (isset($field['name']) && $field['name'] === 'hbook_unit_id') {
-                                    // Replace with dynamic field
-                                    $field = Select::make('hbook_unit_id')
-                                        ->label(__('unit.field.source_hbook_unit'))
-                                        ->options(fn () => $this->getHbookUnitsFromWordPress())
-                                        ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'hbook')
-                                        ->columnSpan(1);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return $components;
-        });
     }
 
     /**

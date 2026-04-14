@@ -17,36 +17,7 @@ class MultipassServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->extendUnitForm();
-    }
-
-    /**
-     * Extend the unit form to add Multipass unit mapping
-     */
-    protected function extendUnitForm(): void
-    {
-        UnitForm::extend(function (array $components): array {
-            foreach ($components as &$component) {
-                // Check if this is the sources repeater
-                if (isset($component['schema']) && is_array($component['schema'])) {
-                    foreach ($component['schema'] as &$section) {
-                        if (isset($section['schema']) && is_array($section['schema'])) {
-                            foreach ($section['schema'] as &$field) {
-                                if (isset($field['name']) && $field['name'] === 'multipass_unit_id') {
-                                    // Replace with dynamic field
-                                    $field = Select::make('multipass_unit_id')
-                                        ->label(__('unit.field.source_multipass_unit'))
-                                        ->options(fn () => $this->getMultipassUnitsFromWordPress())
-                                        ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'multipass')
-                                        ->columnSpan(1);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return $components;
-        });
+        // No extension needed - options are set directly in UnitForm
     }
 
     /**
