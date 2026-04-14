@@ -32,6 +32,8 @@ class HbookServiceProvider extends ServiceProvider
      */
     public static function getHbookUnitsFromWordPress(): array
     {
+        \Illuminate\Support\Facades\Log::info("HBook: getHbookUnitsFromWordPress() called");
+        
         try {
             // Get the current property from request
             $propertyId = request()->route('record');
