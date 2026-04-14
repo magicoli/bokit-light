@@ -127,7 +127,10 @@ class HbookImportCommand extends Command
                 continue;
             }
 
-            $uid = 'hbook-'.$row['id'];
+            // uid is provided by the endpoint (stable across re-imports).
+            // Direct bookings: "hbook-{id}"
+            // Blocked group units: "hbook-{parent_id}-{accom_id}_{accom_num}"
+            $uid = $row['uid'] ?? ('hbook-'.$row['id']);
             // Pre-convert to unit local timezone: WP sends plain Y-m-d (local date).
             // shiftAndFormat('2025-01-15') → '2025-01-15T00:00:00-04:00' for Martinique.
             // We insert directly via DB::table to bypass the Eloquent mutator.
@@ -241,12 +244,13 @@ class HbookImportCommand extends Command
     private function buildMeta(array $row): array
     {
         return array_filter([
-            'hbook_id' => $row['id'],
-            'email' => $row['guest_email'] ?? null,
-            'phone' => $row['guest_phone'] ?? null,
-            'origin' => $row['origin'] ?? null,
-            'deposit' => $row['deposit'] ?? null,
-            'paid' => $row['paid'] ?? null,
+            'hbook_id'       => $row['id'],
+            'hbook_group_id' => $row['group_hbook_id'] ?? null,
+            'email'          => $row['guest_email'] ?? null,
+            'phone'          => $row['guest_phone'] ?? null,
+            'origin'         => $row['origin'] ?? null,
+            'deposit'        => $row['deposit'] ?? null,
+            'paid'           => $row['paid'] ?? null,
         ]);
     }
 

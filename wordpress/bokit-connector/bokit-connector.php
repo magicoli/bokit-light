@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.1
+ * Version: 0.6.2
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -22,7 +22,7 @@ if (!defined("WPINC")) {
     exit();
 }
 
-define("BOKIT_CONNECTOR_VERSION", "0.6.0");
+define("BOKIT_CONNECTOR_VERSION", "0.6.2");
 define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
@@ -145,46 +145,101 @@ function bokit_connector_authenticate_user(WP_REST_Request $request)
 /**
  * GET /wp-json/bokit/v1/bookings/hbook
  *
- * Returns hbook bookings with origin=website (direct bookings with real prices).
- * Beds24/Lodgify-synced bookings are excluded (they have no price in hbook).
+ * Returns two kinds of records (UNION):
  *
- * Unit mapping (accom_id / accom_num → unit name):
- * The unit_id field returned is "{accom_id}_{accom_num}" — the same format used
- * as hbook_unit_id in Bokit's unit source configuration.
+ * 1. Direct bookings: hb_resa WHERE origin='website'.
+ *    uid = "hbook-{id}"
+ *
+ * 2. Automatically blocked individual units linked to group/package bookings
+ *    (e.g. "Site entier"): hb_accom_blocked WHERE is_prepa_time=0, joined
+ *    to their parent hb_resa. Guest info and price come from the parent booking.
+ *    uid = "hbook-{parent_id}-{accom_id}_{accom_num}"
+ *    group_hbook_id = parent hbook id (for linking in Bokit)
+ *
+ * unit_id is "{accom_id}_{accom_num}" — matches hbook_unit_id in Bokit source config.
  */
 function bokit_connector_get_hbook_bookings(
     WP_REST_Request $request,
 ): WP_REST_Response {
     global $wpdb;
 
-    // origin = 'website' is HBook's canonical value for direct bookings.
-    // iCal-synced bookings (Beds24, Lodgify, etc.) have origin = calendar name.
-    $where = "r.status NOT IN ('cancelled','deleted') AND r.origin = 'website'";
+    $from = $request->get_param("from");
+    $to   = $request->get_param("to");
+
+    // Shared WHERE clause for hb_resa rows (origin=website, not cancelled)
+    $resa_where = "r.status NOT IN ('cancelled','deleted') AND r.origin = 'website'";
+    $date_clause_resa  = "";
+    $date_clause_block = "";
     $params = [];
 
-    $from = $request->get_param("from");
-    $to = $request->get_param("to");
     if ($from) {
-        $where .= " AND r.check_in >= %s";
-        $params[] = $from;
+        $date_clause_resa  .= " AND r.check_in >= %s";
+        $date_clause_block .= " AND b.from_date >= %s";
+        $params[] = $from;  // for part 1
+        // will be added again below for part 2
     }
     if ($to) {
-        $where .= " AND r.check_in <= %s";
+        $date_clause_resa  .= " AND r.check_in <= %s";
+        $date_clause_block .= " AND b.from_date <= %s";
         $params[] = $to;
     }
 
-    $sql = "SELECT r.id, r.check_in, r.check_out, r.accom_id, r.accom_num,
-                   r.price, r.deposit, r.paid, r.status, r.origin,
-                   c.info as guest_info,
-                   n.num_name as unit_name
-            FROM {$wpdb->prefix}hb_resa r
-            LEFT JOIN {$wpdb->prefix}hb_accom_num_name n
-                  ON n.accom_id = r.accom_id AND n.accom_num = r.accom_num
-            LEFT JOIN {$wpdb->prefix}hb_customers c ON c.id = r.customer_id
-            WHERE $where
-            ORDER BY r.check_in";
+    // Part 2 needs the same date params repeated (one per UNION part)
+    $params2 = array_merge($params);  // copy
 
-    $query = $params ? $wpdb->prepare($sql, ...$params) : $sql;
+    $all_params = array_merge($params, $params2);
+
+    $sql = "
+        SELECT
+            CONCAT('hbook-', r.id) AS uid,
+            r.id AS hbook_id,
+            NULL AS group_hbook_id,
+            r.check_in,
+            r.check_out,
+            r.accom_id,
+            r.accom_num,
+            n.num_name AS unit_name,
+            r.price,
+            r.deposit,
+            r.paid,
+            r.status,
+            c.info AS guest_info
+        FROM {$wpdb->prefix}hb_resa r
+        LEFT JOIN {$wpdb->prefix}hb_accom_num_name n
+              ON n.accom_id = r.accom_id AND n.accom_num = r.accom_num
+        LEFT JOIN {$wpdb->prefix}hb_customers c ON c.id = r.customer_id
+        WHERE {$resa_where}{$date_clause_resa}
+
+        UNION ALL
+
+        SELECT
+            CONCAT('hbook-', r.id, '-', b.accom_id, '_', b.accom_num) AS uid,
+            r.id AS hbook_id,
+            r.id AS group_hbook_id,
+            b.from_date AS check_in,
+            b.to_date AS check_out,
+            b.accom_id,
+            b.accom_num,
+            n.num_name AS unit_name,
+            r.price,
+            r.deposit,
+            r.paid,
+            r.status,
+            c.info AS guest_info
+        FROM {$wpdb->prefix}hb_accom_blocked b
+        INNER JOIN {$wpdb->prefix}hb_resa r
+              ON r.id = b.linked_resa_id
+             AND r.status NOT IN ('cancelled','deleted')
+             AND r.origin = 'website'
+        LEFT JOIN {$wpdb->prefix}hb_accom_num_name n
+              ON n.accom_id = b.accom_id AND n.accom_num = b.accom_num
+        LEFT JOIN {$wpdb->prefix}hb_customers c ON c.id = r.customer_id
+        WHERE b.is_prepa_time = 0{$date_clause_block}
+
+        ORDER BY check_in
+    ";
+
+    $query = $all_params ? $wpdb->prepare($sql, ...$all_params) : $sql;
 
     $rows = $wpdb->get_results($query, ARRAY_A);
 
@@ -195,23 +250,20 @@ function bokit_connector_get_hbook_bookings(
         }
 
         return [
-            "id" => (int) $r["id"],
-            "check_in" => $r["check_in"],
-            "check_out" => $r["check_out"],
-            "unit_id" => "{$r["accom_id"]}_{$r["accom_num"]}",
-            "unit" => $r["unit_name"] ?? null,
-            "price" => (float) $r["price"],
-            "deposit" => (float) $r["deposit"],
-            "paid" => (float) $r["paid"],
-            "status" => $r["status"],
-            "origin" => $r["origin"],
-            "guest_name" => trim(
-                ($guest["first_name"] ?? "") .
-                    " " .
-                    ($guest["last_name"] ?? ""),
-            ),
-            "guest_email" => $guest["email"] ?? "",
-            "guest_phone" => $guest["phone"] ?? "",
+            "uid"            => $r["uid"],
+            "id"             => (int) $r["hbook_id"],
+            "group_hbook_id" => $r["group_hbook_id"] ? (int) $r["group_hbook_id"] : null,
+            "check_in"       => $r["check_in"],
+            "check_out"      => $r["check_out"],
+            "unit_id"        => "{$r['accom_id']}_{$r['accom_num']}",
+            "unit"           => $r["unit_name"] ?? null,
+            "price"          => (float) $r["price"],
+            "deposit"        => (float) $r["deposit"],
+            "paid"           => (float) $r["paid"],
+            "status"         => $r["status"],
+            "guest_name"     => trim(($guest["first_name"] ?? "") . " " . ($guest["last_name"] ?? "")),
+            "guest_email"    => $guest["email"] ?? "",
+            "guest_phone"    => $guest["phone"] ?? "",
         ];
     }, $rows);
 
