@@ -39,6 +39,10 @@ bokit-light/
 │   └── migrations/            # Database schema versions
 ├── lang/                      # Translations (en/, fr/)
 ├── modules/                   # Optional premium/integration modules
+│   ├── beds24
+│   ├── hbook
+│   ├── multipass
+│   └── wp-connector
 ├── resources/
 │   ├── css/                   # Modular stylesheets
 │   ├── js/                    # JavaScript components

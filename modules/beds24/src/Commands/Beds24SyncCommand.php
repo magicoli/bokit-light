@@ -323,6 +323,13 @@ class Beds24SyncCommand extends Command
     /**
      * @param  array<string, mixed>  $row
      * @return array<string, mixed>
+     *
+     * Important fields:
+     *   referrer    — channel name set by the OTA/CM ("Airbnb", "Booking.com", …).
+     *                 This is the only reliable canal indicator for iCal-sourced bookings
+     *                 (apiSource 28/29) where apiSource alone is insufficient.
+     *   api_source  — Beds24 channel code: 0=Direct, 19=Booking.com, 28=iCal, 29=Airbnb iCal, 46=Airbnb API
+     *   api_ref     — OTA booking reference (e.g. Airbnb confirmation code HMMC43XXFH)
      */
     private function buildMeta(array $row): array
     {
@@ -331,11 +338,17 @@ class Beds24SyncCommand extends Command
             'beds24_room_id' => $row['roomId'] ?? null,
             'email' => $row['email'] ?? null,
             'phone' => $row['phone'] ?? null,
+            'mobile' => $row['mobile'] ?? null,
+            'address' => $row['address'] ?? null,
+            'country' => $row['country'] ?? null,
             'api_source' => $row['apiSource'] ?? null,
             'api_ref' => $row['apiRef'] ?? null,
+            'referrer' => $row['referrer'] ?? null,
             'num_adult' => isset($row['numAdult']) ? (int) $row['numAdult'] : null,
             'num_child' => isset($row['numChild']) ? (int) $row['numChild'] : null,
+            'num_baby' => isset($row['numBaby']) ? (int) $row['numBaby'] : null,
             'notes' => $row['notes'] ?? null,
+            'message' => $row['message'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
     }
 

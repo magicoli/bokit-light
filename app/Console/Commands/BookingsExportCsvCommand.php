@@ -13,6 +13,8 @@ use Illuminate\Support\Collection;
  *   airbnb / www.airbnb.fr   → Airbnb (iCal placeholder); skipped if guest="Reserved*" (no data)
  *   beds24 / api.beds24.com  → api_source '46' → Airbnb (Beds24 Airbnb API, authoritative)
  *                             → api_source '19' → Booking.com
+ *                             → referrer 'Airbnb*' → Airbnb (iCal, api_source 28/29)
+ *                             → referrer 'Booking*' → Booking.com (iCal)
  *                             → else            → Direct
  *   booking.com              → Booking.com (set by beds24:sync mapSourceName)
  *   hbook                    → Direct (always — OTAs excluded by WP endpoint)
@@ -140,16 +142,19 @@ class BookingsExportCsvCommand extends Command
         $rawSource = $booking->getRawOriginal('source_name') ?? '';
         $slug = \App\Models\Booking::sourceSlug($rawSource);
         $apiSource = (string) ($booking->metadata['api_source'] ?? '');
+        $referrer = strtolower($booking->metadata['referrer'] ?? '');
         $origin = strtolower($booking->metadata['origin'] ?? '');
 
         return match (true) {
             // Airbnb iCal placeholder: "Reserved (Airbnb)" — no guest or financial data
             $slug === 'airbnb' && str_starts_with($booking->guest_name, 'Reserved') => null,
             $slug === 'airbnb' => 'Airbnb',
-            // Beds24 JSON API or legacy Beds24 iCal
-            $slug === 'beds24' => match ($apiSource) {
-                '46' => 'Airbnb',
-                '19' => 'Booking.com',
+            // Beds24: authoritative via apiSource, fallback to referrer for iCal (apiSource 28/29)
+            $slug === 'beds24' => match (true) {
+                $apiSource === '46' => 'Airbnb',
+                $apiSource === '19' => 'Booking.com',
+                str_contains($referrer, 'airbnb') => 'Airbnb',
+                str_contains($referrer, 'booking') => 'Booking.com',
                 default => 'Direct',
             },
             // Set directly by beds24:sync mapSourceName after enrichment
