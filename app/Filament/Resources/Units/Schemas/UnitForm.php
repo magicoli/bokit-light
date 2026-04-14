@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Units\Schemas;
 
 use App\Models\Property;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Get;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -73,6 +75,64 @@ class UnitForm
                         ->label(__('unit.field.description'))
                         ->rows(4)
                         ->columnSpanFull(),
+                ]),
+
+            Section::make(__('unit.section.sources'))
+                ->description(__('unit.section.sources_description'))
+                ->schema([
+                    Repeater::make('options.sources')
+                        ->label(false)
+                        ->schema([
+                            Select::make('type')
+                                ->label(__('unit.field.source_type'))
+                                ->options([
+                                    'beds24'    => __('unit.source_type.beds24'),
+                                    'hbook'     => __('unit.source_type.hbook'),
+                                    'multipass' => __('unit.source_type.multipass'),
+                                    'ical'      => __('unit.source_type.ical'),
+                                ])
+                                ->required()
+                                ->live()
+                                ->columnSpan(1),
+
+                            TextInput::make('room_id')
+                                ->label(__('unit.field.source_beds24_room_id'))
+                                ->numeric()
+                                ->visible(fn (Get $get): bool => $get('type') === 'beds24')
+                                ->columnSpan(1),
+
+                            TextInput::make('url')
+                                ->label(__('unit.field.source_ical_url'))
+                                ->url()
+                                ->visible(fn (Get $get): bool => $get('type') === 'ical')
+                                ->columnSpan(2),
+
+                            TextInput::make('label')
+                                ->label(__('unit.field.source_label'))
+                                ->placeholder(fn (Get $get): string => match ($get('type')) {
+                                    'ical'      => 'Airbnb iCal',
+                                    default     => '',
+                                })
+                                ->visible(fn (Get $get): bool => $get('type') === 'ical')
+                                ->columnSpan(1),
+
+                            Toggle::make('enabled')
+                                ->label(__('unit.field.source_enabled'))
+                                ->default(true)
+                                ->columnSpan(1),
+                        ])
+                        ->columns(2)
+                        ->reorderable()
+                        ->addActionLabel(__('unit.action.add_source'))
+                        ->defaultItems(0)
+                        ->itemLabel(fn (array $state): string => match ($state['type'] ?? '') {
+                            'beds24'    => 'Beds24'.(! empty($state['room_id']) ? " (room #{$state['room_id']})" : ''),
+                            'hbook'     => 'HBook',
+                            'multipass' => 'Multipass',
+                            'ical'      => 'iCal'.(! empty($state['label']) ? " — {$state['label']}" : ''),
+                            default     => 'Source',
+                        })
+                        ->collapsible(),
                 ]),
         ];
 

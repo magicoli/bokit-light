@@ -19,7 +19,8 @@ use Modules\Beds24\Services\Beds24ApiService;
  *   - No date fallback: booking dates can change on modification.
  *
  * Room mapping:
- *   - Each Unit stores options.beds24_room_id (the Beds24 roomId integer).
+ *   - Each Unit stores sources in options.sources (ordered array, new format).
+ *     Legacy fallback: options.beds24_room_id (single value, old format).
  *   - Bookings with an unmapped roomId are skipped with a warning.
  *
  * Timezone:
@@ -35,8 +36,8 @@ class Beds24SyncCommand extends Command
 {
     protected $signature = 'beds24:sync
                             {--property=      : Property slug or ID (all configured properties if omitted)}
-                            {--from=          : Filter by arrival from date (YYYY-MM-DD)}
-                            {--to=            : Filter by arrival to date (YYYY-MM-DD)}
+                            {--from=          : Arrival from date (YYYY-MM-DD). REQUIRED for historical data — Beds24 API only returns future bookings by default.}
+                            {--to=            : Arrival to date (YYYY-MM-DD)}
                             {--modified-since= : Only fetch bookings modified since this date (YYYY-MM-DD)}
                             {--dry-run        : Preview without saving}';
 
@@ -44,6 +45,11 @@ class Beds24SyncCommand extends Command
 
     public function handle(): int
     {
+        if (! $this->option('from') && ! $this->option('modified-since')) {
+            $this->warn('No --from or --modified-since provided. Beds24 API will only return future bookings.');
+            $this->warn('Use --from=YYYY-MM-DD to include historical bookings (e.g. --from=2025-01-01).');
+        }
+
         $properties = $this->resolveProperties();
 
         if ($properties->isEmpty()) {
@@ -80,12 +86,13 @@ class Beds24SyncCommand extends Command
 
             /** @var array<int, Unit> $unitMap  beds24_room_id (int) → Unit */
             $unitMap = $property->units
-                ->filter(fn (Unit $u) => ! empty($u->options['beds24_room_id']))
-                ->keyBy(fn (Unit $u) => (int) $u->options['beds24_room_id'])
+                ->flatMap(fn (Unit $u) => collect($this->resolveBedsRoomIds($u))
+                    ->mapWithKeys(fn (int $roomId) => [$roomId => $u])
+                )
                 ->all();
 
             if (empty($unitMap)) {
-                $this->warn('  Skipping — no units have a beds24_room_id configured.');
+                $this->warn('  Skipping — no units have a beds24 source configured (options.sources or options.beds24_room_id).');
 
                 continue;
             }
@@ -378,6 +385,36 @@ class Beds24SyncCommand extends Command
             '3' => 'cancelled',
             default => 'confirmed',
         };
+    }
+
+    /**
+     * Resolve all Beds24 room IDs for a unit.
+     *
+     * New format: unit.options.sources = [{type: 'beds24', room_id: '12345', enabled: true}, ...]
+     * Legacy fallback: unit.options.beds24_room_id = '12345'
+     *
+     * @return array<int, int>  Beds24 room IDs (integers)
+     */
+    private function resolveBedsRoomIds(Unit $unit): array
+    {
+        $sources = $unit->options['sources'] ?? [];
+
+        if (! empty($sources)) {
+            return collect($sources)
+                ->filter(fn ($s) => ($s['type'] ?? '') === 'beds24'
+                    && ($s['enabled'] ?? true)
+                    && ! empty($s['room_id'])
+                )
+                ->map(fn ($s) => (int) $s['room_id'])
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        // Legacy: single beds24_room_id
+        $roomId = $unit->options['beds24_room_id'] ?? null;
+
+        return $roomId ? [(int) $roomId] : [];
     }
 
     /**

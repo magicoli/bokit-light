@@ -3,7 +3,6 @@
 namespace Modules\Beds24;
 
 use App\Filament\Resources\Properties\Schemas\PropertyForm;
-use App\Filament\Resources\Units\Schemas\UnitForm;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Illuminate\Support\ServiceProvider;
@@ -21,7 +20,6 @@ class Beds24ServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'beds24');
 
         $this->extendPropertyForm();
-        $this->extendUnitForm();
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -51,26 +49,6 @@ class Beds24ServiceProvider extends ServiceProvider
                         ->password()
                         ->revealable()
                         ->maxLength(255),
-                ]);
-
-            return $components;
-        });
-    }
-
-    /**
-     * Inject Beds24 room ID field into the unit edit form.
-     */
-    private function extendUnitForm(): void
-    {
-        UnitForm::extend(function (array $components): array {
-            $components[] = Section::make(__('beds24::unit.section.beds24'))
-                ->description(__('beds24::unit.section.beds24_description'))
-                ->schema([
-                    TextInput::make('options.beds24_room_id')
-                        ->label(__('beds24::unit.field.beds24_room_id'))
-                        ->helperText(__('beds24::unit.field.beds24_room_id_help'))
-                        ->numeric()
-                        ->maxLength(20),
                 ]);
 
             return $components;
