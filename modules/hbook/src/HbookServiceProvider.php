@@ -85,45 +85,48 @@ class HbookServiceProvider extends ServiceProvider
                 return [];
             }
             
-            \Illuminate\Support\Facades\Log::info("HBook: Fetching all units from WordPress site", [
-                'property' => $property->id,
-                'unit' => $unit->id,
-                'wp_url' => $property->options['wp_url'],
-            ]);
-            
-            // Get all HBook units from the WordPress site
-            $response = $wpConnector->get('/wp-json/bokit/v1/hbook-units');
-            
-            \Illuminate\Support\Facades\Log::info("HBook: WordPress API response", [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            
-            if (! $response->successful()) {
-                \Illuminate\Support\Facades\Log::warning("HBook: WordPress API returned non-success status", [
-                    'status' => $response->status(),
+            $cacheKey = "hbook_units_property_{$property->id}";
+
+            return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($wpConnector, $property, $unit) {
+                \Illuminate\Support\Facades\Log::info("HBook: Fetching all units from WordPress site", [
+                    'property' => $property->id,
+                    'unit' => $unit->id,
+                    'wp_url' => $property->options['wp_url'],
                 ]);
-                return [];
-            }
-            
-            $units = $response->json('units', []);
-            \Illuminate\Support\Facades\Log::info("HBook: Parsed units from WordPress", ['count' => count($units)]);
-            
-            // Return flat [id => "name (post_title)"] for Filament Select options.
-            $formatted = [];
-            foreach ($units as $unit) {
-                $id    = $unit['id'] ?? $unit['ID'] ?? '';
-                $name  = $unit['name'] ?? 'Unknown';
-                $title = $unit['post_title'] ?? '';
-                $label = $title ? "{$name} ({$title})" : $name;
-                $formatted[$id] = $label;
-            }
 
-            \Illuminate\Support\Facades\Log::info("HBook: Returning formatted units", [
-                'count' => count($formatted),
-            ]);
+                $response = $wpConnector->get('/wp-json/bokit/v1/hbook-units');
 
-            return $formatted;
+                \Illuminate\Support\Facades\Log::info("HBook: WordPress API response", [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                if (! $response->successful()) {
+                    \Illuminate\Support\Facades\Log::warning("HBook: WordPress API returned non-success status", [
+                        'status' => $response->status(),
+                    ]);
+                    return [];
+                }
+
+                $units = $response->json('units', []);
+                \Illuminate\Support\Facades\Log::info("HBook: Parsed units from WordPress", ['count' => count($units)]);
+
+                // Return flat [id => "name (post_title)"] for Filament Select options.
+                $formatted = [];
+                foreach ($units as $unit) {
+                    $id    = $unit['id'] ?? $unit['ID'] ?? '';
+                    $name  = $unit['name'] ?? 'Unknown';
+                    $title = $unit['post_title'] ?? '';
+                    $label = $title ? "{$name} ({$title})" : $name;
+                    $formatted[$id] = $label;
+                }
+
+                \Illuminate\Support\Facades\Log::info("HBook: Returning formatted units", [
+                    'count' => count($formatted),
+                ]);
+
+                return $formatted;
+            });
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("HBook: Exception fetching units", [
                 'error' => $e->getMessage(),

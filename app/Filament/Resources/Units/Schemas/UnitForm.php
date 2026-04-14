@@ -116,9 +116,6 @@ class UnitForm
                                 ->options(fn () => \Modules\Hbook\HbookServiceProvider::getHbookUnitsFromWordPress(
                                     request()->route('record')
                                 ))
-                                ->searchable()
-                                ->preload()
-                                ->loadingMessage(__('app.loading'))
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
                                         "type",
