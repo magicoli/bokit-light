@@ -41,16 +41,40 @@ class HbookServiceProvider extends ServiceProvider
                 if ($property) {
                     $wpConnector = new \Modules\WpConnector\Services\WpConnectorService($property);
                     if ($wpConnector->isConfigured()) {
+                        \Illuminate\Support\Facades\Log::info("HBook: Fetching units from WordPress", [
+                            'property' => $property->id,
+                            'url' => $property->options['wp_url'],
+                        ]);
+                        
                         $response = $wpConnector->get('/wp-json/hbook/v1/units');
+                        
+                        \Illuminate\Support\Facades\Log::info("HBook: WordPress API response", [
+                            'status' => $response->status(),
+                            'body' => $response->body(),
+                        ]);
+                        
                         if ($response->successful()) {
                             $units = $response->json('units', []);
-                            return array_map(function ($unit) {
+                            \Illuminate\Support\Facades\Log::info("HBook: Parsed units", ['units' => $units]);
+                            
+                            $formatted = array_map(function ($unit) {
                                 return [
                                     'id' => $unit['id'] ?? $unit['ID'] ?? '',
                                     'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
                                 ];
                             }, $units);
+                            
+                            \Illuminate\Support\Facades\Log::info("HBook: Formatted units", ['formatted' => $formatted]);
+                            return $formatted;
+                        } else {
+                            \Illuminate\Support\Facades\Log::warning("HBook: WordPress API returned non-success status", [
+                                'status' => $response->status(),
+                            ]);
                         }
+                    } else {
+                        \Illuminate\Support\Facades\Log::warning("HBook: WP Connector not configured for property", [
+                            'property' => $property->id,
+                        ]);
                     }
                 }
             }
@@ -73,9 +97,13 @@ class HbookServiceProvider extends ServiceProvider
                 }
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("HBook: Failed to fetch units", ['error' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error("HBook: Failed to fetch units", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
         
+        \Illuminate\Support\Facades\Log::info("HBook: No units found, returning empty array");
         return [];
     }
 }
