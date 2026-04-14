@@ -117,6 +117,7 @@ class UnitForm
                                     request()->route('record')
                                 ))
                                 ->searchable()
+                                ->preload()
                                 ->loadingMessage(__('app.loading'))
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
