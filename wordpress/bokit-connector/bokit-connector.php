@@ -386,54 +386,42 @@ function bokit_connector_resolve_origin(?string $origin, ?string $email): ?strin
 
 /**
  * GET /wp-json/bokit/v1/hbook-units
- * 
- * Returns all HBook accommodation units with their IDs and names.
- * HBook stores accommodations in wp_posts with post_type='hb_accommodation'
- * and additional names in wp_hb_accom_num_name table.
+ *
+ * Returns individual HBook accommodation units (real bookable slots).
+ *
+ * Data source: wp_hb_accom_num_name joined with wp_posts.
+ *
+ * Filtering:
+ * - Only published hb_accommodation posts.
+ * - Only rows where num_name is NOT purely numeric.
+ *   Multi-unit package types (e.g. "3 gîtes", "Zetoil + 1 gîte") have num_name='1'
+ *   because they contain only one slot; real units have proper names (Sun, Moon…).
+ *
+ * Returned id format: "{accom_id}_{accom_num}" — used as hbook_accom in booking imports.
  */
 function bokit_connector_get_hbook_units(): WP_REST_Response
 {
     global $wpdb;
 
-    $units = [];
-
-    // Get all HBook accommodations from wp_posts
-    $accommodations = $wpdb->get_results(
-        "SELECT ID, post_title FROM {$wpdb->posts} "
-        . "WHERE post_type = 'hb_accommodation' AND post_status = 'publish'"
+    $rows = $wpdb->get_results(
+        "SELECT n.accom_id, n.accom_num, n.num_name, p.post_title
+         FROM {$wpdb->prefix}hb_accom_num_name n
+         INNER JOIN {$wpdb->posts} p ON p.ID = n.accom_id
+         WHERE p.post_type   = 'hb_accommodation'
+           AND p.post_status = 'publish'
+           AND n.num_name NOT REGEXP '^[0-9]+$'
+         ORDER BY n.accom_id, n.accom_num"
     );
 
-    foreach ($accommodations as $accom) {
-        // Get accommodation numbers and names from wp_hb_accom_num_name
-        $names = $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT accom_num, accom_name FROM {$wpdb->prefix}hb_accom_num_name "
-                . "WHERE accom_id = %d ORDER BY accom_num",
-                $accom->ID
-            )
-        );
-
-        if (!empty($names)) {
-            foreach ($names as $name) {
-                $units[] = [
-                    'id' => $accom->ID . '_' . $name->accom_num,
-                    'accom_id' => $accom->ID,
-                    'accom_num' => $name->accom_num,
-                    'name' => $name->accom_name,
-                    'post_title' => $accom->post_title,
-                ];
-            }
-        } else {
-            // Fallback if no names in the num_name table
-            $units[] = [
-                'id' => $accom->ID . '_1',
-                'accom_id' => $accom->ID,
-                'accom_num' => 1,
-                'name' => $accom->post_title,
-                'post_title' => $accom->post_title,
-            ];
-        }
-    }
+    $units = array_map(function ($row) {
+        return [
+            'id'         => $row->accom_id . '_' . $row->accom_num,
+            'accom_id'   => (int) $row->accom_id,
+            'accom_num'  => (int) $row->accom_num,
+            'name'       => $row->num_name,
+            'post_title' => $row->post_title,
+        ];
+    }, $rows);
 
     return new WP_REST_Response(['units' => $units], 200);
 }
