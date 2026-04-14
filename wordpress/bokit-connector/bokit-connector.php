@@ -397,6 +397,10 @@ function bokit_connector_resolve_origin(?string $origin, ?string $email): ?strin
  *   Multi-unit package types (e.g. "3 gîtes", "Zetoil + 1 gîte") have num_name='1'
  *   because they contain only one slot; real units have proper names (Sun, Moon…).
  *
+ * NOTE: HBook provides HbAvailableAccom->get_available_accom() which may handle
+ * additional edge cases (disabled units, capacity constraints, etc.). If filtering
+ * issues arise, consider switching to that method instead of the raw SQL approach.
+ *
  * Returned id format: "{accom_id}_{accom_num}" — used as hbook_accom in booking imports.
  */
 function bokit_connector_get_hbook_units(): WP_REST_Response
