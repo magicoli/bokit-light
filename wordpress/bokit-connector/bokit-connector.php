@@ -133,23 +133,12 @@ function bokit_connector_authenticate_user(WP_REST_Request $request)
  * Beds24/Lodgify-synced bookings are excluded (they have no price in hbook).
  *
  * Unit mapping (accom_id / accom_num → unit name):
- *   3539 / 1 → Sun
- *   3539 / 2 → Moon
- *   3539 / 3 → Violeta
- *   3539 / 4 → Zandoli
- *   3573 / 1 → Zetoil
+ * The unit_id field returned is "{accom_id}_{accom_num}" — the same format used
+ * as hbook_unit_id in Bokit's unit source configuration.
  */
 function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_Response
 {
     global $wpdb;
-
-    $unit_map = [
-        '3539_1' => 'Sun',
-        '3539_2' => 'Moon',
-        '3539_3' => 'Violeta',
-        '3539_4' => 'Zandoli',
-        '3573_1' => 'Zetoil',
-    ];
 
     $excluded_origins = ['Beds24', 'Lodgify', 'Lodgify Moon', 'Lodgify Sun',
         'Lodgify Violeta', 'Lodgify Zandoli', 'Lodgify Zetoil', 'Zandoli'];
@@ -172,8 +161,11 @@ function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_R
     $query = $wpdb->prepare(
         "SELECT r.id, r.check_in, r.check_out, r.accom_id, r.accom_num,
                 r.price, r.deposit, r.paid, r.status, r.origin,
-                c.info as guest_info
+                c.info as guest_info,
+                n.num_name as unit_name
          FROM {$wpdb->prefix}hb_resa r
+         LEFT JOIN {$wpdb->prefix}hb_accom_num_name n
+               ON n.accom_id = r.accom_id AND n.accom_num = r.accom_num
          LEFT JOIN {$wpdb->prefix}hb_customers c ON c.id = r.customer_id
          WHERE $where
          ORDER BY r.check_in",
@@ -182,26 +174,24 @@ function bokit_connector_get_hbook_bookings(WP_REST_Request $request): WP_REST_R
 
     $rows = $wpdb->get_results($query, ARRAY_A);
 
-    $bookings = array_map(function ($r) use ($unit_map) {
-        $key = "{$r['accom_id']}_{$r['accom_num']}";
+    $bookings = array_map(function ($r) {
         $guest = [];
         if ($r['guest_info']) {
             $guest = json_decode($r['guest_info'], true) ?? [];
         }
 
         return [
-            'id' => (int) $r['id'],
-            'check_in' => $r['check_in'],
-            'check_out' => $r['check_out'],
-            'accom_id' => (int) $r['accom_id'],
-            'accom_num' => (int) $r['accom_num'],
-            'unit' => $unit_map[$key] ?? null,
-            'price' => (float) $r['price'],
-            'deposit' => (float) $r['deposit'],
-            'paid' => (float) $r['paid'],
-            'status' => $r['status'],
-            'origin' => $r['origin'],
-            'guest_name' => trim(($guest['first_name'] ?? '').' '.($guest['last_name'] ?? '')),
+            'id'          => (int) $r['id'],
+            'check_in'    => $r['check_in'],
+            'check_out'   => $r['check_out'],
+            'unit_id'     => "{$r['accom_id']}_{$r['accom_num']}",
+            'unit'        => $r['unit_name'] ?? null,
+            'price'       => (float) $r['price'],
+            'deposit'     => (float) $r['deposit'],
+            'paid'        => (float) $r['paid'],
+            'status'      => $r['status'],
+            'origin'      => $r['origin'],
+            'guest_name'  => trim(($guest['first_name'] ?? '').' '.($guest['last_name'] ?? '')),
             'guest_email' => $guest['email'] ?? '',
             'guest_phone' => $guest['phone'] ?? '',
         ];

@@ -75,8 +75,16 @@ class HbookImportCommand extends Command
             $bookings = $response->json();
             $this->line('  Fetched '.count($bookings).' bookings from hbook.');
 
-            /** @var array<string, Unit> $unitMap  name (lowercase) → Unit */
-            $unitMap = $property->units->keyBy(fn (Unit $u) => strtolower($u->name))->all();
+            // Build map: hbook_unit_id (e.g. "3539_1") → Unit
+            // Reads from options.sources where type=hbook and enabled=true.
+            /** @var array<string, Unit> $unitMap  hbook_unit_id → Unit */
+            $unitMap = $this->buildUnitMap($property);
+
+            if (empty($unitMap)) {
+                $this->warn('  Skipping — no units with hbook source configured.');
+
+                continue;
+            }
 
             [$created, $updated, $skipped] = $this->importBookings($property, $unitMap, $bookings);
 
@@ -108,11 +116,12 @@ class HbookImportCommand extends Command
         $now = now();
 
         foreach ($bookings as $row) {
-            $unitName = strtolower($row['unit'] ?? '');
-            $unit = $unitMap[$unitName] ?? null;
+            $unitId = $row['unit_id'] ?? null;
+            $unit = $unitId ? ($unitMap[$unitId] ?? null) : null;
 
             if (! $unit) {
-                $this->warn("  Skip: unknown unit '{$row['unit']}' (hbook id={$row['id']})");
+                $label = $row['unit'] ?? $unitId ?? '?';
+                $this->warn("  Skip: no unit mapped to hbook_unit_id='{$unitId}' [{$label}] (hbook id={$row['id']})");
                 $skipped++;
 
                 continue;
@@ -249,6 +258,29 @@ class HbookImportCommand extends Command
             'cancelled' => 'cancelled',
             default => 'confirmed',
         };
+    }
+
+    /**
+     * Build a map of hbook_unit_id → Unit from options.sources for all units of a property.
+     *
+     * @return array<string, Unit>
+     */
+    private function buildUnitMap(Property $property): array
+    {
+        $map = [];
+
+        foreach ($property->units as $unit) {
+            foreach ($unit->options['sources'] ?? [] as $source) {
+                if (($source['type'] ?? '') === 'hbook'
+                    && ($source['enabled'] ?? true)
+                    && ! empty($source['hbook_unit_id'])
+                ) {
+                    $map[$source['hbook_unit_id']] = $unit;
+                }
+            }
+        }
+
+        return $map;
     }
 
     private function resolveProperties()
