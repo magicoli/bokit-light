@@ -113,11 +113,11 @@ class UnitForm
 
                             Select::make("hbook_unit_id")
                                 ->label(__("unit.field.source_hbook_unit"))
-                                ->options(function () {
-                                    // Get unit ID from the current request (Filament edit page)
-                                    $unitId = request()->route('record');
-                                    return \Modules\Hbook\HbookServiceProvider::getHbookUnitsFromWordPress($unitId);
-                                })
+                                ->options(fn () => \Modules\Hbook\HbookServiceProvider::getHbookUnitsFromWordPress(
+                                    request()->route('record')
+                                ))
+                                ->searchable()
+                                ->loadingMessage(__('app.loading'))
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
                                         "type",

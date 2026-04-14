@@ -109,19 +109,20 @@ class HbookServiceProvider extends ServiceProvider
             $units = $response->json('units', []);
             \Illuminate\Support\Facades\Log::info("HBook: Parsed units from WordPress", ['count' => count($units)]);
             
-            // Format units for the select field: [['id' => 'wp-id', 'name' => 'Unit Name'], ...]
-            $formatted = array_map(function ($unit) {
-                return [
-                    'id' => $unit['id'] ?? $unit['ID'] ?? '',
-                    'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
-                ];
-            }, $units);
-            
+            // Return flat [id => "name (post_title)"] for Filament Select options.
+            $formatted = [];
+            foreach ($units as $unit) {
+                $id    = $unit['id'] ?? $unit['ID'] ?? '';
+                $name  = $unit['name'] ?? 'Unknown';
+                $title = $unit['post_title'] ?? '';
+                $label = $title ? "{$name} ({$title})" : $name;
+                $formatted[$id] = $label;
+            }
+
             \Illuminate\Support\Facades\Log::info("HBook: Returning formatted units", [
                 'count' => count($formatted),
-                'units' => $formatted,
             ]);
-            
+
             return $formatted;
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("HBook: Exception fetching units", [
