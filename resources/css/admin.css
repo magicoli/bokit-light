@@ -46,22 +46,8 @@ body.admin {
         /* Admin-specific table overrides if needed */
     }
 
-    /* Custom grip icon for repeater drag handle */
+    /* Admin-specific repeater styling */
     .fi-repeater-item-handler {
-        cursor: move;
-    }
-
-    /* Specific styling for sources repeater drag handle */
-    .fi-repeater-item-handler svg {
-        display: none; /* Hide default icon */
-    }
-
-    .fi-repeater-item-handler::before {
-        content: "\\F3FE"; /* Unicode for grip vertical */
-        font-family: "Heroicons"; /* Use Heroicons font if available */
-        font-size: 1.25rem; /* 20px */
-        line-height: 1.25rem; /* 20px */
-        color: #9ca3af; /* gray-400 */
         cursor: move;
     }
 }

@@ -80,6 +80,7 @@ class UnitForm
 
             Section::make(__('unit.section.sources'))
                 ->description(__('unit.section.sources_description'))
+                ->columns(1)
                 ->schema([
                     Repeater::make('options.sources')
                         ->label(false)
@@ -137,7 +138,8 @@ class UnitForm
                         ->collapsed()
                         ->orderable()
                         ->grid(['default' => 1])
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->reorderButtonIcon('bi-grip-vertical'),
                 ]),
         ];
 
