@@ -36,8 +36,8 @@ class Beds24SyncCommand extends Command
 {
     protected $signature = 'beds24:sync
                             {--property=      : Property slug or ID (all configured properties if omitted)}
-                            {--from=          : Arrival from date (YYYY-MM-DD). REQUIRED for historical data — Beds24 API only returns future bookings by default.}
-                            {--to=            : Arrival to date (YYYY-MM-DD)}
+                            {--from=          : Arrival from date (YYYY-MM-DD). Defaults to 2020-01-01 to include all historical data.}
+                            {--to=            : Arrival to date (YYYY-MM-DD). Defaults to 5 years in the future.}
                             {--modified-since= : Only fetch bookings modified since this date (YYYY-MM-DD)}
                             {--dry-run        : Preview without saving}';
 
@@ -45,11 +45,6 @@ class Beds24SyncCommand extends Command
 
     public function handle(): int
     {
-        if (! $this->option('from') && ! $this->option('modified-since')) {
-            $this->warn('No --from or --modified-since provided. Beds24 API will only return future bookings.');
-            $this->warn('Use --from=YYYY-MM-DD to include historical bookings (e.g. --from=2025-01-01).');
-        }
-
         $properties = $this->resolveProperties();
 
         if ($properties->isEmpty()) {
@@ -424,13 +419,9 @@ class Beds24SyncCommand extends Command
     {
         $params = [];
 
-        if ($from = $this->option('from')) {
-            $params['arrivalFrom'] = $from;
-        }
-
-        if ($to = $this->option('to')) {
-            $params['arrivalTo'] = $to;
-        }
+        // Default: include all historical and future data
+        $params['arrivalFrom'] = $this->option('from') ?? '2020-01-01';
+        $params['arrivalTo'] = $this->option('to') ?? now()->addYears(5)->format('Y-m-d');
 
         if ($modifiedSince = $this->option('modified-since')) {
             $params['modifiedSince'] = $modifiedSince;

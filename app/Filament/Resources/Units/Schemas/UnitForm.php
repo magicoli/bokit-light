@@ -8,7 +8,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Get;
+use Filament\Forms\Get as FormsGet;
+use Filament\Schemas\Components\Utilities\Get as SchemaGet;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -98,22 +99,22 @@ class UnitForm
                             TextInput::make('room_id')
                                 ->label(__('unit.field.source_beds24_room_id'))
                                 ->numeric()
-                                ->visible(fn (Get $get): bool => $get('type') === 'beds24')
+                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'beds24')
                                 ->columnSpan(1),
 
                             TextInput::make('url')
                                 ->label(__('unit.field.source_ical_url'))
                                 ->url()
-                                ->visible(fn (Get $get): bool => $get('type') === 'ical')
+                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'ical')
                                 ->columnSpan(2),
 
                             TextInput::make('label')
                                 ->label(__('unit.field.source_label'))
-                                ->placeholder(fn (Get $get): string => match ($get('type')) {
+                                ->placeholder(fn (FormsGet|SchemaGet $get): string => match ($get('type')) {
                                     'ical'      => 'Airbnb iCal',
                                     default     => '',
                                 })
-                                ->visible(fn (Get $get): bool => $get('type') === 'ical')
+                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'ical')
                                 ->columnSpan(1),
 
                             Toggle::make('enabled')

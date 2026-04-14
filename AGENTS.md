@@ -116,24 +116,26 @@ When a booking appears wrong, identify and fix the root cause in the import/sync
 | **Multipass** (WordPress) | `multipass:import` | One-shot historical import | Airbnb / Booking.com / Direct (via `origin` field) |
 
 **Beds24 is the authoritative source for ALL Airbnb and Booking.com bookings.**
-Beds24 is a channel manager: every OTA booking flows through it. Run `beds24:sync --from=YYYY-MM-DD`
-to resync historical data; without `--from`, only future/recent bookings are returned by the Beds24 API.
+Beds24 is a channel manager: every OTA booking flows through it. The sync command **MUST ALWAYS** include all historical and future data. Use `beds24:sync --from=YYYY-MM-DD --to=YYYY-MM-DD` to explicitly specify the date range, but the default behavior should cover all dates automatically.
 
 ## Source priority (authoritative → weakest)
 
+The priority is **defined by the order in `/admin/units/{id}/edit`** (sortable sources repeater), not hardcoded.
+Higher priority sources always win on field conflicts.
+
 ```
-1. beds24 (API, apiSource != 28/29)   ← most authoritative: prices, commission, full guest data
-2. hbook                               ← authoritative for direct bookings (website)
-3. multipass                           ← historical data, may lack origin/price details
-4. beds24 iCal (apiSource 28/29)       ← weak: no prices, partial guest data; absorbed by beds24 API
-5. plain iCal (www.airbnb.fr, etc.)    ← weakest: no guest/price data; calendar placeholders only
+Priority is configurable per unit via the sources repeater (top = highest):
+1. First source in the list (e.g., beds24 API)
+2. Second source in the list (e.g., multipass)
+3. Third source in the list (e.g., hbook)
+4. Last source in the list (e.g., iCal) ← always lowest priority
 ```
 
 Rules:
 - A higher-priority source **always wins** on a field conflict.
-- beds24:sync absorbs weaker sources by reassigning their uid to `beds24-{bookId}`.
+- The sync command absorbs weaker sources by reassigning their uid to the higher-priority source's ID.
 - iCal-only entries with no guest name and no price should NEVER overwrite confirmed bookings.
-- **NEVER downgrade** a confirmed booking to pending just because the Beds24 entry has status=0.
+- **NEVER downgrade** a confirmed booking to pending just because a source entry has a lower status.
 
 ## Architecture — sources and deduplication
 
@@ -298,10 +300,7 @@ rsync --delete -Wavz wordpress/bokit-connector/ $LIVE_HOST:$LIVE_DOCUMENT_ROOT/w
 
 # 2. Full reset and reimport (when needed)
 echo "delete from bookings" | sqlite3 storage/database/default.sqlite
-php artisan hbook:import
-php artisan multipass:import
-php artisan beds24:sync --from=2025-01-01   # CRITICAL: --from needed for historical data
-                                             # Without --from, only future bookings are returned
+php artisan bokit:sync   # Always includes ALL data (past and future)
 
 # 3. Export CSV reports
 php artisan bookings:export-csv --year=2025
