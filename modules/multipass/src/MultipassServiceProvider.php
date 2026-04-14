@@ -26,29 +26,24 @@ class MultipassServiceProvider extends ServiceProvider
     protected function extendUnitForm(): void
     {
         UnitForm::extend(function (array $components): array {
-            foreach ($components as $component) {
-                // Skip if not the sources section
-                if (!isset($component['schema']) || !isset($component['schema'][0]) || !isset($component['schema'][0]['schema'])) {
-                    continue;
-                }
-                
-                $schema = $component['schema'][0]['schema'];
-                $newSchema = [];
-                
-                foreach ($schema as $field) {
-                    if (isset($field['name']) && $field['name'] === 'multipass_unit_id') {
-                        // Replace with dynamic field
-                        $newSchema[] = Select::make('multipass_unit_id')
-                            ->label(__('unit.field.source_multipass_unit'))
-                            ->options(fn () => $this->getMultipassUnitsFromWordPress())
-                            ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'multipass')
-                            ->columnSpan(1);
-                    } else {
-                        $newSchema[] = $field;
+            foreach ($components as &$component) {
+                // Check if this is the sources repeater
+                if (isset($component['schema']) && is_array($component['schema'])) {
+                    foreach ($component['schema'] as &$section) {
+                        if (isset($section['schema']) && is_array($section['schema'])) {
+                            foreach ($section['schema'] as &$field) {
+                                if (isset($field['name']) && $field['name'] === 'multipass_unit_id') {
+                                    // Replace with dynamic field
+                                    $field = Select::make('multipass_unit_id')
+                                        ->label(__('unit.field.source_multipass_unit'))
+                                        ->options(fn () => $this->getMultipassUnitsFromWordPress())
+                                        ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'multipass')
+                                        ->columnSpan(1);
+                                }
+                            }
+                        }
                     }
                 }
-                
-                $component['schema'][0]['schema'] = $newSchema;
             }
             return $components;
         });
@@ -60,24 +55,43 @@ class MultipassServiceProvider extends ServiceProvider
     protected function getMultipassUnitsFromWordPress(): array
     {
         try {
-            $wpApi = app(\Modules\WpConnector\Services\WpApiService::class);
-            
-            // Get the current property from request or session
-            $propertyId = request()->route('record') ?? session()->get('current_property_id');
+            // Get the current property from request
+            $propertyId = request()->route('record');
             
             if ($propertyId) {
                 $property = \App\Models\Property::find($propertyId);
-                if ($property && !empty($property->options['wp_url'] ?? '')) {
-                    return $wpApi->getMultipassUnits($property->options);
+                if ($property) {
+                    $wpConnector = new \Modules\WpConnector\Services\WpConnectorService($property);
+                    if ($wpConnector->isConfigured()) {
+                        $response = $wpConnector->get('/wp-json/bokit/v1/multipass-units');
+                        if ($response->successful()) {
+                            $units = $response->json('units', []);
+                            return array_map(function ($unit) {
+                                return [
+                                    'id' => $unit['id'] ?? $unit['ID'] ?? '',
+                                    'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
+                                ];
+                            }, $units);
+                        }
+                    }
                 }
             }
             
             // Fallback: try to get from any configured property
             $properties = \App\Models\Property::whereNotNull('options->wp_url')->get();
             foreach ($properties as $property) {
-                $units = $wpApi->getMultipassUnits($property->options);
-                if (!empty($units)) {
-                    return $units;
+                $wpConnector = new \Modules\WpConnector\Services\WpConnectorService($property);
+                if ($wpConnector->isConfigured()) {
+                    $response = $wpConnector->get('/wp-json/bokit/v1/multipass-units');
+                    if ($response->successful()) {
+                        $units = $response->json('units', []);
+                        return array_map(function ($unit) {
+                            return [
+                                'id' => $unit['id'] ?? $unit['ID'] ?? '',
+                                'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
+                            ];
+                        }, $units);
+                    }
                 }
             }
         } catch (\Exception $e) {
