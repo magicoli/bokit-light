@@ -19,6 +19,8 @@ return [
     "field.source_type" => "Type",
     "field.source_label" => "Label",
     "field.source_beds24_room_id" => "Beds24 Room ID",
+    "field.source_hbook_unit" => "HBook Unit",
+    "field.source_multipass_unit" => "Multipass Unit",
     "field.source_ical_url" => "iCal URL",
     "field.source_enabled" => "Enabled",
     "action.add_source" => "Add source",

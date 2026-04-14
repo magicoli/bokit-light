@@ -111,6 +111,26 @@ class UnitForm
                                 )
                                 ->columnSpan(1),
 
+                            Select::make("hbook_unit_id")
+                                ->label(__("unit.field.source_hbook_unit"))
+                                ->options([]) // Will be filled by HBook module
+                                ->visible(
+                                    fn(FormsGet|SchemaGet $get): bool => $get(
+                                        "type",
+                                    ) === "hbook",
+                                )
+                                ->columnSpan(1),
+
+                            Select::make("multipass_unit_id")
+                                ->label(__("unit.field.source_multipass_unit"))
+                                ->options([]) // Will be filled by Multipass module
+                                ->visible(
+                                    fn(FormsGet|SchemaGet $get): bool => $get(
+                                        "type",
+                                    ) === "multipass",
+                                )
+                                ->columnSpan(1),
+
                             TextInput::make("url")
                                 ->label(__("unit.field.source_ical_url"))
                                 ->url()
@@ -155,8 +175,14 @@ class UnitForm
                                     (!empty($state["room_id"])
                                         ? " (room #{$state["room_id"]})"
                                         : ""),
-                                "hbook" => "HBook",
-                                "multipass" => "Multipass",
+                                "hbook" => "HBook" .
+                                    (!empty($state["hbook_unit_id"])
+                                        ? " — {$state["hbook_unit_id"]}"
+                                        : ""),
+                                "multipass" => "Multipass" .
+                                    (!empty($state["multipass_unit_id"])
+                                        ? " — {$state["multipass_unit_id"]}"
+                                        : ""),
                                 "ical" => "iCal" .
                                     (!empty($state["label"])
                                         ? " — {$state["label"]}"

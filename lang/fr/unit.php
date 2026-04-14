@@ -19,6 +19,8 @@ return [
     "field.source_type" => "Type",
     "field.source_label" => "Libellé",
     "field.source_beds24_room_id" => "ID chambre Beds24",
+    "field.source_hbook_unit" => "Unité HBook",
+    "field.source_multipass_unit" => "Unité Multipass",
     "field.source_ical_url" => "URL iCal",
     "field.source_enabled" => "Activé",
     "action.add_source" => "Ajouter une source",
