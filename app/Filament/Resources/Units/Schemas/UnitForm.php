@@ -122,7 +122,7 @@ class UnitForm
                                 ->default(true)
                                 ->columnSpan(1),
                         ])
-                        ->columns(2)
+                        ->columns(3)
                         ->reorderable()
                         ->addActionLabel(__('unit.action.add_source'))
                         ->defaultItems(0)
@@ -133,7 +133,11 @@ class UnitForm
                             'ical'      => 'iCal'.(! empty($state['label']) ? " — {$state['label']}" : ''),
                             default     => 'Source',
                         })
-                        ->collapsible(),
+                        ->collapsible()
+                        ->collapsed()
+                        ->orderable()
+                        ->grid(['default' => 1])
+                        ->columnSpanFull(),
                 ]),
         ];
 
