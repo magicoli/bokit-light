@@ -50,6 +50,22 @@ body.admin {
     .fi-repeater-item-handler {
         cursor: move;
     }
+
+    /* Custom grip icon for sources repeater drag handle */
+    .fi-repeater-item-handler svg {
+        display: none; /* Hide default Filament icon */
+    }
+
+    .fi-repeater-item-handler::after {
+        content: "\\F3FE"; /* Unicode for grip vertical */
+        font-family: "bootstrap-icons", sans-serif; /* Use Bootstrap Icons */
+        font-size: 1.25rem; /* 20px */
+        line-height: 1.25rem; /* 20px */
+        color: #9ca3af; /* gray-400 */
+        cursor: move;
+        display: inline-block;
+        vertical-align: middle;
+    }
 }
 
 /* Admin sidebar menu */
