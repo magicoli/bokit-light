@@ -13,11 +13,9 @@ class EditUnit extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
-    }
-
-    protected function getActions(): array
-    {
-        return [ViewAction::make(), DeleteAction::make()];
+        return [
+            ViewAction::make(),
+            DeleteAction::make(),
+        ];
     }
 }

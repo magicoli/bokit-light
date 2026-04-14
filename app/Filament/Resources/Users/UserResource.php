@@ -24,11 +24,11 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = "name";
 
     public static function form(Schema $schema): Schema
     {
-        return UserForm::configure($schema);
+        return UserForm::configure($schema)->columns(1);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -49,10 +49,10 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListUsers::route('/'),
-            'create' => CreateUser::route('/create'),
-            'view' => ViewUser::route('/{record}'),
-            'edit' => EditUser::route('/{record}/edit'),
+            "index" => ListUsers::route("/"),
+            "create" => CreateUser::route("/create"),
+            "view" => ViewUser::route("/{record}"),
+            "edit" => EditUser::route("/{record}/edit"),
         ];
     }
 }

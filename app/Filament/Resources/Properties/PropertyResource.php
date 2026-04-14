@@ -24,11 +24,11 @@ class PropertyResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = "name";
 
     public static function form(Schema $schema): Schema
     {
-        return PropertyForm::configure($schema);
+        return PropertyForm::configure($schema)->columns(1);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -44,17 +44,17 @@ class PropertyResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
-        ];
+                //
+            ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListProperties::route('/'),
-            'create' => CreateProperty::route('/create'),
-            'view' => ViewProperty::route('/{record}'),
-            'edit' => EditProperty::route('/{record}/edit'),
+            "index" => ListProperties::route("/"),
+            "create" => CreateProperty::route("/create"),
+            "view" => ViewProperty::route("/{record}"),
+            "edit" => EditProperty::route("/{record}/edit"),
         ];
     }
 }

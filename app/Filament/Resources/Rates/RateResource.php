@@ -24,11 +24,11 @@ class RateResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = "name";
 
     public static function form(Schema $schema): Schema
     {
-        return RateForm::configure($schema);
+        return RateForm::configure($schema)->columns(1);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -49,10 +49,10 @@ class RateResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListRates::route('/'),
-            'create' => CreateRate::route('/create'),
-            'view' => ViewRate::route('/{record}'),
-            'edit' => EditRate::route('/{record}/edit'),
+            "index" => ListRates::route("/"),
+            "create" => CreateRate::route("/create"),
+            "view" => ViewRate::route("/{record}"),
+            "edit" => EditRate::route("/{record}/edit"),
         ];
     }
 }

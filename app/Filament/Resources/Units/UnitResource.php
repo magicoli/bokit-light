@@ -24,11 +24,11 @@ class UnitResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = "name";
 
     public static function form(Schema $schema): Schema
     {
-        return UnitForm::configure($schema);
+        return UnitForm::configure($schema)->columns(1);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -49,10 +49,10 @@ class UnitResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListUnits::route('/'),
-            'create' => CreateUnit::route('/create'),
-            'view' => ViewUnit::route('/{record}'),
-            'edit' => EditUnit::route('/{record}/edit'),
+            "index" => ListUnits::route("/"),
+            "create" => CreateUnit::route("/create"),
+            "view" => ViewUnit::route("/{record}"),
+            "edit" => EditUnit::route("/{record}/edit"),
         ];
     }
 }

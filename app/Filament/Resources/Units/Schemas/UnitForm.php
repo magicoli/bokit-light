@@ -36,108 +36,138 @@ class UnitForm
     public static function configure(Schema $schema): Schema
     {
         $components = [
-            Section::make(__('app.unit'))
-                ->columns(2)
+            Section::make(__("app.unit"))
+                ->columns(3)
                 ->schema([
-                    Select::make('property_id')
-                        ->label(__('unit.field.property_id'))
-                        ->options(Property::query()->pluck('name', 'id'))
+                    Select::make("property_id")
+                        ->label(__("unit.field.property_id"))
+                        ->options(Property::query()->pluck("name", "id"))
                         ->required(),
 
-                    TextInput::make('name')
-                        ->label(__('unit.field.name'))
+                    TextInput::make("name")
+                        ->label(__("unit.field.name"))
                         ->required(),
 
-                    TextInput::make('slug')
-                        ->label(__('unit.field.slug'))
+                    TextInput::make("slug")
+                        ->label(__("unit.field.slug"))
                         ->required(),
 
-                    TextInput::make('unit_type')
-                        ->label(__('unit.field.unit_type')),
+                    Textarea::make("description")
+                        ->label(__("unit.field.description"))
+                        ->rows(4)
+                        ->columnSpanFull(),
 
-                    TextInput::make('bedrooms')
-                        ->label(__('unit.field.bedrooms'))
-                        ->numeric()
-                        ->minValue(0),
-
-                    TextInput::make('max_guests')
-                        ->label(__('unit.field.max_guests'))
-                        ->numeric()
-                        ->minValue(0),
-
-                    Toggle::make('is_active')
-                        ->label(__('unit.field.is_active'))
+                    Toggle::make("is_active")
+                        ->label(__("unit.field.is_active"))
                         ->default(true),
                 ]),
 
-            Section::make(__('unit.field.description'))
+            Section::make(__("unit.field.details"))
+                ->columns(6)
                 ->schema([
-                    Textarea::make('description')
-                        ->label(__('unit.field.description'))
-                        ->rows(4)
-                        ->columnSpanFull(),
+                    TextInput::make("unit_type")->label(
+                        __("unit.field.unit_type"),
+                    ),
+
+                    TextInput::make("bedrooms")
+                        ->label(__("unit.field.bedrooms"))
+                        ->numeric()
+                        ->minValue(0),
+
+                    TextInput::make("max_guests")
+                        ->label(__("unit.field.max_guests"))
+                        ->numeric()
+                        ->minValue(0),
                 ]),
 
-            Section::make(__('unit.section.sources'))
-                ->description(__('unit.section.sources_description'))
+            Section::make(__("unit.section.sources"))
+                ->description(__("unit.section.sources_description"))
                 ->columns(1)
                 ->schema([
-                    Repeater::make('options.sources')
+                    Repeater::make("options.sources")
                         ->label(false)
                         ->schema([
-                            Select::make('type')
-                                ->label(__('unit.field.source_type'))
+                            Select::make("type")
+                                ->label(__("unit.field.source_type"))
                                 ->options([
-                                    'beds24'    => __('unit.source_type.beds24'),
-                                    'hbook'     => __('unit.source_type.hbook'),
-                                    'multipass' => __('unit.source_type.multipass'),
-                                    'ical'      => __('unit.source_type.ical'),
+                                    "beds24" => __("unit.source_type.beds24"),
+                                    "hbook" => __("unit.source_type.hbook"),
+                                    "multipass" => __(
+                                        "unit.source_type.multipass",
+                                    ),
+                                    "ical" => __("unit.source_type.ical"),
                                 ])
                                 ->required()
                                 ->live()
                                 ->columnSpan(1),
 
-                            TextInput::make('room_id')
-                                ->label(__('unit.field.source_beds24_room_id'))
+                            TextInput::make("room_id")
+                                ->label(__("unit.field.source_beds24_room_id"))
                                 ->numeric()
-                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'beds24')
+                                ->visible(
+                                    fn(FormsGet|SchemaGet $get): bool => $get(
+                                        "type",
+                                    ) === "beds24",
+                                )
                                 ->columnSpan(1),
 
-                            TextInput::make('url')
-                                ->label(__('unit.field.source_ical_url'))
+                            TextInput::make("url")
+                                ->label(__("unit.field.source_ical_url"))
                                 ->url()
-                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'ical')
+                                ->visible(
+                                    fn(FormsGet|SchemaGet $get): bool => $get(
+                                        "type",
+                                    ) === "ical",
+                                )
                                 ->columnSpan(2),
 
-                            TextInput::make('label')
-                                ->label(__('unit.field.source_label'))
-                                ->placeholder(fn (FormsGet|SchemaGet $get): string => match ($get('type')) {
-                                    'ical'      => 'Airbnb iCal',
-                                    default     => '',
-                                })
-                                ->visible(fn (FormsGet|SchemaGet $get): bool => $get('type') === 'ical')
+                            TextInput::make("label")
+                                ->label(__("unit.field.source_label"))
+                                ->placeholder(
+                                    fn(
+                                        FormsGet|SchemaGet $get,
+                                    ): string => match ($get("type")) {
+                                        "ical" => "Airbnb iCal",
+                                        default => "",
+                                    },
+                                )
+                                ->visible(
+                                    fn(FormsGet|SchemaGet $get): bool => $get(
+                                        "type",
+                                    ) === "ical",
+                                )
                                 ->columnSpan(1),
 
-                            Toggle::make('enabled')
-                                ->label(__('unit.field.source_enabled'))
+                            Toggle::make("enabled")
+                                ->label(__("unit.field.source_enabled"))
                                 ->default(true)
                                 ->columnSpan(1),
                         ])
                         ->columns(4)
                         ->reorderable()
-                        ->addActionLabel(__('unit.action.add_source'))
+                        ->addActionLabel(__("unit.action.add_source"))
                         ->defaultItems(0)
-                        ->itemLabel(fn (array $state): string => match ($state['type'] ?? '') {
-                            'beds24'    => 'Beds24'.(! empty($state['room_id']) ? " (room #{$state['room_id']})" : ''),
-                            'hbook'     => 'HBook',
-                            'multipass' => 'Multipass',
-                            'ical'      => 'iCal'.(! empty($state['label']) ? " — {$state['label']}" : ''),
-                            default     => 'Source',
-                        })
+                        ->itemLabel(
+                            fn(array $state): string => match (
+                                $state["type"] ?? ""
+                            ) {
+                                "beds24" => "Beds24" .
+                                    (!empty($state["room_id"])
+                                        ? " (room #{$state["room_id"]})"
+                                        : ""),
+                                "hbook" => "HBook",
+                                "multipass" => "Multipass",
+                                "ical" => "iCal" .
+                                    (!empty($state["label"])
+                                        ? " — {$state["label"]}"
+                                        : ""),
+                                default => "Source",
+                            },
+                        )
                         ->collapsible()
                         ->collapsed()
                         ->orderable()
-                        ->grid(['default' => 1])
+                        ->grid(["default" => 1])
                         ->columnSpanFull(),
                 ]),
         ];
