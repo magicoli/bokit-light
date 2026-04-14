@@ -17,6 +17,7 @@ return [
     "section.sources_description" =>
         "Booking sources for this unit, ordered from highest to lowest priority. Drag to reorder.",
     "field.source_type" => "Type",
+    "field.source_config" => "Configuration",
     "field.source_label" => "Label",
     "field.source_beds24_room_id" => "Beds24 Room ID",
     "field.source_hbook_unit" => "HBook Unit",
