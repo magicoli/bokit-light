@@ -29,83 +29,106 @@ class HbookServiceProvider extends ServiceProvider
 
     /**
      * Get HBook units from WordPress API
+     * 
+     * HBook is configured site-wide in WordPress, not per-property.
+     * We use the current unit's property configuration to connect to WordPress,
+     * but we fetch all units from the WordPress site, not filtered by property.
      */
-    public static function getHbookUnitsFromWordPress(): array
+    public static function getHbookUnitsFromWordPress(?int $unitId = null): array
     {
-        \Illuminate\Support\Facades\Log::info("HBook: getHbookUnitsFromWordPress() called");
+        \Illuminate\Support\Facades\Log::info("HBook: getHbookUnitsFromWordPress() called", ['unit_id' => $unitId]);
         
         try {
-            // Get the current property from request
-            $propertyId = request()->route('record');
-            
-            if ($propertyId) {
-                $property = \App\Models\Property::find($propertyId);
-                if ($property) {
-                    $wpConnector = new \Modules\WpConnector\Services\WpConnectorService($property);
-                    if ($wpConnector->isConfigured()) {
-                        \Illuminate\Support\Facades\Log::info("HBook: Fetching units from WordPress", [
-                            'property' => $property->id,
-                            'url' => $property->options['wp_url'],
-                        ]);
-                        
-                        $response = $wpConnector->get('/wp-json/hbook/v1/units');
-                        
-                        \Illuminate\Support\Facades\Log::info("HBook: WordPress API response", [
-                            'status' => $response->status(),
-                            'body' => $response->body(),
-                        ]);
-                        
-                        if ($response->successful()) {
-                            $units = $response->json('units', []);
-                            \Illuminate\Support\Facades\Log::info("HBook: Parsed units", ['units' => $units]);
-                            
-                            $formatted = array_map(function ($unit) {
-                                return [
-                                    'id' => $unit['id'] ?? $unit['ID'] ?? '',
-                                    'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
-                                ];
-                            }, $units);
-                            
-                            \Illuminate\Support\Facades\Log::info("HBook: Formatted units", ['formatted' => $formatted]);
-                            return $formatted;
-                        } else {
-                            \Illuminate\Support\Facades\Log::warning("HBook: WordPress API returned non-success status", [
-                                'status' => $response->status(),
-                            ]);
-                        }
-                    } else {
-                        \Illuminate\Support\Facades\Log::warning("HBook: WP Connector not configured for property", [
-                            'property' => $property->id,
-                        ]);
+            // Get the current unit's property from request or parameter
+            if (! $unitId) {
+                // Try to get from request first
+                $unitId = request()->route('record');
+                if ($unitId) {
+                    \Illuminate\Support\Facades\Log::info("HBook: Using unit ID from request", ['unit_id' => $unitId]);
+                } else {
+                    // Fallback: try to get the first unit from the database
+                    // This is a temporary solution until we find the right way to get the current unit ID
+                    $firstUnit = \App\Models\Unit::first();
+                    if ($firstUnit) {
+                        $unitId = $firstUnit->id;
+                        \Illuminate\Support\Facades\Log::info("HBook: Using fallback unit ID from first unit in database", ['unit_id' => $unitId]);
                     }
                 }
             }
             
-            // Fallback: try to get from any configured property
-            $properties = \App\Models\Property::whereNotNull('options->wp_url')->get();
-            foreach ($properties as $property) {
-                $wpConnector = new \Modules\WpConnector\Services\WpConnectorService($property);
-                if ($wpConnector->isConfigured()) {
-                    $response = $wpConnector->get('/wp-json/hbook/v1/units');
-                    if ($response->successful()) {
-                        $units = $response->json('units', []);
-                        return array_map(function ($unit) {
-                            return [
-                                'id' => $unit['id'] ?? $unit['ID'] ?? '',
-                                'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
-                            ];
-                        }, $units);
-                    }
-                }
+            if (! $unitId) {
+                \Illuminate\Support\Facades\Log::warning("HBook: No unit ID available");
+                return [];
             }
+            
+            $unit = \App\Models\Unit::find($unitId);
+            
+            if (! $unit) {
+                \Illuminate\Support\Facades\Log::warning("HBook: Unit not found", ['unit_id' => $unitId]);
+                return [];
+            }
+            
+            $property = $unit->property;
+            
+            if (! $property) {
+                \Illuminate\Support\Facades\Log::warning("HBook: Unit has no property", ['unit_id' => $unitId]);
+                return [];
+            }
+            
+            $wpConnector = new \Modules\WpConnector\Services\WpConnectorService($property);
+            
+            if (! $wpConnector->isConfigured()) {
+                \Illuminate\Support\Facades\Log::warning("HBook: WP Connector not configured for property", [
+                    'property' => $property->id,
+                    'unit' => $unit->id,
+                ]);
+                return [];
+            }
+            
+            \Illuminate\Support\Facades\Log::info("HBook: Fetching all units from WordPress site", [
+                'property' => $property->id,
+                'unit' => $unit->id,
+                'wp_url' => $property->options['wp_url'],
+            ]);
+            
+            // Get all HBook units from the WordPress site
+            $response = $wpConnector->get('/wp-json/bokit/v1/hbook-units');
+            
+            \Illuminate\Support\Facades\Log::info("HBook: WordPress API response", [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            
+            if (! $response->successful()) {
+                \Illuminate\Support\Facades\Log::warning("HBook: WordPress API returned non-success status", [
+                    'status' => $response->status(),
+                ]);
+                return [];
+            }
+            
+            $units = $response->json('units', []);
+            \Illuminate\Support\Facades\Log::info("HBook: Parsed units from WordPress", ['count' => count($units)]);
+            
+            // Format units for the select field: [['id' => 'wp-id', 'name' => 'Unit Name'], ...]
+            $formatted = array_map(function ($unit) {
+                return [
+                    'id' => $unit['id'] ?? $unit['ID'] ?? '',
+                    'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
+                ];
+            }, $units);
+            
+            \Illuminate\Support\Facades\Log::info("HBook: Returning formatted units", [
+                'count' => count($formatted),
+                'units' => $formatted,
+            ]);
+            
+            return $formatted;
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("HBook: Failed to fetch units", [
+            \Illuminate\Support\Facades\Log::error("HBook: Exception fetching units", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            return [];
         }
-        
-        \Illuminate\Support\Facades\Log::info("HBook: No units found, returning empty array");
-        return [];
     }
 }

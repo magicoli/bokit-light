@@ -113,7 +113,11 @@ class UnitForm
 
                             Select::make("hbook_unit_id")
                                 ->label(__("unit.field.source_hbook_unit"))
-                                ->options(fn () => \Modules\Hbook\HbookServiceProvider::getHbookUnitsFromWordPress())
+                                ->options(function () {
+                                    // Get unit ID from the current request (Filament edit page)
+                                    $unitId = request()->route('record');
+                                    return \Modules\Hbook\HbookServiceProvider::getHbookUnitsFromWordPress($unitId);
+                                })
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
                                         "type",
@@ -123,7 +127,11 @@ class UnitForm
 
                             Select::make("multipass_unit_id")
                                 ->label(__("unit.field.source_multipass_unit"))
-                                ->options(fn () => \Modules\Multipass\MultipassServiceProvider::getMultipassUnitsFromWordPress())
+                                ->options(function () {
+                                    // Get unit ID from the current request (Filament edit page)
+                                    $unitId = request()->route('record');
+                                    return \Modules\Multipass\MultipassServiceProvider::getMultipassUnitsFromWordPress($unitId);
+                                })
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
                                         "type",

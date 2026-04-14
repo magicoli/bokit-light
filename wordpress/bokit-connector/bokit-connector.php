@@ -63,6 +63,20 @@ function bokit_connector_register_rest_routes()
             'to' => ['type' => 'string', 'default' => ''],
         ],
     ]);
+
+    // HBook units
+    register_rest_route('bokit/v1', '/hbook-units', [
+        'methods' => 'GET',
+        'callback' => 'bokit_connector_get_hbook_units',
+        'permission_callback' => 'bokit_connector_check_permission',
+    ]);
+
+    // Multipass units
+    register_rest_route('bokit/v1', '/multipass-units', [
+        'methods' => 'GET',
+        'callback' => 'bokit_connector_get_multipass_units',
+        'permission_callback' => 'bokit_connector_check_permission',
+    ]);
 }
 
 /**
@@ -368,6 +382,73 @@ function bokit_connector_resolve_origin(?string $origin, ?string $email): ?strin
     }
 
     return null;
+}
+
+/**
+ * GET /wp-json/bokit/v1/hbook-units
+ * 
+ * Returns all HBook accommodation units with their IDs and names.
+ * HBook stores accommodations in wp_posts with post_type='hb_accommodation'
+ * and additional names in wp_hb_accom_num_name table.
+ */
+function bokit_connector_get_hbook_units(): WP_REST_Response
+{
+    global $wpdb;
+
+    $units = [];
+
+    // Get all HBook accommodations from wp_posts
+    $accommodations = $wpdb->get_results(
+        "SELECT ID, post_title FROM {$wpdb->posts} "
+        . "WHERE post_type = 'hb_accommodation' AND post_status = 'publish'"
+    );
+
+    foreach ($accommodations as $accom) {
+        // Get accommodation numbers and names from wp_hb_accom_num_name
+        $names = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT accom_num, accom_name FROM {$wpdb->prefix}hb_accom_num_name "
+                . "WHERE accom_id = %d ORDER BY accom_num",
+                $accom->ID
+            )
+        );
+
+        if (!empty($names)) {
+            foreach ($names as $name) {
+                $units[] = [
+                    'id' => $accom->ID . '_' . $name->accom_num,
+                    'accom_id' => $accom->ID,
+                    'accom_num' => $name->accom_num,
+                    'name' => $name->accom_name,
+                    'post_title' => $accom->post_title,
+                ];
+            }
+        } else {
+            // Fallback if no names in the num_name table
+            $units[] = [
+                'id' => $accom->ID . '_1',
+                'accom_id' => $accom->ID,
+                'accom_num' => 1,
+                'name' => $accom->post_title,
+                'post_title' => $accom->post_title,
+            ];
+        }
+    }
+
+    return new WP_REST_Response(['units' => $units], 200);
+}
+
+/**
+ * GET /wp-json/bokit/v1/multipass-units
+ * 
+ * Returns all Multipass units. This is a placeholder for now.
+ * Multipass structure needs to be analyzed separately.
+ */
+function bokit_connector_get_multipass_units(): WP_REST_Response
+{
+    // TODO: Implement Multipass units endpoint once we understand the data structure
+    // For now, return empty array to avoid errors
+    return new WP_REST_Response(['units' => []], 200);
 }
 
 add_action('init', 'bokit_connector_add_roles');
