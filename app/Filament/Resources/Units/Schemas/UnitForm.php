@@ -113,7 +113,7 @@ class UnitForm
 
                             Select::make("hbook_unit_id")
                                 ->label(__("unit.field.source_hbook_unit"))
-                                ->options(fn () => app(\Modules\Hbook\HbookServiceProvider::class)->getHbookUnitsFromWordPress())
+                                ->options(fn () => \Modules\Hbook\HbookServiceProvider::getHbookUnitsFromWordPress())
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
                                         "type",
@@ -123,7 +123,7 @@ class UnitForm
 
                             Select::make("multipass_unit_id")
                                 ->label(__("unit.field.source_multipass_unit"))
-                                ->options(fn () => app(\Modules\Multipass\MultipassServiceProvider::class)->getMultipassUnitsFromWordPress())
+                                ->options(fn () => \Modules\Multipass\MultipassServiceProvider::getMultipassUnitsFromWordPress())
                                 ->visible(
                                     fn(FormsGet|SchemaGet $get): bool => $get(
                                         "type",

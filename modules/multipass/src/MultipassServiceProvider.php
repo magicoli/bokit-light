@@ -23,7 +23,7 @@ class MultipassServiceProvider extends ServiceProvider
     /**
      * Get Multipass units from WordPress API
      */
-    protected function getMultipassUnitsFromWordPress(): array
+    public static function getMultipassUnitsFromWordPress(): array
     {
         try {
             // Get the current property from request

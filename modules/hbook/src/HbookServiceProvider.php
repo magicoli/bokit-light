@@ -30,7 +30,7 @@ class HbookServiceProvider extends ServiceProvider
     /**
      * Get HBook units from WordPress API
      */
-    protected function getHbookUnitsFromWordPress(): array
+    public static function getHbookUnitsFromWordPress(): array
     {
         try {
             // Get the current property from request
