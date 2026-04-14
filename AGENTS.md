@@ -85,6 +85,7 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
 - When unsure about style or conventions, run quick repo checks (lint, format, tests) silently and report only minimal discrepancies if relevant.
 
 # Git & commit behaviors
+- Never sign commits. Never use mentions like "Co-authored-by". You don't auth anything, you are only a coding tool
 - See [DEVELOPERS.md](DEVELOPERS.md) for commit message format and conventions
 - If the user asks to commit changes:
   - Stage the files and create a local commit with a concise message derived from the actual git diff
