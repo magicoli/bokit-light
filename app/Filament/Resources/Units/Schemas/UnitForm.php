@@ -138,8 +138,7 @@ class UnitForm
                         ->collapsed()
                         ->orderable()
                         ->grid(['default' => 1])
-                        ->columnSpanFull()
-                        ->reorderButtonIcon('bi-grip-vertical'),
+                        ->columnSpanFull(),
                 ]),
         ];
 
