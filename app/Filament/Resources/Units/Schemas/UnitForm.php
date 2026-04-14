@@ -85,7 +85,7 @@ class UnitForm
             Section::make(__("unit.section.sources"))
                 ->schema([
                     Repeater::make("options.sources")
-                        ->label(false)
+                        ->hiddenLabel()
                         ->table([
                             TableColumn::make(__("unit.field.source_type"))
                                 ->width("11rem"),
