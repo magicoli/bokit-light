@@ -122,7 +122,7 @@ class UnitForm
                                 ->default(true)
                                 ->columnSpan(1),
                         ])
-                        ->columns(3)
+                        ->columns(4)
                         ->reorderable()
                         ->addActionLabel(__('unit.action.add_source'))
                         ->defaultItems(0)
@@ -137,7 +137,8 @@ class UnitForm
                         ->collapsed()
                         ->orderable()
                         ->grid(['default' => 1])
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->reorderColumn('reorder', label: '', icon: 'heroicon-m-bars-3'),
                 ]),
         ];
 

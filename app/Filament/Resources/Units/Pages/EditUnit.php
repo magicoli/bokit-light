@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\Units\Pages;
 
 use App\Filament\Resources\Units\UnitResource;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditUnit extends EditRecord
@@ -13,9 +11,6 @@ class EditUnit extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            ViewAction::make(),
-            DeleteAction::make(),
-        ];
+        return [];
     }
 }
