@@ -137,8 +137,7 @@ class UnitForm
                         ->collapsed()
                         ->orderable()
                         ->grid(['default' => 1])
-                        ->columnSpanFull()
-                        ->reorderColumn('reorder', label: '', icon: 'heroicon-m-bars-3'),
+                        ->columnSpanFull(),
                 ]),
         ];
 
