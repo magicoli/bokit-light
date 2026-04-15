@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.2
+ * Version: 0.6.3
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -22,7 +22,7 @@ if (!defined("WPINC")) {
     exit();
 }
 
-define("BOKIT_CONNECTOR_VERSION", "0.6.2");
+define("BOKIT_CONNECTOR_VERSION", "0.6.3");
 define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
@@ -148,13 +148,16 @@ function bokit_connector_authenticate_user(WP_REST_Request $request)
  * Returns two kinds of records (UNION):
  *
  * 1. Direct bookings: hb_resa WHERE origin='website'.
- *    uid = "hbook-{id}"
+ *    uid = "hbook:{site_host}:{id}"
  *
  * 2. Automatically blocked individual units linked to group/package bookings
  *    (e.g. "Site entier"): hb_accom_blocked WHERE is_prepa_time=0, joined
  *    to their parent hb_resa. Guest info and price come from the parent booking.
- *    uid = "hbook-{parent_id}-{accom_id}_{accom_num}"
+ *    uid = "hbook:{site_host}:{parent_id}-{accom_id}_{accom_num}"
  *    group_hbook_id = parent hbook id (for linking in Bokit)
+ *
+ * The site host in the uid ensures uniqueness across multiple HBook installs
+ * (e.g. different WP sites) and distinguishes from other booking plugins.
  *
  * unit_id is "{accom_id}_{accom_num}" — matches hbook_unit_id in Bokit source config.
  */
@@ -163,10 +166,12 @@ function bokit_connector_get_hbook_bookings(
 ): WP_REST_Response {
     global $wpdb;
 
+    // Site host used in uid to distinguish bookings across HBook installs/plugins.
+    $site_host = parse_url(get_site_url(), PHP_URL_HOST);
+
     $from = $request->get_param("from");
     $to   = $request->get_param("to");
 
-    // Shared WHERE clause for hb_resa rows (origin=website, not cancelled)
     $resa_where = "r.status NOT IN ('cancelled','deleted') AND r.origin = 'website'";
     $date_clause_resa  = "";
     $date_clause_block = "";
@@ -175,8 +180,7 @@ function bokit_connector_get_hbook_bookings(
     if ($from) {
         $date_clause_resa  .= " AND r.check_in >= %s";
         $date_clause_block .= " AND b.from_date >= %s";
-        $params[] = $from;  // for part 1
-        // will be added again below for part 2
+        $params[] = $from;
     }
     if ($to) {
         $date_clause_resa  .= " AND r.check_in <= %s";
@@ -184,20 +188,20 @@ function bokit_connector_get_hbook_bookings(
         $params[] = $to;
     }
 
-    // Part 2 needs the same date params repeated (one per UNION part)
-    $params2 = array_merge($params);  // copy
-
-    $all_params = array_merge($params, $params2);
+    // UNION needs date params twice (once per subquery).
+    $all_params = array_merge($params, $params);
 
     $sql = "
         SELECT
-            CONCAT('hbook-', r.id) AS uid,
-            r.id AS hbook_id,
-            NULL AS group_hbook_id,
+            CONCAT('hbook:{$site_host}:', r.id) AS uid,
+            r.id   AS hbook_id,
+            NULL   AS group_hbook_id,
             r.check_in,
             r.check_out,
             r.accom_id,
             r.accom_num,
+            r.adults,
+            r.children,
             n.num_name AS unit_name,
             r.price,
             r.deposit,
@@ -213,13 +217,15 @@ function bokit_connector_get_hbook_bookings(
         UNION ALL
 
         SELECT
-            CONCAT('hbook-', r.id, '-', b.accom_id, '_', b.accom_num) AS uid,
-            r.id AS hbook_id,
-            r.id AS group_hbook_id,
+            CONCAT('hbook:{$site_host}:', r.id, '-', b.accom_id, '_', b.accom_num) AS uid,
+            r.id   AS hbook_id,
+            r.id   AS group_hbook_id,
             b.from_date AS check_in,
-            b.to_date AS check_out,
+            b.to_date   AS check_out,
             b.accom_id,
             b.accom_num,
+            r.adults,
+            r.children,
             n.num_name AS unit_name,
             r.price,
             r.deposit,
@@ -257,6 +263,8 @@ function bokit_connector_get_hbook_bookings(
             "check_out"      => $r["check_out"],
             "unit_id"        => "{$r['accom_id']}_{$r['accom_num']}",
             "unit"           => $r["unit_name"] ?? null,
+            "adults"         => (int) $r["adults"],
+            "children"       => (int) $r["children"],
             "price"          => (float) $r["price"],
             "deposit"        => (float) $r["deposit"],
             "paid"           => (float) $r["paid"],

@@ -139,6 +139,8 @@ class HbookImportCommand extends Command
             $price = (float) ($row['price'] ?? 0);
             $guestName = trim($row['guest_name'] ?? '') ?: 'Guest';
             $status = $this->mapStatus($row['status'] ?? '');
+            $adults = isset($row['adults']) ? (int) $row['adults'] : null;
+            $children = isset($row['children']) ? (int) $row['children'] : null;
 
             $existing = Booking::where('uid', $uid)->first();
 
@@ -152,6 +154,7 @@ class HbookImportCommand extends Command
                     ->orWhere(fn ($q) => $q
                         ->where('unit_id', $unit->id)
                         ->where('check_in', 'LIKE', $row['check_in'].'%')
+                        ->where('uid', 'NOT LIKE', 'hbook:%')
                         ->where('uid', 'NOT LIKE', 'hbook-%')
                     )
                     ->first();
@@ -184,6 +187,14 @@ class HbookImportCommand extends Command
 
                 if ($price > 0 && (float) $existing->getRawOriginal('price') !== $price) {
                     $changes['price'] = $price;
+                }
+
+                if ($adults !== null && $existing->adults !== $adults) {
+                    $changes['adults'] = $adults;
+                }
+
+                if ($children !== null && $existing->children !== $children) {
+                    $changes['children'] = $children;
                 }
 
                 $newMeta = $this->buildMeta($row);
@@ -223,6 +234,8 @@ class HbookImportCommand extends Command
                     'guest_name' => $guestName,
                     'status' => $status,
                     'price' => $price ?: null,
+                    'adults' => $adults,
+                    'children' => $children,
                     'source_name' => 'hbook',
                     'is_manual' => false,
                     'metadata' => json_encode($this->buildMeta($row)),
@@ -246,12 +259,14 @@ class HbookImportCommand extends Command
         return array_filter([
             'hbook_id'       => $row['id'],
             'hbook_group_id' => $row['group_hbook_id'] ?? null,
+            'adults'         => isset($row['adults']) ? (int) $row['adults'] : null,
+            'children'       => isset($row['children']) ? (int) $row['children'] : null,
             'email'          => $row['guest_email'] ?? null,
             'phone'          => $row['guest_phone'] ?? null,
             'origin'         => $row['origin'] ?? null,
             'deposit'        => $row['deposit'] ?? null,
             'paid'           => $row['paid'] ?? null,
-        ]);
+        ], fn ($v) => $v !== null && $v !== '');
     }
 
     private function mapStatus(string $status): string
