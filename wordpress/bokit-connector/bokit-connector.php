@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.6
+ * Version: 0.6.7
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -22,7 +22,7 @@ if (!defined("WPINC")) {
     exit();
 }
 
-define("BOKIT_CONNECTOR_VERSION", "0.6.6");
+define("BOKIT_CONNECTOR_VERSION", "0.6.7");
 define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
@@ -288,14 +288,19 @@ function bokit_connector_get_multipass_bookings(
     WP_REST_Request $request,
 ): WP_REST_Response {
     global $wpdb;
-    # TODO: remove hardcoded values and use mapping instead, like for hbook bookings
-    $resource_map = [
-        // 9586 => "Moon",
-        // 9587 => "Sun",
-        // 9588 => "Violeta",
-        // 9589 => "Zandoli",
-        // 9590 => "Zetoil",
-    ];
+    // Build resource map dynamically from mltp_resource posts
+    $resources = $wpdb->get_results(
+        "SELECT ID, post_title
+         FROM {$wpdb->prefix}posts
+         WHERE post_type = 'mltp_resource'
+           AND post_status = 'publish'",
+        ARRAY_A,
+    );
+    
+    $resource_map = [];
+    foreach ($resources as $r) {
+        $resource_map[(int) $r['ID']] = $r['post_title'];
+    }
 
     $from = $request->get_param("from");
     $to = $request->get_param("to");
@@ -379,17 +384,14 @@ function bokit_connector_get_multipass_bookings(
                 : (float) $p["deposit_raw"];
         }
 
-        // Per-unit details
+        // All details (units, services, fees)
         $units = [];
         foreach ($details_by_prestation[$p["ID"]] ?? [] as $d) {
             $rid = (int) $d["resource_id"];
-            if (!isset($resource_map[$rid])) {
-                continue;
-            }
             $units[] = [
                 "detail_id" => (int) $d["ID"],
                 "status" => $d["post_status"],
-                "unit" => $resource_map[$rid],
+                "unit" => $resource_map[$rid] ?? null,
                 "resource_id" => $rid,
                 "check_in" => $d["date_from_ts"]
                     ? date("Y-m-d", (int) $d["date_from_ts"])

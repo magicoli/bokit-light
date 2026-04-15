@@ -70,8 +70,13 @@ class MultipassImportCommand extends Command
             $prestations = $response->json();
             $this->line('  Fetched '.count($prestations).' prestations from multipass.');
 
-            /** @var array<string, Unit> $unitMap  name (lowercase) → Unit */
-            $unitMap = $property->units->keyBy(fn (Unit $u) => strtolower($u->name))->all();
+            /** @var array<int, Unit> $unitMap  multipass_unit_id → Unit */
+            $unitMap = $this->buildUnitMap($property);
+
+            if (empty($unitMap)) {
+                $this->warn('  Skipping — no units with multipass source configured.');
+                continue;
+            }
 
             [$created, $updated, $skipped] = $this->importPrestations($property, $unitMap, $prestations);
 
@@ -90,7 +95,7 @@ class MultipassImportCommand extends Command
     }
 
     /**
-     * @param  array<string, Unit>  $unitMap
+     * @param  array<int, Unit>  $unitMap  multipass_unit_id → Unit
      * @param  array<int, array<string, mixed>>  $prestations
      * @return array{int, int, int} [created, updated, skipped]
      */
@@ -149,15 +154,17 @@ class MultipassImportCommand extends Command
                     continue;
                 }
 
-                $unitName = strtolower($detail['unit'] ?? '');
-                $unit = $unitMap[$unitName] ?? null;
-
-                if (! $unit) {
-                    $this->warn("  Skip: unknown unit '{$detail['unit']}' (prestation={$prestation['id']})");
+                // Match unit by resource_id (multipass_unit_id in Bokit config)
+                $resourceId = (int) ($detail['resource_id'] ?? 0);
+                
+                // Skip if this detail is not a unit reservation (no resource_id or not configured)
+                if ($resourceId === 0 || !isset($unitMap[$resourceId])) {
+                    $this->line("  Skip detail: not a unit reservation (resource_id={$resourceId})");
                     $skipped++;
-
                     continue;
                 }
+                
+                $unit = $unitMap[$resourceId];
 
                 $rawIn = $detail['check_in'];
                 $rawOut = $detail['check_out'];
@@ -294,6 +301,29 @@ class MultipassImportCommand extends Command
             'deposit' => $prestation['deposit'] ?? null,
             'paid' => $prestation['paid'] ?? null,
         ], fn ($v) => $v !== null);
+    }
+
+    /**
+     * Build a map of multipass_unit_id → Unit from options.sources for all units of a property.
+     *
+     * @return array<int, Unit>
+     */
+    private function buildUnitMap(Property $property): array
+    {
+        $map = [];
+
+        foreach ($property->units as $unit) {
+            foreach ($unit->options['sources'] ?? [] as $source) {
+                if (($source['type'] ?? '') === 'multipass'
+                    && ($source['enabled'] ?? true)
+                    && ! empty($source['multipass_unit_id'])
+                ) {
+                    $map[(int) $source['multipass_unit_id']] = $unit;
+                }
+            }
+        }
+
+        return $map;
     }
 
     private function resolveProperties()
