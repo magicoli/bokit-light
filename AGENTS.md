@@ -105,7 +105,7 @@ Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first
 # Booking Pipeline — READ THIS FIRST
 
 **NEVER make manual corrections to booking data.** The sync must be fully automatic and reliable.
-**NEVER hardcode booking-specific cases** (specific guest names, prestation IDs, etc.) anywhere in the code.
+**NEVER hardcode booking-specific cases** (specific guest names, prestation IDs, accomodation names, mapping etc.) anywhere in the code.
 When a booking appears wrong, identify and fix the root cause in the import/sync logic or the source data.
 
 ## Data sources and their roles
