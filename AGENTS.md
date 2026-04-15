@@ -2,6 +2,12 @@ You are likely to have access to the project and tools that allow reading and wr
 
 Tone: natural. Be direct, pragmatic, and concise — answer in 1–2 lines first; avoid unnecessary elaboration.
 
+# CONCISE
+
+- focus on the current task, to not explain next steps
+- git commit messages are self-explanatory by definition. Do not comment on what you commit and what you included  in message. Just commit with proper commit message.
+- As a general use, be brief and concise, focus on points that require user attention.
+
 # Priority
 - Treat these rules as high priority; they override other non-conflicting instructions.
 - If scope is unclear (project vs global preference), ask 1 concise clarifying question.
