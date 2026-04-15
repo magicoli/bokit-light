@@ -19,13 +19,23 @@
 ## multipass module
 
 Adapt wp multipass import module using the same principles applied in HBook module.
-- add mapping config in Unit Edit page. multipass type and option field exist, but option field must be populated with data collected from wp
-- filter out external bookings (imported in multipass from  other sources)
-- handle group reservations: multiple bookings in the same order, like a group booking multiple units at the matching dates, handle individual unit pricing and guests and group  total pricing and guests
-- uid: use multipass uid, prefixed with "multipass:", as booking uid
-- deduplication: make sure to treat as one item same booking collected from different sources (e.g. iCal which might or might not provide booking uid
-- use hbook module as reference
-- everything related to multipass is contained inside modules/multipass/, the main app only contains generic processes
+- [x] add mapping config in Unit Edit page. multipass type and option field exist, but option field must be populated with data collected from wp
+- [ ] adjust multipass:import to collect data according to the new mapping structure
+- [ ] filter out external bookings (imported in multipass from  other sources)
+- [ ] handle group reservations: multiple bookings in the same order, like a group booking multiple units at the matching dates, handle individual unit pricing and guests and group  total pricing and guests
+- [ ] uid: use multipass uid, prefixed with "multipass:", as booking uid
+- [ ] deduplication: make sure to treat as one item same booking collected from different sources (e.g. iCal which might or might not provide booking uid
+
+Use hbook module as base reference.
+Everything related to multipass is contained inside modules/multipass/, the main app only contains generic processes.
+
+### Multipass structure:
+
+- mltp_prestation: are the actual orders, might contain one or more bookings or service, treated as groups if more than one booking
+- mltp_detail: all the items of the order, including not only bookings but also additional services or costs. Items matching a configured unit  sources are treated as bookings, other items are treated as options. All are imported but processed differently.
+- Only prestations with more than a single booking have a separate group entry in bookings table. Prestations containing only a single booking matching a configured unit have only one entry in bookings table with all the collected data.
+
+**THIS IS VERY IMPORTANT FOR DEDUPLICATION AND UPDATES**: the booking UID (unique id specific to the source) does not seem to be stored as is. We must analyse the metas starting with 'source%' or 'origin%' or ending with '%id' or '%url' to understand which meta should be use to reconstruct a proper uid according to the actual booking source.
 
 ## bokit:sync
 
