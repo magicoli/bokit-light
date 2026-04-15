@@ -181,8 +181,13 @@ class Booking extends Model
                 }
 
                 // Priority 4: metadata[adults] + metadata[children]
-                return ($this->metadata["adults"] ?? 0) +
-                    ($this->metadata["children"] ?? 0);
+                $metaAdults = $this->metadata["adults"] ?? null;
+                $metaChildren = $this->metadata["children"] ?? null;
+                if ($metaAdults === null && $metaChildren === null) {
+                    return null; // No guest count available — show nothing, not zero
+                }
+
+                return ($metaAdults ?? 0) + ($metaChildren ?? 0);
             },
         );
     }

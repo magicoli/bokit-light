@@ -145,15 +145,51 @@ class HbookImportCommand extends Command
         }
 
         foreach ($byUid as $hbookUid => $group) {
-            // A group booking has at least one is_blocked=true row.
-            $isGroup = collect($group)->contains('is_blocked', true);
+            // Find the parent hb_resa row (Part 1: is_blocked=false).
+            $partOneRow = collect($group)->firstWhere('is_blocked', false);
 
-            if ($isGroup) {
-                [$c, $u, $s] = $this->importGroupBooking($property, $unitMap, $hbookUid, $group, $now, $dryRun);
+            if ($partOneRow === null) {
+                // No direct hb_resa row — orphaned blocked entries, skip.
+                $this->warn("  Skip: no parent hb_resa row for uid={$hbookUid}");
+                $skipped++;
+                continue;
+            }
+
+            // Group booking detection — two rules:
+            //
+            // Rule 1: if Part 1's unit_id IS in our map → SOLO.
+            //   The hb_resa is for a specific unit we track. Part 2 rows are
+            //   self-blocks that HBook creates for every booking to prevent
+            //   double-booking of packages — ignore them.
+            //
+            // Rule 2: if Part 1's unit_id is NOT in our map (e.g. a "Site entier"
+            //   package accommodation) AND at least one Part 2 row IS mapped →
+            //   GROUP. Create a summary row + member rows.
+            //
+            // Otherwise (all units unmapped) → SKIP.
+            //
+            // Note: is_blocked=true alone cannot detect groups because HBook
+            // creates hb_accom_blocked entries for ALL bookings, not just packages.
+            $partOneUnitId = $partOneRow['unit_id'] ?? '';
+
+            if (isset($unitMap[$partOneUnitId])) {
+                // Solo booking.
+                [$c, $u, $s] = $this->importSoloBooking($property, $unitMap, $hbookUid, $partOneRow, $now, $dryRun);
             } else {
-                // Solo booking: single row, guaranteed is_blocked=false.
-                $row = $group[0];
-                [$c, $u, $s] = $this->importSoloBooking($property, $unitMap, $hbookUid, $row, $now, $dryRun);
+                // Part 1 unit not in our map — check if any Part 2 rows are.
+                $hasMappedMembers = collect($group)
+                    ->filter(fn ($r) => (bool) ($r['is_blocked'] ?? false))
+                    ->contains(fn ($r) => isset($unitMap[$r['unit_id'] ?? '']));
+
+                if (! $hasMappedMembers) {
+                    $label = $partOneRow['unit'] ?? $partOneUnitId;
+                    $this->line("  Skip: unmapped uid={$hbookUid} unit={$partOneUnitId} [{$label}]");
+                    $skipped++;
+                    continue;
+                }
+
+                // Group booking: package accommodation with at least one tracked unit.
+                [$c, $u, $s] = $this->importGroupBooking($property, $unitMap, $hbookUid, $group, $now, $dryRun);
             }
 
             $created += $c;

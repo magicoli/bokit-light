@@ -11,6 +11,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class BookingsTable
 {
@@ -72,7 +73,14 @@ class BookingsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->recordClasses(fn (Model $record): string => match (true) {
+                // Group summary row: no unit, holds total price/guests for the group.
+                $record->unit_id === null => 'booking-group-summary',
+                // Group member row: individual unit within a group, no price/guests.
+                ($record->metadata['is_group_member'] ?? false) => 'booking-group-member',
+                default => '',
+            });
     }
 
     /**
