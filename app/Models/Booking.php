@@ -122,7 +122,11 @@ class Booking extends Model
     {
         return Attribute::make(
             get: fn(string $value) => Carbon::parse($value),
-            set: fn(string $value) => $this->unit->shiftAndFormat($value),
+            // unit may be null for group-booking summary rows (unit_id=NULL).
+            // Use DB::table() directly for those rows to bypass this mutator.
+            set: fn(string $value) => $this->unit
+                ? $this->unit->shiftAndFormat($value)
+                : $value,
         );
     }
 
@@ -130,7 +134,11 @@ class Booking extends Model
     {
         return Attribute::make(
             get: fn(string $value) => Carbon::parse($value),
-            set: fn(string $value) => $this->unit->shiftAndFormat($value),
+            // unit may be null for group-booking summary rows (unit_id=NULL).
+            // Use DB::table() directly for those rows to bypass this mutator.
+            set: fn(string $value) => $this->unit
+                ? $this->unit->shiftAndFormat($value)
+                : $value,
         );
     }
 

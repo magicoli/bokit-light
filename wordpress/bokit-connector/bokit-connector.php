@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.3
+ * Version: 0.6.4
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -22,7 +22,7 @@ if (!defined("WPINC")) {
     exit();
 }
 
-define("BOKIT_CONNECTOR_VERSION", "0.6.3");
+define("BOKIT_CONNECTOR_VERSION", "0.6.4");
 define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
@@ -166,9 +166,6 @@ function bokit_connector_get_hbook_bookings(
 ): WP_REST_Response {
     global $wpdb;
 
-    // Site host used in uid to distinguish bookings across HBook installs/plugins.
-    $site_host = parse_url(get_site_url(), PHP_URL_HOST);
-
     $from = $request->get_param("from");
     $to   = $request->get_param("to");
 
@@ -193,9 +190,9 @@ function bokit_connector_get_hbook_bookings(
 
     $sql = "
         SELECT
-            CONCAT('hbook:{$site_host}:', r.id) AS uid,
+            r.uid  AS hbook_uid,
             r.id   AS hbook_id,
-            NULL   AS group_hbook_id,
+            NULL   AS group_hbook_uid,
             r.check_in,
             r.check_out,
             r.accom_id,
@@ -217,9 +214,9 @@ function bokit_connector_get_hbook_bookings(
         UNION ALL
 
         SELECT
-            CONCAT('hbook:{$site_host}:', r.id, '-', b.accom_id, '_', b.accom_num) AS uid,
+            r.uid  AS hbook_uid,
             r.id   AS hbook_id,
-            r.id   AS group_hbook_id,
+            r.uid  AS group_hbook_uid,
             b.from_date AS check_in,
             b.to_date   AS check_out,
             b.accom_id,
@@ -256,9 +253,13 @@ function bokit_connector_get_hbook_bookings(
         }
 
         return [
-            "uid"            => $r["uid"],
-            "id"             => (int) $r["hbook_id"],
-            "group_hbook_id" => $r["group_hbook_id"] ? (int) $r["group_hbook_id"] : null,
+            // hbook_uid: HBook's own uid from wp_hb_resa (iCal-format, stable).
+            // Shared by ALL rows of the same booking/group — used as Bokit uid.
+            "hbook_uid"   => $r["hbook_uid"],
+            // is_blocked: true for automatically-blocked unit rows (Part 2 / group members).
+            // false for the direct booking row (Part 1 — solo or group summary).
+            "is_blocked"  => $r["group_hbook_uid"] !== null,
+            "id"          => (int) $r["hbook_id"],
             "check_in"       => $r["check_in"],
             "check_out"      => $r["check_out"],
             "unit_id"        => "{$r['accom_id']}_{$r['accom_num']}",
