@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Hbook\Commands;
+namespace Modules\Multipass\Commands;
 
 use App\Models\Booking;
 use App\Models\Property;

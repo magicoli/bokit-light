@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.4
+ * Version: 0.6.6
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -22,7 +22,7 @@ if (!defined("WPINC")) {
     exit();
 }
 
-define("BOKIT_CONNECTOR_VERSION", "0.6.4");
+define("BOKIT_CONNECTOR_VERSION", "0.6.6");
 define("BOKIT_CONNECTOR_PLUGIN_DIR", plugin_dir_path(__FILE__));
 
 /**
@@ -511,14 +511,53 @@ function bokit_connector_get_hbook_units(): WP_REST_Response
 /**
  * GET /wp-json/bokit/v1/multipass-units
  *
- * Returns all Multipass units. This is a placeholder for now.
- * Multipass structure needs to be analyzed separately.
+ * Returns all Multipass units (resources) that can be booked.
+ *
+ * Multipass stores bookable units as "resources" in the mltp_resource post type.
+ * Each resource has a post_title (the unit name) and an ID that is referenced
+ * in mltp_detail.postmeta.resource_id.
+ * Resource types (categories) are stored in the 'resource-type' taxonomy.
  */
 function bokit_connector_get_multipass_units(): WP_REST_Response
 {
-    // TODO: Implement Multipass units endpoint once we understand the data structure
-    // For now, return empty array to avoid errors
-    return new WP_REST_Response(["units" => []], 200);
+    global $wpdb;
+
+    // Fetch all published Multipass resources (units) with their types
+    $resources = $wpdb->get_results(
+        "SELECT p.ID, p.post_title
+         FROM {$wpdb->prefix}posts p
+         WHERE p.post_type = 'mltp_resource'
+           AND p.post_status = 'publish'
+         ORDER BY p.post_title",
+        ARRAY_A,
+    );
+
+    $units = array_map(function ($resource) {
+        $resource_id = (int) $resource["ID"];
+        $name = $resource["post_title"];
+        
+        // Get resource type (category) from taxonomy
+        $terms = get_the_terms($resource_id, 'resource-type');
+        $type_name = '';
+        if ($terms && !is_wp_error($terms)) {
+            $first_term = reset($terms);
+            $type_name = $first_term->name ?? '';
+        }
+        
+        // Format: "Unit Name (Type)" if type exists and is different from name
+        $label = $type_name && strtolower($type_name) !== strtolower($name)
+            ? "{$name} ({$type_name})"
+            : $name;
+        
+        return [
+            "id" => $resource_id,
+            "name" => $name,
+            "post_title" => $name,
+            "type" => $type_name,
+        ];
+    }, $resources);
+
+    return new WP_REST_Response(["units" => $units], 200);
 }
 
 add_action("init", "bokit_connector_add_roles");

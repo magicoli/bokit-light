@@ -8,7 +8,6 @@ use Filament\Forms\Get as FormsGet;
 use Filament\Schemas\Components\Utilities\Get as SchemaGet;
 use Illuminate\Support\ServiceProvider;
 use Modules\Hbook\Commands\HbookImportCommand;
-use Modules\Hbook\Commands\MultipassImportCommand;
 
 class HbookServiceProvider extends ServiceProvider
 {
@@ -22,7 +21,6 @@ class HbookServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 HbookImportCommand::class,
-                MultipassImportCommand::class,
             ]);
         }
     }

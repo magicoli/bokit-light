@@ -18,6 +18,12 @@ class MultipassServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // No extension needed - options are set directly in UnitForm
+        
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Commands\MultipassImportCommand::class,
+            ]);
+        }
     }
 
     /**
@@ -102,13 +108,24 @@ class MultipassServiceProvider extends ServiceProvider
             $units = $response->json('units', []);
             \Illuminate\Support\Facades\Log::info("Multipass: Parsed units from WordPress", ['count' => count($units)]);
             
-            // Format units for the select field: [['id' => 'wp-id', 'name' => 'Unit Name'], ...]
-            $formatted = array_map(function ($unit) {
-                return [
-                    'id' => $unit['id'] ?? $unit['ID'] ?? '',
-                    'name' => $unit['name'] ?? $unit['post_title'] ?? 'Unknown',
-                ];
-            }, $units);
+            // Return flat [id => "name (type)"] for Filament Select options.
+            // Use 'type' if available (from resource-type taxonomy), otherwise use post_title.
+            $formatted = [];
+            foreach ($units as $unit) {
+                $id    = $unit['id'] ?? $unit['ID'] ?? '';
+                $name  = $unit['name'] ?? 'Unknown';
+                $type  = $unit['type'] ?? '';
+                $title = $unit['post_title'] ?? '';
+                
+                // Prefer type over post_title for the label suffix
+                // Only add suffix if it's different from name to avoid duplicates like "Moon (Moon)"
+                $suffix = $type ? $type : $title;
+                $label = $suffix && strtolower($suffix) !== strtolower($name)
+                    ? "{$name} ({$suffix})"
+                    : $name;
+                
+                $formatted[$id] = $label;
+            }
             
             \Illuminate\Support\Facades\Log::info("Multipass: Returning formatted units", [
                 'count' => count($formatted),
