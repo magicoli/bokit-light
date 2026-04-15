@@ -38,6 +38,7 @@ class Booking extends Model
         "group_id",
         "sync_data",
         "metadata",
+        "options",
     ];
 
     protected $casts = [
@@ -48,6 +49,8 @@ class Booking extends Model
         "children" => "integer",
         "is_manual" => "boolean",
         "sync_data" => "array",
+        "metadata" => "array",
+        "options" => "array",
         "price" => "decimal:2",
         "commission" => "decimal:2",
         "ota" => "array",

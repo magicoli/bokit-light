@@ -304,6 +304,67 @@ class MultipassImportCommand extends Command
     }
 
     /**
+     * Extract the original booking ID from email based on the origin.
+     */
+    private function extractOriginalBookingId(string $email, ?string $origin): ?string
+    {
+        if (! $email) {
+            return null;
+        }
+
+        // Try to determine origin from email if not explicitly set
+        $determinedOrigin = $origin;
+        if (! $determinedOrigin) {
+            if (str_ends_with($email, '@guest.booking.com')) {
+                $determinedOrigin = 'booking.com';
+            } elseif (str_ends_with($email, '@reply.airbnb.com')) {
+                $determinedOrigin = 'airbnb';
+            }
+        }
+
+        if (! $determinedOrigin) {
+            return null;
+        }
+
+        // Extract ID from email based on origin
+        switch ($determinedOrigin) {
+            case 'booking.com':
+                // Format: {id}@guest.booking.com
+                if (preg_match('/^([^@]+)@guest\.booking\.com$/', $email, $matches)) {
+                    return $matches[1];
+                }
+                break;
+
+            case 'airbnb':
+                // Format: {id}@reply.airbnb.com
+                if (preg_match('/^([^@]+)@reply\.airbnb\.com$/', $email, $matches)) {
+                    return $matches[1];
+                }
+                break;
+        }
+
+        return null;
+    }
+
+    /**
+     * Build UID based on the original booking source.
+     */
+    private function buildOriginBasedUid(array $prestation, array $detail): string
+    {
+        $email = $prestation['contact_email'] ?? '';
+        $origin = $prestation['origin'] ?? null;
+        $originalId = $this->extractOriginalBookingId($email, $origin);
+
+        if ($originalId && $origin) {
+            // Use origin-based UID if we can determine the original source
+            return "{$origin}:{$originalId}";
+        }
+
+        // Fallback: use multipass detail ID
+        return 'multipass-'.$detail['detail_id'];
+    }
+
+    /**
      * Build a map of multipass_unit_id → Unit from options.sources for all units of a property.
      *
      * @return array<int, Unit>
