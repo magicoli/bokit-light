@@ -1,10 +1,10 @@
 name: bokit-light
-php: '8.4'
+php: "8.2"
 secured: true
 aliases:
-    - bokit.gites-mosaiques.test
-    - bokit.lelitdoli.com
-    - bokit.kazamoise.fr
-services: {  }
+  - bokit.gites-mosaiques.test
+  - bokit.lelitdoli.com
+  - bokit.kazamoise.fr
+services: {}
 integrations:
-    forge: {  }
+  forge: {}

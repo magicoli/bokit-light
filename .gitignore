@@ -27,3 +27,4 @@ storage/**
 test-results
 *.bak
 .npmrc
+public/build/
