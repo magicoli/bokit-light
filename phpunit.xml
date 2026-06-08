@@ -6,7 +6,7 @@
     colors="true"
 >
     <extensions>
-        <bootstrap class="Tests\Support\FailureSummaryExtension" />
+        <bootstrap class="Magicoli\PestFailureSummary\FailureSummaryExtension" />
     </extensions>
     <testsuites>
         <testsuite name="Unit">

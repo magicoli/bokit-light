@@ -3,8 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "start": "vite build --watch",
-        "build": "vite build",
+        "start": "node --max-old-space-size=4096 node_modules/.bin/vite build --watch",
+        "build": "node --max-old-space-size=4096 node_modules/.bin/vite build",
         "dev": "concurrently \"npm:start\" \"symfony serve\""
     },
     "devDependencies": {
