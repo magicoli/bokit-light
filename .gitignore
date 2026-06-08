@@ -28,3 +28,7 @@ test-results
 *.bak
 .npmrc
 public/build/
+public/css/
+public/js/
+public/fonts/
+vendor/
