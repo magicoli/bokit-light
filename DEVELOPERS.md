@@ -41,6 +41,7 @@ bokit-light/
 ├── modules/                   # Optional premium/integration modules
 │   ├── beds24
 │   ├── hbook
+│   ├── ical
 │   ├── multipass
 │   └── wp-connector
 ├── resources/

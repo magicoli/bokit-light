@@ -1,0 +1,10 @@
+name: bokit-light
+php: '8.4'
+secured: true
+aliases:
+    - bokit.gites-mosaiques.test
+    - bokit.lelitdoli.com
+    - bokit.kazamoise.fr
+services: {  }
+integrations:
+    forge: {  }
