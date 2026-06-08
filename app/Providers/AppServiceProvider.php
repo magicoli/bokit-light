@@ -14,8 +14,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register AdminMenuService as singleton
         $this->app->singleton(\App\Services\AdminMenuService::class);
+        $this->app->singleton(\App\Services\SyncRegistry::class);
 
         $this->registerModules();
     }
