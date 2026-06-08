@@ -59,9 +59,9 @@ class Beds24ApiService
                 'apiKey'  => $this->apiKey,
                 'propKey' => $this->propKey,
             ],
-            'includeInvoice'  => false,
+            'includeInvoice'   => true,
             'includeInfoItems' => false,
-            'limit'           => 1000,
+            'limit'            => 1000,
         ], $params);
 
         $response = Http::post(self::API_URL . 'getBookings', $payload);

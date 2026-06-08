@@ -9,6 +9,7 @@ return [
     'logout' => 'Déconnexion',
     'login' => 'Connexion',
     'admin' => 'Admin',
+    'admin_legacy' => 'Admin (legacy)',
     'account' => 'Compte',
     'admin_settings' => 'Paramètres admin',
     'user_account' => 'Compte',

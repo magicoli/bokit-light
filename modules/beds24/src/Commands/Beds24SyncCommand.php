@@ -156,29 +156,46 @@ class Beds24SyncCommand extends Command
 
             $guestName = trim(($row['firstName'] ?? '').' '.($row['lastName'] ?? '')) ?: 'Guest';
             $status = $this->mapStatus($rawStatus);
-            $price = (float) ($row['price'] ?? 0);
             $commission = (float) ($row['commission'] ?? 0);
             $adults = isset($row['numAdult']) ? (int) $row['numAdult'] : null;
             $children = isset($row['numChild']) ? (int) $row['numChild'] : null;
             $sourceName = $this->mapSourceName((string) ($row['apiSource'] ?? ''));
+            $email = trim($row['email'] ?? '');
+
+            // Parse invoice for detailed financial breakdown.
+            $invoice = ! empty($row['invoice']) && is_array($row['invoice'])
+                ? $this->parseInvoice($row['invoice'])
+                : [];
+
+            // Use invoice acc_ttc as price when available (more accurate than raw price field).
+            $price = ($invoice['acc_ttc'] ?? 0) > 0
+                ? $invoice['acc_ttc']
+                : (float) ($row['price'] ?? 0);
 
             $existing = Booking::where('uid', $uid)->first();
 
-            // Fallback 1: iCal-imported booking for the same Beds24 bookId.
-            // iCal bookings have group_id = bookId but a different uid format.
+            // Fallback 1: legacy iCal booking with same Beds24 bookId stored as group_id.
             if (! $existing) {
                 $existing = Booking::where('group_id', $row['bookId'])
                     ->where('uid', 'NOT LIKE', 'beds24-%')
                     ->first();
             }
 
-            // Fallback 2: same unit + exact dates.
-            // Catches multipass/hbook entries AND other beds24 bookIds for the same physical
-            // booking (Beds24 sometimes has two entries: one direct, one iCal, same dates).
-            if (! $existing) {
+            // Fallback 2: email + exact dates + unit.
+            if (! $existing && $email) {
                 $existing = Booking::where('unit_id', $unit->id)
                     ->where('check_in', 'LIKE', $checkIn.'%')
                     ->where('check_out', 'LIKE', $checkOut.'%')
+                    ->whereRaw("JSON_EXTRACT(metadata, '$.email') = ?", [$email])
+                    ->first();
+            }
+
+            // Fallback 3: guest name + exact dates + unit.
+            if (! $existing && $guestName !== 'Guest') {
+                $existing = Booking::where('unit_id', $unit->id)
+                    ->where('check_in', 'LIKE', $checkIn.'%')
+                    ->where('check_out', 'LIKE', $checkOut.'%')
+                    ->where('guest_name', $guestName)
                     ->first();
             }
 
@@ -191,7 +208,7 @@ class Beds24SyncCommand extends Command
             }
 
             if ($existing) {
-                $changes = $this->buildChanges($existing, $checkIn, $checkOut, $guestName, $status, $price, $commission, $adults, $children, $sourceName, $row);
+                $changes = $this->buildChanges($existing, $checkIn, $checkOut, $guestName, $status, $price, $commission, $adults, $children, $sourceName, $row, $invoice);
 
                 if (empty($changes)) {
                     $skipped++;
@@ -238,7 +255,7 @@ class Beds24SyncCommand extends Command
                     'children' => $children,
                     'source_name' => $sourceName,
                     'is_manual' => false,
-                    'metadata' => $this->buildMeta($row),
+                    'metadata' => $this->buildMeta($row, $invoice),
                 ]);
             }
 
@@ -269,6 +286,7 @@ class Beds24SyncCommand extends Command
         ?int $children,
         string $sourceName,
         array $row,
+        array $invoice = [],
     ): array {
         $changes = [];
 
@@ -312,7 +330,7 @@ class Beds24SyncCommand extends Command
             $changes['source_name'] = $sourceName;
         }
 
-        $newMeta = $this->buildMeta($row);
+        $newMeta = $this->buildMeta($row, $invoice);
         $currentMeta = $existing->metadata ?? [];
 
         if (array_diff_assoc($newMeta, array_intersect_key($currentMeta, $newMeta))) {
@@ -324,6 +342,7 @@ class Beds24SyncCommand extends Command
 
     /**
      * @param  array<string, mixed>  $row
+     * @param  array<string, float>  $invoice  parsed invoice breakdown (may be empty)
      * @return array<string, mixed>
      *
      * Important fields:
@@ -332,10 +351,11 @@ class Beds24SyncCommand extends Command
      *                 (apiSource 28/29) where apiSource alone is insufficient.
      *   api_source  — Beds24 channel code: 0=Direct, 19=Booking.com, 28=iCal, 29=Airbnb iCal, 46=Airbnb API
      *   api_ref     — OTA booking reference (e.g. Airbnb confirmation code HMMC43XXFH)
+     *   invoice_*   — parsed from Beds24 invoice lines (acc_ttc, taxe_invoiced, payment_total)
      */
-    private function buildMeta(array $row): array
+    private function buildMeta(array $row, array $invoice = []): array
     {
-        return array_filter([
+        $meta = [
             'beds24_book_id' => $row['bookId'] ?? null,
             'beds24_room_id' => $row['roomId'] ?? null,
             'email' => $row['email'] ?? null,
@@ -351,7 +371,55 @@ class Beds24SyncCommand extends Command
             'num_baby' => isset($row['numBaby']) ? (int) $row['numBaby'] : null,
             'notes' => $row['notes'] ?? null,
             'message' => $row['message'] ?? null,
-        ], fn ($v) => $v !== null && $v !== '');
+        ];
+
+        if (! empty($invoice)) {
+            $meta['invoice_acc_ttc'] = $invoice['acc_ttc'];
+            $meta['invoice_taxe_invoiced'] = $invoice['taxe_invoiced'];
+            $meta['invoice_payment_total'] = $invoice['payment_total'];
+        }
+
+        return array_filter($meta, fn ($v) => $v !== null && $v !== '');
+    }
+
+    /**
+     * Parse Beds24 invoice lines to extract a financial breakdown.
+     * Translated from taxesejour-bridge/beds24.py::_parse_invoice().
+     *
+     * Line types: 0/1/8 = accommodation; 200 = payment; others = extras.
+     * Lines whose description contains "taxe de séjour" are tracked separately.
+     *
+     * @param  array<int, array<string, mixed>>  $lines
+     * @return array{acc_ttc: float, taxe_invoiced: float, payment_total: float}
+     */
+    private function parseInvoice(array $lines): array
+    {
+        $accTtc = 0.0;
+        $taxeInvoiced = 0.0;
+        $paymentTotal = 0.0;
+
+        foreach ($lines as $line) {
+            $type = (string) ($line['type'] ?? '');
+            $desc = mb_strtolower((string) ($line['description'] ?? ''));
+            $price = (float) ($line['price'] ?? 0);
+
+            if ($type === '200') {
+                $paymentTotal += $price;
+                continue;
+            }
+
+            if (str_contains($desc, 'taxe de séjour')) {
+                $taxeInvoiced += $price;
+            } elseif (in_array($type, ['0', '1', '8'], true)) {
+                $accTtc += $price;
+            }
+        }
+
+        return [
+            'acc_ttc' => round($accTtc, 2),
+            'taxe_invoiced' => round($taxeInvoiced, 2),
+            'payment_total' => round($paymentTotal, 2),
+        ];
     }
 
     /**

@@ -47,6 +47,52 @@ class AdminPanelProvider extends PanelProvider
                 .dark tr.booking-group-member  td { background-color: #2d1b07 !important; }
             </style>'),
         );
+
+        // CSS for the shared nav/top-links partial rendered inside the Filament topbar.
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            fn (): HtmlString => new HtmlString('<style>
+                .fi-topbar .nav-link {
+                    font-size:.875rem; font-weight:500; color:rgb(55 65 81);
+                    padding:.375rem .75rem; border-radius:.375rem; text-decoration:none;
+                    display:inline-flex; align-items:center; transition:background .15s;
+                }
+                .fi-topbar .nav-link:hover { background:rgba(0,0,0,.05); }
+                .fi-topbar .badge-manage { background:rgb(219 234 254); color:rgb(29 78 216); }
+                .fi-topbar .badge-admin  { background:rgb(254 226 226); color:rgb(153 27 27); }
+                .fi-topbar .dropdown { position:relative; display:flex; align-items:center; }
+                .fi-topbar .dropdown-button {
+                    display:flex; align-items:center; gap:.25rem; text-decoration:none;
+                }
+                .fi-topbar .dropdown-button svg { width:1rem; height:1rem; }
+                .fi-topbar .dropdown-menu {
+                    position:absolute; top:100%; right:0; min-width:12rem;
+                    background:white; border-radius:.375rem;
+                    box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+                    padding:.25rem 0; z-index:9999; border:1px solid rgb(229 231 235);
+                }
+                .fi-topbar .dropdown-item {
+                    display:block; padding:.5rem 1rem; font-size:.875rem;
+                    color:rgb(55 65 81); text-decoration:none;
+                }
+                .fi-topbar .dropdown-item:hover { background:rgb(249 250 251); }
+                .dark .fi-topbar .nav-link { color:rgb(209 213 219); }
+                .dark .fi-topbar .nav-link:hover { background:rgba(255,255,255,.05); }
+                .dark .fi-topbar .badge-manage { background:rgb(30 58 138); color:rgb(191 219 254); }
+                .dark .fi-topbar .badge-admin  { background:rgb(127 29 29); color:rgb(254 202 202); }
+                .dark .fi-topbar .dropdown-menu {
+                    background:rgb(17 24 39); border-color:rgba(255,255,255,.1);
+                }
+                .dark .fi-topbar .dropdown-item { color:rgb(209 213 219); }
+                .dark .fi-topbar .dropdown-item:hover { background:rgba(255,255,255,.05); }
+            </style>'),
+        );
+
+        // Calendar + Admin links in the Filament topbar (shared partial with frontend).
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            fn (): View => view('nav.top-links'),
+        );
     }
 
     public function panel(Panel $panel): Panel
