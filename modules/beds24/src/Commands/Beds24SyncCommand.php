@@ -79,12 +79,16 @@ class Beds24SyncCommand extends Command
 
             $this->line('  Fetched '.count($rows).' bookings from Beds24.');
 
+            // Build roomId → Unit map. Cannot use flatMap/mapWithKeys here:
+            // array_merge() (used internally by flatMap) reindexes integer keys,
+            // turning roomIds like 552312 into 0, 1, 2 …
             /** @var array<int, Unit> $unitMap  beds24_room_id (int) → Unit */
-            $unitMap = $property->units
-                ->flatMap(fn (Unit $u) => collect($this->resolveBedsRoomIds($u))
-                    ->mapWithKeys(fn (int $roomId) => [$roomId => $u])
-                )
-                ->all();
+            $unitMap = [];
+            foreach ($property->units as $u) {
+                foreach ($this->resolveBedsRoomIds($u) as $roomId) {
+                    $unitMap[$roomId] = $u;
+                }
+            }
 
             if (empty($unitMap)) {
                 $this->warn('  Skipping — no units have a beds24 source configured (options.sources or options.beds24_room_id).');
