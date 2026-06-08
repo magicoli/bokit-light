@@ -4,8 +4,41 @@
 - [ ] update multipass module
 - [ ] create ical module and migrate all ical-specific methods in this module
 - [ ] improve beds24 module to handle de-duplication of bookings from other modules
-- [ ] update sync methods (command-line and cron) to properly handle the new module architecture
+- [x] update sync methods (command-line and cron) to properly handle the new module architecture — **SyncRegistry done, see below**
 - [ ] improve wp bokit-connector plugin (plugin update, plugin auto-update, dependency check for crash prevention...)
+
+## SyncRegistry architecture ✅ (in progress)
+
+`bokit:sync` must not know about specific modules. Each module registers its own sync handler.
+
+- [x] Design: `app/Contracts/SyncHandler.php` interface + `app/Services/SyncRegistry.php`
+- [ ] Implement `SyncHandler` interface and `SyncRegistry` service in core
+- [ ] Refactor `SyncIcalFeeds` (bokit:sync) to iterate `SyncRegistry::all()`
+- [ ] Extract current iCal logic into `IcalSyncHandler` (registered in AppServiceProvider or future ical module)
+- [ ] Create `Beds24SyncHandler` in `modules/beds24/` (registered in `Beds24ServiceProvider`)
+
+## Beds24 sync — corrections from taxesejour-bridge review
+
+Reference: `../taxesejour-bridge/beds24.py` (verified, production-grade implementation).
+
+- [ ] **Guest email field**: verify API returns `guestEmail` (not `email`) — update deduplication query accordingly
+- [ ] **lastNight → checkout**: confirm `check_out = lastNight + 1 day` is applied correctly in current sync
+- [ ] **Amount fallback**: when `acc_ttc <= 0` AND invoice lines exist with negative balance → use `payment_total` (type-200 lines) for standalone bookings; when no invoice at all AND is group master → keep `acc_ttc = 0` (amounts live on sub-bookings, don't use price_field)
+- [ ] **iCal Beds24 sources**: add per-unit toggle in Filament unit edit page to disable Beds24 iCal when Beds24 API is the active source (currently only configurable in legacy admin)
+
+## Beds24 group bookings — known limitation
+
+Beds24 group invoices assign status=3 to sub-bookings (unit placeholders under a confirmed master).
+The taxesejour-bridge handles this with a 2-pass approach:
+- Pass 1: collect all confirmed master bookIds (`group` field present + `masterId == bookId`)
+- Pass 2: include status=3 sub-bookings whose `masterId` is in the confirmed masters set
+
+**Bokit-light data model** is ready (unit_id=null for group summary row, `is_group_member` in metadata for sub-bookings) but the **sync does not yet create group structures**.
+
+- [ ] Implement 2-pass group detection in Beds24SyncHandler
+- [ ] Create group master booking row (unit_id=null) when `is_group_master=true`
+- [ ] Link sub-bookings to master via metadata (`group_master_id`, `is_group_member=true`)
+- [ ] Price logic: group master acc_ttc stays 0 (amounts are on sub-bookings)
 
 ## IMPORTANT RULES
 
