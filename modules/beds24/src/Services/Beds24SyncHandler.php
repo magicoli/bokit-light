@@ -30,9 +30,6 @@ use Illuminate\Support\Facades\Log;
  */
 class Beds24SyncHandler implements SyncHandler
 {
-    /** Property-level API response cache for the current sync run. */
-    private array $apiCache = [];
-
     public function sourceType(): string
     {
         return 'beds24';
@@ -58,17 +55,14 @@ class Beds24SyncHandler implements SyncHandler
             return $this->failure('Beds24 API', 'Beds24 not configured for this property');
         }
 
-        // Fetch all bookings for this property once, then cache for sibling units.
-        if (! isset($this->apiCache[$property->id])) {
-            $params = [
-                'arrivalFrom' => '2020-01-01',
-                'arrivalTo' => now()->addYears(5)->format('Y-m-d'),
-            ];
-            $this->apiCache[$property->id] = $service->getBookings($params) ?? [];
-        }
+        $params = [
+            'arrivalFrom' => '2020-01-01',
+            'arrivalTo' => now()->addYears(5)->format('Y-m-d'),
+        ];
+        $allRows = $service->getBookings($params) ?? [];
 
         $rows = array_values(
-            array_filter($this->apiCache[$property->id], fn ($r) => (int) ($r['roomId'] ?? 0) === $roomId)
+            array_filter($allRows, fn ($r) => (int) ($r['roomId'] ?? 0) === $roomId)
         );
 
         [$created, $updated, $skipped] = $this->syncBookings($unit, $property, $rows, $dryRun);
