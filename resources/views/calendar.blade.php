@@ -275,11 +275,18 @@ use App\Traits\TimezoneTrait;
                     </div>
 
                     <div class="modal-content card-body">
-                        <!-- Unit + Status -->
+                        <!-- Unit + Actions -->
                         <div class="fields-row">
                             <div class="unit-info">
-                                <span class="unit-name" x-text="selectedBooking.unit?.name"></span>
-                                <span class="actions action-links" x-html="' ' + selectedBooking.actions"></span>
+                                <span class="unit-name"
+                                      x-text="selectedBooking.unit?.name + (selectedBooking.group ? ' + ' + (selectedBooking.group.count - 1) : '')"></span>
+                                <span class="actions action-links">
+                                    <a :href="selectedBooking.view_url" class="action-link" title="{{ __('app.view') }}">{!! icon('eye') !!}</a>
+                                    <a :href="selectedBooking.edit_url" class="action-link" title="{{ __('app.edit') }}">{!! icon('edit') !!}</a>
+                                    <template x-if="selectedBooking.source?.url">
+                                        <a :href="selectedBooking.source.url" target="_blank" class="action-link" title="{{ __('booking.source.origin') }}">{!! icon('arrow-up-right') !!}</a>
+                                    </template>
+                                </span>
                             </div>
                         </div>
 
@@ -300,19 +307,51 @@ use App\Traits\TimezoneTrait;
                         </div>
 
                         <!-- Guests / Adults / Children -->
-                        <div x-show="selectedBooking.metadata?.guests || selectedBooking.adults || selectedBooking.children" class="detail-section">
-                            <div x-show="selectedBooking.metadata?.guests" class="detail-line">
-                                <span class="label">Guests:</span>
-                                <span class="value" x-text="selectedBooking.metadata?.guests"></span>
+                        <div x-show="selectedBooking.guests || selectedBooking.adults || selectedBooking.children" class="detail-section">
+                            <div x-show="selectedBooking.guests" class="detail-line">
+                                <span class="label">{{ __('booking.field.guests') }}:</span>
+                                <span class="value" x-text="selectedBooking.guests"></span>
                             </div>
                             <div x-show="selectedBooking.adults" class="detail-line">
-                                <span class="label">Adults:</span>
+                                <span class="label">{{ __('booking.field.adults') }}:</span>
                                 <span class="value" x-text="selectedBooking.adults"></span>
                             </div>
                             <div x-show="selectedBooking.children" class="detail-line">
-                                <span class="label">Children:</span>
+                                <span class="label">{{ __('booking.field.children') }}:</span>
                                 <span class="value" x-text="selectedBooking.children"></span>
                             </div>
+                        </div>
+
+                        <!-- Price / Paid / Balance -->
+                        <div x-show="selectedBooking.price !== null || selectedBooking.paid !== null" class="detail-section">
+                            <div x-show="selectedBooking.price !== null" class="detail-line">
+                                <span class="label">{{ __('booking.field.price') }}:</span>
+                                <span class="value" x-text="formatMoney(selectedBooking.price)"></span>
+                            </div>
+                            <div x-show="selectedBooking.paid !== null" class="detail-line">
+                                <span class="label">{{ __('booking.field.paid') }}:</span>
+                                <span class="value" x-text="formatMoney(selectedBooking.paid)"></span>
+                            </div>
+                            <div x-show="selectedBooking.balance !== null" class="detail-line">
+                                <span class="label">{{ __('booking.field.balance') }}:</span>
+                                <span class="value" x-text="formatMoney(selectedBooking.balance)"></span>
+                            </div>
+                        </div>
+
+                        <!-- Group members -->
+                        <div x-show="selectedBooking.group" class="detail-section">
+                            <label>{{ __('booking.section.group') }}</label>
+                            <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse;">
+                                <template x-for="member in selectedBooking.group?.members ?? []" :key="member.id">
+                                    <tr :style="member.is_current ? 'font-weight: 600;' : ''">
+                                        <td style="padding: 0.125rem 0.5rem 0.125rem 0;" x-text="member.unit_name"></td>
+                                        <td style="padding: 0.125rem 0.5rem 0.125rem 0; white-space: nowrap;"
+                                            x-text="formatDate(member.check_in) + ' → ' + formatDate(member.check_out)"></td>
+                                        <td style="padding: 0.125rem 0; text-align: end; white-space: nowrap;"
+                                            x-text="member.price !== null ? formatMoney(member.price) : '-'"></td>
+                                    </tr>
+                                </template>
+                            </table>
                         </div>
 
                         <!-- Phone / Mobile / Country / Arrival time -->
@@ -360,18 +399,14 @@ use App\Traits\TimezoneTrait;
                     </div>
                     <div class="modal-footer card-footer">
                         <div class="source-line">
-                            <span class="label">{{ __('Source:') }}</span>
-                            <span class="value" x-text="selectedBooking.source_name"></span>
-                            <span class="value">
-                                <span x-text="selectedBooking.metadata?.api_source"></span>
-                                <span x-show="selectedBooking.metadata?.api_ref" x-text="' ' + selectedBooking.metadata?.api_ref"></span>
-                            </span>
+                            <span class="label">{{ __('booking.field.source_name') }}:</span>
+                            <template x-if="selectedBooking.source?.url">
+                                <a :href="selectedBooking.source.url" target="_blank" class="link" x-text="selectedBooking.source.label"></a>
+                            </template>
+                            <template x-if="!selectedBooking.source?.url">
+                                <span class="value" x-text="selectedBooking.source?.label ?? '-'"></span>
+                            </template>
                         </div>
-                        {{-- <div class="actions action-links">
-                            <span class="action-link">
-                                <span x-html="' ' + selectedBooking.ota_link" class="link"></span>
-                            </span>
-                        </div> --}}
                     </div>
                 </div>
 
@@ -438,6 +473,13 @@ function calendar() {
                 month: 'numeric',
                 day: 'numeric'
             });
+        },
+
+        formatMoney(value) {
+            if (value === null || value === undefined) {
+                return '-';
+            }
+            return new Intl.NumberFormat(this.locale, { style: 'currency', currency: 'EUR' }).format(value);
         },
 
         calculateNights(checkIn, checkOut) {

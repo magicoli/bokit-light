@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Traits\TimezoneTrait;
+use App\Filament\Resources\Bookings\BookingResource;
+use App\Models\Booking;
 use App\Models\Property;
-use App\Support\Options;
+use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,7 @@ class CalendarController extends Controller
     public function index(Request $request)
     {
         // Get view type from request (default: month)
-        $view = $request->get("view", "month");
+        $view = $request->get('view', 'month');
 
         // Get site default timezone (used for calendar navigation)
         // Each unit displays in its own timezone
@@ -30,26 +31,26 @@ class CalendarController extends Controller
         $tzShort = self::timezoneShort($tzString);
 
         // Get date from request or use today in site timezone
-        $dateParam = $request->get("date");
+        $dateParam = $request->get('date');
         $currentDate = $dateParam
             ? Carbon::parse($dateParam)
             : Carbon::now($tzString);
 
         // Calculate date range based on view type
         switch ($view) {
-            case "week":
+            case 'week':
                 $startDate = $currentDate->copy()->startOfWeek();
                 $endDate = $startDate->copy()->addDays(6);
                 $prevPeriod = $startDate->copy()->subWeek();
                 $nextPeriod = $startDate->copy()->addWeek();
                 break;
-            case "2weeks":
+            case '2weeks':
                 $startDate = $currentDate->copy()->startOfWeek();
                 $endDate = $startDate->copy()->addDays(13);
                 $prevPeriod = $startDate->copy()->subWeeks(2);
                 $nextPeriod = $startDate->copy()->addWeeks(2);
                 break;
-            case "month":
+            case 'month':
             default:
                 // Afficher uniquement les jours du mois en cours
                 $startDate = $currentDate->copy()->startOfMonth();
@@ -79,72 +80,131 @@ class CalendarController extends Controller
         // Load properties with their units and bookings
         // Filter by user access if not admin
         $query = Property::with([
-            "units",
-            "units.bookings" => function ($query) use ($startDate, $endDate) {
+            'units',
+            'units.bookings' => function ($query) use ($startDate, $endDate) {
                 $query
                     ->with(['unit', 'property']) // Eager-load for timezone() accessor
-                    ->where("check_out", ">=", $startDate->format("Y-m-d"))
-                    ->where("check_in", "<=", $endDate->format("Y-m-d"));
+                    ->where('check_out', '>=', $startDate->format('Y-m-d'))
+                    ->where('check_in', '<=', $endDate->format('Y-m-d'));
             },
         ]);
 
         // Filter by user authorization
         $properties = $query->forUser()->get();
 
-        return view("calendar", [
-            "view" => $view,
-            "currentDate" => $currentDate,
-            "startDate" => $startDate,
-            "endDate" => $endDate,
-            "days" => $days,
-            "prevYear" => $prevYear,
-            "nextYear" => $nextYear,
-            "prevPeriod" => $prevPeriod,
-            "nextPeriod" => $nextPeriod,
-            "canNavigateForward" => $canNavigateForward,
-            "canNavigateYearForward" => $canNavigateYearForward,
-            "properties" => $properties,
-            "displayTimezone" => $tzString,
-            "displayTimezoneShort" => $tzShort,
+        return view('calendar', [
+            'view' => $view,
+            'currentDate' => $currentDate,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'days' => $days,
+            'prevYear' => $prevYear,
+            'nextYear' => $nextYear,
+            'prevPeriod' => $prevPeriod,
+            'nextPeriod' => $nextPeriod,
+            'canNavigateForward' => $canNavigateForward,
+            'canNavigateYearForward' => $canNavigateYearForward,
+            'properties' => $properties,
+            'displayTimezone' => $tzString,
+            'displayTimezoneShort' => $tzShort,
         ]);
     }
 
     /**
-     * Get booking details (API endpoint)
+     * Get booking details (API endpoint for the calendar modal)
      */
     public function booking($id)
     {
-        $booking = \App\Models\Booking::with("unit.property")->findOrFail($id);
+        $booking = Booking::with(['unit.property', 'originSource'])->findOrFail($id);
 
-        // Check if user has access to this booking's property
-        if (!auth()->user()->hasAccessTo($booking->unit->property)) {
-            abort(403, "Access denied");
+        $property = $booking->property ?? $booking->unit?->property;
+        if (! $property || ! auth()->user()->hasAccessTo($property)) {
+            abort(403, 'Access denied');
         }
 
-        return response()->json($booking);
+        return response()->json(self::bookingPayload($booking));
+    }
 
-        return response()->json([
-            "id" => $booking->id,
-            "guest_name" => $booking->guest_name,
-            "check_in" => $booking->check_in->format("Y-m-d"),
-            "check_out" => $booking->check_out->format("Y-m-d"),
-            "status" => $booking->status,
-            "status_label" => $booking->status_label,
-            "color" => $booking->color,
-            "adults" => $booking->adults,
-            "children" => $booking->children,
-            "notes" => $booking->notes,
-            "metadata" => $booking->metadata,
-            "source_name" => $booking->source_name,
-            "unit" => [
-                "id" => $booking->unit->id,
-                "name" => $booking->unit->name,
-                "color" => $booking->unit->color,
+    /**
+     * Build the JSON payload for the calendar booking modal.
+     *
+     * Group reservations aggregate dates, price, paid and guest counts over
+     * all members and expose the member list for the group detail table.
+     * Links point to the Filament admin panel; the origin link comes from
+     * the booking's origin source when its connector provides one.
+     *
+     * @return array<string, mixed>
+     */
+    private static function bookingPayload(Booking $booking): array
+    {
+        $members = $booking->groupMembers();
+        $isGroup = $members->count() > 1;
+
+        $rawPrice = fn (Booking $b): ?float => $b->getRawOriginal('price') !== null
+            ? (float) $b->getRawOriginal('price')
+            : null;
+        $paidOf = fn (Booking $b): ?float => $b->getMetadata('invoice_payment_total') !== null
+            ? (float) $b->getMetadata('invoice_payment_total')
+            : null;
+
+        if ($isGroup) {
+            $price = $members->contains(fn (Booking $m): bool => $rawPrice($m) !== null)
+                ? $members->sum(fn (Booking $m): float => $rawPrice($m) ?? 0)
+                : null;
+            $paid = $members->contains(fn (Booking $m): bool => $paidOf($m) !== null)
+                ? $members->sum(fn (Booking $m): float => $paidOf($m) ?? 0)
+                : null;
+        } else {
+            $price = $rawPrice($booking);
+            $paid = $paidOf($booking);
+        }
+
+        $origin = $booking->originSource;
+
+        return [
+            'id' => $booking->id,
+            'guest_name' => $booking->guest_name,
+            'status' => $booking->status,
+            'deleted_at' => $booking->deleted_at?->toIso8601String(),
+            'check_in' => ($isGroup ? $members->min('check_in') : $booking->check_in)->format('Y-m-d'),
+            'check_out' => ($isGroup ? $members->max('check_out') : $booking->check_out)->format('Y-m-d'),
+            'adults' => $isGroup ? ($members->sum('adults') ?: null) : $booking->adults,
+            'children' => $isGroup ? ($members->sum('children') ?: null) : $booking->children,
+            'guests' => $isGroup
+                ? ($members->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
+                : $booking->guests,
+            'price' => $price,
+            'paid' => $paid,
+            'balance' => $price !== null ? round($price - ($paid ?? 0), 2) : null,
+            'notes' => $booking->notes,
+            'metadata' => $booking->metadata,
+            'unit' => [
+                'id' => $booking->unit?->id,
+                'name' => $booking->unit?->name,
             ],
-            "property" => [
-                "id" => $booking->unit->property->id,
-                "name" => $booking->unit->property->name,
+            'property' => [
+                'id' => $booking->property?->id,
+                'name' => $booking->property?->name,
             ],
-        ]);
+            'view_url' => BookingResource::getUrl('view', ['record' => $booking], panel: 'admin'),
+            'edit_url' => BookingResource::getUrl('edit', ['record' => $booking], panel: 'admin'),
+            'source' => [
+                'label' => $origin
+                    ? preg_replace('/^✓ /u', '', $origin->display_label)
+                    : $booking->source_name,
+                'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
+            ],
+            'group' => $isGroup ? [
+                'count' => $members->count(),
+                'members' => $members->map(fn (Booking $m): array => [
+                    'id' => $m->id,
+                    'unit_name' => $m->unit?->name,
+                    'check_in' => $m->check_in->format('Y-m-d'),
+                    'check_out' => $m->check_out->format('Y-m-d'),
+                    'price' => $rawPrice($m),
+                    'is_current' => $m->id === $booking->id,
+                ])->values()->all(),
+            ] : null,
+        ];
     }
 }
