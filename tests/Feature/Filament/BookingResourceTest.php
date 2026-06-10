@@ -100,6 +100,90 @@ it('validates required fields on create', function () {
         ->assertHasFormErrors(['guest_name', 'check_in', 'check_out']);
 });
 
+it('shows a single row per group reservation with aggregated totals', function () {
+    $unit2 = Unit::create([
+        'property_id' => $this->property->id,
+        'name' => 'Second Unit',
+        'slug' => 'second-unit',
+        'is_active' => true,
+    ]);
+
+    $master = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Groupe Kervella',
+        'status' => 'confirmed',
+        'check_in' => '2026-10-01',
+        'check_out' => '2026-10-08',
+        'price' => 3000,
+        'adults' => 10,
+        'group_id' => 555,
+    ]);
+    $member = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $unit2->id,
+        'guest_name' => 'Groupe Kervella',
+        'status' => 'confirmed',
+        'check_in' => '2026-10-02',
+        'check_out' => '2026-10-09',
+        'adults' => 5,
+        'group_id' => 555,
+    ]);
+    $single = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Solo Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-10-03',
+        'check_out' => '2026-10-05',
+        'is_manual' => true,
+    ]);
+
+    Livewire::test(ListBookings::class)
+        ->assertCanSeeTableRecords([$master, $single])
+        ->assertCanNotSeeTableRecords([$member])
+        // Aggregates: unit list, member count, summed adults
+        ->assertSee('Test Unit, Second Unit')
+        ->assertSee('×2')
+        ->assertSee('15');
+});
+
+it('renders the group detail table on the view page', function () {
+    $unit2 = Unit::create([
+        'property_id' => $this->property->id,
+        'name' => 'Second Unit',
+        'slug' => 'second-unit-2',
+        'is_active' => true,
+    ]);
+
+    $master = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Groupe Kervella',
+        'status' => 'confirmed',
+        'check_in' => '2026-10-01',
+        'check_out' => '2026-10-08',
+        'price' => 3000,
+        'group_id' => 556,
+        'metadata' => ['group_total' => 3000],
+    ]);
+    Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $unit2->id,
+        'guest_name' => 'Groupe Kervella',
+        'status' => 'confirmed',
+        'check_in' => '2026-10-01',
+        'check_out' => '2026-10-08',
+        'group_id' => 556,
+    ]);
+
+    Livewire::test(ViewBooking::class, ['record' => $master->id])
+        ->assertSuccessful()
+        ->assertSee(__('booking.section.group'))
+        ->assertSee('Second Unit')
+        ->assertSee('3 000,00');
+});
+
 it('renders the view page with the sources table', function () {
     $booking = Booking::create([
         'property_id' => $this->property->id,

@@ -75,6 +75,14 @@ class BookingInfolist
                             ->placeholder('-'),
                     ]),
 
+                Section::make(__('booking.section.group'))
+                    ->schema([
+                        ViewEntry::make('group_members')
+                            ->hiddenLabel()
+                            ->view('filament.bookings.group-table'),
+                    ])
+                    ->visible(fn (Booking $record): bool => $record->group_id !== null),
+
                 Section::make(__('booking.section.sources'))
                     ->schema([
                         ViewEntry::make('sources')

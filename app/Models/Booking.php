@@ -8,9 +8,10 @@ use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 // use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -256,6 +257,24 @@ class Booking extends Model
     public function originSource(): HasOne
     {
         return $this->hasOne(BookingSource::class)->where('is_origin', true);
+    }
+
+    /**
+     * All bookings of the same group reservation (including this one),
+     * one per unit. Empty collection when the booking is not grouped.
+     *
+     * @return Collection<int, Booking>
+     */
+    public function groupMembers(): Collection
+    {
+        if (! $this->group_id) {
+            return new Collection;
+        }
+
+        return static::where('group_id', $this->group_id)
+            ->with('unit')
+            ->orderBy('check_in')
+            ->get();
     }
 
     /**

@@ -61,6 +61,10 @@ return [
     'field.group' => 'Group',
     'group.none' => 'No group',
 
+    'section.group' => 'Group reservation',
+    'group.total' => 'Total',
+    'group.beds24_total' => 'Group total in source system: :total €',
+
     // Helper text
     'guests_auto_calculated' => 'Auto-calculated if empty',
 ];

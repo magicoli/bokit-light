@@ -4,13 +4,13 @@ namespace App\Filament\Resources\Bookings\Tables;
 
 use App\Filament\Support\DynamicTable;
 use App\Models\Booking;
+use App\Models\Unit;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -36,20 +36,57 @@ class BookingsTable
         }
 
         return $table
-            // Secondary sort on group_id keeps members of a group reservation
-            // adjacent when they share the same check-in date.
-            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('check_in')->orderBy('group_id'))
-            ->groups([
-                Group::make('group_id')
-                    ->label(__(self::LANG.'.field.group'))
-                    ->getTitleFromRecordUsing(fn (Booking $record): string => $record->group_id
-                        ? $record->guest_name.' — '.$record->check_in->format('d/m/Y')
-                        : __(self::LANG.'.group.none'))
-                    ->collapsible(),
-            ])
+            ->defaultSort('check_in', 'asc')
+            // Group reservations show a single row: the member with the
+            // lowest id represents the group; aggregate columns are selected
+            // as subqueries so display and sorting use the group totals.
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->where(function (Builder $q): void {
+                    $q->whereNull('group_id')
+                        ->orWhereRaw('bookings.id = (select min(m.id) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null)');
+                })
+                ->select('bookings.*')
+                ->selectRaw('(select count(*) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_units')
+                ->selectRaw('(select min(m.check_in) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_check_in')
+                ->selectRaw('(select max(m.check_out) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_check_out')
+                ->selectRaw('(select sum(m.price) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_price')
+                ->selectRaw('(select sum(m.guests) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_guests')
+                ->selectRaw('(select sum(m.adults) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_adults')
+                ->selectRaw('(select sum(m.children) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_children')
+                ->selectRaw("(select group_concat(u.name, ', ') from bookings m join units u on u.id = m.unit_id where m.group_id = bookings.group_id and m.deleted_at is null) as group_unit_names"))
             ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->columns([
                 ...DynamicTable::columns(Booking::class, self::LANG, [
+                    'unit_name' => TextColumn::make('unit_name')
+                        ->label(__(self::LANG.'.field.unit_name'))
+                        ->getStateUsing(fn (Booking $record): ?string => $record->group_id
+                            ? $record->group_unit_names
+                            : $record->unit_name),
+
+                    'check_in' => self::groupAwareDate('check_in', 'group_check_in', 'min'),
+                    'check_out' => self::groupAwareDate('check_out', 'group_check_out', 'max'),
+
+                    'guest_name' => TextColumn::make('guest_name')
+                        ->label(__(self::LANG.'.field.guest_name'))
+                        ->searchable()
+                        ->sortable()
+                        ->suffix(fn (Booking $record): ?string => $record->group_id
+                            ? ' ×'.$record->group_units
+                            : null),
+
+                    'guests' => self::groupAwareSum('guests', 'group_guests'),
+                    'adults' => self::groupAwareSum('adults', 'group_adults'),
+                    'children' => self::groupAwareSum('children', 'group_children'),
+
+                    'price' => TextColumn::make('price')
+                        ->label(__(self::LANG.'.field.price'))
+                        ->money('EUR')
+                        ->getStateUsing(fn (Booking $record) => $record->group_id
+                            ? $record->group_price
+                            : $record->price)
+                        ->sortable(query: fn (Builder $query, string $direction): Builder => $query
+                            ->orderByRaw("coalesce((select sum(m.price) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null), price) {$direction}")),
+
                     // Notes: truncated + hidden by default
                     'notes' => TextColumn::make('notes')
                         ->label(__(self::LANG.'.field.notes'))
@@ -66,7 +103,12 @@ class BookingsTable
 
                     SelectFilter::make('unit')
                         ->label(__(self::LANG.'.field.unit_name'))
-                        ->relationship('unit', 'name'),
+                        ->options(fn (): array => Unit::orderBy('name')->pluck('name', 'id')->all())
+                        ->query(fn (Builder $query, array $data): Builder => $query
+                            ->when($data['value'] ?? null, fn (Builder $q, $unitId): Builder => $q
+                                ->where(fn (Builder $qq) => $qq
+                                    ->where('unit_id', $unitId)
+                                    ->orWhereRaw('exists (select 1 from bookings m where m.group_id = bookings.group_id and m.unit_id = ? and m.deleted_at is null)', [$unitId])))),
 
                     SelectFilter::make('source_name')
                         ->label(__(self::LANG.'.field.source_name'))
@@ -93,6 +135,37 @@ class BookingsTable
                 ($record->metadata['is_group_member'] ?? false) => 'booking-group-member',
                 default => '',
             });
+    }
+
+    /**
+     * Date column showing the group's overall date for group rows.
+     * Sorting uses the aggregate so group rows sort by their real span.
+     */
+    private static function groupAwareDate(string $field, string $aggregateAlias, string $aggregateFn): TextColumn
+    {
+        return TextColumn::make($field)
+            ->label(__(self::LANG.".field.{$field}"))
+            ->date('d/m/Y')
+            ->getStateUsing(fn (Booking $record) => $record->group_id
+                ? $record->{$aggregateAlias}
+                : $record->{$field})
+            ->sortable(query: fn (Builder $query, string $direction): Builder => $query
+                ->orderByRaw("coalesce((select {$aggregateFn}(m.{$field}) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null), {$field}) {$direction}"));
+    }
+
+    /**
+     * Numeric column showing the group total for group rows.
+     */
+    private static function groupAwareSum(string $field, string $aggregateAlias): TextColumn
+    {
+        return TextColumn::make($field)
+            ->label(__(self::LANG.".field.{$field}"))
+            ->numeric()
+            ->getStateUsing(fn (Booking $record) => $record->group_id
+                ? $record->{$aggregateAlias}
+                : $record->{$field})
+            ->sortable(query: fn (Builder $query, string $direction): Builder => $query
+                ->orderByRaw("coalesce((select sum(m.{$field}) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null), {$field}) {$direction}"));
     }
 
     /**
