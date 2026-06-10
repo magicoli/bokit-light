@@ -35,52 +35,36 @@ class SyncIcalFeeds extends Command
         $failures = [];
 
         foreach ($properties as $property) {
-            $propertyLines = [];
+            // Skip properties that have no units with at least one enabled, handleable source.
+            $syncableUnits = $property->units->map(fn ($unit) => [
+                'unit' => $unit,
+                'sources' => collect($unit->options['sources'] ?? [])
+                    ->filter(fn ($s) => ($s['enabled'] ?? true) && $registry->getForType($s['type'] ?? '') !== null),
+            ])->filter(fn ($entry) => $entry['sources']->isNotEmpty());
 
-            foreach ($property->units as $unit) {
-                $sources = collect($unit->options['sources'] ?? [])
-                    ->filter(fn ($s) => $s['enabled'] ?? true);
+            if ($syncableUnits->isEmpty()) {
+                continue;
+            }
 
-                if ($sources->isEmpty()) {
-                    continue;
-                }
+            $this->line("Property: <info>{$property->name}</info>");
 
-                $unitLines = [];
+            foreach ($syncableUnits as ['unit' => $unit, 'sources' => $sources]) {
+                $this->line("  Unit: <fg=cyan>{$unit->name}</>");
 
                 foreach ($sources as $sourceConfig) {
-                    $type = $sourceConfig['type'] ?? '';
-                    $handler = $registry->getForType($type);
-
-                    if (! $handler) {
-                        // Source type registered in unit config but no module loaded — skip silently
-                        continue;
-                    }
-
+                    $handler = $registry->getForType($sourceConfig['type']);
                     $result = $handler->syncSource($unit, $sourceConfig, $dryRun);
 
                     if ($result['success']) {
-                        $unitLines[] = '    ✓ '.$this->formatStats($result);
+                        $this->line('    ✓ '.$this->formatStats($result));
                     } else {
-                        $unitLines[] = "    <error>✗ {$result['label']}: {$result['error']}</error>";
+                        $this->line("    <error>✗ {$result['label']}: {$result['error']}</error>");
                         $failures[] = "{$property->name} / {$unit->name} / {$result['label']}: {$result['error']}";
                     }
                 }
-
-                if (! empty($unitLines)) {
-                    $propertyLines[] = "  Unit: <fg=cyan>{$unit->name}</>";
-                    foreach ($unitLines as $line) {
-                        $propertyLines[] = $line;
-                    }
-                }
             }
 
-            if (! empty($propertyLines)) {
-                $this->line("Property: <info>{$property->name}</info>");
-                foreach ($propertyLines as $line) {
-                    $this->line($line);
-                }
-                $this->newLine();
-            }
+            $this->newLine();
         }
 
         if (! empty($failures)) {
