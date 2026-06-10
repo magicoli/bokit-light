@@ -3,9 +3,8 @@
 namespace App\Filament\Resources\Bookings\Schemas;
 
 use App\Models\Booking;
-use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\RepeatableEntry\TableColumn;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -78,23 +77,9 @@ class BookingInfolist
 
                 Section::make(__('booking.section.sources'))
                     ->schema([
-                        RepeatableEntry::make('sources')
+                        ViewEntry::make('sources')
                             ->hiddenLabel()
-                            ->table([
-                                TableColumn::make(__('booking.field.source_name')),
-                                TableColumn::make(__('booking.source.external_id')),
-                                TableColumn::make(__('booking.source.last_seen')),
-                            ])
-                            ->schema([
-                                TextEntry::make('display_label'),
-
-                                TextEntry::make('external_id')
-                                    ->copyable(),
-
-                                TextEntry::make('last_seen_at')
-                                    ->dateTime('d/m/Y H:i')
-                                    ->placeholder('-'),
-                            ]),
+                            ->view('filament.bookings.sources-table'),
                     ])
                     ->visible(fn (Booking $record): bool => $record->sources()->exists()),
 
