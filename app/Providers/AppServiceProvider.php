@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Booking;
+use App\Observers\BookingObserver;
+use App\Services\AdminMenuService;
+use App\Services\BookingSyncIcal;
+use App\Services\IcalSyncHandler;
+use App\Services\SyncRegistry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -14,8 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(\App\Services\AdminMenuService::class);
-        $this->app->singleton(\App\Services\SyncRegistry::class);
+        $this->app->singleton(AdminMenuService::class);
+        $this->app->singleton(SyncRegistry::class);
 
         $this->registerModules();
     }
@@ -33,8 +39,8 @@ class AppServiceProvider extends ServiceProvider
             // parts: ['modules', '{name}', 'src', '{Class}.php']
             // Convert hyphenated names to PascalCase: wp-connector → WpConnector
             $moduleName = str_replace('-', '', ucwords($parts[1], '-'));
-            $className  = basename($path, '.php');
-            $class      = "Modules\\{$moduleName}\\{$className}";
+            $className = basename($path, '.php');
+            $class = "Modules\\{$moduleName}\\{$className}";
 
             if (class_exists($class)) {
                 $this->app->register($class);
@@ -47,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerSyncHandlers();
         $this->ensureConfigIsLoaded();
         $this->createStorageStructure();
         $this->registerGates();
@@ -54,11 +61,26 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register core sync handlers into the SyncRegistry.
+     *
+     * Module-specific handlers (Beds24, etc.) are registered by their own
+     * ServiceProviders. Only handlers that belong to the core app live here.
+     */
+    private function registerSyncHandlers(): void
+    {
+        /** @var SyncRegistry $registry */
+        $registry = $this->app->make(SyncRegistry::class);
+        $registry->register(new IcalSyncHandler(
+            $this->app->make(BookingSyncIcal::class),
+        ));
+    }
+
+    /**
      * Register model observers
      */
     private function registerObservers(): void
     {
-        \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
+        Booking::observe(BookingObserver::class);
     }
 
     /**

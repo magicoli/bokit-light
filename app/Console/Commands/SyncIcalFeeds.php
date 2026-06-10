@@ -2,124 +2,39 @@
 
 namespace App\Console\Commands;
 
-use App\Services\BookingSyncIcal;
-use App\Models\IcalSource;
+use App\Services\SyncRegistry;
 use Illuminate\Console\Command;
 
 class SyncIcalFeeds extends Command
 {
     protected $signature = 'bokit:sync
-                            {--source= : Sync only a specific source ID}
-                            {--property= : Sync only sources for a specific property ID}';
+                            {--dry-run : Preview sync actions without writing to the database}';
 
-    protected $description = "Synchronize iCal feeds from external sources";
+    protected $description = 'Run all registered sync handlers (iCal, Beds24 API, …)';
 
-    public function handle(BookingSyncIcal $parser): int
+    public function handle(SyncRegistry $registry): int
     {
-        $this->info("🏖️  Starting Bokit calendar synchronization...");
+        $this->info('🏖️  Starting Bokit calendar synchronization...');
         $this->newLine();
 
-        // Get sources to sync
-        $sources = $this->getSourcesToSync();
+        $handlers = $registry->all();
 
-        if ($sources->isEmpty()) {
-            $this->warn("No active sources found to sync.");
+        if (empty($handlers)) {
+            $this->warn('No sync handlers registered.');
+
             return self::SUCCESS;
         }
 
-        $this->info("Found {$sources->count()} source(s) to sync");
-        $this->newLine();
+        $dryRun = (bool) $this->option('dry-run');
 
-        $totalStats = [
-            "total" => 0,
-            "new" => 0,
-            "updated" => 0,
-            "deleted" => 0,
-            "vanished" => 0,
-        ];
-        $errors = 0;
-
-        // Sync each source
-        foreach ($sources as $source) {
-            $this->line("Syncing: <fg=cyan>{$source->fullname()}</>");
-
-            try {
-                $stats = $parser->syncSource($source);
-
-                if (!($stats["success"] ?? false)) {
-                    $errors++;
-                    throw new \Exception($stats["error"] ?? "Unknown error");
-                }
-
-                // Display per-source detailed stats (always show all)
-                $parts = [
-                    "Total: {$stats["total"]}",
-                    ($stats["new"] > 0 ? "<fg=green>" : "") .
-                    "New: {$stats["new"]}" .
-                    ($stats["new"] > 0 ? "</>" : ""),
-                    ($stats["updated"] > 0 ? "<fg=yellow>" : "") .
-                    "Updated: {$stats["updated"]}" .
-                    ($stats["updated"] > 0 ? "</>" : ""),
-                    ($stats["deleted"] > 0 ? "<fg=red>" : "") .
-                    "Deleted: {$stats["deleted"]}" .
-                    ($stats["deleted"] > 0 ? "</>" : ""),
-                    ($stats["vanished"] > 0 ? "<fg=magenta>" : "") .
-                    "Vanished: {$stats["vanished"]}" .
-                    ($stats["vanished"] > 0 ? "</>" : ""),
-                ];
-
-                $this->line("  ✓ " . implode(", ", $parts));
-
-                // Accumulate totals
-                foreach (
-                    ["total", "new", "updated", "deleted", "vanished"]
-                    as $key
-                ) {
-                    $totalStats[$key] += $stats[$key] ?? 0;
-                }
-            } catch (\Exception $e) {
-                $this->error("  ✗ Failed: {$e->getMessage()}");
-                $errors++;
-            }
-
+        foreach ($handlers as $handler) {
+            $this->line("--- <fg=cyan>{$handler->label()}</> ---");
+            $handler->handle($this->output, $dryRun);
             $this->newLine();
         }
 
-        // Summary
-        $this->info("Summary:");
-        $this->line("  Total bookings: <fg=cyan>{$totalStats["total"]}</>");
-        $this->line("  New: <fg=green>{$totalStats["new"]}</>");
-        $this->line("  Updated: <fg=yellow>{$totalStats["updated"]}</>");
-        $this->line("  Deleted: <fg=red>{$totalStats["deleted"]}</>");
-        $this->line("  Vanished: <fg=magenta>{$totalStats["vanished"]}</>");
-
-        if ($errors > 0) {
-            $this->line("  Errors: <fg=red>{$errors}</>");
-        }
-
-        $this->newLine();
-        $this->info("✅ Synchronization complete!");
+        $this->info('✅ Synchronization complete!');
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Get the sources to sync based on options
-     */
-    protected function getSourcesToSync()
-    {
-        $query = IcalSource::with(["unit.property"])->enabled();
-
-        if ($sourceId = $this->option("source")) {
-            $query->where("id", $sourceId);
-        }
-
-        if ($propertyId = $this->option("property")) {
-            $query->whereHas("unit", function ($q) use ($propertyId) {
-                $q->where("property_id", $propertyId);
-            });
-        }
-
-        return $query->get();
     }
 }
