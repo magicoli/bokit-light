@@ -253,18 +253,19 @@ class SyncEngine
             'metadata' => $metadata,
         ]);
 
-        $booking->sources()->create([
+        $this->writeReference($booking, [
             'source_type' => $sourceType,
             'source_key' => $sourceKey,
             'external_id' => $normalized->externalId,
             'is_origin' => $normalized->claimsOrigin,
+            'is_placeholder' => false,
             'last_seen_at' => now(),
         ]);
 
         if ($normalized->originHint) {
             // The true origin isn't connected yet — record it as a placeholder
             // so the real source can claim it later.
-            $booking->sources()->create([
+            $this->writeReference($booking, [
                 'source_type' => $normalized->originHint['type'],
                 'source_key' => $normalized->originHint['type'],
                 'external_id' => $normalized->originHint['external_id'],
@@ -273,6 +274,25 @@ class SyncEngine
                 'last_seen_at' => null,
             ]);
         }
+    }
+
+    /**
+     * Upsert a reference on its unique (source_key, external_id) pair.
+     * A leftover row — e.g. orphaned by a manual wipe of the bookings table,
+     * where SQLite's CLI does not run FK cascades — is reattached to the new
+     * booking instead of blowing up the unique constraint.
+     *
+     * @param  array<string,mixed>  $attributes
+     */
+    private function writeReference(Booking $booking, array $attributes): BookingSource
+    {
+        return BookingSource::updateOrCreate(
+            [
+                'source_key' => $attributes['source_key'],
+                'external_id' => $attributes['external_id'],
+            ],
+            [...$attributes, 'booking_id' => $booking->id],
+        );
     }
 
     /**
@@ -313,11 +333,12 @@ class SyncEngine
             ->exists();
 
         if (! $reference) {
-            $reference = $booking->sources()->create([
+            $reference = $this->writeReference($booking, [
                 'source_type' => $sourceType,
                 'source_key' => $sourceKey,
                 'external_id' => $normalized->externalId,
                 'is_origin' => $canClaim && ! $hasClaimedOrigin(),
+                'is_placeholder' => false,
             ]);
         } elseif ($canClaim && ! $reference->is_origin && ! $hasClaimedOrigin()) {
             $reference->update(['is_origin' => true]);

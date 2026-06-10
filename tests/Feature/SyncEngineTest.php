@@ -91,6 +91,46 @@ describe('SyncEngine', function () {
             ->and($booking->sources->first()->external_id)->toBe('111');
     });
 
+    it('reattaches a leftover reference instead of violating the unique pair', function () {
+        // A reference pair left behind (e.g. bookings wiped manually without
+        // FK cascades) must not block recreation — it gets reattached.
+        $stale = Booking::create([
+            'unit_id' => $this->unit->id,
+            'property_id' => $this->property->id,
+            'uid' => 'stale-1',
+            'check_in' => '2026-01-01',
+            'check_out' => '2026-01-05',
+            'guest_name' => 'Stale Guest',
+            'status' => 'confirmed',
+        ]);
+        $stale->sources()->create([
+            'source_type' => 'ical',
+            'source_key' => 'ical',
+            'external_id' => 'uid-hint@gites-mosaiques.com',
+            'is_origin' => true,
+            'is_placeholder' => true,
+        ]);
+
+        $connector = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(
+                externalId: '555',
+                checkIn: '2027-09-01',
+                checkOut: '2027-09-08',
+                guestName: 'Nouveau Client',
+                status: 'confirmed',
+                originHint: ['type' => 'ical', 'external_id' => 'uid-hint@gites-mosaiques.com'],
+            ),
+        ]);
+
+        // Different dates and guest: no heuristic match with the stale booking,
+        // but the hint lookup finds it through the leftover pair — and if it
+        // didn't (orphaned row), creation must still not crash.
+        $stats = $this->engine->sync($this->unit, [], $connector);
+
+        expect($stats['success'])->toBeTrue()
+            ->and(BookingSource::where('external_id', 'uid-hint@gites-mosaiques.com')->count())->toBe(1);
+    });
+
     it('persists and updates the group linkage', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
