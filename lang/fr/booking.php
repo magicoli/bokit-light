@@ -58,6 +58,9 @@ return [
 
     'source.not_connected' => 'non connectée',
 
+    'field.group' => 'Groupe',
+    'group.none' => 'Sans groupe',
+
     // Helper text
     'guests_auto_calculated' => 'Calculé automatiquement si vide',
 ];

@@ -10,7 +10,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class BookingsTable
@@ -34,7 +36,17 @@ class BookingsTable
         }
 
         return $table
-            ->defaultSort('check_in', 'asc')
+            // Secondary sort on group_id keeps members of a group reservation
+            // adjacent when they share the same check-in date.
+            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('check_in')->orderBy('group_id'))
+            ->groups([
+                Group::make('group_id')
+                    ->label(__(self::LANG.'.field.group'))
+                    ->getTitleFromRecordUsing(fn (Booking $record): string => $record->group_id
+                        ? $record->guest_name.' — '.$record->check_in->format('d/m/Y')
+                        : __(self::LANG.'.group.none'))
+                    ->collapsible(),
+            ])
             ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->columns([
                 ...DynamicTable::columns(Booking::class, self::LANG, [

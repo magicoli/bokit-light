@@ -188,6 +188,79 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->groupId)->toBe('100');
     });
 
+    it('never uses the replicated price field for group sub-bookings', function () {
+        // Beds24 copies the group total into every sub's price field;
+        // summing them would multiply the group price by the unit count.
+        $connector = makeBeds24Connector([
+            [
+                'bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10',
+                'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1',
+                'guestName' => 'Combat Ouvrier', 'price' => '3000',
+                'invoice' => [['type' => '0', 'description' => 'Forfait site entier', 'price' => '3000']],
+            ],
+            [
+                'bookId' => '101', 'masterId' => '100', 'roomId' => '42',
+                'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1',
+                'guestName' => 'Combat Ouvrier', 'price' => '3000',
+            ],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBeNull()
+            ->and($bookings[0]->metadata['group_total'])->toBe(3000.0);
+    });
+
+    it('keeps per-unit prices from the sub-booking own invoice', function () {
+        $connector = makeBeds24Connector([
+            [
+                'bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10',
+                'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1',
+                'guestName' => 'Myriam Masson', 'price' => '700',
+                'invoice' => [['type' => '1', 'description' => 'Hébergement', 'price' => '700']],
+            ],
+            [
+                'bookId' => '101', 'masterId' => '100', 'roomId' => '42',
+                'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1',
+                'guestName' => 'Myriam Masson', 'price' => '700',
+                'invoice' => [['type' => '1', 'description' => 'Hébergement', 'price' => '1050']],
+            ],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBe(1050.0)
+            ->and($bookings[0]->metadata['group_total'])->toBe(700.0);
+    });
+
+    it('stores the full invoice line detail in metadata', function () {
+        $connector = makeBeds24Connector([
+            [
+                'bookId' => '200', 'roomId' => '42', 'firstNight' => '2027-03-01', 'lastNight' => '2027-03-05',
+                'status' => '1', 'guestName' => 'Detail Guest', 'price' => '0', 'deposit' => '150', 'tax' => '12',
+                'invoice' => [
+                    ['type' => '1', 'description' => 'Hébergement', 'qty' => '4', 'price' => '500'],
+                    ['type' => '0', 'description' => 'Remise', 'price' => '-50'],
+                    ['type' => '0', 'description' => 'Taxe de séjour', 'price' => '12'],
+                    ['type' => '200', 'description' => 'Paiement', 'price' => '462'],
+                ],
+            ],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+        $meta = $bookings[0]->metadata;
+
+        expect($meta['invoice_lines'])->toHaveCount(4)
+            ->and($meta['invoice_lines'][0])->toBe(['type' => '1', 'description' => 'Hébergement', 'qty' => 4.0, 'price' => 500.0])
+            ->and($meta['invoice_acc_ttc'])->toBe(450.0)
+            ->and($meta['invoice_taxe_invoiced'])->toBe(12.0)
+            ->and($meta['invoice_payment_total'])->toBe(462.0)
+            ->and($meta['deposit'])->toBe(150.0)
+            ->and($meta['tax'])->toBe(12.0);
+    });
+
     it('uses payment lines when the invoice nets to zero on a standalone booking', function () {
         $connector = makeBeds24Connector([
             [

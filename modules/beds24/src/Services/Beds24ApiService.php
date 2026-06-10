@@ -4,6 +4,7 @@ namespace Modules\Beds24\Services;
 
 use App\Models\Property;
 use App\Support\Options;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -20,6 +21,7 @@ class Beds24ApiService
     private const API_URL = 'https://api.beds24.com/json/';
 
     private string $apiKey;
+
     private string $propKey;
 
     public function __construct(private readonly Property $property)
@@ -56,22 +58,26 @@ class Beds24ApiService
     {
         $payload = array_merge([
             'authentication' => [
-                'apiKey'  => $this->apiKey,
+                'apiKey' => $this->apiKey,
                 'propKey' => $this->propKey,
             ],
-            'includeInvoice'   => true,
+            'includeInvoice' => true,
             'includeInfoItems' => false,
-            'limit'            => 1000,
+            'limit' => 1000,
         ], $params);
 
-        $response = Http::post(self::API_URL . 'getBookings', $payload);
+        $response = Http::timeout(60)
+            ->connectTimeout(30)
+            ->retry(2, 2000, fn (\Throwable $e): bool => $e instanceof ConnectionException, throw: false)
+            ->post(self::API_URL.'getBookings', $payload);
 
         if (! $response->successful()) {
             Log::error('[Beds24] getBookings HTTP error', [
                 'property_id' => $this->property->id,
-                'status'      => $response->status(),
-                'body'        => $response->body(),
+                'status' => $response->status(),
+                'body' => $response->body(),
             ]);
+
             return [];
         }
 
@@ -80,9 +86,10 @@ class Beds24ApiService
         if (isset($data['error'])) {
             Log::error('[Beds24] getBookings API error', [
                 'property_id' => $this->property->id,
-                'error'       => $data['error'],
-                'errorCode'   => $data['errorCode'] ?? null,
+                'error' => $data['error'],
+                'errorCode' => $data['errorCode'] ?? null,
             ]);
+
             return [];
         }
 

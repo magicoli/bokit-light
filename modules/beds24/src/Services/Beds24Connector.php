@@ -180,7 +180,7 @@ class Beds24Connector implements SourceConnector
         $invoice = ! empty($row['invoice']) && is_array($row['invoice'])
             ? $this->parseInvoice($row['invoice'])
             : [];
-        $price = $this->resolvePrice($row, $invoice, $isGroupMaster);
+        $price = $this->resolvePrice($row, $invoice, $isGroupMaster, $isGroupSub);
 
         // Empty placeholder rows (no guest, no money) are channel artifacts —
         // unless they belong to a group: group rows are real occupancies even
@@ -211,6 +211,16 @@ class Beds24Connector implements SourceConnector
 
         $email = trim($row['guestEmail'] ?? $row['email'] ?? '') ?: null;
 
+        $metadata = $this->buildMeta($row, $invoice);
+
+        if ($master !== null) {
+            $groupTotal = $this->resolveGroupTotal($master);
+
+            if ($groupTotal > 0) {
+                $metadata['group_total'] = $groupTotal;
+            }
+        }
+
         return new NormalizedBooking(
             externalId: (string) $row['bookId'],
             checkIn: $checkIn,
@@ -223,7 +233,7 @@ class Beds24Connector implements SourceConnector
             adults: isset($row['numAdult']) ? (int) $row['numAdult'] : null,
             children: isset($row['numChild']) ? (int) $row['numChild'] : null,
             channel: $this->mapSourceName((string) ($row['apiSource'] ?? '')),
-            metadata: $this->buildMeta($row, $invoice),
+            metadata: $metadata,
             originHint: $originHint,
             legacyUid: "beds24-{$row['bookId']}",
             claimsOrigin: $originHint === null,
@@ -235,7 +245,10 @@ class Beds24Connector implements SourceConnector
      * Resolve the accommodation amount, mirroring taxesejour-bridge:
      * - invoice with positive accommodation total → use it;
      * - no invoice: group masters report 0 (amounts live on sub-bookings,
-     *   using the price field would double-count), others use the price field;
+     *   using the price field would double-count), group subs report 0 too
+     *   (Beds24 replicates the group total in every sub's price field —
+     *   summing them would multiply the group price by the number of units),
+     *   standalone bookings use the price field;
      * - invoice present but acc ≤ 0 (large discount, manual entry): standalone
      *   bookings use the payment lines (what was actually received), with the
      *   price field as last resort.
@@ -243,10 +256,14 @@ class Beds24Connector implements SourceConnector
      * @param  array<string,mixed>  $row
      * @param  array{acc_ttc: float, taxe_invoiced: float, payment_total: float}|array{}  $invoice
      */
-    private function resolvePrice(array $row, array $invoice, bool $isGroupMaster): float
+    private function resolvePrice(array $row, array $invoice, bool $isGroupMaster, bool $isGroupSub = false): float
     {
         if (($invoice['acc_ttc'] ?? 0) > 0) {
             return $invoice['acc_ttc'];
+        }
+
+        if ($isGroupSub) {
+            return ($invoice['payment_total'] ?? 0) > 0 ? $invoice['payment_total'] : 0.0;
         }
 
         $priceField = (float) ($row['price'] ?? 0);
@@ -288,13 +305,50 @@ class Beds24Connector implements SourceConnector
             'message' => $row['message'] ?? null,
         ];
 
+        $deposit = (float) ($row['deposit'] ?? 0);
+        $tax = (float) ($row['tax'] ?? 0);
+        $meta['deposit'] = $deposit ?: null;
+        $meta['tax'] = $tax ?: null;
+
         if (! empty($invoice)) {
             $meta['invoice_acc_ttc'] = $invoice['acc_ttc'];
             $meta['invoice_taxe_invoiced'] = $invoice['taxe_invoiced'];
             $meta['invoice_payment_total'] = $invoice['payment_total'];
         }
 
+        if (! empty($row['invoice']) && is_array($row['invoice'])) {
+            $meta['invoice_lines'] = array_map(fn (array $line): array => [
+                'type' => (string) ($line['type'] ?? ''),
+                'description' => (string) ($line['description'] ?? ''),
+                'qty' => (float) ($line['qty'] ?? 1),
+                'price' => (float) ($line['price'] ?? 0),
+            ], array_values($row['invoice']));
+        }
+
         return array_filter($meta, fn ($v) => $v !== null && $v !== '');
+    }
+
+    /**
+     * The group's total price as Beds24 reports it on the master booking.
+     * Distinct from per-unit prices: it must never be summed with them.
+     *
+     * @param  array<string,mixed>  $master
+     */
+    private function resolveGroupTotal(array $master): float
+    {
+        $invoice = ! empty($master['invoice']) && is_array($master['invoice'])
+            ? $this->parseInvoice($master['invoice'])
+            : [];
+
+        if (($invoice['acc_ttc'] ?? 0) > 0) {
+            return $invoice['acc_ttc'];
+        }
+
+        if (($invoice['payment_total'] ?? 0) > 0) {
+            return $invoice['payment_total'];
+        }
+
+        return (float) ($master['price'] ?? 0);
     }
 
     /**

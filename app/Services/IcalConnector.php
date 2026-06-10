@@ -7,6 +7,7 @@ use App\Models\IcalSource;
 use App\Models\Unit;
 use App\Support\NormalizedBooking;
 use Carbon\Carbon;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -54,7 +55,9 @@ class IcalConnector implements SourceConnector
             throw new \RuntimeException('No URL configured');
         }
 
-        $response = Http::timeout(30)
+        $response = Http::timeout(60)
+            ->connectTimeout(30)
+            ->retry(2, 2000, fn (\Throwable $e): bool => $e instanceof ConnectionException, throw: false)
             ->withHeaders([
                 'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept' => 'text/calendar,text/plain,*/*',

@@ -463,7 +463,16 @@ class SyncEngine
         $newMeta = $this->incomingMetadata($normalized);
         $currentMeta = $booking->metadata ?? [];
 
-        if (array_diff_assoc($newMeta, array_intersect_key($currentMeta, $newMeta))) {
+        $metaChanged = false;
+        foreach ($newMeta as $key => $value) {
+            if (! array_key_exists($key, $currentMeta) || $currentMeta[$key] != $value) {
+                $metaChanged = true;
+
+                break;
+            }
+        }
+
+        if ($metaChanged) {
             $changes['metadata'] = array_merge($currentMeta, $newMeta);
         }
 
