@@ -52,4 +52,10 @@ interface SourceConnector
      * @throws \RuntimeException when the source is misconfigured or unreachable.
      */
     public function fetchBookings(Unit $unit, array $sourceConfig): array;
+
+    /**
+     * Direct URL to the booking's page in the source system, or null when
+     * the source has none (e.g. iCal feeds).
+     */
+    public function externalBookingUrl(string $externalId): ?string;
 }

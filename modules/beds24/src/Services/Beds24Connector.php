@@ -46,6 +46,16 @@ class Beds24Connector implements SourceConnector
         return 'beds24';
     }
 
+    /**
+     * Direct link to the booking edit page. Note: the obvious control3.php
+     * URL from the UI does not deep-link; control2.php?ajax=bookedit does
+     * (same trick as taxesejour-bridge).
+     */
+    public function externalBookingUrl(string $externalId): ?string
+    {
+        return "https://beds24.com/control2.php?ajax=bookedit&id={$externalId}";
+    }
+
     public function fetchBookings(Unit $unit, array $sourceConfig): array
     {
         $roomId = (int) ($sourceConfig['room_id'] ?? 0);

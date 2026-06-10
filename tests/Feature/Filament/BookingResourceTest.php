@@ -126,7 +126,8 @@ it('renders the view page with the sources table', function () {
         ->assertSuccessful()
         ->assertSee('✓ Beds24 API')
         ->assertSee('iCal beds24.com')
-        ->assertSee('66036992');
+        ->assertSee('66036992')
+        ->assertSee('https://beds24.com/control2.php?ajax=bookedit&amp;id=66036992', escape: false);
 });
 
 it('can edit a booking', function () {

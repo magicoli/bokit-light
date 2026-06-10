@@ -41,6 +41,11 @@ class IcalConnector implements SourceConnector
         return 'ical:'.$this->configLabel($sourceConfig);
     }
 
+    public function externalBookingUrl(string $externalId): ?string
+    {
+        return null;
+    }
+
     public function fetchBookings(Unit $unit, array $sourceConfig): array
     {
         $url = $sourceConfig['url'] ?? '';

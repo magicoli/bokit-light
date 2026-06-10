@@ -34,6 +34,11 @@ function makeRegistryConnector(string $type): SourceConnector
         {
             return [];
         }
+
+        public function externalBookingUrl(string $externalId): ?string
+        {
+            return null;
+        }
     };
 }
 

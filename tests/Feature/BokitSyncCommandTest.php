@@ -48,6 +48,11 @@ function makeCommandConnector(string $type, array $bookings, ?array &$calledUnit
 
             return $this->bookings;
         }
+
+        public function externalBookingUrl(string $externalId): ?string
+        {
+            return null;
+        }
     };
 }
 

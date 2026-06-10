@@ -56,6 +56,28 @@ describe('BookingSource display label', function () {
         expect($source->display_label)->toBe('✓ iCal ('.__('booking.source.not_connected').')');
     });
 
+    it('exposes the Beds24 edit page URL for API sources', function () {
+        $source = $this->booking->sources()->create([
+            'source_type' => 'beds24',
+            'source_key' => 'beds24',
+            'external_id' => '66036992',
+            'is_origin' => true,
+        ]);
+
+        expect($source->external_url)->toBe('https://beds24.com/control2.php?ajax=bookedit&id=66036992');
+    });
+
+    it('has no external URL for iCal sources', function () {
+        $source = $this->booking->sources()->create([
+            'source_type' => 'ical',
+            'source_key' => 'ical:beds24.com',
+            'external_id' => 'uid-x@beds24.com',
+            'is_origin' => false,
+        ]);
+
+        expect($source->external_url)->toBeNull();
+    });
+
     it('falls back to the raw type when no connector is registered', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'hbook',

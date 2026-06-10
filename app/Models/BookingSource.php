@@ -51,6 +51,17 @@ class BookingSource extends Model
     }
 
     /**
+     * Direct URL to the booking's page in the source system, when the
+     * source connector provides one (API sources; iCal feeds don't).
+     */
+    protected function externalUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => app(SyncRegistry::class)
+            ->getForType($this->source_type)
+            ?->externalBookingUrl($this->external_id));
+    }
+
+    /**
      * Human-readable label for display: connector label plus the source
      * instance name, prefixed with a check mark when this is the origin.
      * Examples: "✓ Beds24 API", "iCal beds24.com", "✓ iCal (not connected)".
