@@ -49,6 +49,13 @@ return [
     'section.pricing' => 'Pricing',
     'section.metadata' => 'Metadata',
 
+    // Sources
+    'section.sources' => 'Sources',
+    'source.origin' => 'Origin',
+    'source.external_id' => 'External ID',
+    'source.last_seen' => 'Last seen',
+    'source.pending_origin' => 'Origin (not connected)',
+
     // Helper text
     'guests_auto_calculated' => 'Auto-calculated if empty',
 ];

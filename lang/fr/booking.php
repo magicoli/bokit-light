@@ -49,6 +49,13 @@ return [
     'section.pricing' => 'Tarification',
     'section.metadata' => 'Métadonnées',
 
+    // Sources
+    'section.sources' => 'Sources',
+    'source.origin' => 'Origine',
+    'source.external_id' => 'ID externe',
+    'source.last_seen' => 'Vu pour la dernière fois',
+    'source.pending_origin' => 'Origine (non connectée)',
+
     // Helper text
     'guests_auto_calculated' => 'Calculé automatiquement si vide',
 ];

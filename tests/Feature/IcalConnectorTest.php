@@ -80,7 +80,8 @@ describe('IcalConnector', function () {
             ->and($booking->adults)->toBe(2)
             ->and($booking->children)->toBe(1)
             ->and($booking->channel)->toBe('beds24.com')
-            ->and($booking->legacyUid)->toBe('uid-aaa@beds24.com');
+            ->and($booking->legacyUid)->toBe('uid-aaa@beds24.com')
+            ->and($booking->claimsOrigin)->toBeFalse();
     });
 
     it('skips events without UID or dates', function () {

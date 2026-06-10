@@ -166,6 +166,7 @@ class Beds24Connector implements SourceConnector
             metadata: $this->buildMeta($row, $invoice),
             originHint: $originHint,
             legacyUid: "beds24-{$row['bookId']}",
+            claimsOrigin: $originHint === null,
         );
     }
 
@@ -266,11 +267,15 @@ class Beds24Connector implements SourceConnector
         };
     }
 
+    /**
+     * Beds24 v1 status codes: 0=Cancelled, 1=Confirmed, 2=New, 3=Request,
+     * 4=Black (block), 5=Inquiry. 4 and 5 are filtered out in normalize().
+     */
     private function mapStatus(string $status): string
     {
         return match ($status) {
-            '0', '1' => 'pending',
-            '3' => 'cancelled',
+            '0' => 'cancelled',
+            '3' => 'pending',
             default => 'confirmed',
         };
     }

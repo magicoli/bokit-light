@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Bookings\Schemas;
 
 use App\Models\Booking;
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -91,6 +92,32 @@ class BookingInfolist
                             ->label(__('booking.field.is_manual'))
                             ->boolean(),
                     ]),
+
+                Section::make(__('booking.section.sources'))
+                    ->schema([
+                        RepeatableEntry::make('sources')
+                            ->label('')
+                            ->columns(4)
+                            ->schema([
+                                TextEntry::make('source_key')
+                                    ->label(__('booking.field.source_name'))
+                                    ->badge(),
+
+                                TextEntry::make('external_id')
+                                    ->label(__('booking.source.external_id'))
+                                    ->copyable(),
+
+                                IconEntry::make('is_origin')
+                                    ->label(__('booking.source.origin'))
+                                    ->boolean(),
+
+                                TextEntry::make('last_seen_at')
+                                    ->label(__('booking.source.last_seen'))
+                                    ->dateTime('d/m/Y H:i')
+                                    ->placeholder('-'),
+                            ]),
+                    ])
+                    ->visible(fn (Booking $record): bool => $record->sources()->exists()),
 
                 Section::make(__('booking.field.notes'))
                     ->schema([

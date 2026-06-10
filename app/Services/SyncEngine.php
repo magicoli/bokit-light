@@ -27,10 +27,11 @@ use Illuminate\Support\Facades\Log;
  *      A heuristic match always stores the (source_key, external_id) pair so
  *      the next run matches by id.
  *
- * Ownership: the origin source (is_origin reference) is the only one allowed
- * to update dates, prices and critical data. Other sources only fill in
- * missing information. When no origin is connected yet, the booking's oldest
- * real reference acts as origin. Manual bookings are never owned by a source.
+ * Ownership: only one source syncs a booking — the origin when one of the
+ * connected sources reliably claims it (claimsOrigin), otherwise the first
+ * source that found the booking (oldest real reference). All other sources
+ * are recorded in booking_sources for information only and never modify the
+ * booking. Manual bookings are never owned by any source.
  */
 class SyncEngine
 {
@@ -255,7 +256,7 @@ class SyncEngine
             'source_type' => $sourceType,
             'source_key' => $sourceKey,
             'external_id' => $normalized->externalId,
-            'is_origin' => $normalized->originHint === null,
+            'is_origin' => $normalized->claimsOrigin,
             'last_seen_at' => now(),
         ]);
 
@@ -275,17 +276,21 @@ class SyncEngine
 
     /**
      * Make sure the booking carries a reference for this source, creating or
-     * claiming a placeholder as needed. Always refreshes last_seen_at.
+     * claiming a placeholder as needed. A source that reliably claims origin
+     * takes ownership unless another real source already holds it.
+     * Always refreshes last_seen_at.
      */
     private function ensureReference(Booking $booking, string $sourceType, string $sourceKey, NormalizedBooking $normalized): BookingSource
     {
+        $canClaim = $normalized->claimsOrigin && ! $booking->is_manual;
+
         $reference = $booking->sources()
             ->where('source_key', $sourceKey)
             ->where('external_id', $normalized->externalId)
             ->first();
 
         if (! $reference) {
-            // Claim a placeholder created from an origin hint for this exact id.
+            // Take over a placeholder created from an origin hint for this exact id.
             $reference = $booking->sources()
                 ->where('source_type', $sourceType)
                 ->where('is_placeholder', true)
@@ -293,21 +298,28 @@ class SyncEngine
                 ->first();
 
             if ($reference) {
-                $reference->update(['source_key' => $sourceKey, 'is_placeholder' => false]);
+                $reference->update([
+                    'source_key' => $sourceKey,
+                    'is_placeholder' => false,
+                    'is_origin' => $canClaim,
+                ]);
             }
         }
 
-        if (! $reference) {
-            $hasOrigin = $booking->sources()->where('is_origin', true)->exists();
+        $hasClaimedOrigin = fn (): bool => $booking->sources()
+            ->where('is_origin', true)
+            ->where('is_placeholder', false)
+            ->exists();
 
+        if (! $reference) {
             $reference = $booking->sources()->create([
                 'source_type' => $sourceType,
                 'source_key' => $sourceKey,
                 'external_id' => $normalized->externalId,
-                'is_origin' => ! $hasOrigin
-                    && ! $booking->is_manual
-                    && $normalized->originHint === null,
+                'is_origin' => $canClaim && ! $hasClaimedOrigin(),
             ]);
+        } elseif ($canClaim && ! $reference->is_origin && ! $hasClaimedOrigin()) {
+            $reference->update(['is_origin' => true]);
         }
 
         $reference->update(['last_seen_at' => now()]);
@@ -318,7 +330,8 @@ class SyncEngine
     /**
      * True when this reference is allowed to perform a full update:
      * it is the claimed origin, or no real origin is connected and this is
-     * the booking's oldest non-placeholder reference.
+     * the booking's oldest non-placeholder reference. Placeholder origins
+     * (hints pointing to a source that isn't connected) never act.
      */
     private function isActingOrigin(Booking $booking, BookingSource $reference): bool
     {
@@ -326,14 +339,13 @@ class SyncEngine
             return false;
         }
 
-        if ($reference->is_origin) {
-            return true;
-        }
+        $claimedOrigin = $booking->sources()
+            ->where('is_origin', true)
+            ->where('is_placeholder', false)
+            ->first();
 
-        $origin = $booking->sources()->where('is_origin', true)->first();
-
-        if ($origin && ! $origin->isPlaceholder()) {
-            return false;
+        if ($claimedOrigin) {
+            return $claimedOrigin->id === $reference->id;
         }
 
         $oldestReal = $booking->sources()
@@ -345,15 +357,19 @@ class SyncEngine
     }
 
     /**
-     * Apply changes from the source, respecting ownership.
+     * Apply changes from the source, respecting ownership. Only the acting
+     * origin syncs the booking — other sources are recorded for information
+     * and never modify anything.
      *
      * @return bool whether anything was updated
      */
     private function applyUpdate(Booking $booking, BookingSource $reference, NormalizedBooking $normalized): bool
     {
-        $changes = $this->isActingOrigin($booking, $reference)
-            ? $this->fullChanges($booking, $normalized)
-            : $this->gapFillChanges($booking, $normalized);
+        if (! $this->isActingOrigin($booking, $reference)) {
+            return false;
+        }
+
+        $changes = $this->fullChanges($booking, $normalized);
 
         if (empty($changes)) {
             return false;
@@ -423,55 +439,6 @@ class SyncEngine
 
         if (array_diff_assoc($newMeta, array_intersect_key($currentMeta, $newMeta))) {
             $changes['metadata'] = array_merge($currentMeta, $newMeta);
-        }
-
-        return $changes;
-    }
-
-    /**
-     * Non-origin sources only complete missing information — they never
-     * overwrite dates, prices or any value the booking already has.
-     *
-     * @return array<string,mixed>
-     */
-    private function gapFillChanges(Booking $booking, NormalizedBooking $normalized): array
-    {
-        $changes = [];
-
-        if (in_array($booking->guest_name, self::PLACEHOLDER_GUEST_NAMES, true)
-            && ! in_array($normalized->guestName, self::PLACEHOLDER_GUEST_NAMES, true)) {
-            $changes['guest_name'] = $normalized->guestName;
-        }
-
-        if ($booking->status === 'undefined' && $normalized->status !== 'undefined') {
-            $changes['status'] = $normalized->status;
-        }
-
-        if ($booking->getRawOriginal('price') === null && $normalized->price > 0) {
-            $changes['price'] = $normalized->price;
-        }
-
-        if ($booking->getRawOriginal('commission') === null && $normalized->commission > 0) {
-            $changes['commission'] = $normalized->commission;
-        }
-
-        if ($booking->getRawOriginal('guests') === null && $normalized->guests !== null) {
-            $changes['guests'] = $normalized->guests;
-        }
-
-        if ($booking->getRawOriginal('adults') === null && $normalized->adults !== null) {
-            $changes['adults'] = $normalized->adults;
-        }
-
-        if ($booking->getRawOriginal('children') === null && $normalized->children !== null) {
-            $changes['children'] = $normalized->children;
-        }
-
-        $currentMeta = $booking->metadata ?? [];
-        $missingMeta = array_diff_key($this->incomingMetadata($normalized), $currentMeta);
-
-        if (! empty($missingMeta)) {
-            $changes['metadata'] = array_merge($currentMeta, $missingMeta);
         }
 
         return $changes;

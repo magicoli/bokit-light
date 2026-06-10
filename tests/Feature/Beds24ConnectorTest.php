@@ -78,8 +78,24 @@ describe('Beds24Connector', function () {
             ->and($booking->children)->toBe(1)
             ->and($booking->channel)->toBe('airbnb')
             ->and($booking->originHint)->toBeNull()
-            ->and($booking->legacyUid)->toBe('beds24-79643287');
+            ->and($booking->legacyUid)->toBe('beds24-79643287')
+            ->and($booking->claimsOrigin)->toBeTrue();
     });
+
+    it('maps Beds24 v1 status codes correctly', function (string $rawStatus, string $expected) {
+        $connector = makeBeds24Connector([
+            ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => $rawStatus, 'guestName' => 'Guest X', 'price' => '100'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings[0]->status)->toBe($expected);
+    })->with([
+        'cancelled' => ['0', 'cancelled'],
+        'confirmed' => ['1', 'confirmed'],
+        'new' => ['2', 'confirmed'],
+        'request' => ['3', 'pending'],
+    ]);
 
     it('sets an origin hint for iCal-imported bookings, trimming the uid', function () {
         $connector = makeBeds24Connector([
@@ -103,7 +119,8 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->originHint)->toBe([
                 'type' => 'ical',
                 'external_id' => 'uid-origin@gites-mosaiques.com',
-            ]);
+            ])
+            ->and($bookings[0]->claimsOrigin)->toBeFalse();
     });
 
     it('skips availability blocks and rows from other rooms', function () {

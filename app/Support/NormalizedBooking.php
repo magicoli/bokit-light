@@ -26,6 +26,8 @@ class NormalizedBooking
      * @param  array{type: string, external_id: string}|null  $originHint  Set when the source knows the booking
      *                                                                     originated elsewhere (e.g. Beds24 'referer' = iCal Import).
      * @param  string|null  $legacyUid  Value historically stored in bookings.uid, used for transitional matching.
+     * @param  bool  $claimsOrigin  True when the source can reliably assert this booking originated with it.
+     *                              iCal feeds can never tell, so they always leave this false.
      */
     public function __construct(
         public string $externalId,
@@ -43,5 +45,6 @@ class NormalizedBooking
         public array $metadata = [],
         public ?array $originHint = null,
         public ?string $legacyUid = null,
+        public bool $claimsOrigin = false,
     ) {}
 }
