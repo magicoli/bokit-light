@@ -116,6 +116,35 @@ class Beds24SyncHandler implements SyncHandler
                 continue;
             }
 
+            // Bookings originally imported from an iCal feed are owned by the iCal source.
+            // We store the Beds24 booking ID as a cross-reference but do not claim ownership.
+            $referer = (string) ($row['referer'] ?? '');
+            if (str_starts_with($referer, 'iCal Import')) {
+                $icalUid = trim((string) ($row['apiReference'] ?? ''));
+                if ($icalUid) {
+                    $icalBooking = Booking::where('uid', $icalUid)->where('unit_id', $unit->id)->first();
+                    if ($icalBooking) {
+                        $currentMeta = $icalBooking->metadata ?? [];
+                        if (! isset($currentMeta['beds24_book_id'])) {
+                            if (! $dryRun) {
+                                $icalBooking->update([
+                                    'metadata' => array_merge($currentMeta, ['beds24_book_id' => $row['bookId']]),
+                                ]);
+                            }
+                            $updated++;
+                        } else {
+                            $skipped++;
+                        }
+                    } else {
+                        $skipped++;
+                    }
+                } else {
+                    $skipped++;
+                }
+
+                continue;
+            }
+
             $guestName = trim(
                 ($row['guestFirstName'] ?? $row['firstName'] ?? '').' '.($row['guestName'] ?? $row['lastName'] ?? '')
             ) ?: 'Guest';
@@ -338,8 +367,8 @@ class Beds24SyncHandler implements SyncHandler
             'address' => $row['address'] ?? null,
             'country' => $row['country'] ?? null,
             'api_source' => $row['apiSource'] ?? null,
-            'api_ref' => $row['apiRef'] ?? null,
-            'referrer' => $row['referrer'] ?? null,
+            'api_ref' => $row['apiReference'] ?? null,
+            'referrer' => $row['referer'] ?? null,
             'num_adult' => isset($row['numAdult']) ? (int) $row['numAdult'] : null,
             'num_child' => isset($row['numChild']) ? (int) $row['numChild'] : null,
             'num_baby' => isset($row['numBaby']) ? (int) $row['numBaby'] : null,
