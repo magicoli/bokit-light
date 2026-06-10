@@ -93,6 +93,14 @@ class IcalConnector implements SourceConnector
                 continue;
             }
 
+            // Past or ongoing 'unavailable' blocks are artifacts of platform
+            // booking rules (e.g. Airbnb rolling availability windows), not
+            // intentional blocks. Only future ones are meaningful.
+            if (($processed['status'] ?? '') === 'unavailable'
+                && Carbon::parse($processed['check_in'])->lte(now()->startOfDay())) {
+                continue;
+            }
+
             $metadata = $processed['metadata'] ?? [];
 
             $bookings[] = new NormalizedBooking(

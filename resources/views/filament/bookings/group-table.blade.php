@@ -2,7 +2,6 @@
     /** @var \App\Models\Booking $record */
     $record = $getRecord();
     $members = $record->groupMembers();
-    $groupTotal = $record->metadata['group_total'] ?? null;
     $cell = 'padding: 0.375rem 1rem 0.375rem 0; white-space: nowrap;';
     $head = 'text-align: start; padding: 0.25rem 1rem 0.25rem 0; font-weight: 500; opacity: 0.6;';
 @endphp
@@ -48,10 +47,5 @@
             <td style="{{ $cell }}">{{ number_format($members->sum(fn ($m) => (float) $m->getRawOriginal('price')), 2, ',', ' ') }} €</td>
             <td style="{{ $cell }}"></td>
         </tr>
-        @if ($groupTotal !== null)
-            <tr style="font-size: 0.8em; opacity: 0.7;">
-                <td colspan="8" style="{{ $cell }}">{{ __('booking.group.beds24_total', ['total' => number_format((float) $groupTotal, 2, ',', ' ')]) }}</td>
-            </tr>
-        @endif
     </tbody>
 </table>

@@ -142,10 +142,32 @@ it('shows a single row per group reservation with aggregated totals', function (
     Livewire::test(ListBookings::class)
         ->assertCanSeeTableRecords([$master, $single])
         ->assertCanNotSeeTableRecords([$member])
-        // Aggregates: unit list, member count, summed adults
-        ->assertSee('Test Unit, Second Unit')
-        ->assertSee('×2')
+        // Aggregates: master unit + member count, summed adults
+        ->assertSee('Test Unit + 1')
         ->assertSee('15');
+});
+
+it('hides past and ongoing unavailable blocks from the list', function () {
+    $past = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Unavailable',
+        'status' => 'unavailable',
+        'check_in' => now()->subDays(10)->format('Y-m-d'),
+        'check_out' => now()->addDays(5)->format('Y-m-d'),
+    ]);
+    $future = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Unavailable',
+        'status' => 'unavailable',
+        'check_in' => now()->addDays(30)->format('Y-m-d'),
+        'check_out' => now()->addDays(40)->format('Y-m-d'),
+    ]);
+
+    Livewire::test(ListBookings::class)
+        ->assertCanSeeTableRecords([$future])
+        ->assertCanNotSeeTableRecords([$past]);
 });
 
 it('renders the group detail table on the view page', function () {

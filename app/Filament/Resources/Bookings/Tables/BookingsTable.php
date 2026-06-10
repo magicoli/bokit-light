@@ -37,13 +37,19 @@ class BookingsTable
 
         return $table
             ->defaultSort('check_in', 'asc')
-            // Group reservations show a single row: the member with the
-            // lowest id represents the group; aggregate columns are selected
-            // as subqueries so display and sorting use the group totals.
+            // Group reservations show a single row: the group master (or the
+            // oldest member as fallback) represents the group; aggregate
+            // columns are selected as subqueries so display and sorting use
+            // the group totals. Past or ongoing 'unavailable' blocks are
+            // platform artifacts and stay hidden.
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
                 ->where(function (Builder $q): void {
+                    $q->where('status', '!=', 'unavailable')
+                        ->orWhere('check_in', '>', now()->format('Y-m-d'));
+                })
+                ->where(function (Builder $q): void {
                     $q->whereNull('group_id')
-                        ->orWhereRaw('bookings.id = (select min(m.id) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null)');
+                        ->orWhereRaw("bookings.id = (select m.id from bookings m where m.group_id = bookings.group_id and m.deleted_at is null order by (m.uid = 'beds24-' || m.group_id) desc, m.id limit 1)");
                 })
                 ->select('bookings.*')
                 ->selectRaw('(select count(*) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_units')
@@ -52,27 +58,18 @@ class BookingsTable
                 ->selectRaw('(select sum(m.price) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_price')
                 ->selectRaw('(select sum(m.guests) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_guests')
                 ->selectRaw('(select sum(m.adults) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_adults')
-                ->selectRaw('(select sum(m.children) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_children')
-                ->selectRaw("(select group_concat(u.name, ', ') from bookings m join units u on u.id = m.unit_id where m.group_id = bookings.group_id and m.deleted_at is null) as group_unit_names"))
+                ->selectRaw('(select sum(m.children) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_children'))
             ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->columns([
                 ...DynamicTable::columns(Booking::class, self::LANG, [
                     'unit_name' => TextColumn::make('unit_name')
                         ->label(__(self::LANG.'.field.unit_name'))
-                        ->getStateUsing(fn (Booking $record): ?string => $record->group_id
-                            ? $record->group_unit_names
+                        ->getStateUsing(fn (Booking $record): ?string => $record->group_id && $record->group_units > 1
+                            ? $record->unit_name.' + '.($record->group_units - 1)
                             : $record->unit_name),
 
                     'check_in' => self::groupAwareDate('check_in', 'group_check_in', 'min'),
                     'check_out' => self::groupAwareDate('check_out', 'group_check_out', 'max'),
-
-                    'guest_name' => TextColumn::make('guest_name')
-                        ->label(__(self::LANG.'.field.guest_name'))
-                        ->searchable()
-                        ->sortable()
-                        ->suffix(fn (Booking $record): ?string => $record->group_id
-                            ? ' ×'.$record->group_units
-                            : null),
 
                     'guests' => self::groupAwareSum('guests', 'group_guests'),
                     'adults' => self::groupAwareSum('adults', 'group_adults'),

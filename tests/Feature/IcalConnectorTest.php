@@ -84,6 +84,40 @@ describe('IcalConnector', function () {
             ->and($booking->claimsOrigin)->toBeFalse();
     });
 
+    it('skips past or ongoing unavailable blocks but keeps future ones', function () {
+        $past = now()->subDays(10)->format('Ymd');
+        $pastEnd = now()->addDays(5)->format('Ymd');
+        $future = now()->addDays(30)->format('Ymd');
+        $futureEnd = now()->addDays(40)->format('Ymd');
+
+        $ics = implode("\r\n", [
+            'BEGIN:VCALENDAR',
+            'BEGIN:VEVENT',
+            'UID:uid-past-block@airbnb.com',
+            "DTSTART;VALUE=DATE:{$past}",
+            "DTEND;VALUE=DATE:{$pastEnd}",
+            'SUMMARY:Unavailable',
+            'END:VEVENT',
+            'BEGIN:VEVENT',
+            'UID:uid-future-block@airbnb.com',
+            "DTSTART;VALUE=DATE:{$future}",
+            "DTEND;VALUE=DATE:{$futureEnd}",
+            'SUMMARY:Unavailable',
+            'END:VEVENT',
+            'END:VCALENDAR',
+        ]);
+        Http::fake(['*' => Http::response($ics, 200)]);
+
+        $bookings = $this->connector->fetchBookings(
+            $this->unit,
+            ['type' => 'ical', 'label' => 'airbnb', 'url' => 'https://airbnb.com/cal.ics'],
+        );
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->externalId)->toBe('uid-future-block@airbnb.com')
+            ->and($bookings[0]->status)->toBe('unavailable');
+    });
+
     it('skips events without UID or dates', function () {
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',

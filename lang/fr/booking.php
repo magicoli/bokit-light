@@ -63,7 +63,6 @@ return [
 
     'section.group' => 'Réservation groupée',
     'group.total' => 'Total',
-    'group.beds24_total' => 'Total du groupe dans le système source : :total €',
 
     // Helper text
     'guests_auto_calculated' => 'Calculé automatiquement si vide',
