@@ -143,4 +143,67 @@ describe('Beds24Connector', function () {
 
         expect($connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]))->toBeEmpty();
     });
+
+    it('imports group sub-bookings as confirmed when the master is confirmed', function () {
+        $connector = makeBeds24Connector([
+            // Master in another room, confirmed, carries the group field.
+            ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1', 'guestName' => 'Groupe Kervella', 'price' => '0'],
+            // Sub-booking in our room: placeholder status 3, no guest, no money.
+            ['bookId' => '101', 'masterId' => '100', 'roomId' => '42', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1);
+
+        $sub = $bookings[0];
+        expect($sub->externalId)->toBe('101')
+            ->and($sub->status)->toBe('confirmed')
+            ->and($sub->guestName)->toBe('Groupe Kervella')
+            ->and($sub->groupId)->toBe('100');
+    });
+
+    it('keeps group sub-bookings pending when the master is not confirmed', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3', 'guestName' => 'Groupe Peeva', 'price' => '9600'],
+            ['bookId' => '101', 'masterId' => '100', 'roomId' => '42', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3', 'price' => '4800'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->status)->toBe('pending')
+            ->and($bookings[0]->guestName)->toBe('Groupe Peeva');
+    });
+
+    it('reports no price for a group master without invoice', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '42', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1', 'guestName' => 'Groupe CESL', 'price' => '2100'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBeNull()
+            ->and($bookings[0]->groupId)->toBe('100');
+    });
+
+    it('uses payment lines when the invoice nets to zero on a standalone booking', function () {
+        $connector = makeBeds24Connector([
+            [
+                'bookId' => '200', 'roomId' => '42', 'firstNight' => '2027-03-01', 'lastNight' => '2027-03-05',
+                'status' => '1', 'guestName' => 'Remise Totale', 'price' => '0',
+                'invoice' => [
+                    ['type' => '1', 'description' => 'Hébergement', 'price' => '500'],
+                    ['type' => '0', 'description' => 'Remise exceptionnelle', 'price' => '-500'],
+                    ['type' => '200', 'description' => 'Paiement CB', 'price' => '450'],
+                ],
+            ],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBe(450.0);
+    });
 });

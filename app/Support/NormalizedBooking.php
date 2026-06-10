@@ -28,6 +28,8 @@ class NormalizedBooking
      * @param  string|null  $legacyUid  Value historically stored in bookings.uid, used for transitional matching.
      * @param  bool  $claimsOrigin  True when the source can reliably assert this booking originated with it.
      *                              iCal feeds can never tell, so they always leave this false.
+     * @param  string|null  $groupId  Group linkage id in the source system (e.g. Beds24 masterId)
+     *                                shared by all bookings of one group reservation.
      */
     public function __construct(
         public string $externalId,
@@ -46,5 +48,6 @@ class NormalizedBooking
         public ?array $originHint = null,
         public ?string $legacyUid = null,
         public bool $claimsOrigin = false,
+        public ?string $groupId = null,
     ) {}
 }

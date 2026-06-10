@@ -248,6 +248,7 @@ class SyncEngine
             'adults' => $normalized->adults,
             'children' => $normalized->children,
             'source_name' => $normalized->channel,
+            'group_id' => $normalized->groupId,
             'is_manual' => false,
             'metadata' => $metadata,
         ]);
@@ -432,6 +433,10 @@ class SyncEngine
 
         if ($normalized->channel !== null && $booking->getRawOriginal('source_name') !== $normalized->channel) {
             $changes['source_name'] = $normalized->channel;
+        }
+
+        if ($normalized->groupId !== null && (string) $booking->getRawOriginal('group_id') !== $normalized->groupId) {
+            $changes['group_id'] = $normalized->groupId;
         }
 
         $newMeta = $this->incomingMetadata($normalized);

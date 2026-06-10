@@ -56,14 +56,17 @@ class Beds24Connector implements SourceConnector
 
         $property = $unit->property;
 
+        $allRows = $this->fetchRows($property);
+        $masters = $this->indexGroupMasters($allRows);
+
         $rows = array_values(
-            array_filter($this->fetchRows($property), fn ($row) => (int) ($row['roomId'] ?? 0) === $roomId)
+            array_filter($allRows, fn ($row) => (int) ($row['roomId'] ?? 0) === $roomId)
         );
 
         $bookings = [];
 
         foreach ($rows as $row) {
-            $normalized = $this->normalize($row, $unit);
+            $normalized = $this->normalize($row, $unit, $masters);
 
             if ($normalized) {
                 $bookings[] = $normalized;
@@ -71,6 +74,30 @@ class Beds24Connector implements SourceConnector
         }
 
         return $bookings;
+    }
+
+    /**
+     * Index group master bookings of the property: a master carries a
+     * non-empty 'group' field and a self-referential masterId. Group
+     * sub-bookings reference it through their own masterId.
+     *
+     * @param  array<int, array<string,mixed>>  $rows
+     * @return array<string, array<string,mixed>> bookId → master row
+     */
+    private function indexGroupMasters(array $rows): array
+    {
+        $masters = [];
+
+        foreach ($rows as $row) {
+            $bookId = (string) ($row['bookId'] ?? '');
+            $masterId = trim((string) ($row['masterId'] ?? ''));
+
+            if ($bookId !== '' && $masterId === $bookId && ! empty($row['group'])) {
+                $masters[$bookId] = $row;
+            }
+        }
+
+        return $masters;
     }
 
     /**
@@ -98,8 +125,9 @@ class Beds24Connector implements SourceConnector
 
     /**
      * @param  array<string,mixed>  $row
+     * @param  array<string, array<string,mixed>>  $masters  bookId → group master row
      */
-    private function normalize(array $row, Unit $unit): ?NormalizedBooking
+    private function normalize(array $row, Unit $unit, array $masters = []): ?NormalizedBooking
     {
         $checkIn = $row['firstNight'] ?? null;
         $checkOut = isset($row['lastNight'])
@@ -112,30 +140,52 @@ class Beds24Connector implements SourceConnector
             return null;
         }
 
-        // Beds24 availability blocks (status 4=block, 5=owner block) are not bookings.
+        // Beds24 status 4=Black (availability block) and 5=Inquiry are not bookings.
         $rawStatus = (string) ($row['status'] ?? '2');
         if (in_array($rawStatus, ['4', '5'], true)) {
-            Log::debug("[Beds24] Skip: availability block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, status={$rawStatus})");
+            Log::debug("[Beds24] Skip: block/inquiry [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, status={$rawStatus})");
 
             return null;
         }
 
+        $masterId = trim((string) ($row['masterId'] ?? ''));
+        $master = $masterId !== '' ? ($masters[$masterId] ?? null) : null;
+        $isGroupMaster = $master !== null && $masterId === (string) ($row['bookId'] ?? '');
+        $isGroupSub = $master !== null && ! $isGroupMaster;
+        $masterConfirmed = $master !== null && in_array((string) ($master['status'] ?? ''), ['1', '2'], true);
+
         $guestName = trim(
             ($row['guestFirstName'] ?? $row['firstName'] ?? '').' '.($row['guestName'] ?? $row['lastName'] ?? '')
         ) ?: 'Guest';
+
+        // Group sub-bookings often carry no guest of their own — use the master's.
+        if ($guestName === 'Guest' && $isGroupSub) {
+            $guestName = trim(
+                ($master['guestFirstName'] ?? '').' '.($master['guestName'] ?? '')
+            ) ?: 'Guest';
+        }
 
         $commission = (float) ($row['commission'] ?? 0);
 
         $invoice = ! empty($row['invoice']) && is_array($row['invoice'])
             ? $this->parseInvoice($row['invoice'])
             : [];
-        $price = $this->resolvePrice($row, $invoice);
+        $price = $this->resolvePrice($row, $invoice, $isGroupMaster);
 
-        // Empty placeholder rows (no guest, no money) are channel artifacts.
-        if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0) {
+        // Empty placeholder rows (no guest, no money) are channel artifacts —
+        // unless they belong to a group: group rows are real occupancies even
+        // when the amounts and guest live on another booking of the group.
+        if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0 && $masterId === '') {
             Log::debug("[Beds24] Skip: empty block [{$unit->name}] {$checkIn} (bookId={$row['bookId']})");
 
             return null;
+        }
+
+        // Beds24 assigns the placeholder status 3 (Request) to sub-bookings of
+        // group reservations; they are real bookings when the master is confirmed.
+        $status = $this->mapStatus($rawStatus);
+        if ($rawStatus === '3' && $isGroupSub && $masterConfirmed) {
+            $status = 'confirmed';
         }
 
         $originHint = null;
@@ -156,7 +206,7 @@ class Beds24Connector implements SourceConnector
             checkIn: $checkIn,
             checkOut: $checkOut,
             guestName: $guestName,
-            status: $this->mapStatus($rawStatus),
+            status: $status,
             email: $email,
             price: $price ?: null,
             commission: $commission ?: null,
@@ -167,26 +217,39 @@ class Beds24Connector implements SourceConnector
             originHint: $originHint,
             legacyUid: "beds24-{$row['bookId']}",
             claimsOrigin: $originHint === null,
+            groupId: $masterId ?: null,
         );
     }
 
     /**
+     * Resolve the accommodation amount, mirroring taxesejour-bridge:
+     * - invoice with positive accommodation total → use it;
+     * - no invoice: group masters report 0 (amounts live on sub-bookings,
+     *   using the price field would double-count), others use the price field;
+     * - invoice present but acc ≤ 0 (large discount, manual entry): standalone
+     *   bookings use the payment lines (what was actually received), with the
+     *   price field as last resort.
+     *
      * @param  array<string,mixed>  $row
      * @param  array{acc_ttc: float, taxe_invoiced: float, payment_total: float}|array{}  $invoice
      */
-    private function resolvePrice(array $row, array $invoice): float
+    private function resolvePrice(array $row, array $invoice, bool $isGroupMaster): float
     {
-        if (! empty($invoice)) {
-            if (($invoice['acc_ttc'] ?? 0) > 0) {
-                return $invoice['acc_ttc'];
-            }
-
-            if (($invoice['payment_total'] ?? 0) > 0) {
-                return $invoice['payment_total'];
-            }
+        if (($invoice['acc_ttc'] ?? 0) > 0) {
+            return $invoice['acc_ttc'];
         }
 
-        return (float) ($row['price'] ?? 0);
+        $priceField = (float) ($row['price'] ?? 0);
+
+        if (empty($invoice)) {
+            return $isGroupMaster ? 0.0 : $priceField;
+        }
+
+        if (! $isGroupMaster && ($invoice['payment_total'] ?? 0) > 0) {
+            return $invoice['payment_total'];
+        }
+
+        return $priceField;
     }
 
     /**
@@ -207,6 +270,7 @@ class Beds24Connector implements SourceConnector
             'api_source' => $row['apiSource'] ?? null,
             'api_ref' => $row['apiReference'] ?? null,
             'referrer' => $row['referer'] ?? null,
+            'master_id' => trim((string) ($row['masterId'] ?? '')) ?: null,
             'num_adult' => isset($row['numAdult']) ? (int) $row['numAdult'] : null,
             'num_child' => isset($row['numChild']) ? (int) $row['numChild'] : null,
             'num_baby' => isset($row['numBaby']) ? (int) $row['numBaby'] : null,

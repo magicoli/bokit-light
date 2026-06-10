@@ -91,6 +91,24 @@ describe('SyncEngine', function () {
             ->and($booking->sources->first()->external_id)->toBe('111');
     });
 
+    it('persists and updates the group linkage', function () {
+        $connector = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(
+                externalId: '101',
+                checkIn: '2027-02-01',
+                checkOut: '2027-02-05',
+                guestName: 'Groupe Kervella',
+                status: 'confirmed',
+                claimsOrigin: true,
+                groupId: '100',
+            ),
+        ]);
+
+        $this->engine->sync($this->unit, [], $connector);
+
+        expect((string) Booking::first()->group_id)->toBe('100');
+    });
+
     it('is idempotent on consecutive runs', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
