@@ -118,6 +118,35 @@ describe('IcalConnector', function () {
             ->and($bookings[0]->status)->toBe('unavailable');
     });
 
+    it('declares a Beds24 origin hint when the UID embeds a beds24 booking id', function () {
+        $ics = implode("\r\n", [
+            'BEGIN:VCALENDAR',
+            'BEGIN:VEVENT',
+            'UID:20261103140000-b84186183@beds24.com',
+            'DTSTART;VALUE=DATE:20271103',
+            'DTEND;VALUE=DATE:20271205',
+            'SUMMARY:Booking 84186183',
+            'END:VEVENT',
+            'BEGIN:VEVENT',
+            'UID:regular-uid@airbnb.com',
+            'DTSTART;VALUE=DATE:20271201',
+            'DTEND;VALUE=DATE:20271210',
+            'SUMMARY:Normal Guest',
+            'END:VEVENT',
+            'END:VCALENDAR',
+        ]);
+        Http::fake(['*' => Http::response($ics, 200)]);
+
+        $bookings = $this->connector->fetchBookings(
+            $this->unit,
+            ['type' => 'ical', 'label' => 'api.beds24.com', 'url' => 'https://api.beds24.com/feed.ics'],
+        );
+
+        expect($bookings)->toHaveCount(2)
+            ->and($bookings[0]->originHint)->toBe(['type' => 'beds24', 'external_id' => '84186183'])
+            ->and($bookings[1]->originHint)->toBeNull();
+    });
+
     it('skips events without UID or dates', function () {
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',

@@ -117,12 +117,28 @@ class IcalConnector implements SourceConnector
                 children: isset($processed['children']) ? (int) $processed['children'] : null,
                 channel: $label,
                 metadata: $metadata,
-                originHint: null,
+                originHint: $this->detectOriginHint($event['UID']),
                 legacyUid: $event['UID'],
             );
         }
 
         return $bookings;
+    }
+
+    /**
+     * Some feeds embed the booking's id in the source system inside the UID.
+     * Beds24 exports use "…-b{bookId}@beds24.com" — declare it as the origin
+     * so the engine matches by id instead of creating a duplicate.
+     *
+     * @return array{type: string, external_id: string}|null
+     */
+    private function detectOriginHint(string $uid): ?array
+    {
+        if (preg_match('/-b(\d+)@beds24\.com$/i', $uid, $matches)) {
+            return ['type' => 'beds24', 'external_id' => $matches[1]];
+        }
+
+        return null;
     }
 
     private function configLabel(array $sourceConfig): string
