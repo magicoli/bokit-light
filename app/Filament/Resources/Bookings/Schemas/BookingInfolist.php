@@ -66,12 +66,12 @@ class BookingInfolist
 
                         TextEntry::make('price')
                             ->label(__('booking.field.price'))
-                            ->money('EUR')
+                            ->money('EUR', locale: fn (): string => app()->getLocale())
                             ->placeholder('-'),
 
                         TextEntry::make('commission')
                             ->label(__('booking.field.commission'))
-                            ->money('EUR')
+                            ->money('EUR', locale: fn (): string => app()->getLocale())
                             ->placeholder('-'),
                     ]),
 

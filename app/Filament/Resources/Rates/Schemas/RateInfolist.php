@@ -20,7 +20,7 @@ class RateInfolist
                         TextEntry::make('property.name')->label(__('rates.field.property_id')),
                         TextEntry::make('unit.name')->label(__('rates.field.unit_id')),
                         TextEntry::make('unit_type')->label(__('rates.field.unit_type')),
-                        TextEntry::make('base')->label(__('rates.field.base'))->money('EUR'),
+                        TextEntry::make('base')->label(__('rates.field.base'))->money('EUR', locale: fn (): string => app()->getLocale()),
                         TextEntry::make('calculation_formula')->label(__('rates.field.calculation_formula')),
                         TextEntry::make('priority')->label(__('rates.field.priority')),
                         IconEntry::make('is_active')->label(__('rates.field.is_active'))->boolean(),

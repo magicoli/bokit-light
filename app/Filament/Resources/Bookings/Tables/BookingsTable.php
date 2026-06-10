@@ -85,7 +85,8 @@ class BookingsTable
 
                     'price' => TextColumn::make('price')
                         ->label(__(self::LANG.'.field.price'))
-                        ->money('EUR')
+                        ->money('EUR', locale: fn (): string => app()->getLocale())
+                        ->alignEnd()
                         ->getStateUsing(fn (Booking $record) => $record->group_id
                             ? $record->group_price
                             : $record->price)

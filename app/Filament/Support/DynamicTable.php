@@ -91,7 +91,8 @@ class DynamicTable
             if (is_string($cast) && str_starts_with($cast, 'decimal')) {
                 $columns[] = TextColumn::make($col)
                     ->label($label)
-                    ->money('EUR')
+                    ->money('EUR', locale: fn (): string => app()->getLocale())
+                    ->alignEnd()
                     ->sortable($isSortable);
 
                 continue;

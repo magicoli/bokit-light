@@ -11,6 +11,7 @@ use App\Models\Unit;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Number;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -203,7 +204,7 @@ it('renders the group detail table on the view page', function () {
         ->assertSuccessful()
         ->assertSee(__('booking.section.group'))
         ->assertSee('Second Unit')
-        ->assertSee('3 000,00');
+        ->assertSee(Number::currency(3000, 'EUR', app()->getLocale()));
 });
 
 it('renders the view page with the sources table', function () {
