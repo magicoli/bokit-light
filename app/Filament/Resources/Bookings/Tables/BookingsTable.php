@@ -36,7 +36,7 @@ class BookingsTable
         }
 
         return $table
-            ->defaultSort('check_in', 'asc')
+            ->defaultSort('check_in', 'desc')
             // Group reservations show a single row: the group master (or the
             // oldest member as fallback) represents the group; aggregate
             // columns are selected as subqueries so display and sorting use
@@ -70,6 +70,14 @@ class BookingsTable
 
                     'check_in' => self::groupAwareDate('check_in', 'group_check_in', 'min'),
                     'check_out' => self::groupAwareDate('check_out', 'group_check_out', 'max'),
+
+                    // Wrap long guest names so the column flexes instead of
+                    // pushing the other columns off-screen.
+                    'guest_name' => TextColumn::make('guest_name')
+                        ->label(__(self::LANG.'.field.guest_name'))
+                        ->searchable()
+                        ->sortable()
+                        ->wrap(),
 
                     'guests' => self::groupAwareSum('guests', 'group_guests'),
                     'adults' => self::groupAwareSum('adults', 'group_adults'),
