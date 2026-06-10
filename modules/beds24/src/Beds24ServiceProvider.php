@@ -7,7 +7,7 @@ use App\Services\SyncRegistry;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Illuminate\Support\ServiceProvider;
-use Modules\Beds24\Services\Beds24SyncHandler;
+use Modules\Beds24\Services\Beds24Connector;
 
 class Beds24ServiceProvider extends ServiceProvider
 {
@@ -21,19 +21,19 @@ class Beds24ServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'beds24');
 
         $this->extendPropertyForm();
-        $this->registerSyncHandler();
+        $this->registerSourceConnector();
 
     }
 
     /**
-     * Register the Beds24SyncHandler into the core SyncRegistry so that
+     * Register the Beds24Connector into the core SyncRegistry so that
      * bokit:sync picks it up without knowing about this module.
      */
-    private function registerSyncHandler(): void
+    private function registerSourceConnector(): void
     {
         /** @var SyncRegistry $registry */
         $registry = $this->app->make(SyncRegistry::class);
-        $registry->register(new Beds24SyncHandler);
+        $registry->register(new Beds24Connector);
     }
 
     /**

@@ -399,7 +399,7 @@ class BookingSyncIcal
     /**
      * Parse iCal content and extract events
      */
-    protected function parseIcal(string $content): array
+    public function parseIcal(string $content): array
     {
         $events = [];
         $lines = explode("\n", $content);

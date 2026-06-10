@@ -1,0 +1,530 @@
+<?php
+
+namespace App\Services;
+
+use App\Contracts\SourceConnector;
+use App\Models\Booking;
+use App\Models\BookingSource;
+use App\Models\Unit;
+use App\Support\NormalizedBooking;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Central synchronization engine.
+ *
+ * Connectors fetch and normalize bookings; this engine owns all database
+ * logic: matching, ownership, persistence and vanished detection.
+ *
+ * Matching priority for each incoming booking:
+ *   1. (source_key, external_id) pair in booking_sources — authoritative:
+ *      once stored, the id wins even if dates, guest or unit changed.
+ *   2. Origin hint: a reference (or legacy uid) matching the origin the
+ *      source declared (e.g. Beds24 'referer' = iCal Import).
+ *   3. Same-type reference: another feed of the same type already saw this
+ *      external id (iCal UIDs are globally unique across feeds).
+ *   4. Legacy uid stored in bookings.uid (transitional).
+ *   5. Heuristics: unit + exact dates + email, then unit + exact dates + guest name.
+ *      A heuristic match always stores the (source_key, external_id) pair so
+ *      the next run matches by id.
+ *
+ * Ownership: the origin source (is_origin reference) is the only one allowed
+ * to update dates, prices and critical data. Other sources only fill in
+ * missing information. When no origin is connected yet, the booking's oldest
+ * real reference acts as origin. Manual bookings are never owned by a source.
+ */
+class SyncEngine
+{
+    private const CANCELLED_STATUSES = [
+        'cancelled',
+        'cancelled_by_owner',
+        'cancelled_by_guest',
+        'deleted',
+    ];
+
+    private const PLACEHOLDER_GUEST_NAMES = ['Guest', 'Unknown Guest', ''];
+
+    /**
+     * Sync one source entry of one unit.
+     *
+     * @return array{label: string, success: bool, total: int, new: int, updated: int, deleted: int, vanished: int, error: ?string}
+     */
+    public function sync(Unit $unit, array $sourceConfig, SourceConnector $connector, bool $dryRun = false): array
+    {
+        $label = $connector->displayLabel($sourceConfig);
+
+        try {
+            $incoming = $connector->fetchBookings($unit, $sourceConfig);
+        } catch (\Throwable $e) {
+            return [
+                'label' => $label,
+                'success' => false,
+                'total' => 0,
+                'new' => 0,
+                'updated' => 0,
+                'deleted' => 0,
+                'vanished' => 0,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        $sourceType = $connector->sourceType();
+        $sourceKey = $connector->sourceKey($unit, $sourceConfig);
+
+        $stats = [
+            'label' => $label,
+            'success' => true,
+            'total' => 0,
+            'new' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+            'vanished' => 0,
+            'error' => null,
+        ];
+
+        $seenIds = [];
+
+        foreach ($incoming as $normalized) {
+            $seenIds[] = $normalized->externalId;
+            $stats['total']++;
+
+            if (in_array($normalized->status, self::CANCELLED_STATUSES, true)) {
+                $stats['deleted']++;
+            }
+
+            $booking = $this->match($unit, $sourceType, $sourceKey, $normalized);
+
+            if ($dryRun) {
+                if (! $booking) {
+                    $stats['new']++;
+                }
+
+                continue;
+            }
+
+            if (! $booking) {
+                $this->createBooking($unit, $sourceType, $sourceKey, $normalized);
+                $stats['new']++;
+
+                continue;
+            }
+
+            $reference = $this->ensureReference($booking, $sourceType, $sourceKey, $normalized);
+
+            if ($this->applyUpdate($booking, $reference, $normalized)) {
+                $stats['updated']++;
+            }
+        }
+
+        if (! $dryRun) {
+            $this->handleVanished($unit, $sourceKey, $seenIds, $stats);
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Find the booking this normalized booking refers to, or null when new.
+     */
+    private function match(Unit $unit, string $sourceType, string $sourceKey, NormalizedBooking $normalized): ?Booking
+    {
+        // 1. Authoritative pair — wins even if dates/guest/unit changed at source.
+        $reference = BookingSource::query()
+            ->where('source_key', $sourceKey)
+            ->where('external_id', $normalized->externalId)
+            ->first();
+
+        if ($reference) {
+            $booking = $reference->booking;
+
+            if ($booking) {
+                return $booking;
+            }
+
+            // Orphaned reference (booking deleted) — clean up and keep matching.
+            $reference->delete();
+        }
+
+        // 2. Origin hint declared by the source.
+        if ($normalized->originHint) {
+            $booking = $this->findByReference(
+                $unit,
+                $normalized->originHint['type'],
+                $normalized->originHint['external_id'],
+            );
+
+            if ($booking) {
+                return $booking;
+            }
+
+            $booking = Booking::query()
+                ->where('unit_id', $unit->id)
+                ->where('uid', $normalized->originHint['external_id'])
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        // 3. Same external id seen by another source of the same type.
+        $booking = $this->findByReference($unit, $sourceType, $normalized->externalId);
+
+        if ($booking) {
+            return $booking;
+        }
+
+        // 4. Legacy uid (transitional, pre-booking_sources data).
+        if ($normalized->legacyUid) {
+            $booking = Booking::query()
+                ->where('unit_id', $unit->id)
+                ->where('uid', $normalized->legacyUid)
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        // 5. Heuristics: exact dates + email, then exact dates + guest name.
+        if ($normalized->email) {
+            $booking = Booking::query()
+                ->where('unit_id', $unit->id)
+                ->whereDate('check_in', $normalized->checkIn)
+                ->whereDate('check_out', $normalized->checkOut)
+                ->whereRaw("JSON_EXTRACT(metadata, '$.email') = ?", [$normalized->email])
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        if (! in_array($normalized->guestName, self::PLACEHOLDER_GUEST_NAMES, true)) {
+            $booking = Booking::query()
+                ->where('unit_id', $unit->id)
+                ->whereDate('check_in', $normalized->checkIn)
+                ->whereDate('check_out', $normalized->checkOut)
+                ->where('guest_name', $normalized->guestName)
+                ->first();
+
+            if ($booking) {
+                return $booking;
+            }
+        }
+
+        return null;
+    }
+
+    private function findByReference(Unit $unit, string $sourceType, string $externalId): ?Booking
+    {
+        return Booking::query()
+            ->where('unit_id', $unit->id)
+            ->whereHas('sources', function ($query) use ($sourceType, $externalId) {
+                $query->where('source_type', $sourceType)->where('external_id', $externalId);
+            })
+            ->first();
+    }
+
+    private function createBooking(Unit $unit, string $sourceType, string $sourceKey, NormalizedBooking $normalized): void
+    {
+        $metadata = $normalized->metadata;
+
+        if ($normalized->email) {
+            $metadata['email'] = $normalized->email;
+        }
+
+        $booking = Booking::create([
+            'unit_id' => $unit->id,
+            'property_id' => $unit->property_id,
+            'uid' => $normalized->legacyUid ?? "{$sourceKey}-{$normalized->externalId}",
+            'check_in' => $normalized->checkIn,
+            'check_out' => $normalized->checkOut,
+            'guest_name' => $normalized->guestName,
+            'status' => $normalized->status,
+            'price' => $normalized->price ?: null,
+            'commission' => $normalized->commission ?: null,
+            'guests' => $normalized->guests,
+            'adults' => $normalized->adults,
+            'children' => $normalized->children,
+            'source_name' => $normalized->channel,
+            'is_manual' => false,
+            'metadata' => $metadata,
+        ]);
+
+        $booking->sources()->create([
+            'source_type' => $sourceType,
+            'source_key' => $sourceKey,
+            'external_id' => $normalized->externalId,
+            'is_origin' => $normalized->originHint === null,
+            'last_seen_at' => now(),
+        ]);
+
+        if ($normalized->originHint) {
+            // The true origin isn't connected yet — record it as a placeholder
+            // so the real source can claim it later.
+            $booking->sources()->create([
+                'source_type' => $normalized->originHint['type'],
+                'source_key' => $normalized->originHint['type'],
+                'external_id' => $normalized->originHint['external_id'],
+                'is_origin' => true,
+                'is_placeholder' => true,
+                'last_seen_at' => null,
+            ]);
+        }
+    }
+
+    /**
+     * Make sure the booking carries a reference for this source, creating or
+     * claiming a placeholder as needed. Always refreshes last_seen_at.
+     */
+    private function ensureReference(Booking $booking, string $sourceType, string $sourceKey, NormalizedBooking $normalized): BookingSource
+    {
+        $reference = $booking->sources()
+            ->where('source_key', $sourceKey)
+            ->where('external_id', $normalized->externalId)
+            ->first();
+
+        if (! $reference) {
+            // Claim a placeholder created from an origin hint for this exact id.
+            $reference = $booking->sources()
+                ->where('source_type', $sourceType)
+                ->where('is_placeholder', true)
+                ->where('external_id', $normalized->externalId)
+                ->first();
+
+            if ($reference) {
+                $reference->update(['source_key' => $sourceKey, 'is_placeholder' => false]);
+            }
+        }
+
+        if (! $reference) {
+            $hasOrigin = $booking->sources()->where('is_origin', true)->exists();
+
+            $reference = $booking->sources()->create([
+                'source_type' => $sourceType,
+                'source_key' => $sourceKey,
+                'external_id' => $normalized->externalId,
+                'is_origin' => ! $hasOrigin
+                    && ! $booking->is_manual
+                    && $normalized->originHint === null,
+            ]);
+        }
+
+        $reference->update(['last_seen_at' => now()]);
+
+        return $reference;
+    }
+
+    /**
+     * True when this reference is allowed to perform a full update:
+     * it is the claimed origin, or no real origin is connected and this is
+     * the booking's oldest non-placeholder reference.
+     */
+    private function isActingOrigin(Booking $booking, BookingSource $reference): bool
+    {
+        if ($booking->is_manual) {
+            return false;
+        }
+
+        if ($reference->is_origin) {
+            return true;
+        }
+
+        $origin = $booking->sources()->where('is_origin', true)->first();
+
+        if ($origin && ! $origin->isPlaceholder()) {
+            return false;
+        }
+
+        $oldestReal = $booking->sources()
+            ->where('is_placeholder', false)
+            ->orderBy('id')
+            ->first();
+
+        return $oldestReal !== null && $oldestReal->id === $reference->id;
+    }
+
+    /**
+     * Apply changes from the source, respecting ownership.
+     *
+     * @return bool whether anything was updated
+     */
+    private function applyUpdate(Booking $booking, BookingSource $reference, NormalizedBooking $normalized): bool
+    {
+        $changes = $this->isActingOrigin($booking, $reference)
+            ? $this->fullChanges($booking, $normalized)
+            : $this->gapFillChanges($booking, $normalized);
+
+        if (empty($changes)) {
+            return false;
+        }
+
+        $booking->update($changes);
+
+        return true;
+    }
+
+    /**
+     * Full diff for the acting origin. Only fields the source actually
+     * provides are compared; absent data never erases existing values.
+     *
+     * @return array<string,mixed>
+     */
+    private function fullChanges(Booking $booking, NormalizedBooking $normalized): array
+    {
+        $changes = [];
+
+        if ($booking->check_in->format('Y-m-d') !== $normalized->checkIn) {
+            $changes['check_in'] = $normalized->checkIn;
+        }
+
+        if ($booking->check_out->format('Y-m-d') !== $normalized->checkOut) {
+            $changes['check_out'] = $normalized->checkOut;
+        }
+
+        if (! in_array($normalized->guestName, self::PLACEHOLDER_GUEST_NAMES, true)
+            && $booking->guest_name !== $normalized->guestName) {
+            $changes['guest_name'] = $normalized->guestName;
+        }
+
+        // Never downgrade confirmed → pending, never overwrite with undefined.
+        if ($normalized->status !== 'undefined'
+            && $booking->status !== $normalized->status
+            && ! ($booking->status === 'confirmed' && $normalized->status === 'pending')) {
+            $changes['status'] = $normalized->status;
+        }
+
+        if ($normalized->price > 0 && (float) $booking->getRawOriginal('price') !== $normalized->price) {
+            $changes['price'] = $normalized->price;
+        }
+
+        if ($normalized->commission > 0 && (float) $booking->getRawOriginal('commission') !== $normalized->commission) {
+            $changes['commission'] = $normalized->commission;
+        }
+
+        if ($normalized->guests !== null && $booking->getRawOriginal('guests') !== $normalized->guests) {
+            $changes['guests'] = $normalized->guests;
+        }
+
+        if ($normalized->adults !== null && $booking->getRawOriginal('adults') !== $normalized->adults) {
+            $changes['adults'] = $normalized->adults;
+        }
+
+        if ($normalized->children !== null && $booking->getRawOriginal('children') !== $normalized->children) {
+            $changes['children'] = $normalized->children;
+        }
+
+        if ($normalized->channel !== null && $booking->getRawOriginal('source_name') !== $normalized->channel) {
+            $changes['source_name'] = $normalized->channel;
+        }
+
+        $newMeta = $this->incomingMetadata($normalized);
+        $currentMeta = $booking->metadata ?? [];
+
+        if (array_diff_assoc($newMeta, array_intersect_key($currentMeta, $newMeta))) {
+            $changes['metadata'] = array_merge($currentMeta, $newMeta);
+        }
+
+        return $changes;
+    }
+
+    /**
+     * Non-origin sources only complete missing information — they never
+     * overwrite dates, prices or any value the booking already has.
+     *
+     * @return array<string,mixed>
+     */
+    private function gapFillChanges(Booking $booking, NormalizedBooking $normalized): array
+    {
+        $changes = [];
+
+        if (in_array($booking->guest_name, self::PLACEHOLDER_GUEST_NAMES, true)
+            && ! in_array($normalized->guestName, self::PLACEHOLDER_GUEST_NAMES, true)) {
+            $changes['guest_name'] = $normalized->guestName;
+        }
+
+        if ($booking->status === 'undefined' && $normalized->status !== 'undefined') {
+            $changes['status'] = $normalized->status;
+        }
+
+        if ($booking->getRawOriginal('price') === null && $normalized->price > 0) {
+            $changes['price'] = $normalized->price;
+        }
+
+        if ($booking->getRawOriginal('commission') === null && $normalized->commission > 0) {
+            $changes['commission'] = $normalized->commission;
+        }
+
+        if ($booking->getRawOriginal('guests') === null && $normalized->guests !== null) {
+            $changes['guests'] = $normalized->guests;
+        }
+
+        if ($booking->getRawOriginal('adults') === null && $normalized->adults !== null) {
+            $changes['adults'] = $normalized->adults;
+        }
+
+        if ($booking->getRawOriginal('children') === null && $normalized->children !== null) {
+            $changes['children'] = $normalized->children;
+        }
+
+        $currentMeta = $booking->metadata ?? [];
+        $missingMeta = array_diff_key($this->incomingMetadata($normalized), $currentMeta);
+
+        if (! empty($missingMeta)) {
+            $changes['metadata'] = array_merge($currentMeta, $missingMeta);
+        }
+
+        return $changes;
+    }
+
+    /** @return array<string,mixed> */
+    private function incomingMetadata(NormalizedBooking $normalized): array
+    {
+        $metadata = $normalized->metadata;
+
+        if ($normalized->email) {
+            $metadata['email'] = $normalized->email;
+        }
+
+        return array_filter($metadata, fn ($value) => $value !== null && $value !== '');
+    }
+
+    /**
+     * Handle bookings this source used to report but no longer does.
+     * Origin: mark vanished (or delete auto-generated unavailable blocks).
+     * Non-origin: just detach the reference, the booking lives on.
+     */
+    private function handleVanished(Unit $unit, string $sourceKey, array $seenIds, array &$stats): void
+    {
+        $references = BookingSource::query()
+            ->where('source_key', $sourceKey)
+            ->whereNotIn('external_id', $seenIds)
+            ->whereHas('booking', function ($query) use ($unit) {
+                $query->where('unit_id', $unit->id)
+                    ->where('check_out', '>=', now()->format('Y-m-d'))
+                    ->whereNotIn('status', [...self::CANCELLED_STATUSES, 'vanished']);
+            })
+            ->with('booking')
+            ->get();
+
+        foreach ($references as $reference) {
+            $booking = $reference->booking;
+
+            if (! $this->isActingOrigin($booking, $reference)) {
+                $reference->delete();
+
+                continue;
+            }
+
+            if ($booking->status === 'unavailable') {
+                $booking->delete();
+                $stats['deleted']++;
+            } else {
+                $booking->update(['status' => 'vanished']);
+                $stats['vanished']++;
+            }
+
+            Log::info("[SyncEngine] Vanished from {$sourceKey}: booking #{$booking->id} ({$booking->guest_name})");
+        }
+    }
+}

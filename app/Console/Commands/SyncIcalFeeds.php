@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Property;
+use App\Services\SyncEngine;
 use App\Services\SyncRegistry;
 use Illuminate\Console\Command;
 
@@ -13,7 +14,7 @@ class SyncIcalFeeds extends Command
 
     protected $description = 'Sync all unit sources (Beds24, iCal, HBook, Multipass, …), grouped by property and unit';
 
-    public function handle(SyncRegistry $registry): int
+    public function handle(SyncRegistry $registry, SyncEngine $engine): int
     {
         if (empty($registry->all())) {
             $this->warn('No sync handlers registered.');
@@ -52,8 +53,8 @@ class SyncIcalFeeds extends Command
                 $this->line("  Unit: <fg=cyan>{$unit->name}</>");
 
                 foreach ($sources as $sourceConfig) {
-                    $handler = $registry->getForType($sourceConfig['type']);
-                    $result = $handler->syncSource($unit, $sourceConfig, $dryRun);
+                    $connector = $registry->getForType($sourceConfig['type']);
+                    $result = $engine->sync($unit, $sourceConfig, $connector, $dryRun);
 
                     if ($result['success']) {
                         $this->line('    ✓ '.$this->formatStats($result));

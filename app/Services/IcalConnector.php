@@ -1,0 +1,119 @@
+<?php
+
+namespace App\Services;
+
+use App\Contracts\SourceConnector;
+use App\Models\IcalSource;
+use App\Models\Unit;
+use App\Support\NormalizedBooking;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+
+/**
+ * Fetches iCal feeds (unit.options.sources type = 'ical') and normalizes
+ * events for SyncEngine.
+ *
+ * Pure connector: no database access. Parsing is delegated to
+ * BookingSyncIcal::parseIcal() / parse(), which remain the single source of
+ * truth for iCal format handling.
+ */
+class IcalConnector implements SourceConnector
+{
+    public function __construct(private readonly BookingSyncIcal $parser) {}
+
+    public function sourceType(): string
+    {
+        return 'ical';
+    }
+
+    public function label(): string
+    {
+        return 'iCal';
+    }
+
+    public function displayLabel(array $sourceConfig): string
+    {
+        return 'iCal '.$this->configLabel($sourceConfig);
+    }
+
+    public function sourceKey(Unit $unit, array $sourceConfig): string
+    {
+        return 'ical:'.$this->configLabel($sourceConfig);
+    }
+
+    public function fetchBookings(Unit $unit, array $sourceConfig): array
+    {
+        $url = $sourceConfig['url'] ?? '';
+
+        if (! $url) {
+            throw new \RuntimeException('No URL configured');
+        }
+
+        $response = Http::timeout(30)
+            ->withHeaders([
+                'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept' => 'text/calendar,text/plain,*/*',
+            ])
+            ->get(url()->query($url, ['seed' => rand(1000, 9999)]));
+
+        if (! $response->successful()) {
+            throw new \RuntimeException("Failed to fetch feed ({$response->status()})");
+        }
+
+        $events = $this->parser->parseIcal($response->body());
+
+        $label = $this->configLabel($sourceConfig);
+
+        // In-memory source so BookingSyncIcal::parse() needs no changes.
+        $icalSource = new IcalSource([
+            'unit_id' => $unit->id,
+            'name' => $label,
+            'url' => $url,
+        ]);
+        $icalSource->setRelation('unit', $unit);
+
+        $bookings = [];
+
+        foreach ($events as $event) {
+            if (! isset($event['UID'], $event['DTSTART'], $event['DTEND'])) {
+                continue;
+            }
+
+            try {
+                $processed = BookingSyncIcal::parse($event, $icalSource);
+            } catch (\InvalidArgumentException $e) {
+                continue;
+            }
+
+            $metadata = $processed['metadata'] ?? [];
+
+            $bookings[] = new NormalizedBooking(
+                externalId: $event['UID'],
+                checkIn: Carbon::parse($processed['check_in'])->format('Y-m-d'),
+                checkOut: Carbon::parse($processed['check_out'])->format('Y-m-d'),
+                guestName: $processed['guest_name'] ?? 'Guest',
+                status: $processed['status'] ?? 'undefined',
+                email: $metadata['email'] ?? null,
+                price: isset($processed['price']) ? (float) $processed['price'] : null,
+                commission: isset($processed['commission']) ? (float) $processed['commission'] : null,
+                guests: isset($processed['guests']) ? (int) $processed['guests'] : null,
+                adults: isset($processed['adults']) ? (int) $processed['adults'] : null,
+                children: isset($processed['children']) ? (int) $processed['children'] : null,
+                channel: $label,
+                metadata: $metadata,
+                originHint: null,
+                legacyUid: $event['UID'],
+            );
+        }
+
+        return $bookings;
+    }
+
+    private function configLabel(array $sourceConfig): string
+    {
+        $url = $sourceConfig['url'] ?? '';
+
+        return $sourceConfig['label']
+            ?? ($url ? (parse_url($url, PHP_URL_HOST) ?: $url) : 'unnamed');
+    }
+}

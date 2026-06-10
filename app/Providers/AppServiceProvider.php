@@ -6,7 +6,7 @@ use App\Models\Booking;
 use App\Observers\BookingObserver;
 use App\Services\AdminMenuService;
 use App\Services\BookingSyncIcal;
-use App\Services\IcalSyncHandler;
+use App\Services\IcalConnector;
 use App\Services\SyncRegistry;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
@@ -53,7 +53,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->registerSyncHandlers();
+        $this->registerSourceConnectors();
         $this->ensureConfigIsLoaded();
         $this->createStorageStructure();
         $this->registerGates();
@@ -61,16 +61,16 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register core sync handlers into the SyncRegistry.
+     * Register core source connectors into the SyncRegistry.
      *
-     * Module-specific handlers (Beds24, etc.) are registered by their own
-     * ServiceProviders. Only handlers that belong to the core app live here.
+     * Module-specific connectors (Beds24, etc.) are registered by their own
+     * ServiceProviders. Only connectors that belong to the core app live here.
      */
-    private function registerSyncHandlers(): void
+    private function registerSourceConnectors(): void
     {
         /** @var SyncRegistry $registry */
         $registry = $this->app->make(SyncRegistry::class);
-        $registry->register(new IcalSyncHandler(
+        $registry->register(new IcalConnector(
             $this->app->make(BookingSyncIcal::class),
         ));
     }

@@ -1,12 +1,55 @@
 <?php
 
-use App\Contracts\SyncHandler;
+use App\Contracts\SourceConnector;
+use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Services\SyncRegistry;
+use App\Support\NormalizedBooking;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+function makeCommandConnector(string $type, array $bookings, ?array &$calledUnits = null): SourceConnector
+{
+    return new class($type, $bookings, $calledUnits) implements SourceConnector
+    {
+        public function __construct(
+            private string $type,
+            private array $bookings,
+            private ?array &$calledUnits,
+        ) {}
+
+        public function sourceType(): string
+        {
+            return $this->type;
+        }
+
+        public function label(): string
+        {
+            return ucfirst($this->type);
+        }
+
+        public function displayLabel(array $sourceConfig): string
+        {
+            return $this->label();
+        }
+
+        public function sourceKey(Unit $unit, array $sourceConfig): string
+        {
+            return $this->type;
+        }
+
+        public function fetchBookings(Unit $unit, array $sourceConfig): array
+        {
+            if ($this->calledUnits !== null) {
+                $this->calledUnits[] = $unit->name;
+            }
+
+            return $this->bookings;
+        }
+    };
+}
 
 describe('bokit:sync', function () {
     beforeEach(function () {
@@ -20,32 +63,17 @@ describe('bokit:sync', function () {
             ->assertExitCode(0);
     });
 
-    it('calls syncSource for each matching unit source', function () {
+    it('syncs each matching unit source through the engine', function () {
         $called = [];
-
-        $handler = new class($called) implements SyncHandler
-        {
-            public function __construct(private array &$called) {}
-
-            public function sourceType(): string
-            {
-                return 'test-source';
-            }
-
-            public function label(): string
-            {
-                return 'Test handler';
-            }
-
-            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
-            {
-                $this->called[] = $unit->name;
-
-                return ['label' => 'Test', 'success' => true, 'total' => 0, 'new' => 0, 'updated' => 0, 'deleted' => 0, 'vanished' => 0, 'error' => null];
-            }
-        };
-
-        app(SyncRegistry::class)->register($handler);
+        app(SyncRegistry::class)->register(makeCommandConnector('test-source', [
+            new NormalizedBooking(
+                externalId: 'x-1',
+                checkIn: '2027-01-08',
+                checkOut: '2027-01-11',
+                guestName: 'Gudule Lapointe',
+                status: 'confirmed',
+            ),
+        ], $called));
 
         $property = Property::create(['name' => 'BokitP1', 'slug' => 'bokit-p1', 'is_active' => true]);
         Unit::create([
@@ -58,35 +86,21 @@ describe('bokit:sync', function () {
 
         $this->artisan('bokit:sync')->assertExitCode(0);
 
-        expect($called)->toBe(['TestUnit']);
+        expect($called)->toBe(['TestUnit'])
+            ->and(Booking::count())->toBe(1)
+            ->and(Booking::first()->guest_name)->toBe('Gudule Lapointe');
     });
 
-    it('passes dry-run flag to syncSource', function () {
-        $receivedDryRun = null;
-
-        $handler = new class($receivedDryRun) implements SyncHandler
-        {
-            public function __construct(private mixed &$received) {}
-
-            public function sourceType(): string
-            {
-                return 'dry-test';
-            }
-
-            public function label(): string
-            {
-                return 'DryRun test';
-            }
-
-            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
-            {
-                $this->received = $dryRun;
-
-                return ['label' => 'DryRun test', 'success' => true, 'total' => 0, 'new' => 0, 'updated' => 0, 'deleted' => 0, 'vanished' => 0, 'error' => null];
-            }
-        };
-
-        app(SyncRegistry::class)->register($handler);
+    it('does not persist anything in dry-run mode', function () {
+        app(SyncRegistry::class)->register(makeCommandConnector('dry-test', [
+            new NormalizedBooking(
+                externalId: 'x-1',
+                checkIn: '2027-01-08',
+                checkOut: '2027-01-11',
+                guestName: 'Gudule Lapointe',
+                status: 'confirmed',
+            ),
+        ]));
 
         $property = Property::create(['name' => 'BokitP2', 'slug' => 'bokit-p2', 'is_active' => true]);
         Unit::create([
@@ -99,7 +113,7 @@ describe('bokit:sync', function () {
 
         $this->artisan('bokit:sync', ['--dry-run' => true])->assertExitCode(0);
 
-        expect($receivedDryRun)->toBeTrue();
+        expect(Booking::count())->toBe(0);
     });
 
     it('skips unit sources whose type has no registered handler', function () {
@@ -112,7 +126,7 @@ describe('bokit:sync', function () {
             'options' => ['sources' => [['type' => 'unregistered', 'enabled' => true]]],
         ]);
 
-        // No handler registered — should complete without error
+        // No connector registered — should complete without error
         $this->artisan('bokit:sync')
             ->assertExitCode(0);
     });

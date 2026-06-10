@@ -1,8 +1,41 @@
 <?php
 
-use App\Contracts\SyncHandler;
+use App\Contracts\SourceConnector;
 use App\Models\Unit;
 use App\Services\SyncRegistry;
+
+function makeRegistryConnector(string $type): SourceConnector
+{
+    return new class($type) implements SourceConnector
+    {
+        public function __construct(private string $type) {}
+
+        public function sourceType(): string
+        {
+            return $this->type;
+        }
+
+        public function label(): string
+        {
+            return ucfirst($this->type);
+        }
+
+        public function displayLabel(array $sourceConfig): string
+        {
+            return $this->label();
+        }
+
+        public function sourceKey(Unit $unit, array $sourceConfig): string
+        {
+            return $this->type;
+        }
+
+        public function fetchBookings(Unit $unit, array $sourceConfig): array
+        {
+            return [];
+        }
+    };
+}
 
 describe('SyncRegistry', function () {
     it('resolves as a singleton from the container', function () {
@@ -17,70 +50,20 @@ describe('SyncRegistry', function () {
         expect((new SyncRegistry)->all())->toBeArray()->toBeEmpty();
     });
 
-    it('registers a handler keyed by its source type', function () {
+    it('registers a connector keyed by its source type', function () {
         $registry = new SyncRegistry;
+        $connector = makeRegistryConnector('test');
 
-        $handler = new class implements SyncHandler
-        {
-            public function sourceType(): string
-            {
-                return 'test';
-            }
-
-            public function label(): string
-            {
-                return 'Test handler';
-            }
-
-            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
-            {
-                return [];
-            }
-        };
-
-        $registry->register($handler);
+        $registry->register($connector);
 
         expect($registry->all())->toHaveCount(1)
-            ->and($registry->getForType('test'))->toBe($handler);
+            ->and($registry->getForType('test'))->toBe($connector);
     });
 
-    it('accumulates multiple handlers', function () {
+    it('accumulates multiple connectors', function () {
         $registry = new SyncRegistry;
-
-        $first = new class implements SyncHandler
-        {
-            public function sourceType(): string
-            {
-                return 'alpha';
-            }
-
-            public function label(): string
-            {
-                return 'Alpha';
-            }
-
-            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
-            {
-                return [];
-            }
-        };
-        $second = new class implements SyncHandler
-        {
-            public function sourceType(): string
-            {
-                return 'beta';
-            }
-
-            public function label(): string
-            {
-                return 'Beta';
-            }
-
-            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
-            {
-                return [];
-            }
-        };
+        $first = makeRegistryConnector('alpha');
+        $second = makeRegistryConnector('beta');
 
         $registry->register($first);
         $registry->register($second);

@@ -3,14 +3,18 @@
 namespace App\Models;
 
 // use App\Services\BookingMetadataParser;
+use App\Support\SyncResolver;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 // use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Booking extends Model
@@ -20,81 +24,81 @@ class Booking extends Model
     use TimezoneTrait;
 
     protected $fillable = [
-        "status",
-        "guest_name",
-        "check_in",
-        "check_out",
-        "guests",
-        "adults",
-        "children",
-        "property_id",
-        "unit_id",
-        "source_name",
-        "uid",
-        "price",
-        "commission",
-        "notes",
-        "is_manual",
-        "group_id",
-        "sync_data",
-        "metadata",
-        "options",
+        'status',
+        'guest_name',
+        'check_in',
+        'check_out',
+        'guests',
+        'adults',
+        'children',
+        'property_id',
+        'unit_id',
+        'source_name',
+        'uid',
+        'price',
+        'commission',
+        'notes',
+        'is_manual',
+        'group_id',
+        'sync_data',
+        'metadata',
+        'options',
     ];
 
     protected $casts = [
-        "check_in" => "date:c",
-        "check_out" => "date:c",
-        "guests" => "integer",
-        "adults" => "integer",
-        "children" => "integer",
-        "is_manual" => "boolean",
-        "sync_data" => "array",
-        "metadata" => "array",
-        "options" => "array",
-        "price" => "decimal:2",
-        "commission" => "decimal:2",
-        "ota" => "array",
-        "metadata" => "array",
+        'check_in' => 'date:c',
+        'check_out' => 'date:c',
+        'guests' => 'integer',
+        'adults' => 'integer',
+        'children' => 'integer',
+        'is_manual' => 'boolean',
+        'sync_data' => 'array',
+        'metadata' => 'array',
+        'options' => 'array',
+        'price' => 'decimal:2',
+        'commission' => 'decimal:2',
+        'ota' => 'array',
+        'metadata' => 'array',
     ];
 
-    protected static $capability = "property_manager";
+    protected static $capability = 'property_manager';
 
     /**
      * Always eager-load relationships for timezone() accessor
      */
-    protected $with = ["unit", "property"];
+    protected $with = ['unit', 'property'];
 
     protected $appends = [
-        "actions",
-        "unit_name",
-        "ota_url",
-        "ota_link",
-        "api_source",
+        'actions',
+        'unit_name',
+        'ota_url',
+        'ota_link',
+        'api_source',
     ];
 
-    protected static $searchable = ["guest_name", "source_name"];
+    protected static $searchable = ['guest_name', 'source_name'];
 
-    protected static $filterable = ["status", "unit_name", "source_name"];
+    protected static $filterable = ['status', 'unit_name', 'source_name'];
 
-    protected static $actions = ["status", "view", "edit", "ota"];
+    protected static $actions = ['status', 'view', 'edit', 'ota'];
 
-    protected static $icon = "calendar";
+    protected static $icon = 'calendar';
 
     protected $list_columns = [
-        "actions",
+        'actions',
         // "api_source", // DEBUG
         // "status", // DEBUG
-        "unit_name",
-        "check_in",
-        "check_out",
-        "guest_name",
-        "guests",
-        "adults",
-        "children",
-        "price",
-        "paid",
-        "balance",
-        "notes",
+        'unit_name',
+        'check_in',
+        'check_out',
+        'guest_name',
+        'guests',
+        'adults',
+        'children',
+        'price',
+        'paid',
+        'balance',
+        'notes',
     ];
 
     /**
@@ -124,10 +128,10 @@ class Booking extends Model
     protected function checkIn(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value) => Carbon::parse($value),
+            get: fn (string $value) => Carbon::parse($value),
             // unit may be null for group-booking summary rows (unit_id=NULL).
             // Use DB::table() directly for those rows to bypass this mutator.
-            set: fn(string $value) => $this->unit
+            set: fn (string $value) => $this->unit
                 ? $this->unit->shiftAndFormat($value)
                 : $value,
         );
@@ -136,10 +140,10 @@ class Booking extends Model
     protected function checkOut(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value) => Carbon::parse($value),
+            get: fn (string $value) => Carbon::parse($value),
             // unit may be null for group-booking summary rows (unit_id=NULL).
             // Use DB::table() directly for those rows to bypass this mutator.
-            set: fn(string $value) => $this->unit
+            set: fn (string $value) => $this->unit
                 ? $this->unit->shiftAndFormat($value)
                 : $value,
         );
@@ -160,32 +164,32 @@ class Booking extends Model
             get: function () {
                 // Priority 1: return as it is if set
                 $guests =
-                    $this->attributes["guests"] ??
-                    ($this->metadata["guests"] ?? null);
+                    $this->attributes['guests'] ??
+                    ($this->metadata['guests'] ?? null);
                 if ($guests) {
                     return $guests;
                 }
 
                 // Priority 2: adults + children columns
                 if (
-                    isset($this->attributes["adults"]) ||
-                    isset($this->attributes["children"])
+                    isset($this->attributes['adults']) ||
+                    isset($this->attributes['children'])
                 ) {
-                    return ($this->attributes["adults"] ?? 0) +
-                        ($this->attributes["children"] ?? 0);
+                    return ($this->attributes['adults'] ?? 0) +
+                        ($this->attributes['children'] ?? 0);
                 }
 
                 // Priority 3: metadata[guests]
                 if (
-                    isset($this->metadata["guests"]) &&
-                    $this->metadata["guests"] !== null
+                    isset($this->metadata['guests']) &&
+                    $this->metadata['guests'] !== null
                 ) {
-                    return $this->metadata["guests"];
+                    return $this->metadata['guests'];
                 }
 
                 // Priority 4: metadata[adults] + metadata[children]
-                $metaAdults = $this->metadata["adults"] ?? null;
-                $metaChildren = $this->metadata["children"] ?? null;
+                $metaAdults = $this->metadata['adults'] ?? null;
+                $metaChildren = $this->metadata['children'] ?? null;
                 if ($metaAdults === null && $metaChildren === null) {
                     return null; // No guest count available — show nothing, not zero
                 }
@@ -199,8 +203,8 @@ class Booking extends Model
     {
         return Attribute::make(
             get: function () {
-                return $this->attributes["adults"] ??
-                    ($this->metadata["adults"] ?? null);
+                return $this->attributes['adults'] ??
+                    ($this->metadata['adults'] ?? null);
             },
         );
     }
@@ -209,8 +213,8 @@ class Booking extends Model
     {
         return Attribute::make(
             get: function () {
-                return $this->attributes["children"] ??
-                    ($this->metadata["children"] ?? null);
+                return $this->attributes['children'] ??
+                    ($this->metadata['children'] ?? null);
             },
         );
     }
@@ -238,6 +242,23 @@ class Booking extends Model
     }
 
     /**
+     * External source references for this booking (one per source).
+     */
+    public function sources(): HasMany
+    {
+        return $this->hasMany(BookingSource::class);
+    }
+
+    /**
+     * The origin source reference — the only source allowed to update
+     * dates, prices and critical data.
+     */
+    public function originSource(): HasOne
+    {
+        return $this->hasOne(BookingSource::class)->where('is_origin', true);
+    }
+
+    /**
      * Find booking by source identifiers with priority order
      *
      * @param  string  $sourceType  Type of source (ical, api, etc.)
@@ -260,9 +281,9 @@ class Booking extends Model
         ?int $unitId = null,
     ): ?Booking {
         // Priority 1: Exact match on source identifiers (most efficient - uses composite index)
-        $booking = self::where("source_type", $sourceType)
-            ->where("source_id", $sourceId)
-            ->where("source_event_id", $sourceEventId)
+        $booking = self::where('source_type', $sourceType)
+            ->where('source_id', $sourceId)
+            ->where('source_event_id', $sourceEventId)
             ->first();
 
         if ($booking) {
@@ -271,13 +292,13 @@ class Booking extends Model
 
         // Priority 2: Same dates, same unit, same email - definite match
         if ($guestEmail && $checkIn && $checkOut && $unitId) {
-            $booking = self::where("unit_id", $unitId)
-                ->where("check_in", $checkIn)
-                ->where("check_out", $checkOut)
+            $booking = self::where('unit_id', $unitId)
+                ->where('check_in', $checkIn)
+                ->where('check_out', $checkOut)
                 ->where(function ($query) use ($guestEmail) {
                     $query
-                        ->whereJsonContains("metadata->email", $guestEmail)
-                        ->orWhere("notes", "like", "%" . $guestEmail . "%");
+                        ->whereJsonContains('metadata->email', $guestEmail)
+                        ->orWhere('notes', 'like', '%'.$guestEmail.'%');
                 })
                 ->first();
 
@@ -288,9 +309,9 @@ class Booking extends Model
 
         // Priority 3: Same dates, same unit, no email - probable match
         if ($checkIn && $checkOut && $unitId) {
-            $booking = self::where("unit_id", $unitId)
-                ->where("check_in", $checkIn)
-                ->where("check_out", $checkOut)
+            $booking = self::where('unit_id', $unitId)
+                ->where('check_in', $checkIn)
+                ->where('check_out', $checkOut)
                 ->first();
 
             if ($booking) {
@@ -313,10 +334,10 @@ class Booking extends Model
         array $values,
     ): Booking {
         // Extract source identifiers
-        $sourceType = $attributes["source_type"] ?? null;
-        $sourceId = $attributes["source_id"] ?? null;
-        $sourceEventId = $attributes["source_event_id"] ?? null;
-        $propertyId = $attributes["property_id"] ?? null;
+        $sourceType = $attributes['source_type'] ?? null;
+        $sourceId = $attributes['source_id'] ?? null;
+        $sourceEventId = $attributes['source_event_id'] ?? null;
+        $propertyId = $attributes['property_id'] ?? null;
 
         if ($sourceType && $sourceId && $sourceEventId && $propertyId) {
             // Try to find existing booking by source identifiers first
@@ -325,10 +346,10 @@ class Booking extends Model
                 $sourceId,
                 $sourceEventId,
                 $propertyId,
-                $values["metadata"]["email"] ?? null,
-                $values["check_in"] ?? null,
-                $values["check_out"] ?? null,
-                $values["unit_id"] ?? null,
+                $values['metadata']['email'] ?? null,
+                $values['check_in'] ?? null,
+                $values['check_out'] ?? null,
+                $values['unit_id'] ?? null,
             );
 
             if ($existing) {
@@ -383,12 +404,12 @@ class Booking extends Model
     public function scopeInRange($query, Carbon $start, Carbon $end)
     {
         return $query->where(function ($q) use ($start, $end) {
-            $q->whereBetween("check_in", [$start, $end])
-                ->orWhereBetween("check_out", [$start, $end])
+            $q->whereBetween('check_in', [$start, $end])
+                ->orWhereBetween('check_out', [$start, $end])
                 ->orWhere(function ($q2) use ($start, $end) {
-                    $q2->where("check_in", "<=", $start)->where(
-                        "check_out",
-                        ">=",
+                    $q2->where('check_in', '<=', $start)->where(
+                        'check_out',
+                        '>=',
                         $end,
                     );
                 });
@@ -400,7 +421,7 @@ class Booking extends Model
      */
     public function scopeManual($query)
     {
-        return $query->where("is_manual", true);
+        return $query->where('is_manual', true);
     }
 
     /**
@@ -408,7 +429,7 @@ class Booking extends Model
      */
     public function scopeImported($query)
     {
-        return $query->where("is_manual", false);
+        return $query->where('is_manual', false);
     }
 
     /**
@@ -441,7 +462,7 @@ class Booking extends Model
     public function sourceName(): Attribute
     {
         return Attribute::make(
-            get: fn(?string $value) => $value ? self::sourceSlug($value) : null,
+            get: fn (?string $value) => $value ? self::sourceSlug($value) : null,
         );
     }
 
@@ -453,31 +474,30 @@ class Booking extends Model
         $source = trim($source);
 
         return match (true) {
-            (bool) preg_match("/airbnb/", $source) => "airbnb",
-            (bool) preg_match("/beds24/", $source) => "beds24",
-            (bool) preg_match("/booking(\.|dot)?com/", $source)
-                => "booking-com",
-            default => Str::slug(preg_replace("/^(www|api)\./", "", $source)),
+            (bool) preg_match('/airbnb/', $source) => 'airbnb',
+            (bool) preg_match('/beds24/', $source) => 'beds24',
+            (bool) preg_match("/booking(\.|dot)?com/", $source) => 'booking-com',
+            default => Str::slug(preg_replace("/^(www|api)\./", '', $source)),
         };
     }
 
     public function apiSource(): Attribute
     {
-        $channel_manager = $this->source_name ?? "";
-        $ota_api = $this->getMetadata("api_source", "") ?? "";
-        $source = strtolower($ota_api ?? ($channel_manager ?? ""));
+        $channel_manager = $this->source_name ?? '';
+        $ota_api = $this->getMetadata('api_source', '') ?? '';
+        $source = strtolower($ota_api ?? ($channel_manager ?? ''));
         switch ($source) {
-            case "direct":
+            case 'direct':
                 $source = $channel_manager ?? $source;
                 break;
-            // case "booking":
-            //     $source = "booking-com";
-            //     break;
-            // default:
-            //     $url = null;
+                // case "booking":
+                //     $source = "booking-com";
+                //     break;
+                // default:
+                //     $url = null;
         }
 
-        return Attribute::make(get: fn($value) => $source);
+        return Attribute::make(get: fn ($value) => $source);
     }
 
     /**
@@ -488,27 +508,27 @@ class Booking extends Model
     public function otaUrl(): Attribute
     {
         $source = $this->apiSource ?? null;
-        $source_ref = $this->getMetadata("api_ref", "");
+        $source_ref = $this->getMetadata('api_ref', '');
         $ota_slug = self::sourceSlug($source);
         if ($source_ref) {
             // e.g.
             // beds24: https://beds24.com/control2.php?ajax=bookedit&id=12345678
             // airbnb: https://www.airbnb.com/hosting/reservations/details/ABCDE12345
             switch ($ota_slug) {
-                case "airbnb":
+                case 'airbnb':
                     $url = "https://www.airbnb.com/hosting/reservations/details/{$source_ref}";
                     break;
-                case "booking":
-                case "booking.com":
-                case "bookingdotcom":
-                case "booking-com":
-                    if (options("api.booking-com.hotel-id") ?? false) {
+                case 'booking':
+                case 'booking.com':
+                case 'bookingdotcom':
+                case 'booking-com':
+                    if (options('api.booking-com.hotel-id') ?? false) {
                         $url = "https://admin.booking.com/booking/details/{$source_ref}";
                         break;
                     }
                     $url = null;
                     break;
-                case "beds24":
+                case 'beds24':
                     $url = "https://beds24.com/control2.php?ajax=bookedit&id={$source_ref}";
                     break;
                 default:
@@ -520,7 +540,7 @@ class Booking extends Model
             $url = null;
         }
 
-        return Attribute::make(get: fn($value) => $url);
+        return Attribute::make(get: fn ($value) => $url);
     }
 
     /**
@@ -533,19 +553,19 @@ class Booking extends Model
         $url = $this->ota_url;
         $source = $this->api_source;
         $icon = icon($source) ?? $source;
-        if (preg_match("#://#", $url)) {
+        if (preg_match('#://#', $url)) {
             $link = sprintf("<a href='%s' target='_blank'>%s</a>", $url, $icon);
         } else {
             $link = $url;
         }
 
-        return Attribute::make(get: fn($value) => $link);
+        return Attribute::make(get: fn ($value) => $link);
     }
 
     /**
      * Get all source mappings associated with this booking
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function sourceMappings()
     {
@@ -565,7 +585,7 @@ class Booking extends Model
         string $source,
         ?array $metadata = null,
     ): array {
-        return \App\Support\SyncResolver::applySyncData(
+        return SyncResolver::applySyncData(
             $this,
             $newData,
             $source,
@@ -583,21 +603,21 @@ class Booking extends Model
      */
     public function getSyncDiffs(?string $source = null): array
     {
-        return \App\Support\SyncResolver::getDiffs($this, $source);
+        return SyncResolver::getDiffs($this, $source);
     }
 
     /**
      * Get sync logs for this booking
      *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     * @return MorphMany
      */
     public function syncLogs()
     {
         return $this->morphMany(
-            \App\Models\SyncLog::class,
-            "model",
-            "model_type",
-            "model_id",
+            SyncLog::class,
+            'model',
+            'model_type',
+            'model_id',
         );
     }
 }
