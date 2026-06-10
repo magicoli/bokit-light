@@ -7,7 +7,6 @@ use App\Services\SyncRegistry;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Illuminate\Support\ServiceProvider;
-use Modules\Beds24\Commands\Beds24SyncCommand;
 use Modules\Beds24\Services\Beds24SyncHandler;
 
 class Beds24ServiceProvider extends ServiceProvider
@@ -24,11 +23,6 @@ class Beds24ServiceProvider extends ServiceProvider
         $this->extendPropertyForm();
         $this->registerSyncHandler();
 
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                Beds24SyncCommand::class,
-            ]);
-        }
     }
 
     /**

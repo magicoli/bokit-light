@@ -1,8 +1,8 @@
 <?php
 
 use App\Contracts\SyncHandler;
+use App\Models\Unit;
 use App\Services\SyncRegistry;
-use Symfony\Component\Console\Output\NullOutput;
 
 describe('SyncRegistry', function () {
     it('resolves as a singleton from the container', function () {
@@ -14,70 +14,83 @@ describe('SyncRegistry', function () {
     });
 
     it('starts empty', function () {
-        // Fresh instance (not the singleton) to isolate from other tests.
-        $registry = new SyncRegistry;
-
-        expect($registry->all())->toBeArray()->toBeEmpty();
+        expect((new SyncRegistry)->all())->toBeArray()->toBeEmpty();
     });
 
-    it('returns registered handlers', function () {
+    it('registers a handler keyed by its source type', function () {
         $registry = new SyncRegistry;
 
-        $handler = new class implements SyncHandler {
-            public function label(): string { return 'Test handler'; }
-            public function handle(\Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false): void {}
+        $handler = new class implements SyncHandler
+        {
+            public function sourceType(): string
+            {
+                return 'test';
+            }
+
+            public function label(): string
+            {
+                return 'Test handler';
+            }
+
+            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
+            {
+                return [];
+            }
         };
 
         $registry->register($handler);
 
         expect($registry->all())->toHaveCount(1)
-            ->and($registry->all()[0])->toBe($handler);
+            ->and($registry->getForType('test'))->toBe($handler);
     });
 
-    it('accumulates multiple handlers in registration order', function () {
+    it('accumulates multiple handlers', function () {
         $registry = new SyncRegistry;
 
-        $first = new class implements SyncHandler {
-            public function label(): string { return 'First'; }
-            public function handle(\Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false): void {}
+        $first = new class implements SyncHandler
+        {
+            public function sourceType(): string
+            {
+                return 'alpha';
+            }
+
+            public function label(): string
+            {
+                return 'Alpha';
+            }
+
+            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
+            {
+                return [];
+            }
         };
-        $second = new class implements SyncHandler {
-            public function label(): string { return 'Second'; }
-            public function handle(\Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false): void {}
+        $second = new class implements SyncHandler
+        {
+            public function sourceType(): string
+            {
+                return 'beta';
+            }
+
+            public function label(): string
+            {
+                return 'Beta';
+            }
+
+            public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
+            {
+                return [];
+            }
         };
 
         $registry->register($first);
         $registry->register($second);
 
-        $all = $registry->all();
-        expect($all)->toHaveCount(2)
-            ->and($all[0]->label())->toBe('First')
-            ->and($all[1]->label())->toBe('Second');
+        expect($registry->all())->toHaveCount(2)
+            ->and($registry->getForType('alpha'))->toBe($first)
+            ->and($registry->getForType('beta'))->toBe($second);
     });
 
-    it('calls handle on each registered handler when iterated', function () {
-        $registry = new SyncRegistry;
-        $called = [];
-
-        foreach (['Alpha', 'Beta'] as $name) {
-            $registry->register(new class($name, $called) implements SyncHandler {
-                public function __construct(
-                    private string $name,
-                    private array &$called,
-                ) {}
-                public function label(): string { return $this->name; }
-                public function handle(\Symfony\Component\Console\Output\OutputInterface $output, bool $dryRun = false): void
-                {
-                    $this->called[] = $this->name;
-                }
-            });
-        }
-
-        $output = new NullOutput;
-        foreach ($registry->all() as $handler) {
-            $handler->handle($output);
-        }
-
-        expect($called)->toBe(['Alpha', 'Beta']);
+    it('returns null for an unregistered source type', function () {
+        expect((new SyncRegistry)->getForType('unknown'))->toBeNull();
     });
 });

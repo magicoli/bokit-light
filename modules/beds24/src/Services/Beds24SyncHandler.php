@@ -8,14 +8,16 @@ use App\Models\Property;
 use App\Models\Unit;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\Console\Output\OutputInterface;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Syncs Beds24 bookings into Bokit via the JSON API.
  *
- * Registered in Beds24ServiceProvider::boot() so bokit:sync includes it
- * automatically. Beds24SyncCommand also uses this class directly to get
- * targeted per-property / date-range runs without duplicating logic.
+ * Registered in Beds24ServiceProvider::boot(). bokit:sync calls syncSource()
+ * for each 'beds24' entry in a unit's options.sources, in definition order.
+ *
+ * Property-level API responses are cached within a single sync run so that
+ * multiple units belonging to the same property share one API call.
  *
  * Deduplication priority:
  *   1. uid = "beds24-{bookId}"
@@ -24,129 +26,76 @@ use Symfony\Component\Console\Output\OutputInterface;
  *   4. guest name + exact dates + unit
  *
  * Timezone: Beds24 dates are Y-m-d local strings. check_in = firstNight,
- * check_out = lastNight + 1 day. The Booking model mutators apply the unit
- * timezone, so we pass raw strings and let the model handle the shift.
- *
- * Guest email: Beds24 JSON API v1 may use "guestEmail" or "email";
- * we try both and fall back gracefully.
- *
- * Amount: acc_ttc from invoice lines is preferred. When acc_ttc ≤ 0 but
- * real payments exist (e.g. negative accommodation line with paid taxes),
- * payment_total is used as fallback for standalone bookings.
+ * check_out = lastNight + 1 day.
  */
 class Beds24SyncHandler implements SyncHandler
 {
-    public function __construct(
-        private readonly ?string $propertyFilter = null,
-        private readonly string $from = '2020-01-01',
-        private readonly ?string $to = null,
-        private readonly ?string $modifiedSince = null,
-    ) {}
+    /** Property-level API response cache for the current sync run. */
+    private array $apiCache = [];
+
+    public function sourceType(): string
+    {
+        return 'beds24';
+    }
 
     public function label(): string
     {
         return 'Beds24 API';
     }
 
-    public function handle(OutputInterface $output, bool $dryRun = false): void
+    public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
     {
-        $properties = $this->resolveProperties();
+        $roomId = (int) ($sourceConfig['room_id'] ?? 0);
 
-        if ($properties->isEmpty()) {
-            $output->writeln('<comment>No properties found with Beds24 configured.</comment>');
-
-            return;
+        if (! $roomId) {
+            return $this->failure('Beds24 API', 'No room_id configured');
         }
 
-        $totalCreated = 0;
-        $totalUpdated = 0;
-        $totalSkipped = 0;
+        $property = $unit->property;
+        $service = new Beds24ApiService($property);
 
-        foreach ($properties as $property) {
-            $output->writeln('');
-            $output->writeln("<info>Property:</info> {$property->name}");
+        if (! $service->isConfigured()) {
+            return $this->failure('Beds24 API', 'Beds24 not configured for this property');
+        }
 
-            $service = new Beds24ApiService($property);
-
-            if (! $service->isConfigured()) {
-                $output->writeln('  <comment>Skipping — Beds24 not configured.</comment>');
-
-                continue;
-            }
-
-            $params = $this->buildApiParams();
-            $rows = $service->getBookings($params);
-
-            if (empty($rows)) {
-                $output->writeln('  No bookings returned.');
-
-                continue;
-            }
-
-            $output->writeln('  Fetched '.count($rows).' bookings from Beds24.', OutputInterface::VERBOSITY_VERBOSE);
-
-            // Build roomId → Unit map.
-            // Cannot use flatMap/mapWithKeys: array_merge() reindexes integer keys.
-            /** @var array<int, Unit> $unitMap  beds24_room_id (int) → Unit */
-            $unitMap = [];
-            foreach ($property->units as $u) {
-                foreach ($this->resolveBedsRoomIds($u) as $roomId) {
-                    $unitMap[$roomId] = $u;
-                }
-            }
-
-            if (empty($unitMap)) {
-                $output->writeln('  <comment>Skipping — no units have a beds24 source configured.</comment>');
-
-                continue;
-            }
-
-            [$created, $updated, $skipped] = $this->syncBookings($output, $property, $unitMap, $rows, $dryRun);
-
-            $parts = [
-                ($created > 0 ? '<fg=green>' : '')."New: {$created}".($created > 0 ? '</>' : ''),
-                ($updated > 0 ? '<fg=yellow>' : '')."Updated: {$updated}".($updated > 0 ? '</>' : ''),
-                "Skipped: {$skipped}",
+        // Fetch all bookings for this property once, then cache for sibling units.
+        if (! isset($this->apiCache[$property->id])) {
+            $params = [
+                'arrivalFrom' => '2020-01-01',
+                'arrivalTo' => now()->addYears(5)->format('Y-m-d'),
             ];
-            $output->writeln('  ✓ '.implode(', ', $parts));
-
-            $totalCreated += $created;
-            $totalUpdated += $updated;
-            $totalSkipped += $skipped;
+            $this->apiCache[$property->id] = $service->getBookings($params) ?? [];
         }
 
-        $suffix = $dryRun ? ' <fg=yellow>[DRY RUN]</>' : '';
-        $output->writeln('');
-        $output->writeln("Beds24 total:  New: {$totalCreated}, Updated: {$totalUpdated}, Skipped: {$totalSkipped}{$suffix}");
+        $rows = array_values(
+            array_filter($this->apiCache[$property->id], fn ($r) => (int) ($r['roomId'] ?? 0) === $roomId)
+        );
+
+        [$created, $updated, $skipped] = $this->syncBookings($unit, $property, $rows, $dryRun);
+
+        return [
+            'label' => 'Beds24 API',
+            'success' => true,
+            'total' => $created + $updated + $skipped,
+            'new' => $created,
+            'updated' => $updated,
+            'deleted' => 0,
+            'vanished' => 0,
+            'error' => null,
+        ];
     }
 
     /**
-     * @param  array<int, Unit>  $unitMap  beds24_room_id → Unit
-     * @param  array<int, array<string,mixed>>  $rows
+     * @param  array<int, array<string,mixed>>  $rows  Beds24 booking rows for this room
      * @return array{int, int, int} [created, updated, skipped]
      */
-    private function syncBookings(
-        OutputInterface $output,
-        Property $property,
-        array $unitMap,
-        array $rows,
-        bool $dryRun,
-    ): array {
+    private function syncBookings(Unit $unit, Property $property, array $rows, bool $dryRun): array
+    {
         $created = 0;
         $updated = 0;
         $skipped = 0;
 
         foreach ($rows as $row) {
-            $roomId = (int) ($row['roomId'] ?? 0);
-            $unit = $unitMap[$roomId] ?? null;
-
-            if (! $unit) {
-                $output->writeln("  <comment>Skip: unmapped roomId={$roomId} (bookId={$row['bookId']})</comment>", OutputInterface::VERBOSITY_VERBOSE);
-                $skipped++;
-
-                continue;
-            }
-
             $uid = "beds24-{$row['bookId']}";
             $checkIn = $row['firstNight'] ?? null;
             $checkOut = isset($row['lastNight'])
@@ -154,7 +103,7 @@ class Beds24SyncHandler implements SyncHandler
                 : null;
 
             if (! $checkIn || ! $checkOut) {
-                $output->writeln("  <comment>Skip: missing dates for bookId={$row['bookId']}</comment>", OutputInterface::VERBOSITY_VERBOSE);
+                Log::debug("[Beds24] Skip: missing dates for bookId={$row['bookId']}");
                 $skipped++;
 
                 continue;
@@ -163,13 +112,12 @@ class Beds24SyncHandler implements SyncHandler
             // Skip Beds24 availability blocks (status 4=block, 5=owner block).
             $rawStatus = (string) ($row['status'] ?? '2');
             if (in_array($rawStatus, ['4', '5'], true)) {
-                $output->writeln("  Skip: availability block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, status={$rawStatus})", OutputInterface::VERBOSITY_VERBOSE);
+                Log::debug("[Beds24] Skip: availability block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, status={$rawStatus})");
                 $skipped++;
 
                 continue;
             }
 
-            // Guest name: try guestFirstName/guestName (JSON API v1) then firstName/lastName (legacy).
             $guestName = trim(
                 ($row['guestFirstName'] ?? $row['firstName'] ?? '').' '.($row['guestName'] ?? $row['lastName'] ?? '')
             ) ?: 'Guest';
@@ -179,31 +127,21 @@ class Beds24SyncHandler implements SyncHandler
             $adults = isset($row['numAdult']) ? (int) $row['numAdult'] : null;
             $children = isset($row['numChild']) ? (int) $row['numChild'] : null;
             $sourceName = $this->mapSourceName((string) ($row['apiSource'] ?? ''));
-
-            // Email: try guestEmail (JSON API v1) then email (legacy).
             $email = trim($row['guestEmail'] ?? $row['email'] ?? '');
 
-            // Invoice: parse lines when available (more accurate than raw price field).
             $invoice = ! empty($row['invoice']) && is_array($row['invoice'])
                 ? $this->parseInvoice($row['invoice'])
                 : [];
-
-            // Amount priority:
-            //   1. acc_ttc from invoice lines (accommodation lines, most accurate)
-            //   2. payment_total when acc_ttc ≤ 0 but real payments exist
-            //   3. raw price field as last resort
             $price = $this->resolvePrice($row, $invoice);
 
             $existing = Booking::where('uid', $uid)->first();
 
-            // Fallback 1: legacy iCal booking with same Beds24 bookId as group_id.
             if (! $existing) {
                 $existing = Booking::where('group_id', $row['bookId'])
                     ->where('uid', 'NOT LIKE', 'beds24-%')
                     ->first();
             }
 
-            // Fallback 2: email + exact dates + unit.
             if (! $existing && $email) {
                 $existing = Booking::where('unit_id', $unit->id)
                     ->where('check_in', 'LIKE', $checkIn.'%')
@@ -212,7 +150,6 @@ class Beds24SyncHandler implements SyncHandler
                     ->first();
             }
 
-            // Fallback 3: guest name + exact dates + unit.
             if (! $existing && $guestName !== 'Guest') {
                 $existing = Booking::where('unit_id', $unit->id)
                     ->where('check_in', 'LIKE', $checkIn.'%')
@@ -221,11 +158,8 @@ class Beds24SyncHandler implements SyncHandler
                     ->first();
             }
 
-            // Assign canonical uid so future syncs find this booking reliably.
             if ($existing && $existing->uid !== $uid && ! $dryRun) {
-                DB::table('bookings')
-                    ->where('id', $existing->id)
-                    ->update(['uid' => $uid]);
+                DB::table('bookings')->where('id', $existing->id)->update(['uid' => $uid]);
                 $existing->uid = $uid;
             }
 
@@ -244,8 +178,6 @@ class Beds24SyncHandler implements SyncHandler
                     continue;
                 }
 
-                $output->writeln("  Update: [{$unit->name}] {$checkIn} uid={$uid} — ".implode(', ', array_keys($changes)), OutputInterface::VERBOSITY_VERBOSE);
-
                 if (! $dryRun) {
                     $existing->update($changes);
                 }
@@ -255,16 +187,13 @@ class Beds24SyncHandler implements SyncHandler
                 continue;
             }
 
-            // Skip empty blocks (iCal-sourced or owner entries without guest data).
             $apiSourceCode = (string) ($row['apiSource'] ?? '');
             if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0) {
-                $output->writeln("  Skip: empty block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, src={$apiSourceCode})", OutputInterface::VERBOSITY_VERBOSE);
+                Log::debug("[Beds24] Skip: empty block [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, src={$apiSourceCode})");
                 $skipped++;
 
                 continue;
             }
-
-            $output->writeln("  Create: [{$unit->name}] {$checkIn}→{$checkOut} — {$guestName} ({$price}€)", OutputInterface::VERBOSITY_VERBOSE);
 
             if (! $dryRun) {
                 Booking::create([
@@ -292,14 +221,23 @@ class Beds24SyncHandler implements SyncHandler
     }
 
     /**
-     * Resolve the booking price from invoice lines and raw row data.
-     *
-     * Priority:
-     *   1. acc_ttc > 0  → use it (accommodation lines, most accurate)
-     *   2. acc_ttc ≤ 0 but payment_total > 0 and invoice present
-     *        → use payment_total (negative acc + real payments = taxe-only scenario)
-     *   3. fall back to raw price field
-     *
+     * @return array{label: string, success: false, total: 0, new: 0, updated: 0, deleted: 0, vanished: 0, error: string}
+     */
+    private function failure(string $label, string $error): array
+    {
+        return [
+            'label' => $label,
+            'success' => false,
+            'total' => 0,
+            'new' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+            'vanished' => 0,
+            'error' => $error,
+        ];
+    }
+
+    /**
      * @param  array<string,mixed>  $row
      * @param  array{acc_ttc: float, taxe_invoiced: float, payment_total: float}|array{}  $invoice
      */
@@ -319,11 +257,6 @@ class Beds24SyncHandler implements SyncHandler
     }
 
     /**
-     * Compute fields that need updating for an existing booking.
-     *
-     * Beds24 is the source of truth: sync all mutable fields (dates can change
-     * on modification, status changes on cancellation, etc.).
-     *
      * @param  array<string,mixed>  $row
      * @param  array<string,float>  $invoice
      * @return array<string,mixed>
@@ -352,13 +285,11 @@ class Beds24SyncHandler implements SyncHandler
             $changes['check_out'] = $checkOut;
         }
 
-        // Don't overwrite a real guest name with the generic "Guest" placeholder.
         if ($existing->guest_name !== $guestName && $guestName !== 'Guest') {
             $changes['guest_name'] = $guestName;
         }
 
-        // Never downgrade confirmed → pending: Beds24 often stores manual/synced
-        // entries as status=0 (new) when they are already confirmed in our DB.
+        // Never downgrade confirmed → pending.
         if ($existing->status !== $status && ! ($existing->status === 'confirmed' && $status === 'pending')) {
             $changes['status'] = $status;
         }
@@ -394,17 +325,8 @@ class Beds24SyncHandler implements SyncHandler
     }
 
     /**
-     * Build metadata array from a Beds24 booking row.
-     *
-     * Key fields:
-     *   email       — guest email (guestEmail or email field)
-     *   api_source  — Beds24 channel code (0=Direct, 19=Booking.com, 28=iCal, 29=Airbnb iCal, 46=Airbnb API)
-     *   referrer    — channel name set by the OTA/CM; sole reliable canal for iCal-sourced bookings
-     *   api_ref     — OTA booking reference (e.g. Airbnb confirmation code)
-     *   invoice_*   — parsed from Beds24 invoice lines
-     *
      * @param  array<string,mixed>  $row
-     * @param  array<string,float>  $invoice  parsed invoice breakdown (may be empty)
+     * @param  array<string,float>  $invoice
      * @return array<string,mixed>
      */
     private function buildMeta(array $row, array $invoice = []): array
@@ -437,12 +359,6 @@ class Beds24SyncHandler implements SyncHandler
     }
 
     /**
-     * Parse Beds24 invoice lines to extract a financial breakdown.
-     * Translated from taxesejour-bridge/beds24.py::_parse_invoice().
-     *
-     * Line types: 0/1/8 = accommodation; 200 = payment; others = extras.
-     * Lines whose description contains "taxe de séjour" are tracked separately.
-     *
      * @param  array<int, array<string,mixed>>  $lines
      * @return array{acc_ttc: float, taxe_invoiced: float, payment_total: float}
      */
@@ -477,11 +393,6 @@ class Beds24SyncHandler implements SyncHandler
         ];
     }
 
-    /**
-     * Map Beds24 apiSource code to Bokit source_name.
-     *
-     * Beds24 apiSource: '0'=Direct, '19'=Booking.com, '28'=iCal, '29'=Airbnb iCal, '46'=Airbnb API
-     */
     private function mapSourceName(string $apiSource): string
     {
         return match ($apiSource) {
@@ -491,11 +402,6 @@ class Beds24SyncHandler implements SyncHandler
         };
     }
 
-    /**
-     * Map Beds24 status codes to Bokit statuses.
-     *
-     * Beds24: 0=new, 1=request, 2=confirmed, 3=cancelled, 4=block, 5=owner
-     */
     private function mapStatus(string $status): string
     {
         return match ($status) {
@@ -503,65 +409,5 @@ class Beds24SyncHandler implements SyncHandler
             '3' => 'cancelled',
             default => 'confirmed',
         };
-    }
-
-    /**
-     * Resolve all Beds24 room IDs for a unit.
-     *
-     * New format: unit.options.sources = [{type: 'beds24', room_id: '12345', enabled: true}, ...]
-     * Legacy fallback: unit.options.beds24_room_id = '12345'
-     *
-     * @return array<int, int> Beds24 room IDs (integers)
-     */
-    private function resolveBedsRoomIds(Unit $unit): array
-    {
-        $sources = $unit->options['sources'] ?? [];
-
-        if (! empty($sources)) {
-            return collect($sources)
-                ->filter(fn ($s) => ($s['type'] ?? '') === 'beds24'
-                    && ($s['enabled'] ?? true)
-                    && ! empty($s['room_id'])
-                )
-                ->map(fn ($s) => (int) $s['room_id'])
-                ->filter()
-                ->values()
-                ->all();
-        }
-
-        // Legacy: single beds24_room_id
-        $roomId = $unit->options['beds24_room_id'] ?? null;
-
-        return $roomId ? [(int) $roomId] : [];
-    }
-
-    /** @return array<string,mixed> */
-    private function buildApiParams(): array
-    {
-        $params = [
-            'arrivalFrom' => $this->from,
-            'arrivalTo' => $this->to ?? now()->addYears(5)->format('Y-m-d'),
-        ];
-
-        if ($this->modifiedSince) {
-            $params['modifiedSince'] = $this->modifiedSince;
-        }
-
-        return $params;
-    }
-
-    private function resolveProperties()
-    {
-        $query = Property::with('units');
-
-        if ($this->propertyFilter) {
-            $query->where('slug', $this->propertyFilter)
-                ->orWhere('id', (int) $this->propertyFilter);
-        }
-
-        return $query->get()->filter(
-            fn (Property $p) => ! empty($p->options['beds24_api_key'])
-                || ! empty($p->options['beds24_prop_key']),
-        );
     }
 }

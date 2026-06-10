@@ -1,28 +1,38 @@
 <?php
 
 use App\Contracts\SyncHandler;
+use App\Models\Property;
+use App\Models\Unit;
 use App\Services\BookingSyncIcal;
 use App\Services\IcalSyncHandler;
-use Symfony\Component\Console\Output\BufferedOutput;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 describe('IcalSyncHandler', function () {
     it('implements SyncHandler', function () {
-        expect(new IcalSyncHandler(mock(BookingSyncIcal::class)))
-            ->toBeInstanceOf(SyncHandler::class);
+        expect(new IcalSyncHandler(mock(BookingSyncIcal::class)))->toBeInstanceOf(SyncHandler::class);
+    });
+
+    it('has source type ical', function () {
+        expect((new IcalSyncHandler(mock(BookingSyncIcal::class)))->sourceType())->toBe('ical');
     });
 
     it('has the correct label', function () {
-        expect((new IcalSyncHandler(mock(BookingSyncIcal::class)))->label())
-            ->toBe('iCal feeds');
+        expect((new IcalSyncHandler(mock(BookingSyncIcal::class)))->label())->toBe('iCal');
     });
 
-    it('reports no sources and never calls syncSource when there are none active', function () {
+    it('returns a failure result when no URL is configured', function () {
+        $property = Property::create(['name' => 'IcalP', 'slug' => 'ical-p', 'is_active' => true]);
+        $unit = Unit::create(['property_id' => $property->id, 'name' => 'IcalU', 'slug' => 'ical-u', 'is_active' => true]);
+        $unit->setRelation('property', $property);
+
         $parser = mock(BookingSyncIcal::class);
         $parser->shouldNotReceive('syncSource');
 
-        $output = new BufferedOutput;
-        (new IcalSyncHandler($parser))->handle($output);
+        $result = (new IcalSyncHandler($parser))->syncSource($unit, ['type' => 'ical', 'url' => '', 'enabled' => true]);
 
-        expect($output->fetch())->toContain('No active iCal sources found');
+        expect($result['success'])->toBeFalse()
+            ->and($result['error'])->not->toBeEmpty();
     });
 });

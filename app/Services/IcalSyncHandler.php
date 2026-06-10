@@ -5,105 +5,97 @@ namespace App\Services;
 use App\Contracts\SyncHandler;
 use App\Models\IcalSource;
 use App\Models\Unit;
-use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Syncs all enabled iCal feeds (stored in unit.options.sources) into Bokit bookings.
+ * Handles iCal feed sources (unit.options.sources type = 'ical').
  *
- * Registered in AppServiceProvider::boot() so bokit:sync can iterate it
- * without knowing anything about iCal sources.
- *
- * iCal sources are managed via the unit edit page in the admin panel
- * (unit.options.sources with type = 'ical').
+ * Registered in AppServiceProvider::boot(). bokit:sync calls syncSource()
+ * for each iCal entry in a unit's options.sources, in definition order.
  */
 class IcalSyncHandler implements SyncHandler
 {
     public function __construct(private readonly BookingSyncIcal $parser) {}
 
-    public function label(): string
+    public function sourceType(): string
     {
-        return 'iCal feeds';
+        return 'ical';
     }
 
-    public function handle(OutputInterface $output, bool $dryRun = false): void
+    public function label(): string
     {
-        /** @var array<array{unit: Unit, config: array{type: string, url: string, label: string, enabled: bool}}> $activeSources */
-        $activeSources = [];
+        return 'iCal';
+    }
 
-        Unit::with('property')
-            ->get()
-            ->each(function (Unit $unit) use (&$activeSources): void {
-                $sources = collect($unit->options['sources'] ?? [])
-                    ->filter(fn ($s) => ($s['type'] ?? '') === 'ical' && ($s['enabled'] ?? true));
+    public function syncSource(Unit $unit, array $sourceConfig, bool $dryRun = false): array
+    {
+        $url = $sourceConfig['url'] ?? '';
+        $configLabel = $sourceConfig['label'] ?? ($url ? (parse_url($url, PHP_URL_HOST) ?: $url) : 'iCal');
+        $displayLabel = "iCal {$configLabel}";
 
-                foreach ($sources as $config) {
-                    $activeSources[] = ['unit' => $unit, 'config' => $config];
-                }
-            });
-
-        if (empty($activeSources)) {
-            $output->writeln('<comment>No active iCal sources found.</comment>');
-
-            return;
+        if (! $url) {
+            return $this->failure($displayLabel, 'No URL configured');
         }
 
-        $count = count($activeSources);
-        $output->writeln("Found {$count} iCal source(s)");
-        $output->writeln('');
+        if ($dryRun) {
+            return $this->stats($displayLabel, 0, 0, 0, 0, 0);
+        }
 
-        $totalStats = ['total' => 0, 'new' => 0, 'updated' => 0, 'deleted' => 0, 'vanished' => 0];
-        $errors = 0;
+        try {
+            // Build an in-memory IcalSource so BookingSyncIcal needs no changes.
+            $icalSource = new IcalSource([
+                'unit_id' => $unit->id,
+                'name' => $configLabel,
+                'url' => $url,
+                'sync_enabled' => true,
+            ]);
+            $icalSource->setRelation('unit', $unit);
 
-        foreach ($activeSources as ['unit' => $unit, 'config' => $config]) {
-            $label = $config['label'] ?? $config['url'];
-            $sourceName = "{$unit->property->name} / {$unit->name} / {$label}";
-            $output->writeln("  Syncing: <fg=cyan>{$sourceName}</>");
+            $result = $this->parser->syncSource($icalSource);
 
-            try {
-                // Build an in-memory IcalSource so BookingSyncIcal needs no changes.
-                $icalSource = new IcalSource([
-                    'unit_id' => $unit->id,
-                    'name' => $label,
-                    'url' => $config['url'],
-                    'sync_enabled' => $config['enabled'] ?? true,
-                ]);
-                $icalSource->setRelation('unit', $unit);
-
-                $stats = $this->parser->syncSource($icalSource);
-
-                if (! ($stats['success'] ?? false)) {
-                    throw new \RuntimeException($stats['error'] ?? 'Unknown error');
-                }
-
-                $parts = [
-                    "Total: {$stats['total']}",
-                    ($stats['new'] > 0 ? '<fg=green>' : '')."New: {$stats['new']}".($stats['new'] > 0 ? '</>' : ''),
-                    ($stats['updated'] > 0 ? '<fg=yellow>' : '')."Updated: {$stats['updated']}".($stats['updated'] > 0 ? '</>' : ''),
-                    ($stats['deleted'] > 0 ? '<fg=red>' : '')."Deleted: {$stats['deleted']}".($stats['deleted'] > 0 ? '</>' : ''),
-                    ($stats['vanished'] > 0 ? '<fg=magenta>' : '')."Vanished: {$stats['vanished']}".($stats['vanished'] > 0 ? '</>' : ''),
-                ];
-                $output->writeln('  ✓ '.implode(', ', $parts));
-
-                foreach (['total', 'new', 'updated', 'deleted', 'vanished'] as $key) {
-                    $totalStats[$key] += $stats[$key] ?? 0;
-                }
-            } catch (\Exception $e) {
-                $output->writeln("<error>  ✗ Failed: {$e->getMessage()}</error>");
-                $errors++;
+            if (! ($result['success'] ?? false)) {
+                return $this->failure($displayLabel, $result['error'] ?? 'Unknown error');
             }
 
-            $output->writeln('');
+            return $this->stats(
+                $displayLabel,
+                $result['total'] ?? 0,
+                $result['new'] ?? 0,
+                $result['updated'] ?? 0,
+                $result['deleted'] ?? 0,
+                $result['vanished'] ?? 0,
+            );
+        } catch (\Exception $e) {
+            return $this->failure($displayLabel, $e->getMessage());
         }
+    }
 
-        $output->writeln('<info>iCal summary:</info>');
-        $output->writeln("  Total bookings: <fg=cyan>{$totalStats['total']}</>");
-        $output->writeln("  New: <fg=green>{$totalStats['new']}</>");
-        $output->writeln("  Updated: <fg=yellow>{$totalStats['updated']}</>");
-        $output->writeln("  Deleted: <fg=red>{$totalStats['deleted']}</>");
-        $output->writeln("  Vanished: <fg=magenta>{$totalStats['vanished']}</>");
+    /** @return array{label: string, success: true, total: int, new: int, updated: int, deleted: int, vanished: int, error: null} */
+    private function stats(string $label, int $total, int $new, int $updated, int $deleted, int $vanished): array
+    {
+        return [
+            'label' => $label,
+            'success' => true,
+            'total' => $total,
+            'new' => $new,
+            'updated' => $updated,
+            'deleted' => $deleted,
+            'vanished' => $vanished,
+            'error' => null,
+        ];
+    }
 
-        if ($errors > 0) {
-            $output->writeln("  Errors: <fg=red>{$errors}</>");
-        }
+    /** @return array{label: string, success: false, total: 0, new: 0, updated: 0, deleted: 0, vanished: 0, error: string} */
+    private function failure(string $label, string $error): array
+    {
+        return [
+            'label' => $label,
+            'success' => false,
+            'total' => 0,
+            'new' => 0,
+            'updated' => 0,
+            'deleted' => 0,
+            'vanished' => 0,
+            'error' => $error,
+        ];
     }
 }

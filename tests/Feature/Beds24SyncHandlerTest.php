@@ -1,29 +1,34 @@
 <?php
 
 use App\Contracts\SyncHandler;
+use App\Models\Property;
+use App\Models\Unit;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Beds24\Services\Beds24SyncHandler;
-use Symfony\Component\Console\Output\BufferedOutput;
+
+uses(RefreshDatabase::class);
 
 describe('Beds24SyncHandler', function () {
     it('implements SyncHandler', function () {
         expect(new Beds24SyncHandler)->toBeInstanceOf(SyncHandler::class);
     });
 
+    it('has source type beds24', function () {
+        expect((new Beds24SyncHandler)->sourceType())->toBe('beds24');
+    });
+
     it('has the correct label', function () {
         expect((new Beds24SyncHandler)->label())->toBe('Beds24 API');
     });
 
-    it('reports no properties when none have Beds24 configured', function () {
-        $output = new BufferedOutput;
-        (new Beds24SyncHandler)->handle($output);
+    it('returns a failure result when no room_id is configured', function () {
+        $property = Property::create(['name' => 'B24P', 'slug' => 'b24-p', 'is_active' => true]);
+        $unit = Unit::create(['property_id' => $property->id, 'name' => 'B24U', 'slug' => 'b24-u', 'is_active' => true]);
+        $unit->setRelation('property', $property);
 
-        expect($output->fetch())->toContain('No properties found with Beds24 configured');
-    });
+        $result = (new Beds24SyncHandler)->syncSource($unit, ['type' => 'beds24', 'enabled' => true]);
 
-    it('reports no properties in dry-run mode too', function () {
-        $output = new BufferedOutput;
-        (new Beds24SyncHandler)->handle($output, dryRun: true);
-
-        expect($output->fetch())->toContain('No properties found with Beds24 configured');
+        expect($result['success'])->toBeFalse()
+            ->and($result['error'])->toContain('room_id');
     });
 });

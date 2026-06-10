@@ -5,23 +5,29 @@ namespace App\Services;
 use App\Contracts\SyncHandler;
 
 /**
- * Collects sync handlers registered by modules.
+ * Collects sync handlers registered by modules, keyed by source type.
  *
- * Registered as a singleton in the service container. Modules call
- * app(SyncRegistry::class)->register($handler) in their ServiceProvider::boot().
- * bokit:sync iterates all() without knowing which modules are active.
+ * Registered as a singleton. Modules call register() in ServiceProvider::boot().
+ * bokit:sync calls getForType() to dispatch each unit source to the right handler.
  */
 class SyncRegistry
 {
-    /** @var SyncHandler[] */
+    /** @var array<string, SyncHandler>  sourceType → handler */
     private array $handlers = [];
 
     public function register(SyncHandler $handler): void
     {
-        $this->handlers[] = $handler;
+        $this->handlers[$handler->sourceType()] = $handler;
     }
 
-    /** @return SyncHandler[] */
+    public function getForType(string $type): ?SyncHandler
+    {
+        return $this->handlers[$type] ?? null;
+    }
+
+    /**
+     * @return array<string, SyncHandler>
+     */
     public function all(): array
     {
         return $this->handlers;
