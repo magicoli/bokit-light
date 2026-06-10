@@ -4,6 +4,7 @@ use App\Filament\Resources\Bookings\BookingResource;
 use App\Filament\Resources\Bookings\Pages\CreateBooking;
 use App\Filament\Resources\Bookings\Pages\EditBooking;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
+use App\Filament\Resources\Bookings\Pages\ViewBooking;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
@@ -97,6 +98,35 @@ it('validates required fields on create', function () {
         ])
         ->call('create')
         ->assertHasFormErrors(['guest_name', 'check_in', 'check_out']);
+});
+
+it('renders the view page with the sources table', function () {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Gudule Lapointe',
+        'status' => 'confirmed',
+        'check_in' => '2026-09-01',
+        'check_out' => '2026-09-08',
+    ]);
+    $booking->sources()->create([
+        'source_type' => 'beds24',
+        'source_key' => 'beds24',
+        'external_id' => '66036992',
+        'is_origin' => true,
+    ]);
+    $booking->sources()->create([
+        'source_type' => 'ical',
+        'source_key' => 'ical:beds24.com',
+        'external_id' => 'uid-x@beds24.com',
+        'is_origin' => false,
+    ]);
+
+    Livewire::test(ViewBooking::class, ['record' => $booking->id])
+        ->assertSuccessful()
+        ->assertSee('✓ Beds24 API')
+        ->assertSee('iCal beds24.com')
+        ->assertSee('66036992');
 });
 
 it('can edit a booking', function () {

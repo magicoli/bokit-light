@@ -56,6 +56,8 @@ return [
     'source.last_seen' => 'Last seen',
     'source.pending_origin' => 'Origin (not connected)',
 
+    'source.not_connected' => 'not connected',
+
     // Helper text
     'guests_auto_calculated' => 'Auto-calculated if empty',
 ];

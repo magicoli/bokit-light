@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\SyncRegistry;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -46,5 +48,30 @@ class BookingSource extends Model
     public function isPlaceholder(): bool
     {
         return $this->is_placeholder;
+    }
+
+    /**
+     * Human-readable label for display: connector label plus the source
+     * instance name, prefixed with a check mark when this is the origin.
+     * Examples: "✓ Beds24 API", "iCal beds24.com", "✓ iCal (not connected)".
+     */
+    protected function displayLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            $base = app(SyncRegistry::class)->getForType($this->source_type)?->label()
+                ?? $this->source_type;
+
+            $instance = str_contains($this->source_key, ':')
+                ? ' '.explode(':', $this->source_key, 2)[1]
+                : '';
+
+            $pending = $this->is_placeholder
+                ? ' ('.__('booking.source.not_connected').')'
+                : '';
+
+            $check = $this->is_origin ? '✓ ' : '';
+
+            return $check.$base.$instance.$pending;
+        });
     }
 }

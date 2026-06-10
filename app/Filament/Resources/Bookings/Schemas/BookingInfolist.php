@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Bookings\Schemas;
 
 use App\Models\Booking;
-use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\RepeatableEntry\TableColumn;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -76,43 +76,22 @@ class BookingInfolist
                             ->placeholder('-'),
                     ]),
 
-                Section::make(__('booking.field.source_name'))
-                    ->columns(2)
-                    ->collapsed()
-                    ->schema([
-                        TextEntry::make('source_name')
-                            ->label(__('booking.field.source_name'))
-                            ->placeholder('-'),
-
-                        TextEntry::make('uid')
-                            ->label(__('booking.field.uid'))
-                            ->placeholder('-'),
-
-                        IconEntry::make('is_manual')
-                            ->label(__('booking.field.is_manual'))
-                            ->boolean(),
-                    ]),
-
                 Section::make(__('booking.section.sources'))
                     ->schema([
                         RepeatableEntry::make('sources')
-                            ->label('')
-                            ->columns(4)
+                            ->hiddenLabel()
+                            ->table([
+                                TableColumn::make(__('booking.field.source_name')),
+                                TableColumn::make(__('booking.source.external_id')),
+                                TableColumn::make(__('booking.source.last_seen')),
+                            ])
                             ->schema([
-                                TextEntry::make('source_key')
-                                    ->label(__('booking.field.source_name'))
-                                    ->badge(),
+                                TextEntry::make('display_label'),
 
                                 TextEntry::make('external_id')
-                                    ->label(__('booking.source.external_id'))
                                     ->copyable(),
 
-                                IconEntry::make('is_origin')
-                                    ->label(__('booking.source.origin'))
-                                    ->boolean(),
-
                                 TextEntry::make('last_seen_at')
-                                    ->label(__('booking.source.last_seen'))
                                     ->dateTime('d/m/Y H:i')
                                     ->placeholder('-'),
                             ]),
