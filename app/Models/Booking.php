@@ -25,12 +25,28 @@ class Booking extends Model
     use TimezoneTrait;
 
     /**
-     * Statuses of bookings that no longer hold the unit: no money is
-     * expected from them and default views hide them.
+     * Canonical internal statuses. Every connector maps its source's
+     * statuses to one of these — platform-specific variants are not kept:
+     * - confirmed: includes Beds24 Confirmed and New (New only adds the
+     *   is_new metadata tag);
+     * - option: blocking request, dates are held (Beds24 Request);
+     * - quote: priced and dated but not blocking (Beds24 Inquiry);
+     * - blocked: availability block (Beds24 Black, iCal Unavailable),
+     *   synced for future dates only;
+     * - cancelled: nothing is held any more, hidden by default.
      *
      * @var list<string>
      */
-    public const CANCELLED_STATUSES = ['cancelled', 'cancelled_by_owner', 'cancelled_by_guest', 'deleted', 'vanished'];
+    public const STATUSES = ['confirmed', 'option', 'quote', 'blocked', 'cancelled'];
+
+    /**
+     * Statuses of bookings that no longer hold the unit: no money is
+     * expected from them and default views hide them. 'deleted' and
+     * 'vanished' are internal variants of cancelled set by the sync engine.
+     *
+     * @var list<string>
+     */
+    public const CANCELLED_STATUSES = ['cancelled', 'deleted', 'vanished'];
 
     protected $fillable = [
         'status',

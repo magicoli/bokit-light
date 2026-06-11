@@ -191,12 +191,12 @@ it('hides cancelled bookings by default and shows them via filters', function ()
         ->assertCanNotSeeTableRecords([$confirmed, $vanished]);
 });
 
-it('hides past and ongoing unavailable blocks from the list', function () {
+it('hides past and ongoing availability blocks from the list', function () {
     $past = Booking::create([
         'property_id' => $this->property->id,
         'unit_id' => $this->unit->id,
         'guest_name' => 'Unavailable',
-        'status' => 'unavailable',
+        'status' => 'blocked',
         'check_in' => now()->subDays(10)->format('Y-m-d'),
         'check_out' => now()->addDays(5)->format('Y-m-d'),
     ]);
@@ -204,7 +204,7 @@ it('hides past and ongoing unavailable blocks from the list', function () {
         'property_id' => $this->property->id,
         'unit_id' => $this->unit->id,
         'guest_name' => 'Unavailable',
-        'status' => 'unavailable',
+        'status' => 'blocked',
         'check_in' => now()->addDays(30)->format('Y-m-d'),
         'check_out' => now()->addDays(40)->format('Y-m-d'),
     ]);

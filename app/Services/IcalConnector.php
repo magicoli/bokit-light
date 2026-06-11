@@ -93,10 +93,12 @@ class IcalConnector implements SourceConnector
                 continue;
             }
 
-            // Past or ongoing 'unavailable' blocks are artifacts of platform
-            // booking rules (e.g. Airbnb rolling availability windows), not
-            // intentional blocks. Only future ones are meaningful.
-            if (($processed['status'] ?? '') === 'unavailable'
+            $status = $this->mapStatus($processed['status'] ?? 'undefined');
+
+            // Past or ongoing blocks are artifacts of platform booking rules
+            // (e.g. Airbnb rolling availability windows), not intentional
+            // blocks. Only future ones are meaningful.
+            if ($status === 'blocked'
                 && Carbon::parse($processed['check_in'])->lte(now()->startOfDay())) {
                 continue;
             }
@@ -108,7 +110,7 @@ class IcalConnector implements SourceConnector
                 checkIn: Carbon::parse($processed['check_in'])->format('Y-m-d'),
                 checkOut: Carbon::parse($processed['check_out'])->format('Y-m-d'),
                 guestName: $processed['guest_name'] ?? 'Guest',
-                status: $processed['status'] ?? 'undefined',
+                status: $status,
                 email: $metadata['email'] ?? null,
                 price: isset($processed['price']) ? (float) $processed['price'] : null,
                 commission: isset($processed['commission']) ? (float) $processed['commission'] : null,
@@ -123,6 +125,21 @@ class IcalConnector implements SourceConnector
         }
 
         return $bookings;
+    }
+
+    /**
+     * Map the legacy parser's statuses to Bokit's canonical statuses
+     * (see Booking::STATUSES). Platform-specific variants are not kept.
+     */
+    private function mapStatus(string $status): string
+    {
+        return match ($status) {
+            'unavailable' => 'blocked',
+            'cancelled_by_owner', 'cancelled_by_guest' => 'cancelled',
+            'request' => 'option',
+            'inquiry' => 'quote',
+            default => $status,
+        };
     }
 
     /**

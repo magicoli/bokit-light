@@ -34,22 +34,24 @@ return [
     'field.updated_at' => 'Mise à jour',
     'field.deleted_at' => 'Supprimée le',
 
-    // Status options
+    // Canonical statuses (see Booking::STATUSES)
     'status.confirmed' => 'Confirmée',
-    'status.undefined' => 'Indéfini',
-    'status.unavailable' => 'Indisponible',
-    'status.pending' => 'Demande en attente',
-    'status.request' => 'Demande (bloquante)',
-    'status.inquiry' => 'Demande d\'information',
+    'status.option' => 'Option',
+    'status.quote' => 'Devis',
+    'status.blocked' => 'Bloqué',
     'status.cancelled' => 'Annulée',
-    'status.cancelled_by_owner' => 'Annulée par le propriétaire',
-    'status.cancelled_by_guest' => 'Annulée par le client',
     'status.vanished' => 'Disparue',
     'status.deleted' => 'Supprimée',
+    'status.undefined' => 'Indéfini',
+    'status.unavailable' => 'Indisponible',
+    'status.cancelled_by_owner' => 'Annulée par le propriétaire',
+    'status.cancelled_by_guest' => 'Annulée par le client',
+
+    'tag.new' => 'Nouvelle',
 
     // Display filters
     'filter.show_cancelled' => 'Afficher les annulées',
-    'filter.show_inquiries' => 'Afficher les demandes d\'information',
+    'filter.show_quotes' => 'Afficher les devis',
     'filter.effective_only' => 'Réservations effectives uniquement',
 
     // Form sections

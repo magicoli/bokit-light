@@ -341,12 +341,16 @@ header {
         @apply bg-request;
     }
 
-    &.status-pending {
-        @apply bg-pending;
+    &.status-option {
+        @apply bg-option;
     }
 
     &.status-inquiry {
         @apply bg-inquiry;
+    }
+
+    &.status-quote {
+        @apply bg-quote;
     }
 
     &.status-unavailable {

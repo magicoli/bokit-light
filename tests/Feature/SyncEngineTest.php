@@ -576,14 +576,14 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->status)->toBe('confirmed');
     });
 
-    it('deletes auto-generated unavailable blocks when they vanish', function () {
+    it('deletes auto-generated availability blocks when they vanish', function () {
         $connector = makeEngineConnector('ical', 'ical:airbnb', [
             new NormalizedBooking(
                 externalId: 'uid-block@airbnb.com',
                 checkIn: '2027-05-01',
                 checkOut: '2027-05-10',
                 guestName: 'Unavailable',
-                status: 'unavailable',
+                status: 'blocked',
             ),
         ]);
         $this->engine->sync($this->unit, [], $connector);

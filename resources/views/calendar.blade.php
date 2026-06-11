@@ -25,7 +25,7 @@ use App\Traits\TimezoneTrait;
                    class="nav-button">
                     ‹
                 </a>
-                <a href="{{ route('calendar', array_filter(['view' => $view !== 'month' ? $view : null, 'cancelled' => $showCancelled ? 1 : null, 'inquiries' => $showInquiries ? null : 0], fn ($v) => $v !== null)) }}"
+                <a href="{{ route('calendar', array_filter(['view' => $view !== 'month' ? $view : null, 'cancelled' => $showCancelled ? 1 : null, 'quotes' => $showQuotes ? null : 0], fn ($v) => $v !== null)) }}"
                    class="nav-button today">
                     <span class="text-desktop-only">{{ __('app.today') }}</span>
                     <span class="text-mobile-only">🏠</span>
@@ -91,9 +91,9 @@ use App\Traits\TimezoneTrait;
                 {{ __('booking.filter.show_cancelled') }}
             </label>
             <label class="filter-toggle">
-                <input type="checkbox" {{ $showInquiries ? 'checked' : '' }}
-                       onchange="const p = new URLSearchParams(location.search); this.checked ? p.delete('inquiries') : p.set('inquiries', '0'); location.search = p;">
-                {{ __('booking.filter.show_inquiries') }}
+                <input type="checkbox" {{ $showQuotes ? 'checked' : '' }}
+                       onchange="const p = new URLSearchParams(location.search); this.checked ? p.delete('quotes') : p.set('quotes', '0'); location.search = p;">
+                {{ __('booking.filter.show_quotes') }}
             </label>
         </div>
     </div>
@@ -246,6 +246,9 @@ use App\Traits\TimezoneTrait;
                                         <span class="guest-name">
                                             {{ $booking->guest_name }}
                                         </span>
+                                        @if($booking->getMetadata('is_new'))
+                                        <span class="status-badge">{{ __('booking.tag.new') }}</span>
+                                        @endif
                                         @if($booking->api_source && $booking->api_source != 'beds24')
                                         <span class="badge badge-ota ota-{{ $booking->api_source }}">
                                             {{ $booking->api_source }}
@@ -297,6 +300,7 @@ use App\Traits\TimezoneTrait;
                                 <span class="status-badge"
                                       :class="'status-' + (selectedBooking.status || '') + ' bg-' + (selectedBooking.status || '')"
                                       x-text="selectedBooking.status_label"></span>
+                                <span class="status-badge bg-new" x-show="selectedBooking.metadata?.is_new">{{ __('booking.tag.new') }}</span>
                                 <span class="actions action-links">
                                     <a :href="selectedBooking.view_url" class="action-link" title="{{ __('app.view') }}">{!! icon('eye') !!}</a>
                                     <a :href="selectedBooking.edit_url" class="action-link" title="{{ __('app.edit') }}">{!! icon('edit') !!}</a>

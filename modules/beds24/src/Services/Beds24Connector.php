@@ -150,10 +150,13 @@ class Beds24Connector implements SourceConnector
             return null;
         }
 
-        // Beds24 status 4=Black (availability block) and 5=Inquiry are not bookings.
         $rawStatus = (string) ($row['status'] ?? '2');
-        if (in_array($rawStatus, ['4', '5'], true)) {
-            Log::debug("[Beds24] Skip: block/inquiry [{$unit->name}] {$checkIn} (bookId={$row['bookId']}, status={$rawStatus})");
+        $isBlock = $rawStatus === '4';
+
+        // Past or ongoing blocks (Beds24 'Black') are availability artifacts;
+        // only future ones are meaningful.
+        if ($isBlock && Carbon::parse($checkIn)->lte(now()->startOfDay())) {
+            Log::debug("[Beds24] Skip: past block [{$unit->name}] {$checkIn} (bookId={$row['bookId']})");
 
             return null;
         }
@@ -183,9 +186,10 @@ class Beds24Connector implements SourceConnector
         $price = $this->resolvePrice($row, $invoice, $isGroupMaster, $isGroupSub);
 
         // Empty placeholder rows (no guest, no money) are channel artifacts —
-        // unless they belong to a group: group rows are real occupancies even
-        // when the amounts and guest live on another booking of the group.
-        if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0 && $masterId === '') {
+        // unless they belong to a group (group rows are real occupancies even
+        // when the amounts and guest live on another booking of the group) or
+        // are blocks, which carry no guest or price by nature.
+        if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0 && $masterId === '' && ! $isBlock) {
             Log::debug("[Beds24] Skip: empty block [{$unit->name}] {$checkIn} (bookId={$row['bookId']})");
 
             return null;
@@ -197,6 +201,10 @@ class Beds24Connector implements SourceConnector
         if ($rawStatus === '3' && $isGroupSub && $masterConfirmed) {
             $status = 'confirmed';
         }
+
+        // 'New' is not a status of its own: the booking is confirmed, the
+        // tag just flags it until it is acknowledged in Beds24.
+        $isNew = $rawStatus === '2';
 
         $originHint = null;
         $referer = (string) ($row['referer'] ?? '');
@@ -212,6 +220,7 @@ class Beds24Connector implements SourceConnector
         $email = trim($row['guestEmail'] ?? $row['email'] ?? '') ?: null;
 
         $metadata = $this->buildMeta($row, $invoice);
+        $metadata['is_new'] = $isNew;
 
         if ($master !== null) {
             $groupTotal = $this->resolveGroupTotal($master);
@@ -396,14 +405,19 @@ class Beds24Connector implements SourceConnector
     }
 
     /**
-     * Beds24 v1 status codes: 0=Cancelled, 1=Confirmed, 2=New, 3=Request,
-     * 4=Black (block), 5=Inquiry. 4 and 5 are filtered out in normalize().
+     * Map Beds24 v1 status codes to Bokit's canonical statuses
+     * (see Booking::STATUSES): 0=Cancelled → cancelled, 1=Confirmed and
+     * 2=New → confirmed (New only adds the is_new metadata tag),
+     * 3=Request → option (dates blocked), 4=Black → blocked,
+     * 5=Inquiry → quote (priced but not blocking).
      */
     private function mapStatus(string $status): string
     {
         return match ($status) {
             '0' => 'cancelled',
-            '3' => 'pending',
+            '3' => 'option',
+            '4' => 'blocked',
+            '5' => 'quote',
             default => 'confirmed',
         };
     }

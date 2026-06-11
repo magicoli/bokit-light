@@ -32,10 +32,10 @@ class BookingInfolist
                             ->color(fn (string $state): string => match ($state) {
                                 'confirmed' => 'success',
                                 'undefined' => 'gray',
-                                'unavailable' => 'warning',
-                                'pending', 'request' => 'warning',
-                                'inquiry' => 'info',
-                                'cancelled', 'cancelled_by_owner', 'cancelled_by_guest', 'deleted', 'vanished' => 'danger',
+                                'option' => 'warning',
+                                'quote' => 'info',
+                                'blocked', 'unavailable' => 'warning',
+                                'cancelled', 'deleted', 'vanished' => 'danger',
                                 default => 'gray',
                             }),
 

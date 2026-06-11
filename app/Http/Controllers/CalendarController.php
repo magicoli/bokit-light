@@ -78,13 +78,13 @@ class CalendarController extends Controller
         }
 
         // Display filters: cancelled bookings are hidden by default,
-        // inquiries (non-blocking requests) are shown by default
+        // quotes (priced but not blocking) are shown by default
         $showCancelled = $request->boolean('cancelled');
-        $showInquiries = $request->boolean('inquiries', true);
+        $showQuotes = $request->boolean('quotes', true);
 
         $hiddenStatuses = $showCancelled ? [] : Booking::CANCELLED_STATUSES;
-        if (! $showInquiries) {
-            $hiddenStatuses[] = 'inquiry';
+        if (! $showQuotes) {
+            $hiddenStatuses[] = 'quote';
         }
 
         // Load properties with their units and bookings
@@ -119,10 +119,10 @@ class CalendarController extends Controller
             'displayTimezone' => $tzString,
             'displayTimezoneShort' => $tzShort,
             'showCancelled' => $showCancelled,
-            'showInquiries' => $showInquiries,
+            'showQuotes' => $showQuotes,
             // Non-default filter params, appended to navigation links
             'filterQuery' => ($showCancelled ? '&cancelled=1' : '')
-                .($showInquiries ? '' : '&inquiries=0'),
+                .($showQuotes ? '' : '&quotes=0'),
         ]);
     }
 
@@ -159,9 +159,11 @@ class CalendarController extends Controller
         $rawPrice = fn (Booking $b): ?float => $b->getRawOriginal('price') !== null
             ? (float) $b->getRawOriginal('price')
             : null;
-        $paidOf = fn (Booking $b): ?float => $b->getMetadata('invoice_payment_total') !== null
-            ? (float) $b->getMetadata('invoice_payment_total')
-            : null;
+        $paidOf = function (Booking $b): ?float {
+            $paid = $b->getMetadata('invoice_payment_total') ?? $b->getMetadata('paid');
+
+            return $paid !== null ? (float) $paid : null;
+        };
 
         if ($booking->isCancelled()) {
             // No money is expected from a cancelled booking — hide amounts.

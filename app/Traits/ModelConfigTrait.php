@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Casts\Password;
 use Exception;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
@@ -279,7 +280,7 @@ trait ModelConfigTrait
                 $cast = $defaults['casts'][$fieldName];
 
                 // Convert custom cast classes to simple types
-                if ($cast === \App\Casts\Password::class || $cast === 'App\Casts\Password') {
+                if ($cast === Password::class || $cast === 'App\Casts\Password') {
                     $field['type'] = 'password';
                 } else {
                     // Use cast as-is, the switch will handle it later
@@ -381,13 +382,13 @@ trait ModelConfigTrait
             case 'cancelled':
                 $icon_name = 'eye-off';
                 break;
-            case 'request':
-            case 'inquiry':
+            case 'quote':
                 $icon_name = 'question';
                 break;
-            case 'pending':
+            case 'option':
                 $icon_name = 'hourglass-empty';
                 break;
+            case 'blocked':
             case 'unavailable':
                 $icon_name = 'lock';
                 break;

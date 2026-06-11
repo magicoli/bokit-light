@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\WpConnector\Services\WpConnectorService;
 
@@ -139,6 +140,7 @@ class HbookImportCommand extends Command
             if ($uid === null) {
                 $this->warn('  Skip: missing hbook_uid in row (hbook id='.($row['id'] ?? '?').')');
                 $skipped++;
+
                 continue;
             }
             $byUid[$uid][] = $row;
@@ -152,6 +154,7 @@ class HbookImportCommand extends Command
                 // No direct hb_resa row — orphaned blocked entries, skip.
                 $this->warn("  Skip: no parent hb_resa row for uid={$hbookUid}");
                 $skipped++;
+
                 continue;
             }
 
@@ -185,6 +188,7 @@ class HbookImportCommand extends Command
                     $label = $partOneRow['unit'] ?? $partOneUnitId;
                     $this->line("  Skip: unmapped uid={$hbookUid} unit={$partOneUnitId} [{$label}]");
                     $skipped++;
+
                     continue;
                 }
 
@@ -211,7 +215,7 @@ class HbookImportCommand extends Command
         array $unitMap,
         string $hbookUid,
         array $row,
-        \Illuminate\Support\Carbon $now,
+        Carbon $now,
         bool $dryRun,
     ): array {
         $unitId = $row['unit_id'] ?? null;
@@ -297,7 +301,7 @@ class HbookImportCommand extends Command
         array $unitMap,
         string $hbookUid,
         array $group,
-        \Illuminate\Support\Carbon $now,
+        Carbon $now,
         bool $dryRun,
     ): array {
         $created = 0;
@@ -407,6 +411,7 @@ class HbookImportCommand extends Command
                 $label = $row['unit'] ?? $unitId ?? '?';
                 $this->warn("  Skip group member: no unit mapped to '{$unitId}' [{$label}] (uid={$uid})");
                 $skipped++;
+
                 continue;
             }
 
@@ -545,20 +550,19 @@ class HbookImportCommand extends Command
     private function buildMeta(array $row): array
     {
         return array_filter([
-            'hbook_id'    => $row['id'] ?? null,
-            'hbook_uid'   => $row['hbook_uid'] ?? null,
-            'email'       => $row['guest_email'] ?? null,
-            'phone'       => $row['guest_phone'] ?? null,
-            'deposit'     => $row['deposit'] ?? null,
-            'paid'        => $row['paid'] ?? null,
+            'hbook_id' => $row['id'] ?? null,
+            'hbook_uid' => $row['hbook_uid'] ?? null,
+            'email' => $row['guest_email'] ?? null,
+            'phone' => $row['guest_phone'] ?? null,
+            'deposit' => $row['deposit'] ?? null,
+            'paid' => $row['paid'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
     }
 
     private function mapStatus(string $status): string
     {
         return match ($status) {
-            'confirmed' => 'confirmed',
-            'pending' => 'pending',
+            'pending' => 'option',
             'cancelled' => 'cancelled',
             default => 'confirmed',
         };

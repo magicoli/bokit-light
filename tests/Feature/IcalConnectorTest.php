@@ -115,7 +115,7 @@ describe('IcalConnector', function () {
 
         expect($bookings)->toHaveCount(1)
             ->and($bookings[0]->externalId)->toBe('uid-future-block@airbnb.com')
-            ->and($bookings[0]->status)->toBe('unavailable');
+            ->and($bookings[0]->status)->toBe('blocked');
     });
 
     it('declares a Beds24 origin hint when the UID embeds a beds24 booking id', function () {

@@ -34,22 +34,24 @@ return [
     'field.updated_at' => 'Updated',
     'field.deleted_at' => 'Deleted',
 
-    // Status options
+    // Canonical statuses (see Booking::STATUSES)
     'status.confirmed' => 'Confirmed',
-    'status.undefined' => 'Undefined',
-    'status.unavailable' => 'Unavailable',
-    'status.pending' => 'Pending request',
-    'status.request' => 'Request',
-    'status.inquiry' => 'Inquiry',
+    'status.option' => 'Option',
+    'status.quote' => 'Quote',
+    'status.blocked' => 'Blocked',
     'status.cancelled' => 'Cancelled',
-    'status.cancelled_by_owner' => 'Cancelled by owner',
-    'status.cancelled_by_guest' => 'Cancelled by guest',
     'status.vanished' => 'Vanished',
     'status.deleted' => 'Deleted',
+    'status.undefined' => 'Undefined',
+    'status.unavailable' => 'Unavailable',
+    'status.cancelled_by_owner' => 'Cancelled by owner',
+    'status.cancelled_by_guest' => 'Cancelled by guest',
+
+    'tag.new' => 'New',
 
     // Display filters
     'filter.show_cancelled' => 'Show cancelled',
-    'filter.show_inquiries' => 'Show inquiries',
+    'filter.show_quotes' => 'Show quotes',
     'filter.effective_only' => 'Effective bookings only',
 
     // Form sections

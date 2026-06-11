@@ -35,12 +35,7 @@ use Illuminate\Support\Facades\Log;
  */
 class SyncEngine
 {
-    private const CANCELLED_STATUSES = [
-        'cancelled',
-        'cancelled_by_owner',
-        'cancelled_by_guest',
-        'deleted',
-    ];
+    private const CANCELLED_STATUSES = Booking::CANCELLED_STATUSES;
 
     private const PLACEHOLDER_GUEST_NAMES = ['Guest', 'Unknown Guest', ''];
 
@@ -425,10 +420,10 @@ class SyncEngine
             $changes['guest_name'] = $normalized->guestName;
         }
 
-        // Never downgrade confirmed → pending, never overwrite with undefined.
+        // Never downgrade confirmed → option, never overwrite with undefined.
         if ($normalized->status !== 'undefined'
             && $booking->status !== $normalized->status
-            && ! ($booking->status === 'confirmed' && $normalized->status === 'pending')) {
+            && ! ($booking->status === 'confirmed' && $normalized->status === 'option')) {
             $changes['status'] = $normalized->status;
         }
 
@@ -493,7 +488,7 @@ class SyncEngine
 
     /**
      * Handle bookings this source used to report but no longer does.
-     * Origin: mark vanished (or delete auto-generated unavailable blocks).
+     * Origin: mark vanished (or delete auto-generated availability blocks).
      * Non-origin: just detach the reference, the booking lives on.
      */
     private function handleVanished(Unit $unit, string $sourceKey, array $seenIds, array &$stats): void
@@ -504,7 +499,7 @@ class SyncEngine
             ->whereHas('booking', function ($query) use ($unit) {
                 $query->where('unit_id', $unit->id)
                     ->where('check_out', '>=', now()->format('Y-m-d'))
-                    ->whereNotIn('status', [...self::CANCELLED_STATUSES, 'vanished']);
+                    ->whereNotIn('status', self::CANCELLED_STATUSES);
             })
             ->with('booking')
             ->get();
@@ -518,7 +513,7 @@ class SyncEngine
                 continue;
             }
 
-            if ($booking->status === 'unavailable') {
+            if ($booking->status === 'blocked') {
                 $booking->delete();
                 $stats['deleted']++;
             } else {

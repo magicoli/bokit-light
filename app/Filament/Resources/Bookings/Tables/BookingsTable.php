@@ -42,11 +42,11 @@ class BookingsTable
             // Group reservations show a single row: the group master (or the
             // oldest member as fallback) represents the group; aggregate
             // columns are selected as subqueries so display and sorting use
-            // the group totals. Past or ongoing 'unavailable' blocks are
-            // platform artifacts and stay hidden.
+            // the group totals. Past or ongoing 'blocked' rows are platform
+            // artifacts and stay hidden.
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
                 ->where(function (Builder $q): void {
-                    $q->where('status', '!=', 'unavailable')
+                    $q->where('status', '!=', 'blocked')
                         ->orWhere('check_in', '>', now()->format('Y-m-d'));
                 })
                 ->where(function (Builder $q): void {
@@ -197,16 +197,13 @@ class BookingsTable
     {
         return [
             'confirmed' => __('booking.status.confirmed'),
-            'undefined' => __('booking.status.undefined'),
-            'unavailable' => __('booking.status.unavailable'),
-            'pending' => __('booking.status.pending'),
-            'request' => __('booking.status.request'),
-            'inquiry' => __('booking.status.inquiry'),
+            'option' => __('booking.status.option'),
+            'quote' => __('booking.status.quote'),
+            'blocked' => __('booking.status.blocked'),
             'cancelled' => __('booking.status.cancelled'),
-            'cancelled_by_owner' => __('booking.status.cancelled_by_owner'),
-            'cancelled_by_guest' => __('booking.status.cancelled_by_guest'),
             'vanished' => __('booking.status.vanished'),
             'deleted' => __('booking.status.deleted'),
+            'undefined' => __('booking.status.undefined'),
         ];
     }
 }

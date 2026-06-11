@@ -94,8 +94,24 @@ describe('Beds24Connector', function () {
         'cancelled' => ['0', 'cancelled'],
         'confirmed' => ['1', 'confirmed'],
         'new' => ['2', 'confirmed'],
-        'request' => ['3', 'pending'],
+        'request' => ['3', 'option'],
+        'black' => ['4', 'blocked'],
+        'inquiry' => ['5', 'quote'],
     ]);
+
+    it('tags New bookings with is_new metadata while keeping them confirmed', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '2', 'guestName' => 'Fresh Guest', 'price' => '100'],
+            ['bookId' => '2', 'roomId' => '42', 'firstNight' => '2027-01-05', 'lastNight' => '2027-01-06', 'status' => '1', 'guestName' => 'Old Guest', 'price' => '100'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings[0]->status)->toBe('confirmed')
+            ->and($bookings[0]->metadata['is_new'])->toBeTrue()
+            ->and($bookings[1]->status)->toBe('confirmed')
+            ->and($bookings[1]->metadata['is_new'])->toBeFalse();
+    });
 
     it('sets an origin hint for iCal-imported bookings, trimming the uid', function () {
         $connector = makeBeds24Connector([
@@ -123,17 +139,23 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->claimsOrigin)->toBeFalse();
     });
 
-    it('skips availability blocks and rows from other rooms', function () {
+    it('imports future blocks, skips past blocks and rows from other rooms', function () {
+        $past = now()->subDays(10)->format('Y-m-d');
         $connector = makeBeds24Connector([
-            ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '4', 'guestName' => 'Block'],
+            // Future Black block: imported as 'blocked' even without guest or price.
+            ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '4'],
+            // Past Black block: availability artifact, skipped.
+            ['bookId' => '4', 'roomId' => '42', 'firstNight' => $past, 'lastNight' => $past, 'status' => '4'],
             ['bookId' => '2', 'roomId' => '99', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '2', 'guestName' => 'OtherRoom'],
             ['bookId' => '3', 'roomId' => '42', 'firstNight' => '2027-01-05', 'lastNight' => '2027-01-06', 'status' => '2', 'guestName' => 'Keeper', 'price' => '100'],
         ]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
 
-        expect($bookings)->toHaveCount(1)
-            ->and($bookings[0]->externalId)->toBe('3');
+        expect($bookings)->toHaveCount(2)
+            ->and($bookings[0]->externalId)->toBe('1')
+            ->and($bookings[0]->status)->toBe('blocked')
+            ->and($bookings[1]->externalId)->toBe('3');
     });
 
     it('skips empty placeholder rows with no guest and no money', function () {
@@ -163,7 +185,7 @@ describe('Beds24Connector', function () {
             ->and($sub->groupId)->toBe('100');
     });
 
-    it('keeps group sub-bookings pending when the master is not confirmed', function () {
+    it('keeps group sub-bookings as options when the master is not confirmed', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3', 'guestName' => 'Groupe Peeva', 'price' => '9600'],
             ['bookId' => '101', 'masterId' => '100', 'roomId' => '42', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3', 'price' => '4800'],
@@ -172,7 +194,7 @@ describe('Beds24Connector', function () {
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
 
         expect($bookings)->toHaveCount(1)
-            ->and($bookings[0]->status)->toBe('pending')
+            ->and($bookings[0]->status)->toBe('option')
             ->and($bookings[0]->guestName)->toBe('Groupe Peeva');
     });
 
