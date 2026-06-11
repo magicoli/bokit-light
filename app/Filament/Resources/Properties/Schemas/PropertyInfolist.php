@@ -12,19 +12,19 @@ class PropertyInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('slug'),
-                TextEntry::make('name'),
-                TextEntry::make('options')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
                 IconEntry::make('is_active')
                     ->boolean(),
+                TextEntry::make('slug'),
+                // TextEntry::make('name'),
+                // TextEntry::make('options')
+                //     ->placeholder('-')
+                //     ->columnSpanFull(),
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-            ]);
+                // TextEntry::make('updated_at')
+                //     ->dateTime()
+                //     ->placeholder('-'),
+            ])->columns(3);
     }
 }
