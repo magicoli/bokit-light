@@ -55,7 +55,7 @@ if (!function_exists("isLocal")) {
 function localAppName($appName = ""): string
 {
 	$appName = $appName ?: "Bokit";
-	if (!isLocal()) {
+	if (env("APP_ENV", "production") == "production") {
 		return $appName;
 	}
 	$hostname = $_SERVER["HTTP_HOST"] ?? "localhost";
