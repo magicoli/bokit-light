@@ -2,35 +2,16 @@
 
 namespace App\Traits;
 
-use App\Filament\Support\DynamicTable;
-use App\Filament\Resources\Bookings\Tables\BookingsTable;
-
 use App\Models\Booking;
-use App\Models\Unit;
-use App\Traits\AdminResourceTrait;
-use App\Traits\TimezoneTrait;
-
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Enums\RecordActionsPosition;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 
 trait GroupedBookings
 {
     // use AdminResourceTrait;
     // use SoftDeletes;
     // use TimezoneTrait;
-
 
     private const LANG = 'booking';
 
@@ -46,6 +27,19 @@ trait GroupedBookings
     private static function cancelledList(): string
     {
         return "'".implode("','", Booking::CANCELLED_STATUSES)."'";
+    }
+
+    /**
+     * One row per group reservation: ungrouped bookings pass through, each
+     * group is represented by a single member (non-cancelled first, master
+     * preferred, oldest as fallback).
+     */
+    private static function groupRepresentatives(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q): void {
+            $q->whereNull('group_id')
+                ->orWhereRaw('bookings.id = (select m.id from bookings m where m.group_id = bookings.group_id and m.deleted_at is null order by (m.status not in ('.self::cancelledList().")) desc, (m.uid = 'beds24-' || m.group_id) desc, m.id limit 1)");
+        });
     }
 
     /**
@@ -78,5 +72,4 @@ trait GroupedBookings
             ->sortable(query: fn (Builder $query, string $direction): Builder => $query
                 ->orderByRaw('coalesce((select sum(m.'.$field.') from bookings m where '.self::activeMember()."), {$field}) {$direction}"));
     }
-
 }

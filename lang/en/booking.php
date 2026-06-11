@@ -54,6 +54,12 @@ return [
     'title.units' => ':count unit|:count units',
     'title.dates' => 'from :from to :to',
 
+    // Dashboard widgets
+    'widget.ongoing' => 'Ongoing stays',
+    'widget.upcoming' => 'Upcoming stays',
+    'widget.options' => 'Pending options',
+    'widget.quotes' => 'Pending quotes',
+
     // Display filters
     'filter.show_cancelled' => 'Show cancelled',
     'filter.show_quotes' => 'Show quotes',

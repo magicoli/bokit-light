@@ -14,13 +14,13 @@ trait TimezoneTrait
      * Get cached HTML <option> elements for all timezones
      * Used in select dropdowns across the app (User, Property, Unit, etc.)
      *
-     * @param string|null $selected Currently selected timezone
+     * @param  string|null  $selected  Currently selected timezone
      * @return string HTML options
      */
     public static function timezoneOptionsHtml(?string $selected = null): string
     {
         // Generate cache key including selected value to cache different states
-        $cacheKey = "timezone_options_html";
+        $cacheKey = 'timezone_options_html';
 
         // Get base HTML (without selection) from cache
         $baseHtml = Cache::remember($cacheKey, 86400 * 30, function () {
@@ -33,21 +33,23 @@ trait TimezoneTrait
                     e($timezone),
                 );
             }
+
             return implode("\n", $options);
         });
 
         // If no selection needed, return cached HTML as-is
-        if (!$selected) {
+        if (! $selected) {
             return $baseHtml;
         }
 
         // Add 'selected' attribute to the correct option
         return str_replace(
-            'value="' . e($selected) . '"',
-            'value="' . e($selected) . '" selected',
+            'value="'.e($selected).'"',
+            'value="'.e($selected).'" selected',
             $baseHtml,
         );
     }
+
     /**
      * Get the timezone for this model
      *
@@ -64,10 +66,10 @@ trait TimezoneTrait
     {
         // Check if model has its own timezone column
         if (
-            isset($this->attributes["timezone"]) &&
-            !empty($this->attributes["timezone"])
+            isset($this->attributes['timezone']) &&
+            ! empty($this->attributes['timezone'])
         ) {
-            $tzString = $this->attributes["timezone"];
+            $tzString = $this->attributes['timezone'];
         } else {
             $tzString = self::defaultTimezone($short);
         }
@@ -81,30 +83,31 @@ trait TimezoneTrait
 
     public static function defaultTimezone($short = false): string
     {
-        $tzString = Options::get("timezone", config("app.timezone", "UTC"));
+        $tzString = Options::get('timezone', config('app.timezone', 'UTC'));
         if ($short) {
             $tzString = self::timezoneShort($tzString);
         }
+
         return $tzString;
     }
 
     public static function timezoneShort($tzString): string
     {
         $dt = new DateTime(null, new DateTimeZone($tzString));
-        return $dt->format("T");
+
+        return $dt->format('T');
     }
 
     /**
      * Format a date for display in this model's timezone
      *
-     * @param Carbon|string $date
-     * @param string $format Use 'long', 'short', 'date', 'time', or Carbon format string
-     * @param bool $showTimezone Whether to append timezone indicator
-     * @return string
+     * @param  Carbon|string  $date
+     * @param  string  $format  Use 'long', 'short', 'date', 'time', or Carbon format string
+     * @param  bool  $showTimezone  Whether to append timezone indicator
      */
     public function formatDate(
         $date,
-        string $format = "d/m/Y",
+        string $format = 'd/m/Y',
         bool $showTimezone = false,
     ): string {
         if (is_string($date)) {
@@ -115,23 +118,23 @@ trait TimezoneTrait
 
         // Predefined formats using locale
         $formatted = match ($format) {
-            "long" => $date->translatedFormat(
-                "l j F Y H:i",
+            'long' => $date->translatedFormat(
+                'l j F Y H:i',
             ), // Monday 21 December 2025 20:30
-            "short" => $date->translatedFormat("d/m/y H:i"), // 21/12/2025 20:30
-            "medium" => $date->translatedFormat(
-                "J  M Y H:i",
+            'short' => $date->translatedFormat('d/m/y H:i'), // 21/12/2025 20:30
+            'medium' => $date->translatedFormat(
+                'J  M Y H:i',
             ), // 21/12/2025 20:30
-            "date" => $date->translatedFormat("j F Y"), // 21 December 2025
-            "date_short" => $date->translatedFormat("d/m/y"), // 21/12/25
-            "time" => $date->format("H:i"), // 20:30
-            "day" => $date->translatedFormat("l j F"), // Monday 21 December
-            "month" => $date->translatedFormat("F Y"), // December 2025
+            'date' => $date->translatedFormat('j F Y'), // 21 December 2025
+            'date_short' => $date->translatedFormat('d/m/y'), // 21/12/25
+            'time' => $date->format('H:i'), // 20:30
+            'day' => $date->translatedFormat('l j F'), // Monday 21 December
+            'month' => $date->translatedFormat('F Y'), // December 2025
             default => $date->format($format), // Custom format
         };
 
         if ($showTimezone) {
-            $formatted .= " (" . $this->timezone() . ")";
+            $formatted .= ' ('.$this->timezone().')';
         }
 
         return $formatted;
@@ -140,14 +143,13 @@ trait TimezoneTrait
     /**
      * Format a datetime for display (alias with different default)
      *
-     * @param Carbon|string $date
-     * @param string $format Use 'long', 'short', or Carbon format string
-     * @param bool $showTimezone Whether to append timezone indicator
-     * @return string
+     * @param  Carbon|string  $date
+     * @param  string  $format  Use 'long', 'short', or Carbon format string
+     * @param  bool  $showTimezone  Whether to append timezone indicator
      */
     public function formatDateTime(
         $date,
-        string $format = "d/m/Y H:i",
+        string $format = 'd/m/Y H:i',
         bool $showTimezone = false,
     ): string {
         return $this->formatDate($date, $format, $showTimezone);
@@ -156,16 +158,15 @@ trait TimezoneTrait
     /**
      * Format a date range intelligently based on context
      *
-     * @param Carbon $start
-     * @param Carbon $end
-     * @param string|bool $format 'short', 'medium', 'long', or boolean (false=long, true=short)
-     * @return string
+     * @param  Carbon  $start
+     * @param  Carbon  $end
+     * @param  string|bool  $format  'short', 'medium', 'long', or boolean (false=long, true=short)
      */
-    public static function dateRange($start, $end, $format = "long"): string
+    public static function dateRange($start, $end, $format = 'long'): string
     {
         // Handle boolean format
         if (is_bool($format)) {
-            $format = $format ? "short" : "long";
+            $format = $format ? 'short' : 'long';
         }
 
         $sameMonth =
@@ -173,13 +174,13 @@ trait TimezoneTrait
         $sameYear = $start->year === $end->year;
 
         return match ($format) {
-            "short" => self::dateRangeShort(
+            'short' => self::dateRangeShort(
                 $start,
                 $end,
                 $sameMonth,
                 $sameYear,
             ),
-            "medium" => self::dateRangeMedium(
+            'medium' => self::dateRangeMedium(
                 $start,
                 $end,
                 $sameMonth,
@@ -195,6 +196,24 @@ trait TimezoneTrait
     }
 
     /**
+     * Numeric range parts with progressive precision, to compose compact
+     * ranges like "du 01 au 10/06/2026", "du 25/06 au 10/07/2026" or
+     * "du 25/12/2026 au 10/01/2027".
+     *
+     * @return array{string, string}
+     */
+    public static function dateRangeNumericParts($start, $end): array
+    {
+        $sameYear = $start->year === $end->year;
+        $sameMonth = $sameYear && $start->month === $end->month;
+
+        return [
+            $start->format($sameMonth ? 'd' : ($sameYear ? 'd/m' : 'd/m/Y')),
+            $end->format('d/m/Y'),
+        ];
+    }
+
+    /**
      * Short format: 21-28/12 or 29/12-04/01
      */
     private static function dateRangeShort(
@@ -205,14 +224,14 @@ trait TimezoneTrait
     ): string {
         if ($sameMonth) {
             // 21-28/12
-            return $start->translatedFormat("j") .
-                "-" .
-                $end->translatedFormat("j/m");
+            return $start->translatedFormat('j').
+                '-'.
+                $end->translatedFormat('j/m');
         } else {
             // 29/12-04/01
-            return $start->translatedFormat("j/m") .
-                "-" .
-                $end->translatedFormat("j/m");
+            return $start->translatedFormat('j/m').
+                '-'.
+                $end->translatedFormat('j/m');
         }
     }
 
@@ -227,19 +246,19 @@ trait TimezoneTrait
     ): string {
         if ($sameMonth) {
             // 21 - 28 Dec 2025
-            return $start->translatedFormat("j") .
-                " - " .
-                $end->translatedFormat("j M Y");
+            return $start->translatedFormat('j').
+                ' - '.
+                $end->translatedFormat('j M Y');
         } elseif ($sameYear) {
             // 29 Dec 2025 - 4 Jan
-            return $start->translatedFormat("j M Y") .
-                " - " .
-                $end->translatedFormat("j M");
+            return $start->translatedFormat('j M Y').
+                ' - '.
+                $end->translatedFormat('j M');
         } else {
             // 29 Dec 2025 - 4 Jan 2026
-            return $start->translatedFormat("j M Y") .
-                " - " .
-                $end->translatedFormat("j M Y");
+            return $start->translatedFormat('j M Y').
+                ' - '.
+                $end->translatedFormat('j M Y');
         }
     }
 
@@ -254,23 +273,23 @@ trait TimezoneTrait
     ): string {
         if ($sameMonth) {
             // 21 - 28 December 2025
-            return $start->translatedFormat("j") .
-                " - " .
-                $end->translatedFormat("j F Y");
+            return $start->translatedFormat('j').
+                ' - '.
+                $end->translatedFormat('j F Y');
         } elseif ($sameYear) {
             // 29 December 2025 - 4 January
-            return $start->translatedFormat("j F Y") .
-                " - " .
-                $end->translatedFormat("j F");
+            return $start->translatedFormat('j F Y').
+                ' - '.
+                $end->translatedFormat('j F');
         } else {
             // 29 December 2025 - 4 January 2026
-            return $start->translatedFormat("j F Y") .
-                " - " .
-                $end->translatedFormat("j F Y");
+            return $start->translatedFormat('j F Y').
+                ' - '.
+                $end->translatedFormat('j F Y');
         }
     }
 
-    function fixTimezone($date): string
+    public function fixTimezone($date): string
     {
         if (is_string($date)) {
             $date = Carbon::parse($date);
@@ -279,9 +298,9 @@ trait TimezoneTrait
         return $date->shiftTimezone($this->timezone());
     }
 
-    function shiftAndFormat(
+    public function shiftAndFormat(
         $date,
-        string $format = "c",
+        string $format = 'c',
         bool $showTimezone = false,
     ): string {
         if (is_string($date)) {
@@ -289,6 +308,7 @@ trait TimezoneTrait
         }
 
         $date = $date->shiftTimezone($this->timezone());
+
         return $this->formatDate($date, $format, $showTimezone);
     }
 }

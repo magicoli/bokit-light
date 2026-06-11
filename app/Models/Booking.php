@@ -206,9 +206,11 @@ class Booking extends Model
                     $guests > 0 ? $guests.'p' : null,
                 ]);
 
+                [$fromPart, $toPart] = self::dateRangeNumericParts($from, $to);
+
                 return implode(', ', $parts).' '.__('booking.title.dates', [
-                    'from' => $from->format('d/m/Y'),
-                    'to' => $to->format('d/m/Y'),
+                    'from' => $fromPart,
+                    'to' => $toPart,
                 ]);
             },
         );

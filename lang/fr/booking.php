@@ -54,6 +54,12 @@ return [
     'title.units' => ':count unité|:count unités',
     'title.dates' => 'du :from au :to',
 
+    // Dashboard widgets
+    'widget.ongoing' => 'Séjours en cours',
+    'widget.upcoming' => 'Séjours à venir',
+    'widget.options' => 'Options en attente',
+    'widget.quotes' => 'Offres en attente',
+
     // Display filters
     'filter.show_cancelled' => 'Afficher les annulées',
     'filter.show_quotes' => 'Afficher les devis',

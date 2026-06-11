@@ -1,0 +1,159 @@
+<?php
+
+use App\Filament\Widgets\BookingsOngoing;
+use App\Filament\Widgets\BookingsOptions;
+use App\Filament\Widgets\BookingsQuotes;
+use App\Filament\Widgets\BookingsUpcoming;
+use App\Models\Booking;
+use App\Models\Property;
+use App\Models\Unit;
+use App\Models\User;
+use Filament\Facades\Filament;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->admin = User::create([
+        'name' => 'Admin',
+        'email' => 'admin@test.local',
+        'password' => 'password',
+        'is_admin' => true,
+    ]);
+
+    $this->property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
+    $this->unit = Unit::create(['property_id' => $this->property->id, 'name' => 'Zetoil', 'slug' => 'zetoil', 'is_active' => true]);
+
+    $this->actingAs($this->admin);
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+    $this->makeBooking = fn (array $attributes): Booking => Booking::create(array_merge([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Guest',
+        'status' => 'confirmed',
+    ], $attributes));
+});
+
+it('lists ongoing stays ordered by departure', function () {
+    $leavingSoon = ($this->makeBooking)([
+        'guest_name' => 'Leaving Soon',
+        'check_in' => now()->subDays(5)->format('Y-m-d'),
+        'check_out' => now()->addDays(2)->format('Y-m-d'),
+    ]);
+    $leavingLater = ($this->makeBooking)([
+        'guest_name' => 'Leaving Later',
+        'check_in' => now()->subDays(2)->format('Y-m-d'),
+        'check_out' => now()->addDays(9)->format('Y-m-d'),
+    ]);
+    $upcoming = ($this->makeBooking)([
+        'guest_name' => 'Not Here Yet',
+        'check_in' => now()->addDays(5)->format('Y-m-d'),
+        'check_out' => now()->addDays(10)->format('Y-m-d'),
+    ]);
+    $past = ($this->makeBooking)([
+        'guest_name' => 'Long Gone',
+        'check_in' => now()->subDays(20)->format('Y-m-d'),
+        'check_out' => now()->subDays(10)->format('Y-m-d'),
+    ]);
+
+    Livewire::test(BookingsOngoing::class)
+        ->assertCanSeeTableRecords([$leavingSoon, $leavingLater], inOrder: true)
+        ->assertCanNotSeeTableRecords([$upcoming, $past]);
+});
+
+it('lists upcoming stays ordered by arrival', function () {
+    $arrivingLater = ($this->makeBooking)([
+        'guest_name' => 'Arriving Later',
+        'check_in' => now()->addDays(20)->format('Y-m-d'),
+        'check_out' => now()->addDays(25)->format('Y-m-d'),
+    ]);
+    $arrivingSoon = ($this->makeBooking)([
+        'guest_name' => 'Arriving Soon',
+        'check_in' => now()->addDays(3)->format('Y-m-d'),
+        'check_out' => now()->addDays(8)->format('Y-m-d'),
+    ]);
+    $ongoing = ($this->makeBooking)([
+        'guest_name' => 'Already Here',
+        'check_in' => now()->subDays(2)->format('Y-m-d'),
+        'check_out' => now()->addDays(2)->format('Y-m-d'),
+    ]);
+
+    Livewire::test(BookingsUpcoming::class)
+        ->assertCanSeeTableRecords([$arrivingSoon, $arrivingLater], inOrder: true)
+        ->assertCanNotSeeTableRecords([$ongoing]);
+});
+
+it('lists pending options by modification date, newest first', function () {
+    $old = ($this->makeBooking)([
+        'guest_name' => 'Old Option',
+        'status' => 'option',
+        'check_in' => now()->addDays(30)->format('Y-m-d'),
+        'check_out' => now()->addDays(35)->format('Y-m-d'),
+    ]);
+    $old->timestamps = false;
+    $old->forceFill(['updated_at' => now()->subDays(10)])->save();
+
+    $fresh = ($this->makeBooking)([
+        'guest_name' => 'Fresh Option',
+        'status' => 'option',
+        'check_in' => now()->addDays(40)->format('Y-m-d'),
+        'check_out' => now()->addDays(45)->format('Y-m-d'),
+    ]);
+    $expired = ($this->makeBooking)([
+        'guest_name' => 'Expired Option',
+        'status' => 'option',
+        'check_in' => now()->subDays(20)->format('Y-m-d'),
+        'check_out' => now()->subDays(15)->format('Y-m-d'),
+    ]);
+    $confirmed = ($this->makeBooking)([
+        'guest_name' => 'Confirmed Guest',
+        'check_in' => now()->addDays(30)->format('Y-m-d'),
+        'check_out' => now()->addDays(35)->format('Y-m-d'),
+    ]);
+
+    Livewire::test(BookingsOptions::class)
+        ->assertCanSeeTableRecords([$fresh, $old], inOrder: true)
+        ->assertCanNotSeeTableRecords([$expired, $confirmed]);
+});
+
+it('lists pending quotes by modification date', function () {
+    $quote = ($this->makeBooking)([
+        'guest_name' => 'Quote Guest',
+        'status' => 'quote',
+        'check_in' => now()->addDays(30)->format('Y-m-d'),
+        'check_out' => now()->addDays(35)->format('Y-m-d'),
+    ]);
+    $option = ($this->makeBooking)([
+        'guest_name' => 'Option Guest',
+        'status' => 'option',
+        'check_in' => now()->addDays(30)->format('Y-m-d'),
+        'check_out' => now()->addDays(35)->format('Y-m-d'),
+    ]);
+
+    Livewire::test(BookingsQuotes::class)
+        ->assertCanSeeTableRecords([$quote])
+        ->assertCanNotSeeTableRecords([$option]);
+});
+
+it('shows one row per group reservation', function () {
+    $master = ($this->makeBooking)([
+        'guest_name' => 'Groupe Kervella',
+        'check_in' => now()->subDays(1)->format('Y-m-d'),
+        'check_out' => now()->addDays(5)->format('Y-m-d'),
+        'group_id' => 777,
+    ]);
+    $unit2 = Unit::create(['property_id' => $this->property->id, 'name' => 'Moon', 'slug' => 'moon', 'is_active' => true]);
+    $member = ($this->makeBooking)([
+        'guest_name' => 'Groupe Kervella',
+        'unit_id' => $unit2->id,
+        'check_in' => now()->subDays(1)->format('Y-m-d'),
+        'check_out' => now()->addDays(5)->format('Y-m-d'),
+        'group_id' => 777,
+    ]);
+
+    Livewire::test(BookingsOngoing::class)
+        ->assertCanSeeTableRecords([$master])
+        ->assertCanNotSeeTableRecords([$member]);
+});

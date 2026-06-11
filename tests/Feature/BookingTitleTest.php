@@ -24,7 +24,7 @@ it('builds the one-line title for a single booking', function () {
         'children' => 1,
     ]);
 
-    expect($booking->title)->toBe('Gudule Lapointe, Zetoil, 4p from 08/07/2026 to 11/07/2026');
+    expect($booking->title)->toBe('Gudule Lapointe, Zetoil, 4p from 08 to 11/07/2026');
 });
 
 it('omits the guest count when unknown', function () {
@@ -37,7 +37,7 @@ it('omits the guest count when unknown', function () {
         'check_out' => '2026-07-11',
     ]);
 
-    expect($booking->title)->toBe('Sans Compte, Zetoil from 08/07/2026 to 11/07/2026');
+    expect($booking->title)->toBe('Sans Compte, Zetoil from 08 to 11/07/2026');
 });
 
 it('aggregates units, guests and the date span for group reservations', function () {
@@ -75,7 +75,7 @@ it('aggregates units, guests and the date span for group reservations', function
         'group_id' => 555,
     ]);
 
-    expect($master->title)->toBe('Groupe Kervella, 2 units, 15p from 01/10/2026 to 09/10/2026');
+    expect($master->title)->toBe('Groupe Kervella, 2 units, 15p from 01 to 09/10/2026');
 });
 
 it('translates the title in french', function () {
@@ -91,5 +91,22 @@ it('translates the title in french', function () {
         'adults' => 2,
     ]);
 
-    expect($booking->title)->toBe('Gudule Lapointe, Zetoil, 2p du 08/07/2026 au 11/07/2026');
+    expect($booking->title)->toBe('Gudule Lapointe, Zetoil, 2p du 08 au 11/07/2026');
 });
+
+it('expands the range precision across months and years', function (string $in, string $out, string $expected) {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Range Guest',
+        'status' => 'confirmed',
+        'check_in' => $in,
+        'check_out' => $out,
+    ]);
+
+    expect($booking->title)->toBe($expected);
+})->with([
+    'same month' => ['2026-06-01', '2026-06-10', 'Range Guest, Zetoil from 01 to 10/06/2026'],
+    'across months' => ['2026-06-25', '2026-07-10', 'Range Guest, Zetoil from 25/06 to 10/07/2026'],
+    'across years' => ['2026-12-25', '2027-01-10', 'Range Guest, Zetoil from 25/12/2026 to 10/01/2027'],
+]);
