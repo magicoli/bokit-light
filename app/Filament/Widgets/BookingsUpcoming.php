@@ -21,6 +21,11 @@ class BookingsUpcoming extends BookingListWidget
         return [$this->amountsColumn()];
     }
 
+    protected function listParameters(): array
+    {
+        return ['filters' => ['status' => ['value' => 'confirmed']], 'sort' => 'check_in:asc'];
+    }
+
     protected function scopeList(Builder $query): Builder
     {
         return $query

@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Models\Booking;
 use App\Traits\GroupedBookings;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -29,6 +30,14 @@ abstract class BookingListWidget extends TableWidget
      * Status/date filter and fixed sort order of the mini-list.
      */
     abstract protected function scopeList(Builder $query): Builder;
+
+    /**
+     * Query parameters reproducing this widget's filter and sort on the
+     * bookings list page (Filament reads ?filters[...] and ?sort=col:dir).
+     *
+     * @return array<string, mixed>
+     */
+    abstract protected function listParameters(): array;
 
     /**
      * Extra columns displayed after the title (amounts, dates…).
@@ -58,7 +67,13 @@ abstract class BookingListWidget extends TableWidget
             // Whole-row background by payment status (styles injected in
             // the panel head by AdminPanelProvider).
             ->recordClasses(fn (Booking $record): string => 'booking-status-'.$record->displayStatus())
-            ->recordUrl(fn (Booking $record): string => BookingResource::getUrl('view', ['record' => $record]));
+            ->recordUrl(fn (Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
+            ->headerActions([
+                Action::make('seeAll')
+                    ->label(__('booking.widget.see_all'))
+                    ->link()
+                    ->url(BookingResource::getUrl('index').'?'.http_build_query($this->listParameters())),
+            ]);
     }
 
     /**

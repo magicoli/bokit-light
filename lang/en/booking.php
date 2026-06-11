@@ -59,6 +59,7 @@ return [
     'widget.upcoming' => 'Upcoming stays',
     'widget.options' => 'Pending options',
     'widget.quotes' => 'Pending quotes',
+    'widget.see_all' => 'See all',
 
     // Display filters
     'filter.show_cancelled' => 'Show cancelled',

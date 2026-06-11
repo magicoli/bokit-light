@@ -21,6 +21,11 @@ class BookingsQuotes extends BookingListWidget
         return [$this->updatedAtColumn()];
     }
 
+    protected function listParameters(): array
+    {
+        return ['filters' => ['status' => ['value' => 'quote']], 'sort' => 'updated_at:desc'];
+    }
+
     protected function scopeList(Builder $query): Builder
     {
         return $query

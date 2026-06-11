@@ -59,6 +59,7 @@ return [
     'widget.upcoming' => 'Séjours à venir',
     'widget.options' => 'Options en attente',
     'widget.quotes' => 'Offres en attente',
+    'widget.see_all' => 'Tout voir',
 
     // Display filters
     'filter.show_cancelled' => 'Afficher les annulées',

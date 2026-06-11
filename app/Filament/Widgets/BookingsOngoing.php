@@ -21,6 +21,11 @@ class BookingsOngoing extends BookingListWidget
         return [$this->amountsColumn()];
     }
 
+    protected function listParameters(): array
+    {
+        return ['filters' => ['status' => ['value' => 'confirmed']], 'sort' => 'check_out:asc'];
+    }
+
     protected function scopeList(Builder $query): Builder
     {
         return $query

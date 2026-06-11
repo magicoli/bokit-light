@@ -274,6 +274,22 @@ it('hides cancelled bookings by default and shows them via filters', function ()
         ->assertCanNotSeeTableRecords([$confirmed, $vanished]);
 });
 
+it('sorts by the hidden updated_at column for widget deep links', function () {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Sortable Guest',
+        'status' => 'option',
+        'check_in' => '2026-08-01',
+        'check_out' => '2026-08-08',
+    ]);
+
+    Livewire::withQueryParams(['filters' => ['status' => ['value' => 'option']], 'sort' => 'updated_at:desc'])
+        ->test(ListBookings::class)
+        ->assertSuccessful()
+        ->assertCanSeeTableRecords([$booking]);
+});
+
 it('hides past and ongoing availability blocks from the list', function () {
     $past = Booking::create([
         'property_id' => $this->property->id,

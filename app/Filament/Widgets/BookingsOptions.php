@@ -21,6 +21,11 @@ class BookingsOptions extends BookingListWidget
         return [$this->updatedAtColumn()];
     }
 
+    protected function listParameters(): array
+    {
+        return ['filters' => ['status' => ['value' => 'option']], 'sort' => 'updated_at:desc'];
+    }
+
     protected function scopeList(Builder $query): Builder
     {
         return $query

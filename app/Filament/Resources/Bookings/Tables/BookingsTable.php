@@ -103,6 +103,14 @@ class BookingsTable
                         ->toggleable(isToggledHiddenByDefault: true),
                 ]),
                 ...$extraSearchColumns,
+
+                // Hidden by default; sortable so widget deep links can order
+                // by modification date (toggled-hidden columns still sort).
+                TextColumn::make('updated_at')
+                    ->label(__(self::LANG.'.field.updated_at'))
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters(
                 [

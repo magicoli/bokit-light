@@ -162,6 +162,14 @@ it('lists pending quotes by modification date', function () {
         ->assertCanNotSeeTableRecords([$option]);
 });
 
+it('links each widget to the bookings list with its filter and sort', function () {
+    $component = Livewire::test(BookingsOptions::class);
+
+    $component->assertSee(__('booking.widget.see_all'));
+    $component->assertSee('filters%5Bstatus%5D%5Bvalue%5D=option', escape: false);
+    $component->assertSee('sort=updated_at%3Adesc', escape: false);
+});
+
 it('shows one row per group reservation', function () {
     $master = ($this->makeBooking)([
         'guest_name' => 'Groupe Kervella',
