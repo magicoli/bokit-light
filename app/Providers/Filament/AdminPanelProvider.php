@@ -42,9 +42,9 @@ class AdminPanelProvider extends PanelProvider
             fn (): HtmlString => new HtmlString('<style>
                 :root {
                     --color-paid: #84cc16;
-                    --color-due: #eab308;
+                    --color-due: #10cc81;
                     --color-option: #f59e0bc0;
-                    --color-quote: #f59e0b80;
+                    --color-quote: #eab30880;
                     --color-blocked: #00000080;
                     --color-cancelled: #88888880;
                     --color-vanished: #88888880;
@@ -54,7 +54,7 @@ class AdminPanelProvider extends PanelProvider
                 tr.booking-status-paid td { background-color: color-mix(in srgb, var(--color-paid) 18%, transparent) !important; }
                 tr.booking-status-due td { background-color: color-mix(in srgb, var(--color-due) 18%, transparent) !important; }
                 tr.booking-status-option td { background-color: color-mix(in srgb, var(--color-option) 22%, transparent) !important; }
-                tr.booking-status-quote td { background-color: color-mix(in srgb, var(--color-quote) 22%, transparent) !important; }
+                tr.booking-status-quote td { background-color: color-mix(in srgb, var(--color-quote) 40%, transparent) !important; }
             </style>'),
         );
 

@@ -24,12 +24,12 @@
 
     --color-confirmed: #10cc81;
     --color-paid: #84cc16;
-    --color-due: #eab308;
+    --color-due: #10cc81;
     --color-new: #0099cc;
     --color-request: #f59e0bc0;
     --color-option: #f59e0bc0;
     --color-inquiry: #f59e0b80;
-    --color-quote: #f59e0b80;
+    --color-quote: #eab30880;
     --color-cancelled: #88888840;
     --color-vanished: #88888840;
     --color-blocked: #00000080;
