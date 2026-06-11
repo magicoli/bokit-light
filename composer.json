@@ -12,6 +12,7 @@
         "php": "^8.2",
         "blade-ui-kit/blade-icons": "^1.8",
         "codeat3/blade-simple-icons": "^8.1",
+        "craft-forge/filament-language-switcher": "^1.2",
         "davidhsianturi/blade-bootstrap-icons": "^2.1",
         "devrabiul/laravel-toaster-magic": "^1.5",
         "faisal50x/blade-ionicons": "^1.1",

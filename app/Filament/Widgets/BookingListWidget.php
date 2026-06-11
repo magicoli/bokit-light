@@ -83,6 +83,8 @@ abstract class BookingListWidget extends TableWidget
     {
         return TextColumn::make('amounts')
             ->label('')
+            // ->label(false)
+            // ->hiddenLabel()
             ->state(fn (Booking $record): string => self::compactMoney($record->paidAmount())
                 .' / '.self::compactMoney($record->totalAmount()))
             ->alignEnd()
@@ -96,6 +98,8 @@ abstract class BookingListWidget extends TableWidget
     {
         return TextColumn::make('updated_at')
             ->label('')
+            // ->label(false)
+            // ->isLabelHidden()
             ->date('d/m/Y')
             ->alignEnd()
             ->grow(false);
