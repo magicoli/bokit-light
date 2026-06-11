@@ -36,6 +36,17 @@ beforeEach(function () {
     ], $attributes));
 });
 
+it('renders the dashboard with the booking widgets', function () {
+    // Widgets are lazy Livewire components: the initial HTML only carries
+    // their mount tags, the headings come with the deferred render.
+    $this->get('/admin')
+        ->assertSuccessful()
+        ->assertSeeLivewire(BookingsOngoing::class)
+        ->assertSeeLivewire(BookingsUpcoming::class)
+        ->assertSeeLivewire(BookingsOptions::class)
+        ->assertSeeLivewire(BookingsQuotes::class);
+});
+
 it('lists ongoing stays ordered by departure', function () {
     $leavingSoon = ($this->makeBooking)([
         'guest_name' => 'Leaving Soon',

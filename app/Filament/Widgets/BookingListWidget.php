@@ -19,7 +19,7 @@ abstract class BookingListWidget extends TableWidget
 {
     use GroupedBookings;
 
-    protected int|string|array $columnSpan = ['default' => 'full', 'lg' => 1];
+    protected int|string|array $columnSpan = 1;
 
     abstract protected function tableHeading(): string;
 

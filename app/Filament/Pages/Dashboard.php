@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Filament\Pages;
+
+use Filament\Pages\Dashboard as BaseDashboard;
+
+class Dashboard extends BaseDashboard
+{
+    /**
+     * Widget grid: 1 column on mobile, 2 on tablet, 4 on large screens.
+     */
+    public function getColumns(): int|array
+    {
+        return ['default' => 1, 'md' => 2, 'xl' => 4];
+    }
+}
