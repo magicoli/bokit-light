@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\Password;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -72,6 +73,17 @@ class User extends Authenticatable implements FilamentUser
         return $this->isAdmin()
             || $this->hasAnyRole(['manager', 'property_manager'])
             || $this->properties()->exists();
+    }
+
+    /**
+     * Landing page after login: the admin panel when the user may access
+     * it, the classic dashboard otherwise.
+     */
+    public function homeUrl(): string
+    {
+        return $this->canAccessPanel(Filament::getPanel('admin'))
+            ? '/admin'
+            : '/dashboard';
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Support\Options;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -68,7 +69,7 @@ if ($isInstalled) {
             ->middleware('guest')
             ->name('login');
 
-        Route::post('/login', function (\Illuminate\Http\Request $request) {
+        Route::post('/login', function (Request $request) {
             $credentials = $request->validate([
                 'username' => 'required|string',
                 'password' => 'required',
@@ -114,7 +115,7 @@ if ($isInstalled) {
                     );
                 }
 
-                return redirect()->intended('/dashboard');
+                return redirect()->intended(Auth::user()->homeUrl());
             }
 
             return back()->withErrors([
