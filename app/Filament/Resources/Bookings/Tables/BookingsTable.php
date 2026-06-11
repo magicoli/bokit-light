@@ -124,7 +124,7 @@ class BookingsTable
 
                     SelectFilter::make('unit')
                         ->label(__(self::LANG.'.field.unit_name'))
-                        ->options(fn (): array => Unit::orderBy('name')->pluck('name', 'id')->all())
+                        ->options(fn (): array => Unit::forUser()->orderBy('name')->pluck('name', 'id')->all())
                         ->query(fn (Builder $query, array $data): Builder => $query
                             ->when($data['value'] ?? null, fn (Builder $q, $unitId): Builder => $q
                                 ->where(fn (Builder $qq) => $qq

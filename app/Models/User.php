@@ -62,11 +62,16 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Filament denies everyone in production unless this is implemented.
+     * Panel access — implementing FilamentUser makes this rule apply in
+     * EVERY environment (local included), so local behaves like prod.
+     * Admins and managers see everything; property owners/managers get in
+     * and resource queries are scoped to their properties via forUser().
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->isAdmin();
+        return $this->isAdmin()
+            || $this->hasAnyRole(['manager', 'property_manager'])
+            || $this->properties()->exists();
     }
 
     /**

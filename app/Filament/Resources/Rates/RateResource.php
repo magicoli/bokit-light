@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RateResource extends Resource
 {
@@ -24,7 +25,7 @@ class RateResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
-    protected static ?string $recordTitleAttribute = "name";
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
@@ -49,10 +50,15 @@ class RateResource extends Resource
     public static function getPages(): array
     {
         return [
-            "index" => ListRates::route("/"),
-            "create" => CreateRate::route("/create"),
-            "view" => ViewRate::route("/{record}"),
-            "edit" => EditRate::route("/{record}/edit"),
+            'index' => ListRates::route('/'),
+            'create' => CreateRate::route('/create'),
+            'view' => ViewRate::route('/{record}'),
+            'edit' => EditRate::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->forUser();
     }
 }

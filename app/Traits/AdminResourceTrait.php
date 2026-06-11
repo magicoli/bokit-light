@@ -2,12 +2,13 @@
 
 namespace App\Traits;
 
-use App\Traits\FormTrait;
-use App\Traits\ListTrait;
 // use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\AdminResourceController;
+use App\Models\Property;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * AdminResourceTrait
@@ -36,28 +37,20 @@ trait AdminResourceTrait
      *
      * Override this method in models that need custom filtering logic.
      *
-     * @param Builder $query
-     * @param \App\Models\User|null $user User to filter for (defaults to current user)
-     * @return Builder
+     * @param  User|null  $user  User to filter for (defaults to current user)
      */
     public function scopeForUser(Builder $query, $user = null): Builder
     {
         $user = $user ?? auth()->user();
 
         // No user or admin/manager: no filtering
-        if (!$user || $user->isAdmin() || $user->hasRole("manager")) {
+        if (! $user || $user->isAdmin() || $user->hasRole('manager')) {
             return $query;
         }
 
-        // Property managers: filter by ownership
-        if ($user->hasRole("property_manager")) {
-            // Default: filter via property relationship
-            // Models should override this if they have direct user ownership
-            return $this->scopeForPropertyManager($query, $user);
-        }
-
-        // Other roles: no access by default
-        return $query->whereRaw("1 = 0");
+        // Everyone else sees the properties they are attached to
+        // (property_user pivot) — nothing when not attached to any.
+        return $this->scopeForPropertyManager($query, $user);
     }
 
     /**
@@ -66,30 +59,28 @@ trait AdminResourceTrait
      * Default implementation filters via property.users relationship.
      * Override in specific models if needed.
      *
-     * @param Builder $query
-     * @param \App\Models\User $user
-     * @return Builder
+     * @param  User  $user
      */
     protected function scopeForPropertyManager(Builder $query, $user): Builder
     {
         // For Property model: direct users relationship
-        if ($this instanceof \App\Models\Property) {
-            return $query->whereHas("users", function ($q) use ($user) {
-                $q->where("users.id", $user->id);
+        if ($this instanceof Property) {
+            return $query->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
             });
         }
 
         // For models with property relationship: filter via property.users
-        if (method_exists($this, "property")) {
-            return $query->whereHas("property.users", function ($q) use (
+        if (method_exists($this, 'property')) {
+            return $query->whereHas('property.users', function ($q) use (
                 $user,
             ) {
-                $q->where("users.id", $user->id);
+                $q->where('users.id', $user->id);
             });
         }
 
         // No property relationship: no access
-        return $query->whereRaw("1 = 0");
+        return $query->whereRaw('1 = 0');
     }
 
     /**
@@ -99,30 +90,30 @@ trait AdminResourceTrait
     public static function registerAdminRoutes(): void
     {
         $config = static::getConfig();
-        $resourceName = Str::plural(strtolower($config["classBasename"]));
+        $resourceName = Str::plural(strtolower($config['classBasename']));
 
         Route::get("/{$resourceName}", function () use ($resourceName) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->index($resourceName);
         })->name("{$resourceName}.index");
 
         // List route
         Route::get("/{$resourceName}/list", function () use ($resourceName) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->list($resourceName);
         })->name("{$resourceName}.list");
 
         // Add routes
         Route::get("/{$resourceName}/create", function () use ($resourceName) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->create($resourceName);
         })->name("{$resourceName}.create");
         Route::post("/{$resourceName}", function () use ($resourceName) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->store(request(), $resourceName);
         })->name("{$resourceName}.store");
 
@@ -131,19 +122,19 @@ trait AdminResourceTrait
             $resourceName,
         ) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->edit($resourceName, $id);
         })->name("{$resourceName}.edit");
         Route::post("/{$resourceName}/{id}", function ($id) use ($resourceName) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->update(request(), $resourceName, $id);
         })->name("{$resourceName}.update");
         Route::delete("/{$resourceName}/{id}", function ($id) use (
             $resourceName,
         ) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->destroy($resourceName, $id);
         })->name("{$resourceName}.destroy");
 
@@ -152,25 +143,25 @@ trait AdminResourceTrait
             $resourceName,
         ) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->settings($resourceName);
         })->name("{$resourceName}.settings");
         Route::post("/{$resourceName}/settings", function () use (
             $resourceName,
         ) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->saveSettings(request(), $resourceName);
         })->name("{$resourceName}.settings.save");
 
         // Show route - must be after specific routes
         Route::get("/{$resourceName}/{id}", function ($id) use ($resourceName) {
             return app(
-                \App\Http\Controllers\AdminResourceController::class,
+                AdminResourceController::class,
             )->show($resourceName, $id);
         })
             ->name("{$resourceName}.show")
-            ->where("id", "[0-9]+");
+            ->where('id', '[0-9]+');
     }
 
     /**
@@ -179,49 +170,49 @@ trait AdminResourceTrait
     public static function adminMenuConfig(): array
     {
         $config = static::getConfig();
-        $resourceName = $config["resource_name"] ?? null;
+        $resourceName = $config['resource_name'] ?? null;
         if ($resourceName) {
             // Build children menu items
             $children = [
                 [
-                    "label" => __("admin.list"),
-                    "url" => Route::has("admin.{$resourceName}.list")
+                    'label' => __('admin.list'),
+                    'url' => Route::has("admin.{$resourceName}.list")
                         ? route("admin.{$resourceName}.list")
                         : null,
-                    "icon" => null,
-                    "resource_name" => "{$resourceName}.list",
+                    'icon' => null,
+                    'resource_name' => "{$resourceName}.list",
                 ],
                 [
-                    "label" => __("admin.add"),
-                    "url" => Route::has("admin.{$resourceName}.create")
+                    'label' => __('admin.add'),
+                    'url' => Route::has("admin.{$resourceName}.create")
                         ? route("admin.{$resourceName}.create")
                         : null,
-                    "icon" => null,
-                    "resource_name" => "{$resourceName}.add",
+                    'icon' => null,
+                    'resource_name' => "{$resourceName}.add",
                 ],
                 [
-                    "label" => __("admin.settings"),
-                    "url" => Route::has("admin.{$resourceName}.settings")
+                    'label' => __('admin.settings'),
+                    'url' => Route::has("admin.{$resourceName}.settings")
                         ? route("admin.{$resourceName}.settings")
                         : null,
-                    "icon" => null,
-                    "resource_name" => "{$resourceName}.settings",
+                    'icon' => null,
+                    'resource_name' => "{$resourceName}.settings",
                 ],
             ];
             // Parent gets same URL as first child (list)
-            $parentUrl = $children[0]["url"] ?? null;
+            $parentUrl = $children[0]['url'] ?? null;
         }
 
         return [
-            "model_class" => static::class,
-            "label" => $config["menu"]["label"] ?? ($config["title"] ?? null),
-            "icon" => $config["menu"]["icon"] ?? null,
-            "parent" => $config["menu"]["parent"] ?? null,
-            "url" => $parentUrl ?? null,
-            "order" => $config["menu"]["order"] ?? 100,
-            "resource_name" => $resourceName,
-            "children" => $children,
-            "capability" => $config["capability"],
+            'model_class' => static::class,
+            'label' => $config['menu']['label'] ?? ($config['title'] ?? null),
+            'icon' => $config['menu']['icon'] ?? null,
+            'parent' => $config['menu']['parent'] ?? null,
+            'url' => $parentUrl ?? null,
+            'order' => $config['menu']['order'] ?? 100,
+            'resource_name' => $resourceName,
+            'children' => $children,
+            'capability' => $config['capability'],
         ];
     }
 }

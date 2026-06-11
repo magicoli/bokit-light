@@ -55,7 +55,7 @@ it('lets admins into the panel', function () {
     $this->get('/admin/bookings')->assertSuccessful();
 });
 
-it('denies non-admin users access to the panel', function () {
+it('denies users without any property access to the panel', function () {
     $user = User::create([
         'name' => 'Basic',
         'email' => 'basic@test.local',
@@ -65,6 +65,59 @@ it('denies non-admin users access to the panel', function () {
 
     $this->actingAs($user);
     $this->get('/admin/bookings')->assertForbidden();
+});
+
+it('lets property owners in and scopes bookings to their properties', function () {
+    $owner = User::create([
+        'name' => 'Owner',
+        'email' => 'owner@test.local',
+        'password' => bcrypt('password'),
+        'is_admin' => false,
+    ]);
+    $owner->properties()->attach($this->property->id, ['role' => 'owner']);
+
+    $otherProperty = Property::create([
+        'name' => 'Other Property',
+        'slug' => 'other-property',
+        'is_active' => true,
+    ]);
+    $otherUnit = Unit::create([
+        'property_id' => $otherProperty->id,
+        'name' => 'Other Unit',
+        'slug' => 'other-unit',
+        'is_active' => true,
+    ]);
+
+    $mine = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'My Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-08-01',
+        'check_out' => '2026-08-08',
+    ]);
+    $foreign = Booking::create([
+        'property_id' => $otherProperty->id,
+        'unit_id' => $otherUnit->id,
+        'guest_name' => 'Foreign Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-08-10',
+        'check_out' => '2026-08-15',
+    ]);
+
+    $this->actingAs($owner);
+
+    $this->get('/admin/bookings')->assertSuccessful();
+
+    Livewire::test(ListBookings::class)
+        ->assertCanSeeTableRecords([$mine])
+        ->assertCanNotSeeTableRecords([$foreign]);
+
+    // Other properties' records are out of reach, even by direct URL
+    $this->get('/admin/bookings/'.$foreign->id)->assertNotFound();
+
+    // User management stays admin-only
+    $this->get('/admin/users')->assertForbidden();
 });
 
 it('renders the bookings list', function () {

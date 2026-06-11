@@ -14,7 +14,7 @@
 
     $statusOptions = \App\Filament\Resources\Bookings\Tables\BookingsTable::statusOptions();
 
-    $unitOptions = \App\Models\Unit::query()
+    $unitOptions = \App\Models\Unit::forUser()
         ->orderBy('name')
         ->pluck('name', 'id')
         ->all();
