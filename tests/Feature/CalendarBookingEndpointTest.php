@@ -42,7 +42,7 @@ it('returns booking details with price, paid, balance and panel links', function
         'check_out' => '2026-09-08',
         'price' => 1400,
         'adults' => 2,
-        'metadata' => ['invoice_payment_total' => 500],
+        'metadata' => ['invoice_payment_total' => 500, 'deposit' => 420],
     ]);
     $booking->sources()->create([
         'source_type' => 'beds24',
@@ -56,6 +56,7 @@ it('returns booking details with price, paid, balance and panel links', function
     $response
         ->assertJsonPath('guest_name', 'Jean Dupont')
         ->assertJsonPath('price', 1400)
+        ->assertJsonPath('deposit', 420)
         ->assertJsonPath('paid', 500)
         ->assertJsonPath('balance', 900)
         ->assertJsonPath('group', null)
@@ -122,7 +123,7 @@ it('hides amounts and labels the status for cancelled bookings', function () {
         'check_in' => '2026-06-27',
         'check_out' => '2026-07-04',
         'price' => 1200,
-        'metadata' => ['invoice_payment_total' => 300],
+        'metadata' => ['invoice_payment_total' => 300, 'deposit' => 100],
     ]);
 
     $this->getJson("/booking/{$booking->id}")
@@ -130,6 +131,7 @@ it('hides amounts and labels the status for cancelled bookings', function () {
         ->assertJsonPath('status', 'cancelled')
         ->assertJsonPath('status_label', __('booking.status.cancelled'))
         ->assertJsonPath('price', null)
+        ->assertJsonPath('deposit', null)
         ->assertJsonPath('paid', null)
         ->assertJsonPath('balance', null);
 });

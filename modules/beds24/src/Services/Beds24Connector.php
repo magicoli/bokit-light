@@ -251,24 +251,25 @@ class Beds24Connector implements SourceConnector
     }
 
     /**
-     * Resolve the accommodation amount, mirroring taxesejour-bridge:
-     * - invoice with positive accommodation total → use it;
+     * Resolve the booking price — the full invoice total, every charge line
+     * included (taxe de séjour, fees, discounts), since all of it is owed:
+     * - invoice with positive total → use it;
      * - no invoice: group masters report 0 (amounts live on sub-bookings,
      *   using the price field would double-count), group subs report 0 too
      *   (Beds24 replicates the group total in every sub's price field —
      *   summing them would multiply the group price by the number of units),
      *   standalone bookings use the price field;
-     * - invoice present but acc ≤ 0 (large discount, manual entry): standalone
-     *   bookings use the payment lines (what was actually received), with the
-     *   price field as last resort.
+     * - invoice present but total ≤ 0 (large discount, manual entry):
+     *   standalone bookings use the payment lines (what was actually
+     *   received), with the price field as last resort.
      *
      * @param  array<string,mixed>  $row
-     * @param  array{acc_ttc: float, taxe_invoiced: float, payment_total: float}|array{}  $invoice
+     * @param  array{total: float, acc_ttc: float, taxe_invoiced: float, payment_total: float}|array{}  $invoice
      */
     private function resolvePrice(array $row, array $invoice, bool $isGroupMaster, bool $isGroupSub = false): float
     {
-        if (($invoice['acc_ttc'] ?? 0) > 0) {
-            return $invoice['acc_ttc'];
+        if (($invoice['total'] ?? 0) > 0) {
+            return $invoice['total'];
         }
 
         if ($isGroupSub) {
@@ -320,18 +321,25 @@ class Beds24Connector implements SourceConnector
         $meta['tax'] = $tax ?: null;
 
         if (! empty($invoice)) {
+            $meta['invoice_total'] = $invoice['total'];
             $meta['invoice_acc_ttc'] = $invoice['acc_ttc'];
             $meta['invoice_taxe_invoiced'] = $invoice['taxe_invoiced'];
             $meta['invoice_payment_total'] = $invoice['payment_total'];
         }
 
         if (! empty($row['invoice']) && is_array($row['invoice'])) {
-            $meta['invoice_lines'] = array_map(fn (array $line): array => [
-                'type' => (string) ($line['type'] ?? ''),
-                'description' => (string) ($line['description'] ?? ''),
-                'qty' => (float) ($line['qty'] ?? 1),
-                'price' => (float) ($line['price'] ?? 0),
-            ], array_values($row['invoice']));
+            $meta['invoice_lines'] = array_map(function (array $line): array {
+                $qty = (float) ($line['qty'] ?? 1) ?: 1.0;
+                $price = (float) ($line['price'] ?? 0);
+
+                return [
+                    'type' => (string) ($line['type'] ?? ''),
+                    'description' => (string) ($line['description'] ?? ''),
+                    'qty' => $qty,
+                    'price' => $price,
+                    'amount' => round($qty * $price, 2),
+                ];
+            }, array_values($row['invoice']));
         }
 
         return array_filter($meta, fn ($v) => $v !== null && $v !== '');
@@ -349,8 +357,8 @@ class Beds24Connector implements SourceConnector
             ? $this->parseInvoice($master['invoice'])
             : [];
 
-        if (($invoice['acc_ttc'] ?? 0) > 0) {
-            return $invoice['acc_ttc'];
+        if (($invoice['total'] ?? 0) > 0) {
+            return $invoice['total'];
         }
 
         if (($invoice['payment_total'] ?? 0) > 0) {
@@ -361,11 +369,21 @@ class Beds24Connector implements SourceConnector
     }
 
     /**
+     * Parse the Beds24 invoice. Line amounts are qty × price (Beds24 returns
+     * unit prices: e.g. 7 nights × 100 € come as qty=7, price=100; payment
+     * lines come as qty=-1 so they reduce the invoice balance).
+     *
+     * - total: every charge line (accommodation, fees, taxe de séjour,
+     *   discounts) — this is what the client owes;
+     * - acc_ttc / taxe_invoiced: accommodation vs taxe breakdown;
+     * - payment_total: what the client actually paid (type-200 lines).
+     *
      * @param  array<int, array<string,mixed>>  $lines
-     * @return array{acc_ttc: float, taxe_invoiced: float, payment_total: float}
+     * @return array{total: float, acc_ttc: float, taxe_invoiced: float, payment_total: float}
      */
     private function parseInvoice(array $lines): array
     {
+        $total = 0.0;
         $accTtc = 0.0;
         $taxeInvoiced = 0.0;
         $paymentTotal = 0.0;
@@ -373,22 +391,26 @@ class Beds24Connector implements SourceConnector
         foreach ($lines as $line) {
             $type = (string) ($line['type'] ?? '');
             $desc = mb_strtolower((string) ($line['description'] ?? ''));
-            $price = (float) ($line['price'] ?? 0);
+            $qty = (float) ($line['qty'] ?? 1) ?: 1.0;
+            $amount = $qty * (float) ($line['price'] ?? 0);
 
             if ($type === '200') {
-                $paymentTotal += $price;
+                $paymentTotal += abs($amount);
 
                 continue;
             }
 
+            $total += $amount;
+
             if (str_contains($desc, 'taxe de séjour')) {
-                $taxeInvoiced += $price;
+                $taxeInvoiced += $amount;
             } elseif (in_array($type, ['0', '1', '8'], true)) {
-                $accTtc += $price;
+                $accTtc += $amount;
             }
         }
 
         return [
+            'total' => round($total, 2),
             'acc_ttc' => round($accTtc, 2),
             'taxe_invoiced' => round($taxeInvoiced, 2),
             'payment_total' => round($paymentTotal, 2),

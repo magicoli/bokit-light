@@ -275,12 +275,54 @@ describe('Beds24Connector', function () {
         $meta = $bookings[0]->metadata;
 
         expect($meta['invoice_lines'])->toHaveCount(4)
-            ->and($meta['invoice_lines'][0])->toBe(['type' => '1', 'description' => 'Hébergement', 'qty' => 4.0, 'price' => 500.0])
-            ->and($meta['invoice_acc_ttc'])->toBe(450.0)
+            ->and($meta['invoice_lines'][0])->toBe(['type' => '1', 'description' => 'Hébergement', 'qty' => 4.0, 'price' => 500.0, 'amount' => 2000.0])
+            ->and($meta['invoice_total'])->toBe(1962.0)
+            ->and($meta['invoice_acc_ttc'])->toBe(1950.0)
             ->and($meta['invoice_taxe_invoiced'])->toBe(12.0)
             ->and($meta['invoice_payment_total'])->toBe(462.0)
             ->and($meta['deposit'])->toBe(150.0)
-            ->and($meta['tax'])->toBe(12.0);
+            ->and($meta['tax'])->toBe(12.0)
+            ->and($bookings[0]->price)->toBe(1962.0);
+    });
+
+    it('includes every invoice line in the price, taxe de séjour included', function () {
+        // Real-world case: 400 € accommodation + 40 € taxe de séjour →
+        // the client owes 440 €, not 400 €.
+        $connector = makeBeds24Connector([
+            [
+                'bookId' => '201', 'roomId' => '42', 'firstNight' => '2027-07-02', 'lastNight' => '2027-07-03',
+                'status' => '1', 'guestName' => 'Annabel Demuth', 'price' => '400',
+                'invoice' => [
+                    ['type' => '1', 'description' => 'Zetoil, 4 bedrooms cottage', 'qty' => '1', 'price' => '400'],
+                    ['type' => '0', 'description' => 'Taxe de séjour ville de Sainte-Rose, 5% par adulte', 'qty' => '1', 'price' => '40'],
+                ],
+            ],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings[0]->price)->toBe(440.0)
+            ->and($bookings[0]->metadata['invoice_taxe_invoiced'])->toBe(40.0);
+    });
+
+    it('multiplies unit prices by quantity', function () {
+        // Beds24 invoices carry unit prices: 7 nights at 100 €/night come
+        // as qty=7, price=100. Payments come with qty=-1.
+        $connector = makeBeds24Connector([
+            [
+                'bookId' => '202', 'roomId' => '42', 'firstNight' => '2027-08-01', 'lastNight' => '2027-08-07',
+                'status' => '1', 'guestName' => 'Long Stay', 'price' => '100',
+                'invoice' => [
+                    ['type' => '0', 'description' => 'Rental', 'qty' => '7', 'price' => '100'],
+                    ['type' => '200', 'description' => 'Paypal', 'qty' => '-1', 'price' => '300'],
+                ],
+            ],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings[0]->price)->toBe(700.0)
+            ->and($bookings[0]->metadata['invoice_payment_total'])->toBe(300.0);
     });
 
     it('uses payment lines when the invoice nets to zero on a standalone booking', function () {

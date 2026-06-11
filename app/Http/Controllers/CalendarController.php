@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Property;
 use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 class CalendarController extends Controller
@@ -164,23 +165,29 @@ class CalendarController extends Controller
 
             return $paid !== null ? (float) $paid : null;
         };
+        $depositOf = fn (Booking $b): ?float => $b->getMetadata('deposit') !== null
+            ? (float) $b->getMetadata('deposit')
+            : null;
 
         if ($booking->isCancelled()) {
             // No money is expected from a cancelled booking — hide amounts.
             $rawPrice = fn (Booking $b): ?float => null;
             $paidOf = fn (Booking $b): ?float => null;
+            $depositOf = fn (Booking $b): ?float => null;
         }
 
+        $sumOf = fn (Collection $members, callable $amountOf): ?float => $members->contains(fn (Booking $m): bool => $amountOf($m) !== null)
+            ? $members->sum(fn (Booking $m): float => $amountOf($m) ?? 0)
+            : null;
+
         if ($isGroup) {
-            $price = $members->contains(fn (Booking $m): bool => $rawPrice($m) !== null)
-                ? $members->sum(fn (Booking $m): float => $rawPrice($m) ?? 0)
-                : null;
-            $paid = $members->contains(fn (Booking $m): bool => $paidOf($m) !== null)
-                ? $members->sum(fn (Booking $m): float => $paidOf($m) ?? 0)
-                : null;
+            $price = $sumOf($members, $rawPrice);
+            $paid = $sumOf($members, $paidOf);
+            $deposit = $sumOf($members, $depositOf);
         } else {
             $price = $rawPrice($booking);
             $paid = $paidOf($booking);
+            $deposit = $depositOf($booking);
         }
 
         $origin = $booking->originSource;
@@ -199,6 +206,7 @@ class CalendarController extends Controller
                 ? ($members->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
                 : $booking->guests,
             'price' => $price,
+            'deposit' => $deposit,
             'paid' => $paid,
             'balance' => $price !== null ? round($price - ($paid ?? 0), 2) : null,
             'notes' => $booking->notes,

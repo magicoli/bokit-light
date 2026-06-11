@@ -71,11 +71,44 @@ class BookingInfolist
                             ->money('EUR', locale: fn (): string => app()->getLocale())
                             ->placeholder('-'),
 
+                        TextEntry::make('deposit')
+                            ->label(__('booking.field.deposit'))
+                            ->state(fn (Booking $record): ?float => self::floatMeta($record, 'deposit'))
+                            ->money('EUR', locale: fn (): string => app()->getLocale())
+                            ->placeholder('-'),
+
+                        TextEntry::make('paid')
+                            ->label(__('booking.field.paid'))
+                            ->state(fn (Booking $record): ?float => self::paidAmount($record))
+                            ->money('EUR', locale: fn (): string => app()->getLocale())
+                            ->placeholder('-'),
+
+                        TextEntry::make('balance')
+                            ->label(__('booking.field.balance'))
+                            ->state(function (Booking $record): ?float {
+                                $price = $record->getRawOriginal('price');
+
+                                return $price !== null
+                                    ? round((float) $price - (self::paidAmount($record) ?? 0), 2)
+                                    : null;
+                            })
+                            ->money('EUR', locale: fn (): string => app()->getLocale())
+                            ->placeholder('-'),
+
                         TextEntry::make('commission')
                             ->label(__('booking.field.commission'))
                             ->money('EUR', locale: fn (): string => app()->getLocale())
                             ->placeholder('-'),
                     ]),
+
+                Section::make(__('booking.section.invoice'))
+                    ->schema([
+                        ViewEntry::make('invoice_lines')
+                            ->hiddenLabel()
+                            ->view('filament.bookings.invoice-table'),
+                    ])
+                    ->collapsed()
+                    ->visible(fn (Booking $record): bool => ! empty($record->getMetadata('invoice_lines'))),
 
                 Section::make(__('booking.section.group'))
                     ->schema([
@@ -119,5 +152,22 @@ class BookingInfolist
                             ->visible(fn (Booking $record): bool => $record->trashed()),
                     ]),
             ]);
+    }
+
+    private static function floatMeta(Booking $record, string $key): ?float
+    {
+        $value = $record->getMetadata($key);
+
+        return $value !== null && $value !== '' ? (float) $value : null;
+    }
+
+    /**
+     * Amount actually received: Beds24 invoice payment lines, or the
+     * 'paid' metadata used by other sources (hbook).
+     */
+    private static function paidAmount(Booking $record): ?float
+    {
+        return self::floatMeta($record, 'invoice_payment_total')
+            ?? self::floatMeta($record, 'paid');
     }
 }

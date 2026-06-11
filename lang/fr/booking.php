@@ -30,6 +30,7 @@ return [
     'field.comments' => 'Commentaires',
     'field.paid' => 'Payé',
     'field.balance' => 'Solde',
+    'field.deposit' => 'Acompte',
     'field.created_at' => 'Créée le',
     'field.updated_at' => 'Mise à jour',
     'field.deleted_at' => 'Supprimée le',
@@ -73,6 +74,15 @@ return [
 
     'section.group' => 'Réservation groupée',
     'group.total' => 'Total',
+
+    // Invoice detail
+    'section.invoice' => 'Détail de la facture',
+    'invoice.description' => 'Description',
+    'invoice.qty' => 'Qté',
+    'invoice.unit_price' => 'Prix unitaire',
+    'invoice.amount' => 'Montant',
+    'invoice.total' => 'Total',
+    'invoice.payment' => 'Paiement',
 
     // Helper text
     'guests_auto_calculated' => 'Calculé automatiquement si vide',

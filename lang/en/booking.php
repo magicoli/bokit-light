@@ -30,6 +30,7 @@ return [
     'field.comments' => 'Comments',
     'field.paid' => 'Paid',
     'field.balance' => 'Balance',
+    'field.deposit' => 'Deposit',
     'field.created_at' => 'Created',
     'field.updated_at' => 'Updated',
     'field.deleted_at' => 'Deleted',
@@ -73,6 +74,15 @@ return [
 
     'section.group' => 'Group reservation',
     'group.total' => 'Total',
+
+    // Invoice detail
+    'section.invoice' => 'Invoice detail',
+    'invoice.description' => 'Description',
+    'invoice.qty' => 'Qty',
+    'invoice.unit_price' => 'Unit price',
+    'invoice.amount' => 'Amount',
+    'invoice.total' => 'Total',
+    'invoice.payment' => 'Payment',
 
     // Helper text
     'guests_auto_calculated' => 'Auto-calculated if empty',

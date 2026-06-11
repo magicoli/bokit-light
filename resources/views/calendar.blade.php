@@ -349,6 +349,10 @@ use App\Traits\TimezoneTrait;
                                 <span class="label">{{ __('booking.field.price') }}:</span>
                                 <span class="value" x-text="formatMoney(selectedBooking.price)"></span>
                             </div>
+                            <div x-show="selectedBooking.deposit" class="detail-line">
+                                <span class="label">{{ __('booking.field.deposit') }}:</span>
+                                <span class="value" x-text="formatMoney(selectedBooking.deposit)"></span>
+                            </div>
                             <div x-show="selectedBooking.paid !== null" class="detail-line">
                                 <span class="label">{{ __('booking.field.paid') }}:</span>
                                 <span class="value" x-text="formatMoney(selectedBooking.paid)"></span>
