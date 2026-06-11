@@ -32,3 +32,5 @@ public/css/
 public/js/
 public/fonts/
 vendor/
+deploy.*ml*
+deploy.php
