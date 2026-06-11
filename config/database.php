@@ -2,8 +2,8 @@
 
 use Illuminate\Support\Str;
 
-$default_connection = env("DB_CONNECTION", "sqlite");
-$sqlite_storage_path = storage_path("database/default.sqlite");
+// $default_connection = env("DB_CONNECTION", "sqlite");
+// $sqlite_storage_path = storage_path("database/default.sqlite");
 
 return [
     /*
@@ -35,8 +35,8 @@ return [
         "sqlite" => [
             "driver" => "sqlite",
             "url" => env("DB_URL"),
-            "database" => env("DB_DATABASE", $sqlite_storage_path),
-            "prefix" => "",
+            "database" => env("DB_DATABASE", database_path("database.sqlite")),
+            "prefix" => env("DB_PREFIX", ""),
             "foreign_key_constraints" => env("DB_FOREIGN_KEYS", true),
             "busy_timeout" => null,
             "journal_mode" => null,
