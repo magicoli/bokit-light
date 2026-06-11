@@ -15,7 +15,7 @@ class BookingInfolist
         return $schema
             ->components([
                 Section::make(__('app.booking'))
-                    ->columns(2)
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->schema([
                         TextEntry::make('property.name')
                             ->label(__('booking.field.property_id')),
@@ -49,7 +49,7 @@ class BookingInfolist
                     ]),
 
                 Section::make(__('booking.section.guests'))
-                    ->columns(3)
+                    ->columns(['default' => 2, 'sm' => 3])
                     ->schema([
                         TextEntry::make('adults')
                             ->label(__('booking.field.adults'))
@@ -101,22 +101,32 @@ class BookingInfolist
                             ->placeholder('-'),
                     ]),
 
-                Section::make(__('booking.section.invoice'))
+                Section::make(__('booking.field.notes'))
+                    ->collapsible()
                     ->schema([
-                        ViewEntry::make('invoice_lines')
+                        TextEntry::make('notes')
                             ->hiddenLabel()
-                            ->view('filament.bookings.invoice-table'),
-                    ])
-                    ->collapsed()
-                    ->visible(fn (Booking $record): bool => ! empty($record->getMetadata('invoice_lines'))),
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                    ]),
 
                 Section::make(__('booking.section.group'))
                     ->schema([
                         ViewEntry::make('group_members')
                             ->hiddenLabel()
                             ->view('filament.bookings.group-table'),
-                    ])
+                    ])->columnSpanFull()
+                    ->collapsible()
                     ->visible(fn (Booking $record): bool => $record->group_id !== null),
+
+                Section::make(__('booking.section.invoice'))
+                    ->schema([
+                        ViewEntry::make('invoice_lines')
+                            ->hiddenLabel()
+                            ->view('filament.bookings.invoice-table'),
+                    ])
+                    ->collapsible()
+                    ->visible(fn (Booking $record): bool => ! empty($record->getMetadata('invoice_lines'))),
 
                 Section::make(__('booking.section.sources'))
                     ->schema([
@@ -124,18 +134,11 @@ class BookingInfolist
                             ->hiddenLabel()
                             ->view('filament.bookings.sources-table'),
                     ])
+                    ->collapsed()
                     ->visible(fn (Booking $record): bool => $record->sources()->exists()),
 
-                Section::make(__('booking.field.notes'))
-                    ->schema([
-                        TextEntry::make('notes')
-                            ->label('')
-                            ->placeholder('-')
-                            ->columnSpanFull(),
-                    ]),
-
                 Section::make(__('booking.section.metadata'))
-                    ->columns(2)
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->collapsed()
                     ->schema([
                         TextEntry::make('created_at')
@@ -151,7 +154,7 @@ class BookingInfolist
                             ->dateTime('d/m/Y H:i')
                             ->visible(fn (Booking $record): bool => $record->trashed()),
                     ]),
-            ]);
+            ])->columns(3);
     }
 
     private static function floatMeta(Booking $record, string $key): ?float

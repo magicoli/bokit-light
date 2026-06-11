@@ -25,6 +25,6 @@ class PropertyInfolist
                 // TextEntry::make('updated_at')
                 //     ->dateTime()
                 //     ->placeholder('-'),
-            ])->columns(3);
+            ])->columns(['default' => 1, 'sm' => 3]);
     }
 }

@@ -14,7 +14,7 @@ class UnitInfolist
         return $schema
             ->components([
                 Section::make(__('app.unit'))
-                    ->columns(2)
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->schema([
                         IconEntry::make('is_active')->label(__('unit.field.is_active'))->boolean(),
                         // TextEntry::make('name')->label(__('unit.field.name')),
