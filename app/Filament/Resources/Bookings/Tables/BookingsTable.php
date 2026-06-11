@@ -8,8 +8,10 @@ use App\Models\Unit;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Enums\RecordActionsPosition;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -103,6 +105,18 @@ class BookingsTable
             ])
             ->filters(
                 [
+                    // Default view only shows effective bookings (confirmed,
+                    // requests, …) — untoggle to see cancelled/deleted/vanished.
+                    // Stands down when a status is explicitly selected, so
+                    // picking "Cancelled" in the status filter still works.
+                    Filter::make('effective')
+                        ->label(__(self::LANG.'.filter.effective_only'))
+                        ->toggle()
+                        ->default()
+                        ->query(fn (Builder $query, HasTable $livewire): Builder => ($livewire->tableFilters['status']['value'] ?? null)
+                            ? $query
+                            : $query->whereNotIn('status', Booking::CANCELLED_STATUSES)),
+
                     SelectFilter::make('status')
                         ->label(__(self::LANG.'.field.status'))
                         ->options(self::statusOptions()),
@@ -185,6 +199,9 @@ class BookingsTable
             'confirmed' => __('booking.status.confirmed'),
             'undefined' => __('booking.status.undefined'),
             'unavailable' => __('booking.status.unavailable'),
+            'pending' => __('booking.status.pending'),
+            'request' => __('booking.status.request'),
+            'inquiry' => __('booking.status.inquiry'),
             'cancelled' => __('booking.status.cancelled'),
             'cancelled_by_owner' => __('booking.status.cancelled_by_owner'),
             'cancelled_by_guest' => __('booking.status.cancelled_by_guest'),

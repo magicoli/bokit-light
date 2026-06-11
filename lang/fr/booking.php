@@ -38,11 +38,19 @@ return [
     'status.confirmed' => 'Confirmée',
     'status.undefined' => 'Indéfini',
     'status.unavailable' => 'Indisponible',
+    'status.pending' => 'Demande en attente',
+    'status.request' => 'Demande (bloquante)',
+    'status.inquiry' => 'Demande d\'information',
     'status.cancelled' => 'Annulée',
     'status.cancelled_by_owner' => 'Annulée par le propriétaire',
     'status.cancelled_by_guest' => 'Annulée par le client',
     'status.vanished' => 'Disparue',
     'status.deleted' => 'Supprimée',
+
+    // Display filters
+    'filter.show_cancelled' => 'Afficher les annulées',
+    'filter.show_inquiries' => 'Afficher les demandes d\'information',
+    'filter.effective_only' => 'Réservations effectives uniquement',
 
     // Form sections
     'section.guests' => 'Personnes',

@@ -148,6 +148,49 @@ it('shows a single row per group reservation with aggregated totals', function (
         ->assertSee('15');
 });
 
+it('hides cancelled bookings by default and shows them via filters', function () {
+    $confirmed = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Effective Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-07-01',
+        'check_out' => '2026-07-08',
+    ]);
+    $cancelled = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Cancelled Guest',
+        'status' => 'cancelled',
+        'check_in' => '2026-07-10',
+        'check_out' => '2026-07-15',
+    ]);
+    $vanished = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Vanished Guest',
+        'status' => 'vanished',
+        'check_in' => '2026-07-20',
+        'check_out' => '2026-07-25',
+    ]);
+
+    // Default: only effective bookings
+    Livewire::test(ListBookings::class)
+        ->assertCanSeeTableRecords([$confirmed])
+        ->assertCanNotSeeTableRecords([$cancelled, $vanished]);
+
+    // Untoggling the effective filter reveals everything
+    Livewire::test(ListBookings::class)
+        ->removeTableFilter('effective')
+        ->assertCanSeeTableRecords([$confirmed, $cancelled, $vanished]);
+
+    // Picking a cancelled status explicitly works even with the toggle on
+    Livewire::test(ListBookings::class)
+        ->filterTable('status', 'cancelled')
+        ->assertCanSeeTableRecords([$cancelled])
+        ->assertCanNotSeeTableRecords([$confirmed, $vanished]);
+});
+
 it('hides past and ongoing unavailable blocks from the list', function () {
     $past = Booking::create([
         'property_id' => $this->property->id,

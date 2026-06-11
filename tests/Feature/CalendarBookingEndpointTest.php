@@ -113,6 +113,57 @@ it('aggregates group reservations and lists members', function () {
         ->assertJsonPath('group.members.1.is_current', true);
 });
 
+it('hides amounts and labels the status for cancelled bookings', function () {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Ratel Philippe',
+        'status' => 'cancelled',
+        'check_in' => '2026-06-27',
+        'check_out' => '2026-07-04',
+        'price' => 1200,
+        'metadata' => ['invoice_payment_total' => 300],
+    ]);
+
+    $this->getJson("/booking/{$booking->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('status', 'cancelled')
+        ->assertJsonPath('status_label', __('booking.status.cancelled'))
+        ->assertJsonPath('price', null)
+        ->assertJsonPath('paid', null)
+        ->assertJsonPath('balance', null);
+});
+
+it('hides cancelled bookings from the calendar by default and shows them on demand', function () {
+    $date = now()->startOfMonth()->addDays(10);
+
+    Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Annulée Visible',
+        'status' => 'cancelled',
+        'check_in' => $date->format('Y-m-d'),
+        'check_out' => $date->copy()->addDays(3)->format('Y-m-d'),
+    ]);
+    Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Confirmée Visible',
+        'status' => 'confirmed',
+        'check_in' => $date->format('Y-m-d'),
+        'check_out' => $date->copy()->addDays(3)->format('Y-m-d'),
+    ]);
+
+    $this->get('/calendar?date='.$date->format('Y-m-d'))
+        ->assertSuccessful()
+        ->assertSee('Confirmée Visible')
+        ->assertDontSee('Annulée Visible');
+
+    $this->get('/calendar?date='.$date->format('Y-m-d').'&cancelled=1')
+        ->assertSuccessful()
+        ->assertSee('Annulée Visible');
+});
+
 it('returns null paid and balance when no payment info exists', function () {
     $booking = Booking::create([
         'property_id' => $this->property->id,

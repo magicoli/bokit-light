@@ -33,6 +33,8 @@ class BookingInfolist
                                 'confirmed' => 'success',
                                 'undefined' => 'gray',
                                 'unavailable' => 'warning',
+                                'pending', 'request' => 'warning',
+                                'inquiry' => 'info',
                                 'cancelled', 'cancelled_by_owner', 'cancelled_by_guest', 'deleted', 'vanished' => 'danger',
                                 default => 'gray',
                             }),

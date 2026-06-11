@@ -10,6 +10,7 @@
     $statusValue = $f['status']['value'] ?? '';
     $unitValue   = $f['unit']['value'] ?? '';
     $sourceValue = $f['source_name']['value'] ?? '';
+    $effectiveOn = (bool) ($f['effective']['isActive'] ?? true);
 
     $statusOptions = \App\Filament\Resources\Bookings\Tables\BookingsTable::statusOptions();
 
@@ -79,5 +80,11 @@
             </x-slot:suffix>
         @endif
     </x-filament::input.wrapper>
+
+    {{-- Effective bookings only (hides cancelled/deleted/vanished) --}}
+    <label class="flex items-center gap-x-1.5 text-sm cursor-pointer select-none" style="white-space:nowrap">
+        <x-filament::input.checkbox wire:model.live="tableFilters.effective.isActive" :checked="$effectiveOn" />
+        {{ __('booking.filter.effective_only') }}
+    </label>
 
 </div>

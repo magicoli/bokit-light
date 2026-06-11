@@ -77,15 +77,26 @@ class CalendarController extends Controller
             $day->addDay();
         }
 
+        // Display filters: cancelled bookings are hidden by default,
+        // inquiries (non-blocking requests) are shown by default
+        $showCancelled = $request->boolean('cancelled');
+        $showInquiries = $request->boolean('inquiries', true);
+
+        $hiddenStatuses = $showCancelled ? [] : Booking::CANCELLED_STATUSES;
+        if (! $showInquiries) {
+            $hiddenStatuses[] = 'inquiry';
+        }
+
         // Load properties with their units and bookings
         // Filter by user access if not admin
         $query = Property::with([
             'units',
-            'units.bookings' => function ($query) use ($startDate, $endDate) {
+            'units.bookings' => function ($query) use ($startDate, $endDate, $hiddenStatuses) {
                 $query
                     ->with(['unit', 'property']) // Eager-load for timezone() accessor
                     ->where('check_out', '>=', $startDate->format('Y-m-d'))
-                    ->where('check_in', '<=', $endDate->format('Y-m-d'));
+                    ->where('check_in', '<=', $endDate->format('Y-m-d'))
+                    ->when($hiddenStatuses, fn ($q) => $q->whereNotIn('status', $hiddenStatuses));
             },
         ]);
 
@@ -107,6 +118,11 @@ class CalendarController extends Controller
             'properties' => $properties,
             'displayTimezone' => $tzString,
             'displayTimezoneShort' => $tzShort,
+            'showCancelled' => $showCancelled,
+            'showInquiries' => $showInquiries,
+            // Non-default filter params, appended to navigation links
+            'filterQuery' => ($showCancelled ? '&cancelled=1' : '')
+                .($showInquiries ? '' : '&inquiries=0'),
         ]);
     }
 
@@ -147,6 +163,12 @@ class CalendarController extends Controller
             ? (float) $b->getMetadata('invoice_payment_total')
             : null;
 
+        if ($booking->isCancelled()) {
+            // No money is expected from a cancelled booking — hide amounts.
+            $rawPrice = fn (Booking $b): ?float => null;
+            $paidOf = fn (Booking $b): ?float => null;
+        }
+
         if ($isGroup) {
             $price = $members->contains(fn (Booking $m): bool => $rawPrice($m) !== null)
                 ? $members->sum(fn (Booking $m): float => $rawPrice($m) ?? 0)
@@ -165,6 +187,7 @@ class CalendarController extends Controller
             'id' => $booking->id,
             'guest_name' => $booking->guest_name,
             'status' => $booking->status,
+            'status_label' => __('booking.status.'.$booking->status),
             'deleted_at' => $booking->deleted_at?->toIso8601String(),
             'check_in' => ($isGroup ? $members->min('check_in') : $booking->check_in)->format('Y-m-d'),
             'check_out' => ($isGroup ? $members->max('check_out') : $booking->check_out)->format('Y-m-d'),

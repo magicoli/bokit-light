@@ -38,11 +38,19 @@ return [
     'status.confirmed' => 'Confirmed',
     'status.undefined' => 'Undefined',
     'status.unavailable' => 'Unavailable',
+    'status.pending' => 'Pending request',
+    'status.request' => 'Request',
+    'status.inquiry' => 'Inquiry',
     'status.cancelled' => 'Cancelled',
     'status.cancelled_by_owner' => 'Cancelled by owner',
     'status.cancelled_by_guest' => 'Cancelled by guest',
     'status.vanished' => 'Vanished',
     'status.deleted' => 'Deleted',
+
+    // Display filters
+    'filter.show_cancelled' => 'Show cancelled',
+    'filter.show_inquiries' => 'Show inquiries',
+    'filter.effective_only' => 'Effective bookings only',
 
     // Form sections
     'section.guests' => 'Guests',

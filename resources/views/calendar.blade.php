@@ -17,15 +17,15 @@ use App\Traits\TimezoneTrait;
         <div class="nav-controls">
             <!-- Left: Navigation + Today button -->
             <div class="nav-left">
-                <a href="?date={{ $prevYear->format('Y-m-d') }}&view={{ $view }}"
+                <a href="?date={{ $prevYear->format('Y-m-d') }}&view={{ $view }}{{ $filterQuery }}"
                    class="nav-button">
                     «
                 </a>
-                <a href="?date={{ $prevPeriod->format('Y-m-d') }}&view={{ $view }}"
+                <a href="?date={{ $prevPeriod->format('Y-m-d') }}&view={{ $view }}{{ $filterQuery }}"
                    class="nav-button">
                     ‹
                 </a>
-                <a href="{{ $view !== 'month' ? route('calendar', ['view' => $view]) : route('calendar') }}"
+                <a href="{{ route('calendar', array_filter(['view' => $view !== 'month' ? $view : null, 'cancelled' => $showCancelled ? 1 : null, 'inquiries' => $showInquiries ? null : 0], fn ($v) => $v !== null)) }}"
                    class="nav-button today">
                     <span class="text-desktop-only">{{ __('app.today') }}</span>
                     <span class="text-mobile-only">🏠</span>
@@ -60,7 +60,7 @@ use App\Traits\TimezoneTrait;
             <!-- Right: Period navigation + Year -->
             <div class="nav-right">
                 @if($canNavigateForward)
-                    <a href="?date={{ $nextPeriod->format('Y-m-d') }}&view={{ $view }}"
+                    <a href="?date={{ $nextPeriod->format('Y-m-d') }}&view={{ $view }}{{ $filterQuery }}"
                        class="nav-button">
                         ›
                     </a>
@@ -71,7 +71,7 @@ use App\Traits\TimezoneTrait;
                 @endif
 
                 @if($canNavigateYearForward)
-                    <a href="?date={{ $nextYear->format('Y-m-d') }}&view={{ $view }}"
+                    <a href="?date={{ $nextYear->format('Y-m-d') }}&view={{ $view }}{{ $filterQuery }}"
                        class="nav-button">
                         »
                     </a>
@@ -81,6 +81,20 @@ use App\Traits\TimezoneTrait;
                     </span>
                 @endif
             </div>
+        </div>
+
+        <!-- Display filters -->
+        <div class="calendar-filters">
+            <label class="filter-toggle">
+                <input type="checkbox" {{ $showCancelled ? 'checked' : '' }}
+                       onchange="const p = new URLSearchParams(location.search); this.checked ? p.set('cancelled', '1') : p.delete('cancelled'); location.search = p;">
+                {{ __('booking.filter.show_cancelled') }}
+            </label>
+            <label class="filter-toggle">
+                <input type="checkbox" {{ $showInquiries ? 'checked' : '' }}
+                       onchange="const p = new URLSearchParams(location.search); this.checked ? p.delete('inquiries') : p.set('inquiries', '0'); location.search = p;">
+                {{ __('booking.filter.show_inquiries') }}
+            </label>
         </div>
     </div>
 
@@ -280,6 +294,9 @@ use App\Traits\TimezoneTrait;
                             <div class="unit-info">
                                 <span class="unit-name"
                                       x-text="selectedBooking.unit?.name + (selectedBooking.group ? ' + ' + (selectedBooking.group.count - 1) : '')"></span>
+                                <span class="status-badge"
+                                      :class="'status-' + (selectedBooking.status || '') + ' bg-' + (selectedBooking.status || '')"
+                                      x-text="selectedBooking.status_label"></span>
                                 <span class="actions action-links">
                                     <a :href="selectedBooking.view_url" class="action-link" title="{{ __('app.view') }}">{!! icon('eye') !!}</a>
                                     <a :href="selectedBooking.edit_url" class="action-link" title="{{ __('app.edit') }}">{!! icon('edit') !!}</a>

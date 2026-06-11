@@ -24,6 +24,14 @@ class Booking extends Model
     use SoftDeletes;
     use TimezoneTrait;
 
+    /**
+     * Statuses of bookings that no longer hold the unit: no money is
+     * expected from them and default views hide them.
+     *
+     * @var list<string>
+     */
+    public const CANCELLED_STATUSES = ['cancelled', 'cancelled_by_owner', 'cancelled_by_guest', 'deleted', 'vanished'];
+
     protected $fillable = [
         'status',
         'guest_name',
@@ -473,6 +481,15 @@ class Booking extends Model
     public function getMetadata(string $key, $default = null)
     {
         return $this->metadata[$key] ?? $default;
+    }
+
+    /**
+     * True when the booking is cancelled, deleted or vanished — it no
+     * longer holds the unit and no payment is expected.
+     */
+    public function isCancelled(): bool
+    {
+        return in_array($this->status, self::CANCELLED_STATUSES, true) || $this->trashed();
     }
 
     /**
