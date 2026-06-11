@@ -4,7 +4,8 @@
     $members = $record->groupMembers();
     // Cancelled members stay listed but hold nothing: excluded from totals.
     $active = $members->reject(fn ($m) => $m->isCancelled());
-    $cell = 'padding: 0.375rem 1rem 0.375rem 0; white-space: nowrap;';
+    $cell = 'padding: 0.375rem 1rem 0.375rem 0;';
+    $nowrap = $cell.' white-space: nowrap;';
     $head = 'text-align: start; padding: 0.25rem 1rem 0.25rem 0; font-weight: 500; opacity: 0.6;';
     $money = fn (?float $value): string => $value !== null
         ? \Illuminate\Support\Number::currency($value, 'EUR', app()->getLocale())
@@ -34,22 +35,22 @@
                     @endif
                 </td>
                 <td style="{{ $cell }}">{{ $member->guest_name }}</td>
-                <td style="{{ $cell }}">{{ $member->check_in->format('d/m/Y') }}</td>
-                <td style="{{ $cell }}">{{ $member->check_out->format('d/m/Y') }}</td>
+                <td style="{{ $nowrap }}">{{ $member->check_in->format('d/m/Y') }}</td>
+                <td style="{{ $nowrap }}">{{ $member->check_out->format('d/m/Y') }}</td>
                 <td style="{{ $cell }}">{{ $member->adults ?? '-' }}</td>
                 <td style="{{ $cell }}">{{ $member->children ?? '-' }}</td>
-                <td style="{{ $cell }} text-align: end;">{{ $money(! $member->isCancelled() && $member->getRawOriginal('price') !== null ? (float) $member->getRawOriginal('price') : null) }}</td>
+                <td style="{{ $nowrap }} text-align: end;">{{ $money(! $member->isCancelled() && $member->getRawOriginal('price') !== null ? (float) $member->getRawOriginal('price') : null) }}</td>
                 <td style="{{ $cell }}">{{ __('booking.status.'.$member->status) }}</td>
             </tr>
         @endforeach
         <tr style="border-top: 2px solid rgba(128, 128, 128, 0.4); font-weight: 600;">
             <td style="{{ $cell }}">{{ __('booking.group.total') }}</td>
             <td style="{{ $cell }}"></td>
-            <td style="{{ $cell }}">{{ $active->min('check_in')?->format('d/m/Y') }}</td>
-            <td style="{{ $cell }}">{{ $active->max('check_out')?->format('d/m/Y') }}</td>
+            <td style="{{ $nowrap }}">{{ $active->min('check_in')?->format('d/m/Y') }}</td>
+            <td style="{{ $nowrap }}">{{ $active->max('check_out')?->format('d/m/Y') }}</td>
             <td style="{{ $cell }}">{{ $active->sum('adults') ?: '-' }}</td>
             <td style="{{ $cell }}">{{ $active->sum('children') ?: '-' }}</td>
-            <td style="{{ $cell }} text-align: end;">{{ $money($active->sum(fn ($m) => (float) $m->getRawOriginal('price'))) }}</td>
+            <td style="{{ $nowrap }} text-align: end;">{{ $money($active->sum(fn ($m) => (float) $m->getRawOriginal('price'))) }}</td>
             <td style="{{ $cell }}"></td>
         </tr>
     </tbody>
