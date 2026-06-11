@@ -30,7 +30,6 @@ class BookingsOngoing extends TableWidget
         return $table
             ->query(fn (): Builder => Booking::query())
             ->columns([
-            ...DynamicTable::columns(Booking::class, self::LANG, [
                 'unit_name' => TextColumn::make('unit_name')
                     ->label(__(self::LANG.'.field.unit_name'))
                     ->getStateUsing(fn (Booking $record): ?string => $record->group_id && $record->group_units > 1
@@ -48,9 +47,9 @@ class BookingsOngoing extends TableWidget
                     ->sortable()
                     ->wrap(),
 
-                'guests' => self::groupAwareSum('guests', 'group_guests'),
-                'adults' => self::groupAwareSum('adults', 'group_adults'),
-                'children' => self::groupAwareSum('children', 'group_children'),
+                // 'guests' => self::groupAwareSum('guests', 'group_guests'),
+                // 'adults' => self::groupAwareSum('adults', 'group_adults'),
+                // 'children' => self::groupAwareSum('children', 'group_children'),
 
                 'price' => TextColumn::make('price')
                     ->label(__(self::LANG.'.field.price'))
@@ -62,12 +61,6 @@ class BookingsOngoing extends TableWidget
                     ->sortable(query: fn (Builder $query, string $direction): Builder => $query
                         ->orderByRaw('coalesce((select sum(m.price) from bookings m where '.self::activeMember().'), price) '.$direction)),
 
-                // Notes: truncated + hidden by default
-                'notes' => TextColumn::make('notes')
-                    ->label(__(self::LANG.'.field.notes'))
-                    ->limit(60)
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ]),
             // ...$extraSearchColumns,
             ])
             ->filters([
