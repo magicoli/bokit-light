@@ -306,7 +306,7 @@ source .env
 rsync --delete -Wavz wordpress/bokit-connector/ $LIVE_HOST:$LIVE_DOCUMENT_ROOT/wp-content/plugins/bokit-connector/
 
 # 2. Full reset and reimport (when needed)
-echo "delete from bookings" | sqlite3 storage/database/default.sqlite
+echo "delete from bookings" | sqlite3 database/database.sqlite
 php artisan bokit:sync   # Always includes ALL data (past and future)
 
 # 3. Export CSV reports
