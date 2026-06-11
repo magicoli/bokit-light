@@ -368,7 +368,7 @@ use App\Traits\TimezoneTrait;
                             <label>{{ __('booking.section.group') }}</label>
                             <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse;">
                                 <template x-for="member in selectedBooking.group?.members ?? []" :key="member.id">
-                                    <tr :style="member.is_current ? 'font-weight: 600;' : ''">
+                                    <tr :style="(member.is_current ? 'font-weight: 600;' : '') + (member.is_cancelled ? 'opacity: 0.5; text-decoration: line-through;' : '')">
                                         <td style="padding: 0.125rem 0.5rem 0.125rem 0;" x-text="member.unit_name"></td>
                                         <td style="padding: 0.125rem 0.5rem 0.125rem 0; white-space: nowrap;"
                                             x-text="formatDate(member.check_in) + ' → ' + formatDate(member.check_out)"></td>

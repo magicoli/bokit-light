@@ -99,6 +99,20 @@ it('aggregates group reservations and lists members', function () {
         'group_id' => 555,
     ]);
 
+    // Cancelled member: listed in the detail, excluded from aggregates.
+    Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Groupe Kervella',
+        'status' => 'cancelled',
+        'check_in' => '2026-09-20',
+        'check_out' => '2026-10-20',
+        'price' => 5145,
+        'adults' => 50,
+        'group_id' => 555,
+        'metadata' => ['invoice_payment_total' => 999],
+    ]);
+
     // Clicking any member returns the same group aggregates
     $this->getJson("/booking/{$member->id}")
         ->assertSuccessful()
@@ -109,9 +123,10 @@ it('aggregates group reservations and lists members', function () {
         ->assertJsonPath('balance', 3200)
         ->assertJsonPath('adults', 15)
         ->assertJsonPath('group.count', 2)
-        ->assertJsonPath('group.members.0.unit_name', 'Test Unit')
-        ->assertJsonPath('group.members.1.unit_name', 'Second Unit')
-        ->assertJsonPath('group.members.1.is_current', true);
+        ->assertJsonPath('group.members.0.is_cancelled', true)
+        ->assertJsonPath('group.members.0.price', null)
+        ->assertJsonPath('group.members.2.unit_name', 'Second Unit')
+        ->assertJsonPath('group.members.2.is_current', true);
 });
 
 it('hides amounts and labels the status for cancelled bookings', function () {

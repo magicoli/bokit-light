@@ -157,6 +157,13 @@ class CalendarController extends Controller
         $members = $booking->groupMembers();
         $isGroup = $members->count() > 1;
 
+        // Cancelled members hold nothing: they stay listed in the group
+        // detail but count for nothing in the aggregates.
+        $active = $members->reject(fn (Booking $m): bool => $m->isCancelled())->values();
+        if ($active->isEmpty()) {
+            $active = new Collection([$booking]);
+        }
+
         $rawPrice = fn (Booking $b): ?float => $b->getRawOriginal('price') !== null
             ? (float) $b->getRawOriginal('price')
             : null;
@@ -181,9 +188,9 @@ class CalendarController extends Controller
             : null;
 
         if ($isGroup) {
-            $price = $sumOf($members, $rawPrice);
-            $paid = $sumOf($members, $paidOf);
-            $deposit = $sumOf($members, $depositOf);
+            $price = $sumOf($active, $rawPrice);
+            $paid = $sumOf($active, $paidOf);
+            $deposit = $sumOf($active, $depositOf);
         } else {
             $price = $rawPrice($booking);
             $paid = $paidOf($booking);
@@ -198,12 +205,12 @@ class CalendarController extends Controller
             'status' => $booking->status,
             'status_label' => __('booking.status.'.$booking->status),
             'deleted_at' => $booking->deleted_at?->toIso8601String(),
-            'check_in' => ($isGroup ? $members->min('check_in') : $booking->check_in)->format('Y-m-d'),
-            'check_out' => ($isGroup ? $members->max('check_out') : $booking->check_out)->format('Y-m-d'),
-            'adults' => $isGroup ? ($members->sum('adults') ?: null) : $booking->adults,
-            'children' => $isGroup ? ($members->sum('children') ?: null) : $booking->children,
+            'check_in' => ($isGroup ? $active->min('check_in') : $booking->check_in)->format('Y-m-d'),
+            'check_out' => ($isGroup ? $active->max('check_out') : $booking->check_out)->format('Y-m-d'),
+            'adults' => $isGroup ? ($active->sum('adults') ?: null) : $booking->adults,
+            'children' => $isGroup ? ($active->sum('children') ?: null) : $booking->children,
             'guests' => $isGroup
-                ? ($members->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
+                ? ($active->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
                 : $booking->guests,
             'price' => $price,
             'deposit' => $deposit,
@@ -228,14 +235,15 @@ class CalendarController extends Controller
                 'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
             ],
             'group' => $isGroup ? [
-                'count' => $members->count(),
+                'count' => $active->count(),
                 'members' => $members->map(fn (Booking $m): array => [
                     'id' => $m->id,
                     'unit_name' => $m->unit?->name,
                     'check_in' => $m->check_in->format('Y-m-d'),
                     'check_out' => $m->check_out->format('Y-m-d'),
-                    'price' => $rawPrice($m),
+                    'price' => $m->isCancelled() ? null : $rawPrice($m),
                     'is_current' => $m->id === $booking->id,
+                    'is_cancelled' => $m->isCancelled(),
                 ])->values()->all(),
             ] : null,
         ];

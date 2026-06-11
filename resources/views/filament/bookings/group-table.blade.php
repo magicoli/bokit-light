@@ -2,6 +2,8 @@
     /** @var \App\Models\Booking $record */
     $record = $getRecord();
     $members = $record->groupMembers();
+    // Cancelled members stay listed but hold nothing: excluded from totals.
+    $active = $members->reject(fn ($m) => $m->isCancelled());
     $cell = 'padding: 0.375rem 1rem 0.375rem 0; white-space: nowrap;';
     $head = 'text-align: start; padding: 0.25rem 1rem 0.25rem 0; font-weight: 500; opacity: 0.6;';
     $money = fn (?float $value): string => $value !== null
@@ -23,7 +25,7 @@
     </thead>
     <tbody>
         @foreach ($members as $member)
-            <tr style="border-top: 1px solid rgba(128, 128, 128, 0.2); {{ $member->id === $record->id ? 'font-weight: 600;' : '' }}">
+            <tr style="border-top: 1px solid rgba(128, 128, 128, 0.2); {{ $member->id === $record->id ? 'font-weight: 600;' : '' }} {{ $member->isCancelled() ? 'opacity: 0.5; text-decoration: line-through;' : '' }}">
                 <td style="{{ $cell }}">
                     @if ($member->id === $record->id)
                         {{ $member->unit?->name }}
@@ -36,18 +38,18 @@
                 <td style="{{ $cell }}">{{ $member->check_out->format('d/m/Y') }}</td>
                 <td style="{{ $cell }}">{{ $member->adults ?? '-' }}</td>
                 <td style="{{ $cell }}">{{ $member->children ?? '-' }}</td>
-                <td style="{{ $cell }} text-align: end;">{{ $money($member->getRawOriginal('price') !== null ? (float) $member->getRawOriginal('price') : null) }}</td>
+                <td style="{{ $cell }} text-align: end;">{{ $money(! $member->isCancelled() && $member->getRawOriginal('price') !== null ? (float) $member->getRawOriginal('price') : null) }}</td>
                 <td style="{{ $cell }}">{{ __('booking.status.'.$member->status) }}</td>
             </tr>
         @endforeach
         <tr style="border-top: 2px solid rgba(128, 128, 128, 0.4); font-weight: 600;">
             <td style="{{ $cell }}">{{ __('booking.group.total') }}</td>
             <td style="{{ $cell }}"></td>
-            <td style="{{ $cell }}">{{ $members->min('check_in')?->format('d/m/Y') }}</td>
-            <td style="{{ $cell }}">{{ $members->max('check_out')?->format('d/m/Y') }}</td>
-            <td style="{{ $cell }}">{{ $members->sum('adults') ?: '-' }}</td>
-            <td style="{{ $cell }}">{{ $members->sum('children') ?: '-' }}</td>
-            <td style="{{ $cell }} text-align: end;">{{ $money($members->sum(fn ($m) => (float) $m->getRawOriginal('price'))) }}</td>
+            <td style="{{ $cell }}">{{ $active->min('check_in')?->format('d/m/Y') }}</td>
+            <td style="{{ $cell }}">{{ $active->max('check_out')?->format('d/m/Y') }}</td>
+            <td style="{{ $cell }}">{{ $active->sum('adults') ?: '-' }}</td>
+            <td style="{{ $cell }}">{{ $active->sum('children') ?: '-' }}</td>
+            <td style="{{ $cell }} text-align: end;">{{ $money($active->sum(fn ($m) => (float) $m->getRawOriginal('price'))) }}</td>
             <td style="{{ $cell }}"></td>
         </tr>
     </tbody>

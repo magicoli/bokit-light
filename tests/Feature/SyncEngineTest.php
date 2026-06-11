@@ -576,6 +576,49 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->status)->toBe('confirmed');
     });
 
+    it('never merges two bookings of the same source, even on identical dates and guest', function () {
+        // Real confirmed booking, no amount (group sub style).
+        $real = new NormalizedBooking(
+            externalId: '79549562',
+            checkIn: '2026-12-26',
+            checkOut: '2027-01-02',
+            guestName: 'Eric Antoine',
+            status: 'confirmed',
+            claimsOrigin: true,
+        );
+        $connector = makeEngineConnector('beds24', 'beds24', [$real]);
+        $this->engine->sync($this->unit, [], $connector);
+        expect(Booking::count())->toBe(1);
+
+        // The same source also reports a cancelled booking on the exact same
+        // dates and guest (a 'mauvaise manip' replaced by the real one). It
+        // must become its own booking, not overwrite the confirmed one.
+        $connector->bookings = [
+            $real,
+            new NormalizedBooking(
+                externalId: '79643211',
+                checkIn: '2026-12-26',
+                checkOut: '2027-01-02',
+                guestName: 'Eric Antoine',
+                status: 'cancelled',
+                price: 5145.0,
+                claimsOrigin: true,
+            ),
+        ];
+        $this->engine->sync($this->unit, [], $connector);
+
+        expect(Booking::count())->toBe(2);
+
+        $realBooking = Booking::whereHas('sources', fn ($q) => $q->where('external_id', '79549562'))->first();
+        expect($realBooking->status)->toBe('confirmed')
+            ->and($realBooking->getRawOriginal('price'))->toBeNull()
+            ->and($realBooking->sources()->where('source_key', 'beds24')->count())->toBe(1);
+
+        $cancelledBooking = Booking::whereHas('sources', fn ($q) => $q->where('external_id', '79643211'))->first();
+        expect($cancelledBooking->id)->not->toBe($realBooking->id)
+            ->and($cancelledBooking->status)->toBe('cancelled');
+    });
+
     it('deletes auto-generated availability blocks when they vanish', function () {
         $connector = makeEngineConnector('ical', 'ical:airbnb', [
             new NormalizedBooking(

@@ -40,10 +40,11 @@ class BookingsTable
         return $table
             ->defaultSort('check_in', 'desc')
             // Group reservations show a single row: the group master (or the
-            // oldest member as fallback) represents the group; aggregate
-            // columns are selected as subqueries so display and sorting use
-            // the group totals. Past or ongoing 'blocked' rows are platform
-            // artifacts and stay hidden.
+            // oldest non-cancelled member as fallback) represents the group;
+            // aggregate columns are selected as subqueries so display and
+            // sorting use the group totals. Cancelled members hold nothing
+            // and count for nothing in the aggregates. Past or ongoing
+            // 'blocked' rows are platform artifacts and stay hidden.
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
                 ->where(function (Builder $q): void {
                     $q->where('status', '!=', 'blocked')
@@ -51,16 +52,16 @@ class BookingsTable
                 })
                 ->where(function (Builder $q): void {
                     $q->whereNull('group_id')
-                        ->orWhereRaw("bookings.id = (select m.id from bookings m where m.group_id = bookings.group_id and m.deleted_at is null order by (m.uid = 'beds24-' || m.group_id) desc, m.id limit 1)");
+                        ->orWhereRaw('bookings.id = (select m.id from bookings m where m.group_id = bookings.group_id and m.deleted_at is null order by (m.status not in ('.self::cancelledList().")) desc, (m.uid = 'beds24-' || m.group_id) desc, m.id limit 1)");
                 })
                 ->select('bookings.*')
-                ->selectRaw('(select count(*) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_units')
-                ->selectRaw('(select min(m.check_in) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_check_in')
-                ->selectRaw('(select max(m.check_out) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_check_out')
-                ->selectRaw('(select sum(m.price) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_price')
-                ->selectRaw('(select sum(m.guests) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_guests')
-                ->selectRaw('(select sum(m.adults) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_adults')
-                ->selectRaw('(select sum(m.children) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null) as group_children'))
+                ->selectRaw('(select count(*) from bookings m where '.self::activeMember().') as group_units')
+                ->selectRaw('(select min(m.check_in) from bookings m where '.self::activeMember().') as group_check_in')
+                ->selectRaw('(select max(m.check_out) from bookings m where '.self::activeMember().') as group_check_out')
+                ->selectRaw('(select sum(m.price) from bookings m where '.self::activeMember().') as group_price')
+                ->selectRaw('(select sum(m.guests) from bookings m where '.self::activeMember().') as group_guests')
+                ->selectRaw('(select sum(m.adults) from bookings m where '.self::activeMember().') as group_adults')
+                ->selectRaw('(select sum(m.children) from bookings m where '.self::activeMember().') as group_children'))
             ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->columns([
                 ...DynamicTable::columns(Booking::class, self::LANG, [
@@ -93,7 +94,7 @@ class BookingsTable
                             ? $record->group_price
                             : $record->price)
                         ->sortable(query: fn (Builder $query, string $direction): Builder => $query
-                            ->orderByRaw("coalesce((select sum(m.price) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null), price) {$direction}")),
+                            ->orderByRaw('coalesce((select sum(m.price) from bookings m where '.self::activeMember().'), price) '.$direction)),
 
                     // Notes: truncated + hidden by default
                     'notes' => TextColumn::make('notes')
@@ -158,6 +159,20 @@ class BookingsTable
     }
 
     /**
+     * SQL fragment selecting the members of the current row's group that
+     * still count: not soft-deleted and not in the cancelled family.
+     */
+    private static function activeMember(): string
+    {
+        return 'm.group_id = bookings.group_id and m.deleted_at is null and m.status not in ('.self::cancelledList().')';
+    }
+
+    private static function cancelledList(): string
+    {
+        return "'".implode("','", Booking::CANCELLED_STATUSES)."'";
+    }
+
+    /**
      * Date column showing the group's overall date for group rows.
      * Sorting uses the aggregate so group rows sort by their real span.
      */
@@ -167,10 +182,10 @@ class BookingsTable
             ->label(__(self::LANG.".field.{$field}"))
             ->date('d/m/Y')
             ->getStateUsing(fn (Booking $record) => $record->group_id
-                ? $record->{$aggregateAlias}
+                ? ($record->{$aggregateAlias} ?? $record->{$field})
                 : $record->{$field})
             ->sortable(query: fn (Builder $query, string $direction): Builder => $query
-                ->orderByRaw("coalesce((select {$aggregateFn}(m.{$field}) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null), {$field}) {$direction}"));
+                ->orderByRaw("coalesce((select {$aggregateFn}(m.{$field}) from bookings m where ".self::activeMember()."), {$field}) {$direction}"));
     }
 
     /**
@@ -185,7 +200,7 @@ class BookingsTable
                 ? $record->{$aggregateAlias}
                 : $record->{$field})
             ->sortable(query: fn (Builder $query, string $direction): Builder => $query
-                ->orderByRaw("coalesce((select sum(m.{$field}) from bookings m where m.group_id = bookings.group_id and m.deleted_at is null), {$field}) {$direction}"));
+                ->orderByRaw('coalesce((select sum(m.'.$field.') from bookings m where '.self::activeMember()."), {$field}) {$direction}"));
     }
 
     /**

@@ -139,13 +139,27 @@ it('shows a single row per group reservation with aggregated totals', function (
         'check_out' => '2026-10-05',
         'is_manual' => true,
     ]);
+    // Cancelled member: listed in the group but counts for nothing.
+    $cancelledMember = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Groupe Kervella',
+        'status' => 'cancelled',
+        'check_in' => '2026-10-01',
+        'check_out' => '2026-10-08',
+        'price' => 5145,
+        'adults' => 50,
+        'group_id' => 555,
+    ]);
 
     Livewire::test(ListBookings::class)
         ->assertCanSeeTableRecords([$master, $single])
-        ->assertCanNotSeeTableRecords([$member])
-        // Aggregates: master unit + member count, summed adults
+        ->assertCanNotSeeTableRecords([$member, $cancelledMember])
+        // Aggregates: master unit + active member count, summed adults —
+        // the cancelled member's 50 adults and 5145 € count for nothing.
         ->assertSee('Test Unit + 1')
-        ->assertSee('15');
+        ->assertSee('15')
+        ->assertDontSee('Test Unit + 2');
 });
 
 it('hides cancelled bookings by default and shows them via filters', function () {

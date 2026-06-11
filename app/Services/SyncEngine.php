@@ -148,7 +148,7 @@ class SyncEngine
                 $normalized->originHint['external_id'],
             );
 
-            if ($booking) {
+            if ($this->accept($booking, $sourceKey, $normalized)) {
                 return $booking;
             }
 
@@ -157,7 +157,7 @@ class SyncEngine
                 ->where('uid', $normalized->originHint['external_id'])
                 ->first();
 
-            if ($booking) {
+            if ($this->accept($booking, $sourceKey, $normalized)) {
                 return $booking;
             }
         }
@@ -165,7 +165,7 @@ class SyncEngine
         // 3. Same external id seen by another source of the same type.
         $booking = $this->findByReference($unit, $sourceType, $normalized->externalId);
 
-        if ($booking) {
+        if ($this->accept($booking, $sourceKey, $normalized)) {
             return $booking;
         }
 
@@ -176,7 +176,7 @@ class SyncEngine
                 ->where('uid', $normalized->legacyUid)
                 ->first();
 
-            if ($booking) {
+            if ($this->accept($booking, $sourceKey, $normalized)) {
                 return $booking;
             }
         }
@@ -190,7 +190,7 @@ class SyncEngine
                 ->whereRaw("JSON_EXTRACT(metadata, '$.email') = ?", [$normalized->email])
                 ->first();
 
-            if ($booking) {
+            if ($this->accept($booking, $sourceKey, $normalized)) {
                 return $booking;
             }
         }
@@ -203,12 +203,37 @@ class SyncEngine
                 ->where('guest_name', $normalized->guestName)
                 ->first();
 
-            if ($booking) {
+            if ($this->accept($booking, $sourceKey, $normalized)) {
                 return $booking;
             }
         }
 
         return null;
+    }
+
+    /**
+     * A candidate found by hint, uid or heuristics is only acceptable if
+     * the same source does not already know it under another external id:
+     * one source can never report two of its bookings as a single one
+     * (e.g. a cancelled booking and its replacement on the same dates must
+     * stay separate bookings).
+     */
+    private function accept(?Booking $booking, string $sourceKey, NormalizedBooking $normalized): bool
+    {
+        if (! $booking) {
+            return false;
+        }
+
+        $conflict = $booking->sources()
+            ->where('source_key', $sourceKey)
+            ->where('external_id', '!=', $normalized->externalId)
+            ->exists();
+
+        if ($conflict) {
+            Log::info("[SyncEngine] Refusing match: booking #{$booking->id} already referenced by {$sourceKey} under another id (incoming {$normalized->externalId})");
+        }
+
+        return ! $conflict;
     }
 
     private function findByReference(Unit $unit, string $sourceType, string $externalId): ?Booking
