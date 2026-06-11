@@ -9,7 +9,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
 
 /**
@@ -50,22 +49,15 @@ abstract class BookingListWidget extends TableWidget
             )->limit(10))
             ->paginated(false)
             ->columns([
-                TextColumn::make('status_dot')
-                    ->label('')
-                    ->state(fn (Booking $record): HtmlString => new HtmlString(sprintf(
-                        '<span style="color: var(--color-%s, var(--color-unknown))" title="%s">&#9679;</span>',
-                        e($record->displayStatus()),
-                        e(__('booking.status.'.$record->status)),
-                    )))
-                    ->html()
-                    ->grow(false),
-
                 TextColumn::make('title')
                     ->label('')
                     ->wrap(),
 
                 ...$this->extraColumns(),
             ])
+            // Whole-row background by payment status (styles injected in
+            // the panel head by AdminPanelProvider).
+            ->recordClasses(fn (Booking $record): string => 'booking-status-'.$record->displayStatus())
             ->recordUrl(fn (Booking $record): string => BookingResource::getUrl('view', ['record' => $record]));
     }
 
