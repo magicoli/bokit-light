@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             fn (): HtmlString => new HtmlString('<style>
                 :root {
                     --color-paid: #84cc16;
-                    --color-due: #10cc81;
+                    --color-due: #14b8a6;
                     --color-option: #f59e0bc0;
                     --color-quote: #eab30880;
                     --color-blocked: #00000080;
