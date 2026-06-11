@@ -126,6 +126,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->breadcrumbs(false)
+            ->homeUrl('/')
+            ->brandLogo('/images/logo.png')
+            ->brandLogoHeight(fn () => request()->is('login', '*/login') ? '128px' : '48px')
             // ->sidebarCollapsibleOnDesktop()
             ->sidebarFullyCollapsibleOnDesktop()
             ->colors([
