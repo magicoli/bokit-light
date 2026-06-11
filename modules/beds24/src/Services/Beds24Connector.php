@@ -246,6 +246,8 @@ class Beds24Connector implements SourceConnector
             originHint: $originHint,
             legacyUid: "beds24-{$row['bookId']}",
             claimsOrigin: $originHint === null,
+            sourceCreatedAt: trim((string) ($row['bookingTime'] ?? '')) ?: null,
+            sourceUpdatedAt: trim((string) ($row['modified'] ?? '')) ?: null,
             groupId: $masterId ?: null,
         );
     }

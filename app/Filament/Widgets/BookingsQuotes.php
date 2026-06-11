@@ -23,7 +23,7 @@ class BookingsQuotes extends BookingListWidget
 
     protected function listParameters(): array
     {
-        return ['filters' => ['status' => ['value' => 'quote']], 'sort' => 'updated_at:desc'];
+        return ['filters' => ['status' => ['value' => 'quote'], 'period' => ['value' => 'current']], 'sort' => 'updated_at:desc'];
     }
 
     protected function scopeList(Builder $query): Builder

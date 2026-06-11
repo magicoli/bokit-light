@@ -8,11 +8,13 @@
     $f = $__livewire->tableFilters ?? [];
 
     $statusValue = $f['status']['value'] ?? '';
+    $periodValue = $f['period']['value'] ?? '';
     $unitValue   = $f['unit']['value'] ?? '';
     $sourceValue = $f['source_name']['value'] ?? '';
     $effectiveOn = (bool) ($f['effective']['isActive'] ?? true);
 
     $statusOptions = \App\Filament\Resources\Bookings\Tables\BookingsTable::statusOptions();
+    $periodOptions = \App\Filament\Resources\Bookings\Tables\BookingsTable::periodOptions();
 
     $unitOptions = \App\Models\Unit::forUser()
         ->orderBy('name')
@@ -41,6 +43,23 @@
         @if($statusValue !== '')
             <x-slot:suffix>
                 <button type="button" wire:click="$set('tableFilters.status.value', '')" aria-label="{{ __('app.clear') }}" style="display:flex;align-items:center;cursor:pointer;color:var(--color-gray-400)">
+                    <x-filament::icon icon="heroicon-m-x-mark" style="width:1rem;height:1rem" />
+                </button>
+            </x-slot:suffix>
+        @endif
+    </x-filament::input.wrapper>
+
+    {{-- Period --}}
+    <x-filament::input.wrapper inline-suffix>
+        <x-filament::input.select wire:model.live="tableFilters.period.value" :inline-suffix="$periodValue !== ''" aria-label="{{ __('booking.filter.period') }}">
+            <option value="">{{ __('booking.filter.period') }}</option>
+            @foreach($periodOptions as $val => $label)
+                <option value="{{ $val }}" @selected($val === $periodValue)>{{ $label }}</option>
+            @endforeach
+        </x-filament::input.select>
+        @if($periodValue !== '')
+            <x-slot:suffix>
+                <button type="button" wire:click="$set('tableFilters.period.value', '')" aria-label="{{ __('app.clear') }}" style="display:flex;align-items:center;cursor:pointer;color:var(--color-gray-400)">
                     <x-filament::icon icon="heroicon-m-x-mark" style="width:1rem;height:1rem" />
                 </button>
             </x-slot:suffix>

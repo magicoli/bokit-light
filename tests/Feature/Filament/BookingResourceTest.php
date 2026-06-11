@@ -274,6 +274,53 @@ it('hides cancelled bookings by default and shows them via filters', function ()
         ->assertCanNotSeeTableRecords([$confirmed, $vanished]);
 });
 
+it('filters by period', function () {
+    $ongoing = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Ongoing Guest',
+        'status' => 'confirmed',
+        'check_in' => now()->subDays(2)->format('Y-m-d'),
+        'check_out' => now()->addDays(3)->format('Y-m-d'),
+    ]);
+    $upcoming = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Upcoming Guest',
+        'status' => 'confirmed',
+        'check_in' => now()->addDays(10)->format('Y-m-d'),
+        'check_out' => now()->addDays(15)->format('Y-m-d'),
+    ]);
+    $past = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Past Guest',
+        'status' => 'confirmed',
+        'check_in' => now()->subDays(20)->format('Y-m-d'),
+        'check_out' => now()->subDays(15)->format('Y-m-d'),
+    ]);
+
+    Livewire::test(ListBookings::class)
+        ->filterTable('period', 'ongoing')
+        ->assertCanSeeTableRecords([$ongoing])
+        ->assertCanNotSeeTableRecords([$upcoming, $past]);
+
+    Livewire::test(ListBookings::class)
+        ->filterTable('period', 'upcoming')
+        ->assertCanSeeTableRecords([$upcoming])
+        ->assertCanNotSeeTableRecords([$ongoing, $past]);
+
+    Livewire::test(ListBookings::class)
+        ->filterTable('period', 'current')
+        ->assertCanSeeTableRecords([$ongoing, $upcoming])
+        ->assertCanNotSeeTableRecords([$past]);
+
+    Livewire::test(ListBookings::class)
+        ->filterTable('period', 'past')
+        ->assertCanSeeTableRecords([$past])
+        ->assertCanNotSeeTableRecords([$ongoing, $upcoming]);
+});
+
 it('sorts by the hidden updated_at column for widget deep links', function () {
     $booking = Booking::create([
         'property_id' => $this->property->id,

@@ -167,6 +167,7 @@ it('links each widget to the bookings list with its filter and sort', function (
 
     $component->assertSee(__('booking.widget.see_all'));
     $component->assertSee('filters%5Bstatus%5D%5Bvalue%5D=option', escape: false);
+    $component->assertSee('filters%5Bperiod%5D%5Bvalue%5D=current', escape: false);
     $component->assertSee('sort=updated_at%3Adesc', escape: false);
 });
 

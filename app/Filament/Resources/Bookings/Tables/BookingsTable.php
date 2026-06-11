@@ -130,6 +130,21 @@ class BookingsTable
                         ->label(__(self::LANG.'.field.status'))
                         ->options(self::statusOptions()),
 
+                    // Date window, also targeted by the dashboard widgets'
+                    // "see all" deep links.
+                    SelectFilter::make('period')
+                        ->label(__(self::LANG.'.filter.period'))
+                        ->options(self::periodOptions())
+                        ->query(fn (Builder $query, array $data): Builder => match ($data['value'] ?? null) {
+                            'ongoing' => $query
+                                ->whereDate('check_in', '<=', today())
+                                ->whereDate('check_out', '>=', today()),
+                            'upcoming' => $query->whereDate('check_in', '>', today()),
+                            'current' => $query->whereDate('check_out', '>=', today()),
+                            'past' => $query->whereDate('check_out', '<', today()),
+                            default => $query,
+                        }),
+
                     SelectFilter::make('unit')
                         ->label(__(self::LANG.'.field.unit_name'))
                         ->options(fn (): array => Unit::forUser()->orderBy('name')->pluck('name', 'id')->all())
@@ -209,6 +224,21 @@ class BookingsTable
                 : $record->{$field})
             ->sortable(query: fn (Builder $query, string $direction): Builder => $query
                 ->orderByRaw('coalesce((select sum(m.'.$field.') from bookings m where '.self::activeMember()."), {$field}) {$direction}"));
+    }
+
+    /**
+     * Period (date window) options for the period filter.
+     *
+     * @return array<string, string>
+     */
+    public static function periodOptions(): array
+    {
+        return [
+            'ongoing' => __('booking.period.ongoing'),
+            'upcoming' => __('booking.period.upcoming'),
+            'current' => __('booking.period.current'),
+            'past' => __('booking.period.past'),
+        ];
     }
 
     /**

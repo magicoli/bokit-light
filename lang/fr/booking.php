@@ -65,6 +65,11 @@ return [
     'filter.show_cancelled' => 'Afficher les annulées',
     'filter.show_quotes' => 'Afficher les devis',
     'filter.effective_only' => 'Réservations effectives uniquement',
+    'filter.period' => 'Période',
+    'period.ongoing' => 'En cours',
+    'period.upcoming' => 'À venir',
+    'period.current' => 'En cours ou à venir',
+    'period.past' => 'Passées',
 
     // Form sections
     'section.guests' => 'Personnes',

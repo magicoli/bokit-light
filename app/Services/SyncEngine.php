@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\BookingSource;
 use App\Models\Unit;
 use App\Support\NormalizedBooking;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -254,7 +255,7 @@ class SyncEngine
             $metadata['email'] = $normalized->email;
         }
 
-        $booking = Booking::create([
+        $booking = new Booking([
             'unit_id' => $unit->id,
             'property_id' => $unit->property_id,
             'uid' => $normalized->legacyUid ?? "{$sourceKey}-{$normalized->externalId}",
@@ -272,6 +273,18 @@ class SyncEngine
             'is_manual' => false,
             'metadata' => $metadata,
         ]);
+
+        // Timestamps mirror the reservation's life in the source system,
+        // not the moment our sync first saw it. Explicitly assigned values
+        // are kept by Eloquent (updateTimestamps skips dirty attributes).
+        if ($normalized->sourceCreatedAt) {
+            $booking->created_at = Carbon::parse($normalized->sourceCreatedAt);
+        }
+        if ($normalized->sourceUpdatedAt) {
+            $booking->updated_at = Carbon::parse($normalized->sourceUpdatedAt);
+        }
+
+        $booking->save();
 
         $this->writeReference($booking, [
             'source_type' => $sourceType,
@@ -417,7 +430,10 @@ class SyncEngine
             return false;
         }
 
-        $booking->update($changes);
+        // forceFill: created_at/updated_at are not fillable, update() would
+        // silently drop them and touch now() instead of the source's dates.
+        $booking->forceFill($changes);
+        $booking->save();
 
         return true;
     }
@@ -478,6 +494,18 @@ class SyncEngine
 
         if ($normalized->groupId !== null && (string) $booking->getRawOriginal('group_id') !== $normalized->groupId) {
             $changes['group_id'] = $normalized->groupId;
+        }
+
+        if ($normalized->sourceCreatedAt
+            && ($booking->created_at === null || ! Carbon::parse($normalized->sourceCreatedAt)->equalTo($booking->created_at))) {
+            $changes['created_at'] = Carbon::parse($normalized->sourceCreatedAt);
+        }
+
+        // updated_at mirrors the source's last modification. When set
+        // explicitly it is dirty, so Eloquent's own touch is skipped.
+        if ($normalized->sourceUpdatedAt
+            && ($booking->updated_at === null || ! Carbon::parse($normalized->sourceUpdatedAt)->equalTo($booking->updated_at))) {
+            $changes['updated_at'] = Carbon::parse($normalized->sourceUpdatedAt);
         }
 
         $newMeta = $this->incomingMetadata($normalized);

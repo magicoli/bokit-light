@@ -65,6 +65,11 @@ return [
     'filter.show_cancelled' => 'Show cancelled',
     'filter.show_quotes' => 'Show quotes',
     'filter.effective_only' => 'Effective bookings only',
+    'filter.period' => 'Period',
+    'period.ongoing' => 'Ongoing',
+    'period.upcoming' => 'Upcoming',
+    'period.current' => 'Ongoing or upcoming',
+    'period.past' => 'Past',
 
     // Form sections
     'section.guests' => 'Guests',

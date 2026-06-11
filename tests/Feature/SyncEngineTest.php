@@ -619,6 +619,54 @@ describe('SyncEngine', function () {
             ->and($cancelledBooking->status)->toBe('cancelled');
     });
 
+    it('aligns created_at and updated_at on the source dates', function () {
+        $connector = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(
+                externalId: '500',
+                checkIn: '2027-03-01',
+                checkOut: '2027-03-08',
+                guestName: 'Dated Guest',
+                status: 'confirmed',
+                price: 700.0,
+                claimsOrigin: true,
+                sourceCreatedAt: '2026-04-16 00:01:08',
+                sourceUpdatedAt: '2026-05-02 10:30:00',
+            ),
+        ]);
+        $this->engine->sync($this->unit, [], $connector);
+
+        $booking = Booking::first();
+        expect($booking->created_at->format('Y-m-d H:i:s'))->toBe('2026-04-16 00:01:08')
+            ->and($booking->updated_at->format('Y-m-d H:i:s'))->toBe('2026-05-02 10:30:00');
+
+        // A later modification at the source moves updated_at to the
+        // source's date, not to the sync time.
+        $connector->bookings = [
+            new NormalizedBooking(
+                externalId: '500',
+                checkIn: '2027-03-01',
+                checkOut: '2027-03-08',
+                guestName: 'Dated Guest',
+                status: 'confirmed',
+                price: 850.0,
+                claimsOrigin: true,
+                sourceCreatedAt: '2026-04-16 00:01:08',
+                sourceUpdatedAt: '2026-06-01 08:00:00',
+            ),
+        ];
+        $stats = $this->engine->sync($this->unit, [], $connector);
+
+        $booking->refresh();
+        expect($stats['updated'])->toBe(1)
+            ->and((float) $booking->getRawOriginal('price'))->toBe(850.0)
+            ->and($booking->updated_at->format('Y-m-d H:i:s'))->toBe('2026-06-01 08:00:00')
+            ->and($booking->created_at->format('Y-m-d H:i:s'))->toBe('2026-04-16 00:01:08');
+
+        // Stable when nothing moved at the source.
+        $stats = $this->engine->sync($this->unit, [], $connector);
+        expect($stats['updated'])->toBe(0);
+    });
+
     it('deletes auto-generated availability blocks when they vanish', function () {
         $connector = makeEngineConnector('ical', 'ical:airbnb', [
             new NormalizedBooking(

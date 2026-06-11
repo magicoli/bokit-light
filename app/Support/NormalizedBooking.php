@@ -30,6 +30,10 @@ class NormalizedBooking
      *                              iCal feeds can never tell, so they always leave this false.
      * @param  string|null  $groupId  Group linkage id in the source system (e.g. Beds24 masterId)
      *                                shared by all bookings of one group reservation.
+     * @param  string|null  $sourceCreatedAt  When the booking was created in the source system —
+     *                                        aligned to bookings.created_at so timestamps reflect the
+     *                                        reservation's life, not the sync's.
+     * @param  string|null  $sourceUpdatedAt  Last modification in the source system → bookings.updated_at.
      */
     public function __construct(
         public string $externalId,
@@ -49,5 +53,7 @@ class NormalizedBooking
         public ?string $legacyUid = null,
         public bool $claimsOrigin = false,
         public ?string $groupId = null,
+        public ?string $sourceCreatedAt = null,
+        public ?string $sourceUpdatedAt = null,
     ) {}
 }

@@ -23,7 +23,7 @@ class BookingsUpcoming extends BookingListWidget
 
     protected function listParameters(): array
     {
-        return ['filters' => ['status' => ['value' => 'confirmed']], 'sort' => 'check_in:asc'];
+        return ['filters' => ['status' => ['value' => 'confirmed'], 'period' => ['value' => 'upcoming']], 'sort' => 'check_in:asc'];
     }
 
     protected function scopeList(Builder $query): Builder

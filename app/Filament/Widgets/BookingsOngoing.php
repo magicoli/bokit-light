@@ -23,7 +23,7 @@ class BookingsOngoing extends BookingListWidget
 
     protected function listParameters(): array
     {
-        return ['filters' => ['status' => ['value' => 'confirmed']], 'sort' => 'check_out:asc'];
+        return ['filters' => ['status' => ['value' => 'confirmed'], 'period' => ['value' => 'ongoing']], 'sort' => 'check_out:asc'];
     }
 
     protected function scopeList(Builder $query): Builder
