@@ -2,42 +2,44 @@
 
 namespace App\Models;
 
+use App\Casts\Password;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
-use Illuminate\Database\Eloquent\Model;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use AdminResourceTrait;
     use TimezoneTrait;
 
     protected $fillable = [
-        "name",
-        "email",
-        "email_verified_at",
-        "password",
-        "remember_token",
+        'name',
+        'email',
+        'email_verified_at',
+        'password',
+        'remember_token',
         // "auth_provider",
         // "auth_provider_id",
-        "is_admin",
-        "roles",
-        "options",
+        'is_admin',
+        'roles',
+        'options',
     ];
 
     protected $casts = [
-        "is_admin" => "boolean",
-        "roles" => "array",
-        "options" => "array",
-        "email_verified_at" => "datetime",
-        "password" => \App\Casts\Password::class,
+        'is_admin' => 'boolean',
+        'roles' => 'array',
+        'options' => 'array',
+        'email_verified_at' => 'datetime',
+        'password' => Password::class,
     ];
 
-    protected $appends = ["actions"];
+    protected $appends = ['actions'];
 
-    protected $list_columns = ["actions", "name", "email", "roles"];
+    protected $list_columns = ['actions', 'name', 'email', 'roles'];
 
-    protected static $icon = "users";
+    protected static $icon = 'users';
 
     protected static $order = 20;
 
@@ -46,8 +48,8 @@ class User extends Authenticatable
      */
     public function properties()
     {
-        return $this->belongsToMany(Property::class, "property_user")
-            ->withPivot("role")
+        return $this->belongsToMany(Property::class, 'property_user')
+            ->withPivot('role')
             ->withTimestamps();
     }
 
@@ -56,7 +58,15 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->is_admin || $this->hasRole("admin");
+        return $this->is_admin || $this->hasRole('admin');
+    }
+
+    /**
+     * Filament denies everyone in production unless this is implemented.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin();
     }
 
     /**
@@ -64,7 +74,7 @@ class User extends Authenticatable
      */
     public function getPrimaryRole(): string
     {
-        return $this->isAdmin() ? "admin" : "user";
+        return $this->isAdmin() ? 'admin' : 'user';
     }
 
     /**
@@ -80,7 +90,7 @@ class User extends Authenticatable
      */
     public function hasAnyRole(array $roles): bool
     {
-        return !empty(array_intersect($roles, $this->roles ?? []));
+        return ! empty(array_intersect($roles, $this->roles ?? []));
     }
 
     /**
@@ -89,7 +99,7 @@ class User extends Authenticatable
     public function addRole(string $role): void
     {
         $roles = $this->roles ?? [];
-        if (!in_array($role, $roles)) {
+        if (! in_array($role, $roles)) {
             $roles[] = $role;
             $this->roles = $roles;
             $this->save();
@@ -128,17 +138,17 @@ class User extends Authenticatable
         }
 
         $propertyUser = $this->properties()
-            ->where("properties.id", $property->id)
+            ->where('properties.id', $property->id)
             ->first();
 
-        if (!$propertyUser) {
+        if (! $propertyUser) {
             return false;
         }
 
         $userRole = $propertyUser->pivot->role;
 
         // Tous les rôles peuvent voir (user, admin, owner, manager)
-        return in_array($userRole, ["user", "admin", "owner", "manager"]);
+        return in_array($userRole, ['user', 'admin', 'owner', 'manager']);
     }
 
     /**
@@ -151,17 +161,17 @@ class User extends Authenticatable
         }
 
         $propertyUser = $this->properties()
-            ->where("properties.id", $property->id)
+            ->where('properties.id', $property->id)
             ->first();
 
-        if (!$propertyUser) {
+        if (! $propertyUser) {
             return false;
         }
 
         return in_array($propertyUser->pivot->role, [
-            "admin",
-            "owner",
-            "manager",
+            'admin',
+            'owner',
+            'manager',
         ]);
     }
 }

@@ -51,6 +51,22 @@ it('redirects guests from the bookings list', function () {
     $this->get('/admin/bookings')->assertRedirect('/admin/login');
 });
 
+it('lets admins into the panel', function () {
+    $this->get('/admin/bookings')->assertSuccessful();
+});
+
+it('denies non-admin users access to the panel', function () {
+    $user = User::create([
+        'name' => 'Basic',
+        'email' => 'basic@test.local',
+        'password' => bcrypt('password'),
+        'is_admin' => false,
+    ]);
+
+    $this->actingAs($user);
+    $this->get('/admin/bookings')->assertForbidden();
+});
+
 it('renders the bookings list', function () {
     Livewire::test(ListBookings::class)->assertSuccessful();
 });
