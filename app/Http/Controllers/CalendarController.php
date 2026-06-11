@@ -204,6 +204,7 @@ class CalendarController extends Controller
             'guest_name' => $booking->guest_name,
             'status' => $booking->status,
             'status_label' => __('booking.status.'.$booking->status),
+            'display_status' => $booking->displayStatus(),
             'deleted_at' => $booking->deleted_at?->toIso8601String(),
             'check_in' => ($isGroup ? $active->min('check_in') : $booking->check_in)->format('Y-m-d'),
             'check_out' => ($isGroup ? $active->max('check_out') : $booking->check_out)->format('Y-m-d'),

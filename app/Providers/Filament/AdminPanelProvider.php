@@ -34,6 +34,26 @@ class AdminPanelProvider extends PanelProvider
             scopes: ListBookings::class,
         );
 
+        // Booking status colors — same conventions as resources/css/_theme.css
+        // (the panel does not load the frontend theme). paid/due refine
+        // 'confirmed' by payment state.
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            fn (): HtmlString => new HtmlString('<style>
+                :root {
+                    --color-paid: #10cc81;
+                    --color-due: #84cc16;
+                    --color-option: #f59e0bc0;
+                    --color-quote: #f59e0b80;
+                    --color-blocked: #00000080;
+                    --color-cancelled: #88888880;
+                    --color-vanished: #88888880;
+                    --color-deleted: #88888880;
+                    --color-unknown: #888888;
+                }
+            </style>'),
+        );
+
         // Group booking row styling — injected once into the panel <head>.
         // Summary rows (unit_id=NULL) get a warm yellow background.
         // Member rows (individual units within a group) get a lighter tint.

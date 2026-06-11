@@ -16,6 +16,11 @@ class BookingsOngoing extends BookingListWidget
         return __('booking.widget.ongoing');
     }
 
+    protected function extraColumns(): array
+    {
+        return [$this->amountsColumn()];
+    }
+
     protected function scopeList(Builder $query): Builder
     {
         return $query

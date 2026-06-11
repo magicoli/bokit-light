@@ -16,6 +16,11 @@ class BookingsOptions extends BookingListWidget
         return __('booking.widget.options');
     }
 
+    protected function extraColumns(): array
+    {
+        return [$this->updatedAtColumn()];
+    }
+
     protected function scopeList(Builder $query): Builder
     {
         return $query

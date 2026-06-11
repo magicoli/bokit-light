@@ -236,7 +236,7 @@ use App\Traits\TimezoneTrait;
                                         $applyOpacity = !in_array($booking->status, ['cancelled', 'vanished', 'deleted']);
                                         $opacityStyle = $applyOpacity ? 'opacity: 0.92;' : '';
                                     @endphp
-                                    <div class="booking-block status-{{ $booking->status }} text-primary bg-{{ $booking->status }} {{ $continued }} {{ $continues }}"
+                                    <div class="booking-block status-{{ $booking->displayStatus() }} text-primary bg-{{ $booking->displayStatus() }} {{ $continued }} {{ $continues }}"
                                          style="left: {{ $leftPercent }}%;
                                                 width: {{ $widthPercent }}%;"
                                          @click="showBooking({{ $booking->id }})">
@@ -280,7 +280,7 @@ use App\Traits\TimezoneTrait;
                 <div>
                     <!-- Title: Guest name -->
                     <div class="modal-header card-header"
-                         :class="'status-' + (selectedBooking?.status || '') + ' bg-' + (selectedBooking?.status || '')">
+                         :class="'status-' + (selectedBooking?.display_status || selectedBooking?.status || '') + ' bg-' + (selectedBooking?.display_status || selectedBooking?.status || '')">
                     {{-- <div class="modal-header card-header"> --}}
                         <h3>
                             <span x-show="selectedBooking.deleted_at" class="badge-deleted">DELETED</span>

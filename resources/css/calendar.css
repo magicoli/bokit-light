@@ -329,6 +329,14 @@ header {
         @apply bg-confirmed;
     }
 
+    &.status-paid {
+        @apply bg-paid;
+    }
+
+    &.status-due {
+        @apply bg-due;
+    }
+
     &.status-new {
         @apply bg-new;
     }

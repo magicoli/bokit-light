@@ -74,6 +74,20 @@ it('lists ongoing stays ordered by departure', function () {
         ->assertCanNotSeeTableRecords([$upcoming, $past]);
 });
 
+it('shows paid and total amounts on the stays widgets', function () {
+    ($this->makeBooking)([
+        'guest_name' => 'Paying Guest',
+        'check_in' => now()->subDays(2)->format('Y-m-d'),
+        'check_out' => now()->addDays(3)->format('Y-m-d'),
+        'price' => 1400,
+        'metadata' => ['invoice_payment_total' => 450],
+    ]);
+
+    Livewire::test(BookingsOngoing::class)
+        ->assertSee('450')
+        ->assertSee('400');
+});
+
 it('lists upcoming stays ordered by arrival', function () {
     $arrivingLater = ($this->makeBooking)([
         'guest_name' => 'Arriving Later',

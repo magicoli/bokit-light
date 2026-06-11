@@ -551,6 +551,88 @@ class Booking extends Model
     }
 
     /**
+     * The bookings that money-wise represent this reservation: the active
+     * (non-cancelled) group members for a group, the booking itself
+     * otherwise. Used by the group-aware amount helpers below.
+     *
+     * @return Collection<int, Booking>
+     */
+    private function activeMembers(): Collection
+    {
+        if (! $this->group_id) {
+            return new Collection([$this]);
+        }
+
+        $members = $this->groupMembers()
+            ->reject(fn (Booking $m): bool => $m->isCancelled())
+            ->values();
+
+        return $members->isEmpty() ? new Collection([$this]) : $members;
+    }
+
+    /**
+     * Amount actually received (Beds24 invoice payment lines, or the
+     * 'paid' metadata used by other sources). Aggregates the active group
+     * members for group reservations — for per-unit amounts on the fiche,
+     * read the metadata directly.
+     */
+    public function paidAmount(): ?float
+    {
+        $paidOf = function (Booking $b): ?float {
+            $paid = $b->getMetadata('invoice_payment_total') ?? $b->getMetadata('paid');
+
+            return $paid !== null ? (float) $paid : null;
+        };
+
+        $members = $this->activeMembers();
+
+        return $members->contains(fn (Booking $m): bool => $paidOf($m) !== null)
+            ? round($members->sum(fn (Booking $m): float => $paidOf($m) ?? 0), 2)
+            : null;
+    }
+
+    /**
+     * Total price owed, aggregating the active group members for group
+     * reservations.
+     */
+    public function totalAmount(): ?float
+    {
+        $members = $this->activeMembers();
+
+        return $members->contains(fn (Booking $m): bool => $m->getRawOriginal('price') !== null)
+            ? round($members->sum(fn (Booking $m): float => (float) $m->getRawOriginal('price')), 2)
+            : null;
+    }
+
+    /**
+     * What remains to pay, when the total is known.
+     */
+    public function balanceAmount(): ?float
+    {
+        $total = $this->totalAmount();
+
+        return $total !== null
+            ? round($total - ($this->paidAmount() ?? 0), 2)
+            : null;
+    }
+
+    /**
+     * Status refined by payment for display colors: a confirmed booking is
+     * 'paid' when nothing remains to pay, 'due' otherwise (unknown amounts
+     * need attention too). Other statuses pass through.
+     */
+    public function displayStatus(): string
+    {
+        if ($this->status === 'confirmed') {
+            $balance = $this->balanceAmount();
+
+            return $balance !== null && $balance <= 0 ? 'paid' : 'due';
+        }
+
+        return $this->status;
+    }
+
+    /**
      * Accessor for source name
      */
     public function sourceName(): Attribute
