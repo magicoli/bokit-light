@@ -50,6 +50,10 @@ return [
 
     'tag.new' => 'New',
 
+    // One-line booking title (widgets, mail subjects)
+    'title.units' => ':count unit|:count units',
+    'title.dates' => 'from :from to :to',
+
     // Display filters
     'filter.show_cancelled' => 'Show cancelled',
     'filter.show_quotes' => 'Show quotes',

@@ -50,6 +50,10 @@ return [
 
     'tag.new' => 'Nouvelle',
 
+    // One-line booking title (widgets, mail subjects)
+    'title.units' => ':count unité|:count unités',
+    'title.dates' => 'du :from au :to',
+
     // Display filters
     'filter.show_cancelled' => 'Afficher les annulées',
     'filter.show_quotes' => 'Afficher les devis',

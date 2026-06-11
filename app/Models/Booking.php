@@ -175,6 +175,46 @@ class Booking extends Model
     }
 
     /**
+     * Accessor: one-line summary of the booking, for widget mini-lists and
+     * mail subjects: "{guest}, {unit}, {n}p from {check_in} to {check_out}".
+     * Group reservations show the unit count and aggregate guests and the
+     * date span over the active (non-cancelled) members.
+     */
+    protected function title(): Attribute
+    {
+        return Attribute::make(
+            get: function (): string {
+                $members = $this->groupMembers()
+                    ->reject(fn (Booking $m): bool => $m->isCancelled())
+                    ->values();
+
+                if ($members->count() > 1) {
+                    $units = trans_choice('booking.title.units', $members->count());
+                    $guests = $members->sum(fn (Booking $m): int => (int) ($m->guests ?? 0));
+                    $from = $members->min('check_in');
+                    $to = $members->max('check_out');
+                } else {
+                    $units = $this->unit?->name;
+                    $guests = (int) ($this->guests ?? 0);
+                    $from = $this->check_in;
+                    $to = $this->check_out;
+                }
+
+                $parts = array_filter([
+                    $this->guest_name,
+                    $units,
+                    $guests > 0 ? $guests.'p' : null,
+                ]);
+
+                return implode(', ', $parts).' '.__('booking.title.dates', [
+                    'from' => $from->format('d/m/Y'),
+                    'to' => $to->format('d/m/Y'),
+                ]);
+            },
+        );
+    }
+
+    /**
      * Accessor: Calculate total guests
      *
      * Priority:
