@@ -4,13 +4,13 @@ namespace Modules\Beds24;
 
 use App\Filament\Resources\Properties\Schemas\PropertyForm;
 use App\Services\SyncRegistry;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get as SchemaGet;
 use Filament\Schemas\Components\Utilities\Set;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
 use Modules\Beds24\Services\Beds24Connector;
 use Modules\Beds24\Services\Beds24V2ApiService;
@@ -72,9 +72,13 @@ class Beds24ServiceProvider extends ServiceProvider
 
                     TextInput::make('beds24_invite_code')
                         ->label(__('beds24::property.field.beds24_invite_code'))
-                        ->helperText(new HtmlString(__('beds24::property.field.beds24_invite_code_help', [
-                            'url' => 'https://beds24.com/control3.php?pagetype=apiv2',
-                        ])))
+                        ->helperText(__('beds24::property.field.beds24_invite_code_help'))
+                        ->suffixAction(
+                            Action::make('generateInviteCode')
+                                ->label(__('beds24::property.action.generate_invite_code'))
+                                ->icon('heroicon-m-arrow-top-right-on-square')
+                                ->url('https://beds24.com/control3.php?pagetype=apiv2', shouldOpenInNewTab: true)
+                        )
                         ->dehydrated(false)
                         ->live(onBlur: true)
                         ->hint(fn (SchemaGet $get): string => filled($get('options.beds24_refresh_token'))
