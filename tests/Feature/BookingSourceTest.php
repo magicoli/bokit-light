@@ -80,12 +80,12 @@ describe('BookingSource display label', function () {
 
     it('falls back to the raw type when no connector is registered', function () {
         $source = $this->booking->sources()->create([
-            'source_type' => 'hbook',
-            'source_key' => 'hbook',
+            'source_type' => 'unknown-source',
+            'source_key' => 'unknown-source',
             'external_id' => '42',
             'is_origin' => false,
         ]);
 
-        expect($source->display_label)->toBe('hbook');
+        expect($source->display_label)->toBe('unknown-source');
     });
 });

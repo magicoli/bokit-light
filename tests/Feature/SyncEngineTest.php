@@ -619,6 +619,91 @@ describe('SyncEngine', function () {
             ->and($cancelledBooking->status)->toBe('cancelled');
     });
 
+    it('lets the real origin claim a placeholder typed by another source guess', function () {
+        $hbookUid = 'D2025-12-14T07:57:39U693e6df31291b@https://gites-mosaiques.com';
+
+        // Beds24 imports the booking first, declaring an iCal-typed origin
+        // hint (referer 'iCal Import') — a placeholder origin is created.
+        $beds24 = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(
+                externalId: '79549562',
+                checkIn: '2026-12-26',
+                checkOut: '2027-01-02',
+                guestName: 'Eric Antoine',
+                status: 'confirmed',
+                originHint: ['type' => 'ical', 'external_id' => $hbookUid],
+            ),
+        ]);
+        $this->engine->sync($this->unit, [], $beds24);
+
+        $booking = Booking::first();
+        expect($booking->sources()->where('is_placeholder', true)->where('is_origin', true)->count())->toBe(1);
+
+        // The actual origin connects later as hbook with the same uid.
+        $hbook = makeEngineConnector('hbook', 'hbook:gites-mosaiques.com', [
+            new NormalizedBooking(
+                externalId: $hbookUid,
+                checkIn: '2026-12-26',
+                checkOut: '2027-01-02',
+                guestName: 'Eric Antoine',
+                status: 'confirmed',
+                price: 5145.0,
+                claimsOrigin: true,
+            ),
+        ]);
+        $this->engine->sync($this->unit, [], $hbook);
+
+        $booking->refresh();
+        $origin = $booking->originSource;
+
+        // The placeholder was taken over: hbook is now the real origin.
+        expect(Booking::count())->toBe(1)
+            ->and($booking->sources()->where('is_placeholder', true)->count())->toBe(0)
+            ->and($origin->source_key)->toBe('hbook:gites-mosaiques.com')
+            ->and($origin->external_id)->toBe($hbookUid)
+            ->and((float) $booking->getRawOriginal('price'))->toBe(5145.0);
+    });
+
+    it('clears a stale price on group members the claiming origin reports priceless', function () {
+        // The booking got a price from a first source: Beds24 saw it via an
+        // iCal import, so it does not claim origin (placeholder hint only).
+        $beds24 = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(
+                externalId: '79549561',
+                checkIn: '2026-12-26',
+                checkOut: '2027-01-02',
+                guestName: 'Eric Antoine',
+                status: 'confirmed',
+                price: 5145.0,
+                originHint: ['type' => 'ical', 'external_id' => 'uid'],
+                groupId: '79549561',
+            ),
+        ]);
+        $this->engine->sync($this->unit, [], $beds24);
+        expect((float) Booking::first()->getRawOriginal('price'))->toBe(5145.0);
+
+        // …then the real origin claims it as a non-carrier group member:
+        // the group total lives on another member, this one must not keep
+        // the old price or the group sum doubles.
+        $hbook = makeEngineConnector('hbook', 'hbook:site', [
+            new NormalizedBooking(
+                externalId: 'uid#3573_1',
+                checkIn: '2026-12-26',
+                checkOut: '2027-01-02',
+                guestName: 'Eric Antoine',
+                status: 'confirmed',
+                price: null,
+                claimsOrigin: true,
+                groupId: 'hbook-12',
+            ),
+        ]);
+        $this->engine->sync($this->unit, [], $hbook);
+
+        $booking = Booking::first();
+        expect($booking->getRawOriginal('price'))->toBeNull()
+            ->and((string) $booking->getRawOriginal('group_id'))->toBe('hbook-12');
+    });
+
     it('aligns created_at and updated_at on the source dates', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(

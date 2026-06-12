@@ -344,15 +344,18 @@ class SyncEngine
             ->first();
 
         if (! $reference) {
-            // Take over a placeholder created from an origin hint for this exact id.
+            // Take over a placeholder created from an origin hint for this
+            // exact id — whatever source type the hint guessed: a Beds24
+            // 'iCal Import' referer types its placeholder as ical even when
+            // the actual origin later connects as hbook.
             $reference = $booking->sources()
-                ->where('source_type', $sourceType)
                 ->where('is_placeholder', true)
                 ->where('external_id', $normalized->externalId)
                 ->first();
 
             if ($reference) {
                 $reference->update([
+                    'source_type' => $sourceType,
                     'source_key' => $sourceKey,
                     'is_placeholder' => false,
                     'is_origin' => $canClaim,
@@ -375,6 +378,16 @@ class SyncEngine
             ]);
         } elseif ($canClaim && ! $reference->is_origin && ! $hasClaimedOrigin()) {
             $reference->update(['is_origin' => true]);
+        }
+
+        // Once a real origin is connected, placeholder guesses pointing at
+        // unconnected sources are resolved — they no longer flag origin.
+        if ($reference->is_origin && ! $reference->is_placeholder) {
+            $booking->sources()
+                ->whereKeyNot($reference->id)
+                ->where('is_placeholder', true)
+                ->where('is_origin', true)
+                ->update(['is_origin' => false]);
         }
 
         $reference->update(['last_seen_at' => now()]);
@@ -470,6 +483,15 @@ class SyncEngine
 
         if ($normalized->price > 0 && (float) $booking->getRawOriginal('price') !== $normalized->price) {
             $changes['price'] = $normalized->price;
+        } elseif ($normalized->price === null
+            && $normalized->groupId !== null
+            && $normalized->claimsOrigin
+            && $booking->getRawOriginal('price') !== null) {
+            // A group member reported priceless by its claiming origin must
+            // not keep a stale price from another source: the group total
+            // lives on the carrier member, a leftover here would double the
+            // group sum.
+            $changes['price'] = null;
         }
 
         if ($normalized->commission > 0 && (float) $booking->getRawOriginal('commission') !== $normalized->commission) {
