@@ -181,6 +181,41 @@ it('hides cancelled bookings from the calendar by default and shows them on dema
         ->assertSee('Annulée Visible');
 });
 
+it('skips the property header row when a single property is displayed', function () {
+    Unit::create([
+        'property_id' => $this->property->id,
+        'name' => 'Second Unit',
+        'slug' => 'second-unit',
+        'is_active' => true,
+    ]);
+
+    // One active property, several units: no property grouping row.
+    $this->get('/calendar')
+        ->assertSuccessful()
+        ->assertDontSee('property-name');
+
+    // A second active property brings the grouping back.
+    $other = Property::create(['name' => 'Other Property', 'slug' => 'other-property', 'is_active' => true]);
+    Unit::create(['property_id' => $other->id, 'name' => 'Other Unit A', 'slug' => 'other-unit-a', 'is_active' => true]);
+    Unit::create(['property_id' => $other->id, 'name' => 'Other Unit B', 'slug' => 'other-unit-b', 'is_active' => true]);
+
+    $this->get('/calendar')
+        ->assertSuccessful()
+        ->assertSee('property-name');
+});
+
+it('hides inactive properties and units from the calendar', function () {
+    $inactive = Property::create(['name' => 'Dormant Property', 'slug' => 'dormant', 'is_active' => false]);
+    Unit::create(['property_id' => $inactive->id, 'name' => 'Dormant Unit', 'slug' => 'dormant-unit', 'is_active' => true]);
+    Unit::create(['property_id' => $this->property->id, 'name' => 'Retired Unit', 'slug' => 'retired-unit', 'is_active' => false]);
+
+    $this->get('/calendar')
+        ->assertSuccessful()
+        ->assertDontSee('Dormant Property')
+        ->assertDontSee('Dormant Unit')
+        ->assertDontSee('Retired Unit');
+});
+
 it('returns null paid and balance when no payment info exists', function () {
     $booking = Booking::create([
         'property_id' => $this->property->id,

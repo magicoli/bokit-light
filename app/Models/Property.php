@@ -11,17 +11,18 @@ class Property extends Model
     use AdminResourceTrait;
     use TimezoneTrait;
 
-    protected $fillable = ["name", "slug", "options"];
+    protected $fillable = ['name', 'slug', 'is_active', 'options'];
 
     protected $casts = [
-        "options" => "array",
+        'is_active' => 'boolean',
+        'options' => 'array',
     ];
 
-    protected $appends = ["actions"];
+    protected $appends = ['actions'];
 
-    protected $list_columns = ["actions", "name"];
+    protected $list_columns = ['actions', 'name'];
 
-    protected static $icon = "building";
+    protected static $icon = 'building';
 
     /**
      * Get the units for this property
@@ -36,8 +37,8 @@ class Property extends Model
      */
     public function users()
     {
-        return $this->belongsToMany(User::class, "property_user")
-            ->withPivot("role")
+        return $this->belongsToMany(User::class, 'property_user')
+            ->withPivot('role')
             ->withTimestamps();
     }
 

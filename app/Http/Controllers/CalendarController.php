@@ -90,8 +90,8 @@ class CalendarController extends Controller
 
         // Load properties with their units and bookings
         // Filter by user access if not admin
-        $query = Property::with([
-            'units',
+        $query = Property::where('is_active', true)->with([
+            'units' => fn ($query) => $query->where('is_active', true),
             'units.bookings' => function ($query) use ($startDate, $endDate, $hiddenStatuses) {
                 $query
                     ->with(['unit', 'property']) // Eager-load for timezone() accessor

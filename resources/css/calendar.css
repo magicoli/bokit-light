@@ -60,17 +60,6 @@ header {
         @apply flex items-center justify-between gap-2;
     }
 
-    .calendar-filters {
-        @apply flex flex-wrap justify-end gap-x-4 gap-y-1 mt-2 text-xs text-secondary;
-
-        .filter-toggle {
-            @apply inline-flex items-center gap-1 cursor-pointer select-none;
-
-            input {
-                @apply cursor-pointer;
-            }
-        }
-    }
 
     .nav-left {
         @apply flex items-center gap-1;
@@ -102,6 +91,19 @@ header {
         &:disabled,
         &.disabled {
             @apply text-muted cursor-not-allowed;
+        }
+
+        &.toggle {
+            @apply text-muted;
+
+            svg {
+                width: 1.1rem;
+                height: 1.1rem;
+            }
+
+            &.active {
+                @apply border-primary text-primary bg-blue-50;
+            }
         }
     }
 

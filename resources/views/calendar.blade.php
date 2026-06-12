@@ -57,8 +57,24 @@ use App\Traits\TimezoneTrait;
                 @endif
             </div>
 
-            <!-- Right: Period navigation + Year -->
+            <!-- Right: Display toggles + Period navigation + Year -->
             <div class="nav-right">
+                @php
+                    $toggleBase = '?date='.$currentDate->format('Y-m-d').'&view='.$view;
+                @endphp
+                <a href="{{ $toggleBase.($showCancelled ? '' : '&cancelled=1').($showQuotes ? '' : '&quotes=0') }}"
+                   class="nav-button toggle {{ $showCancelled ? 'active' : '' }}"
+                   title="{{ __('booking.filter.show_cancelled') }}"
+                   aria-pressed="{{ $showCancelled ? 'true' : 'false' }}">
+                    {!! icon('calendar-x') !!}
+                </a>
+                <a href="{{ $toggleBase.($showCancelled ? '&cancelled=1' : '').($showQuotes ? '&quotes=0' : '') }}"
+                   class="nav-button toggle {{ $showQuotes ? 'active' : '' }}"
+                   title="{{ __('booking.filter.show_quotes') }}"
+                   aria-pressed="{{ $showQuotes ? 'true' : 'false' }}">
+                    {!! icon('calculator') !!}
+                </a>
+
                 @if($canNavigateForward)
                     <a href="?date={{ $nextPeriod->format('Y-m-d') }}&view={{ $view }}{{ $filterQuery }}"
                        class="nav-button">
@@ -83,19 +99,6 @@ use App\Traits\TimezoneTrait;
             </div>
         </div>
 
-        <!-- Display filters -->
-        <div class="calendar-filters">
-            <label class="filter-toggle">
-                <input type="checkbox" {{ $showCancelled ? 'checked' : '' }}
-                       onchange="const p = new URLSearchParams(location.search); this.checked ? p.set('cancelled', '1') : p.delete('cancelled'); location.search = p;">
-                {{ __('booking.filter.show_cancelled') }}
-            </label>
-            <label class="filter-toggle">
-                <input type="checkbox" {{ $showQuotes ? 'checked' : '' }}
-                       onchange="const p = new URLSearchParams(location.search); this.checked ? p.delete('quotes') : p.set('quotes', '0'); location.search = p;">
-                {{ __('booking.filter.show_quotes') }}
-            </label>
-        </div>
     </div>
 
     <!-- Calendar Grid - Full width -->
@@ -130,8 +133,9 @@ use App\Traits\TimezoneTrait;
                             $isSingleUnit = $property->units->count() === 1;
                         @endphp
 
-                        <!-- Property Header Row (only for multi-unit properties) -->
-                        @if(!$isSingleUnit)
+                        <!-- Property Header Row: grouping only helps when
+                             several properties are displayed -->
+                        @if($properties->count() > 1 && !$isSingleUnit)
                         <tr class="property-row">
                             <td class="property-name">
                                 <span>{{ $property->name }}</span>
