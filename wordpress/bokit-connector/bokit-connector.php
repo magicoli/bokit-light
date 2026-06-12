@@ -4,7 +4,7 @@
  * Plugin Name: Bokit Connector
  * Plugin URI: https://bokit.click
  * Description: Authentication bridge and data API for Bokit calendar application
- * Version: 0.6.8
+ * Version: 0.6.9
  * Author: Olivier van Helden
  * Author URI: https://magiiic.com
  * License: AGPL-3.0-or-later
@@ -22,7 +22,7 @@ if (! defined('WPINC')) {
     exit();
 }
 
-define('BOKIT_CONNECTOR_VERSION', '0.6.8');
+define('BOKIT_CONNECTOR_VERSION', '0.6.9');
 define('BOKIT_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
@@ -319,6 +319,7 @@ function bokit_connector_get_multipass_bookings(
     // Fetch prestations with their meta
     $prestations = $wpdb->get_results(
         "SELECT p.ID, p.post_title, p.post_status,
+                p.post_date AS created_at, p.post_modified AS updated_at,
                 MAX(CASE WHEN pm.meta_key='from'          THEN pm.meta_value END) as date_from_ts,
                 MAX(CASE WHEN pm.meta_key='to'            THEN pm.meta_value END) as date_to_ts,
                 MAX(CASE WHEN pm.meta_key='total'         THEN pm.meta_value END) as total,
@@ -433,6 +434,10 @@ function bokit_connector_get_multipass_bookings(
             'contact_name' => $p['contact_name'],
             'contact_email' => $p['contact_email'],
             'contact_phone' => $p['contact_phone'],
+            // Source timestamps: when the prestation was created and last
+            // modified in Multipass.
+            'created_at' => $p['created_at'],
+            'updated_at' => $p['updated_at'],
             'units' => $units,
         ];
     }
