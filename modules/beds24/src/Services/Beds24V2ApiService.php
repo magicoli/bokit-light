@@ -38,7 +38,7 @@ class Beds24V2ApiService
      *
      * @throws \RuntimeException
      */
-    public function exchangeInviteCode(string $code): string
+    public static function exchangeInviteCode(string $code): string
     {
         $response = Http::timeout(30)
             ->withHeaders(['code' => $code, 'deviceName' => 'bokit'])
