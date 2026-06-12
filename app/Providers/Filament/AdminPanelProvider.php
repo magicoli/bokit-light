@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
 use App\Http\Middleware\SetLocale;
+use CraftForge\FilamentLanguageSwitcher\FilamentLanguageSwitcherPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -23,7 +24,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use CraftForge\FilamentLanguageSwitcher\FilamentLanguageSwitcherPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -56,6 +56,7 @@ class AdminPanelProvider extends PanelProvider
                 tr.booking-status-due td { background-color: color-mix(in srgb, var(--color-due) 18%, transparent) !important; }
                 tr.booking-status-option td { background-color: color-mix(in srgb, var(--color-option) 22%, transparent) !important; }
                 tr.booking-status-quote td { background-color: color-mix(in srgb, var(--color-quote) 40%, transparent) !important; }
+                .bokit-mini-list .fi-ta-table > thead { display: none; }
             </style>'),
         );
 
@@ -151,7 +152,7 @@ class AdminPanelProvider extends PanelProvider
                     ->rememberLocale()
                     // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
                     ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
-                    ->showOnAuthPages()
+                    ->showOnAuthPages(),
 
             ])
             ->middleware([
