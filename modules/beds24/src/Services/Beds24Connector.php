@@ -3,6 +3,7 @@
 namespace Modules\Beds24\Services;
 
 use App\Contracts\SourceConnector;
+use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Support\NormalizedBooking;
@@ -51,9 +52,9 @@ class Beds24Connector implements SourceConnector
      * URL from the UI does not deep-link; control2.php?ajax=bookedit does
      * (same trick as taxesejour-bridge).
      */
-    public function externalBookingUrl(string $externalId): ?string
+    public function externalBookingUrl(BookingSource $source): ?string
     {
-        return "https://beds24.com/control2.php?ajax=bookedit&id={$externalId}";
+        return "https://beds24.com/control2.php?ajax=bookedit&id={$source->external_id}";
     }
 
     public function fetchBookings(Unit $unit, array $sourceConfig): array

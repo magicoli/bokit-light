@@ -3,6 +3,7 @@
 namespace Modules\Hbook\Services;
 
 use App\Contracts\SourceConnector;
+use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Support\NormalizedBooking;
@@ -66,11 +67,20 @@ class HbookConnector implements SourceConnector
     }
 
     /**
-     * HBook's WP admin has no reliable deep link to a single booking.
+     * HBook's WP admin has no per-booking deep link; the closest native
+     * view is the reservations page filtered on the customer.
      */
-    public function externalBookingUrl(string $externalId): ?string
+    public function externalBookingUrl(BookingSource $source): ?string
     {
-        return null;
+        $booking = $source->booking;
+        $customerId = $booking?->getMetadata('hbook_customer_id');
+        $wpUrl = rtrim($booking?->property?->options['wp_url'] ?? '', '/');
+
+        if (! $customerId || $wpUrl === '') {
+            return null;
+        }
+
+        return "{$wpUrl}/wp-admin/admin.php?page=hb_reservations&customer_id={$customerId}";
     }
 
     public function fetchBookings(Unit $unit, array $sourceConfig): array
@@ -151,6 +161,7 @@ class HbookConnector implements SourceConnector
         $metadata = array_filter([
             'hbook_id' => $parent['id'] ?? null,
             'hbook_uid' => $hbookUid,
+            'hbook_customer_id' => $parent['customer_id'] ?? null,
             'email' => $parent['guest_email'] ?? null,
             'phone' => $parent['guest_phone'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
@@ -179,7 +190,20 @@ class HbookConnector implements SourceConnector
             legacyUid: 'hbook:'.$hbookUid,
             claimsOrigin: true,
             groupId: $groupId,
+            sourceCreatedAt: self::dateOrNull($parent['created_at'] ?? null),
+            sourceUpdatedAt: self::dateOrNull($parent['updated_at'] ?? null),
         );
+    }
+
+    /**
+     * HBook DATETIME columns are NOT NULL: old rows may carry MySQL
+     * zero-dates instead of real values.
+     */
+    private static function dateOrNull(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return ($value === '' || str_starts_with($value, '0000')) ? null : $value;
     }
 
     /**

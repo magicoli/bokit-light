@@ -2,6 +2,7 @@
 
 namespace App\Contracts;
 
+use App\Models\BookingSource;
 use App\Models\Unit;
 use App\Support\NormalizedBooking;
 
@@ -55,7 +56,10 @@ interface SourceConnector
 
     /**
      * Direct URL to the booking's page in the source system, or null when
-     * the source has none (e.g. iCal feeds).
+     * the source has none (e.g. iCal feeds). The full reference is passed:
+     * some systems build the link from the external id alone (Beds24),
+     * others need booking or property context (HBook needs the WordPress
+     * base URL and the customer id).
      */
-    public function externalBookingUrl(string $externalId): ?string;
+    public function externalBookingUrl(BookingSource $source): ?string;
 }

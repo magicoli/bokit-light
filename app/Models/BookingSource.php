@@ -58,7 +58,7 @@ class BookingSource extends Model
     {
         return Attribute::get(fn (): ?string => app(SyncRegistry::class)
             ->getForType($this->source_type)
-            ?->externalBookingUrl($this->external_id));
+            ?->externalBookingUrl($this));
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Contracts\SourceConnector;
+use App\Models\BookingSource;
 use App\Models\Unit;
 use App\Services\SyncRegistry;
 
@@ -35,7 +36,7 @@ function makeRegistryConnector(string $type): SourceConnector
             return [];
         }
 
-        public function externalBookingUrl(string $externalId): ?string
+        public function externalBookingUrl(BookingSource $source): ?string
         {
             return null;
         }

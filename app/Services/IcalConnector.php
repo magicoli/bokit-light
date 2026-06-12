@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\SourceConnector;
+use App\Models\BookingSource;
 use App\Models\IcalSource;
 use App\Models\Unit;
 use App\Support\NormalizedBooking;
@@ -42,7 +43,7 @@ class IcalConnector implements SourceConnector
         return 'ical:'.$this->configLabel($sourceConfig);
     }
 
-    public function externalBookingUrl(string $externalId): ?string
+    public function externalBookingUrl(BookingSource $source): ?string
     {
         return null;
     }

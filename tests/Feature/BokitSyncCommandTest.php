@@ -2,6 +2,7 @@
 
 use App\Contracts\SourceConnector;
 use App\Models\Booking;
+use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Services\SyncRegistry;
@@ -49,7 +50,7 @@ function makeCommandConnector(string $type, array $bookings, ?array &$calledUnit
             return $this->bookings;
         }
 
-        public function externalBookingUrl(string $externalId): ?string
+        public function externalBookingUrl(BookingSource $source): ?string
         {
             return null;
         }

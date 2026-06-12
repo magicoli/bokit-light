@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,6 +46,9 @@ function hbookRow(array $overrides = []): array
         'guest_name' => 'Gudule Lapointe',
         'guest_email' => 'gudule@example.com',
         'guest_phone' => '+590690000000',
+        'customer_id' => 77,
+        'created_at' => '2026-01-01 10:00:00',
+        'updated_at' => '2026-02-15 08:30:00',
     ], $overrides);
 }
 
@@ -148,6 +152,47 @@ describe('HbookConnector', function () {
 
         expect($connector->fetchBookings($this->unit, ['type' => 'hbook', 'hbook_unit_id' => '3539_1']))
             ->toBeEmpty();
+    });
+
+    it('maps the source timestamps, guarding against zero-dates', function () {
+        $connector = makeHbookConnector([
+            hbookRow(),
+            hbookRow(['hbook_uid' => 'uid-2', 'check_in' => '2027-05-01', 'check_out' => '2027-05-05', 'created_at' => '0000-00-00 00:00:00', 'updated_at' => '']),
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'hbook', 'hbook_unit_id' => '3539_1']);
+
+        expect($bookings[0]->sourceCreatedAt)->toBe('2026-01-01 10:00:00')
+            ->and($bookings[0]->sourceUpdatedAt)->toBe('2026-02-15 08:30:00')
+            ->and($bookings[1]->sourceCreatedAt)->toBeNull()
+            ->and($bookings[1]->sourceUpdatedAt)->toBeNull();
+    });
+
+    it('links to the HBook reservations page filtered on the customer', function () {
+        $booking = Booking::create([
+            'property_id' => $this->property->id,
+            'unit_id' => $this->unit->id,
+            'guest_name' => 'Gudule Lapointe',
+            'status' => 'confirmed',
+            'check_in' => '2027-04-01',
+            'check_out' => '2027-04-08',
+            'metadata' => ['hbook_customer_id' => 77],
+        ]);
+        $source = $booking->sources()->create([
+            'source_type' => 'hbook',
+            'source_key' => 'hbook:gites-mosaiques.com',
+            'external_id' => 'uid-x',
+            'is_origin' => true,
+        ]);
+
+        $connector = makeHbookConnector([]);
+
+        expect($connector->externalBookingUrl($source))
+            ->toBe('https://gites-mosaiques.com/wp-admin/admin.php?page=hb_reservations&customer_id=77');
+
+        // No customer id in metadata → no link.
+        $booking->forceFill(['metadata' => []])->save();
+        expect($connector->externalBookingUrl($source->fresh()))->toBeNull();
     });
 
     it('builds the source key from the WordPress host', function () {

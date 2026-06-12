@@ -46,7 +46,7 @@ function makeEngineConnector(string $type, string $key, array $bookings): Source
             return $this->bookings;
         }
 
-        public function externalBookingUrl(string $externalId): ?string
+        public function externalBookingUrl(BookingSource $source): ?string
         {
             return null;
         }
@@ -818,7 +818,7 @@ describe('SyncEngine', function () {
                 throw new RuntimeException('Source unreachable');
             }
 
-            public function externalBookingUrl(string $externalId): ?string
+            public function externalBookingUrl(BookingSource $source): ?string
             {
                 return null;
             }
