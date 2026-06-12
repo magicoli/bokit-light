@@ -75,6 +75,20 @@ it('keeps the list for owners with several records', function () {
     $this->get('/admin/units')->assertSuccessful();
 });
 
+it('renders the property edit page with the module sections', function () {
+    $admin = User::create([
+        'name' => 'Admin2',
+        'email' => 'admin2@test.local',
+        'password' => bcrypt('password'),
+        'is_admin' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->get('/admin/properties/'.$this->property->id.'/edit')
+        ->assertSuccessful()
+        ->assertSee(__('beds24::property.field.beds24_invite_code'));
+});
+
 it('keeps the list for admins even with a single record', function () {
     $admin = User::create([
         'name' => 'Admin',

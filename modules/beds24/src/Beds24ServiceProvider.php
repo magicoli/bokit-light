@@ -4,7 +4,7 @@ namespace Modules\Beds24;
 
 use App\Filament\Resources\Properties\Schemas\PropertyForm;
 use App\Services\SyncRegistry;
-use Filament\Forms\Components\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
