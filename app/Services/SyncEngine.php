@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\PushableConnector;
 use App\Contracts\SourceConnector;
 use App\Models\Booking;
 use App\Models\BookingSource;
@@ -115,6 +116,114 @@ class SyncEngine
         if (! $dryRun) {
             $this->handleVanished($unit, $sourceKey, $seenIds, $stats);
         }
+
+        return $stats;
+    }
+
+    /**
+     * Push bokit-origin (manual) bookings of this unit to a source that
+     * accepts them. Only current and future bookings are considered;
+     * cancellations of already-pushed bookings are propagated. After a
+     * creation the (source_key, external_id) pair is written immediately,
+     * so the next pull recognizes our own booking instead of duplicating
+     * it (echo suppression).
+     *
+     * @return array{label: string, success: bool, created: int, updated: int, failed: int, error: ?string}
+     */
+    public function pushBookings(Unit $unit, array $sourceConfig, PushableConnector&SourceConnector $connector, bool $dryRun = false): array
+    {
+        $sourceKey = $connector->sourceKey($unit, $sourceConfig);
+        $sourceType = $connector->sourceType();
+
+        $stats = [
+            'label' => $connector->displayLabel($sourceConfig).' push',
+            'success' => true,
+            'created' => 0,
+            'updated' => 0,
+            'failed' => 0,
+            'error' => null,
+        ];
+
+        $bookings = Booking::withTrashed()
+            ->where('unit_id', $unit->id)
+            ->where('is_manual', true)
+            ->whereDate('check_out', '>=', now()->format('Y-m-d'))
+            ->get();
+
+        foreach ($bookings as $booking) {
+            $reference = $booking->sources()
+                ->where('source_key', $sourceKey)
+                ->first();
+
+            if (! $reference) {
+                // Never been pushed: cancelled or deleted bookings have
+                // nothing to free up there.
+                if ($booking->isCancelled()) {
+                    continue;
+                }
+
+                if ($dryRun) {
+                    $stats['created']++;
+
+                    continue;
+                }
+
+                try {
+                    $externalId = $connector->pushBooking($unit, $sourceConfig, $booking, null);
+                } catch (\Throwable $e) {
+                    $stats['failed']++;
+                    $stats['error'] = $e->getMessage();
+                    Log::warning("[SyncEngine] Push failed for booking #{$booking->id} to {$sourceKey}: {$e->getMessage()}");
+
+                    continue;
+                }
+
+                $this->writeReference($booking, [
+                    'source_type' => $sourceType,
+                    'source_key' => $sourceKey,
+                    'external_id' => $externalId,
+                    'is_origin' => false,
+                    'is_placeholder' => false,
+                    'last_seen_at' => now(),
+                    'pushed_at' => now(),
+                ]);
+
+                $stats['created']++;
+                Log::info("[SyncEngine] Pushed booking #{$booking->id} to {$sourceKey} as {$externalId}");
+
+                continue;
+            }
+
+            $needsPush = $reference->pushed_at === null
+                || $booking->updated_at?->greaterThan($reference->pushed_at)
+                || ($booking->trashed() && $booking->deleted_at->greaterThan($reference->pushed_at));
+
+            if (! $needsPush) {
+                continue;
+            }
+
+            if ($dryRun) {
+                $stats['updated']++;
+
+                continue;
+            }
+
+            try {
+                $connector->pushBooking($unit, $sourceConfig, $booking, $reference->external_id);
+            } catch (\Throwable $e) {
+                $stats['failed']++;
+                $stats['error'] = $e->getMessage();
+                Log::warning("[SyncEngine] Push update failed for booking #{$booking->id} to {$sourceKey}: {$e->getMessage()}");
+
+                continue;
+            }
+
+            $reference->update(['pushed_at' => now(), 'last_seen_at' => now()]);
+            $stats['updated']++;
+            Log::info("[SyncEngine] Pushed update of booking #{$booking->id} to {$sourceKey} ({$reference->external_id})");
+        }
+
+        $stats['success'] = $stats['failed'] === 0;
 
         return $stats;
     }

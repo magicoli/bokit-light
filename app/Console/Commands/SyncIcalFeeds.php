@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Contracts\PushableConnector;
 use App\Models\Property;
 use App\Services\SyncEngine;
 use App\Services\SyncRegistry;
@@ -61,6 +62,21 @@ class SyncIcalFeeds extends Command
                     } else {
                         $this->line("    <error>✗ {$result['label']}: {$result['error']}</error>");
                         $failures[] = "{$property->name} / {$unit->name} / {$result['label']}: {$result['error']}";
+                    }
+
+                    // Bidirectional: push bokit-origin bookings to sources
+                    // that accept them, when explicitly enabled.
+                    if ($connector instanceof PushableConnector && ($sourceConfig['push'] ?? false)) {
+                        $pushResult = $engine->pushBookings($unit, $sourceConfig, $connector, $dryRun);
+
+                        if ($pushResult['created'] || $pushResult['updated'] || $pushResult['failed']) {
+                            $line = "    ↑ {$pushResult['label']}: Created: {$pushResult['created']}, Updated: {$pushResult['updated']}, Failed: {$pushResult['failed']}";
+                            $this->line($pushResult['success'] ? $line : "<error>{$line} — {$pushResult['error']}</error>");
+                        }
+
+                        if (! $pushResult['success']) {
+                            $failures[] = "{$property->name} / {$unit->name} / {$pushResult['label']}: {$pushResult['error']}";
+                        }
                     }
                 }
             }

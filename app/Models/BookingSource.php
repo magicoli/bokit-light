@@ -25,6 +25,7 @@ class BookingSource extends Model
         'is_origin',
         'is_placeholder',
         'last_seen_at',
+        'pushed_at',
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class BookingSource extends Model
             'is_origin' => 'boolean',
             'is_placeholder' => 'boolean',
             'last_seen_at' => 'datetime',
+            'pushed_at' => 'datetime',
         ];
     }
 

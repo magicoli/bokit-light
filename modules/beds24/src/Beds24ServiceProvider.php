@@ -7,6 +7,7 @@ use App\Services\SyncRegistry;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Illuminate\Support\ServiceProvider;
+use Modules\Beds24\Commands\Beds24ConnectCommand;
 use Modules\Beds24\Services\Beds24Connector;
 
 class Beds24ServiceProvider extends ServiceProvider
@@ -34,6 +35,12 @@ class Beds24ServiceProvider extends ServiceProvider
         /** @var SyncRegistry $registry */
         $registry = $this->app->make(SyncRegistry::class);
         $registry->register(new Beds24Connector);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Beds24ConnectCommand::class,
+            ]);
+        }
     }
 
     /**

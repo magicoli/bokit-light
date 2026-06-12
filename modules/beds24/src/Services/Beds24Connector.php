@@ -2,7 +2,9 @@
 
 namespace Modules\Beds24\Services;
 
+use App\Contracts\PushableConnector;
 use App\Contracts\SourceConnector;
+use App\Models\Booking;
 use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;
@@ -22,7 +24,7 @@ use Illuminate\Support\Facades\Log;
  * 'apiReference'. These are reported with an originHint so the engine never
  * lets Beds24 claim ownership of them.
  */
-class Beds24Connector implements SourceConnector
+class Beds24Connector implements PushableConnector, SourceConnector
 {
     /** @var array<int, array<int, array<string,mixed>>>  property_id → raw Beds24 rows */
     private array $apiCache = [];
@@ -427,6 +429,90 @@ class Beds24Connector implements SourceConnector
             '19' => 'booking.com',
             default => 'beds24',
         };
+    }
+
+    /**
+     * Push a bokit-origin booking to Beds24 through the V2 API. Without an
+     * external id the booking is created; with one it is updated in place
+     * (cancellation = canonical status mapped to 'cancelled').
+     */
+    public function pushBooking(Unit $unit, array $sourceConfig, Booking $booking, ?string $externalId): string
+    {
+        $roomId = (int) ($sourceConfig['room_id'] ?? 0);
+
+        if (! $roomId) {
+            throw new \RuntimeException('No room_id configured');
+        }
+
+        [$firstName, $lastName] = self::splitGuestName($booking->guest_name);
+
+        $payload = array_filter([
+            'id' => $externalId !== null ? (int) $externalId : null,
+            'roomId' => $roomId,
+            'status' => self::pushStatus($booking),
+            'arrival' => $booking->check_in->format('Y-m-d'),
+            'departure' => $booking->check_out->format('Y-m-d'),
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'numAdult' => $booking->adults,
+            'numChild' => $booking->children,
+            'email' => $booking->getMetadata('email'),
+            'mobile' => $booking->getMetadata('phone') ?? $booking->getMetadata('mobile'),
+            'price' => $booking->getRawOriginal('price') !== null ? (float) $booking->getRawOriginal('price') : null,
+            'comments' => $booking->notes,
+            'refererEditable' => 'bokit',
+        ], fn ($v) => $v !== null && $v !== '');
+
+        $results = $this->v2Service($unit->property)->postBookings([$payload]);
+        $result = $results[0] ?? [];
+
+        if (! ($result['success'] ?? false)) {
+            throw new \RuntimeException('Beds24 push rejected: '.json_encode($result['errors'] ?? $result));
+        }
+
+        $newId = $result['new']['id'] ?? $result['modified']['id'] ?? $externalId;
+
+        if ($newId === null) {
+            throw new \RuntimeException('Beds24 push returned no booking id: '.json_encode($result));
+        }
+
+        return (string) $newId;
+    }
+
+    /**
+     * Canonical status → Beds24 V2 status. Trashed bokit bookings push as
+     * cancellations so the dates free up everywhere.
+     */
+    private static function pushStatus(Booking $booking): string
+    {
+        if ($booking->trashed()) {
+            return 'cancelled';
+        }
+
+        return match ($booking->status) {
+            'option' => 'request',
+            'quote' => 'inquiry',
+            'blocked' => 'black',
+            'cancelled', 'deleted', 'vanished' => 'cancelled',
+            default => 'confirmed',
+        };
+    }
+
+    /**
+     * Bokit stores one guest name; Beds24 wants first/last.
+     *
+     * @return array{string, string}
+     */
+    private static function splitGuestName(string $guestName): array
+    {
+        $parts = explode(' ', trim($guestName), 2);
+
+        return count($parts) === 2 ? [$parts[0], $parts[1]] : ['', $parts[0] ?? ''];
+    }
+
+    protected function v2Service(Property $property): Beds24V2ApiService
+    {
+        return new Beds24V2ApiService($property);
     }
 
     /**
