@@ -79,6 +79,7 @@ return [
     // Sources
     'section.sources' => 'Sources',
     'source.origin' => 'Origin',
+    'source.beds24' => 'Open in Beds24',
     'source.external_id' => 'External ID',
     'source.last_seen' => 'Last seen',
     'source.pending_origin' => 'Origin (not connected)',

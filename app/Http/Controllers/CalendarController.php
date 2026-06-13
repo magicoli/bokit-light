@@ -235,6 +235,14 @@ class CalendarController extends Controller
                     : $booking->source_name,
                 'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
             ],
+            // Real origin channel (airbnb, booking.com, …) with its direct
+            // link on the OTA — distinct from the transport source above.
+            'origin' => [
+                'channel' => $booking->source_name,
+                'slug' => $booking->api_source,
+                'url' => $booking->originUrl(),
+                'logo' => icon_ota($booking->api_source) ?: icon('arrow-up-right'),
+            ],
             'group' => $isGroup ? [
                 'count' => $active->count(),
                 'members' => $members->map(fn (Booking $m): array => [

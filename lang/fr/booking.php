@@ -79,6 +79,7 @@ return [
     // Sources
     'section.sources' => 'Sources',
     'source.origin' => 'Origine',
+    'source.beds24' => 'Ouvrir dans Beds24',
     'source.external_id' => 'ID externe',
     'source.last_seen' => 'Vu pour la dernière fois',
     'source.pending_origin' => 'Origine (non connectée)',

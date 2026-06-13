@@ -46,6 +46,15 @@ class BookingInfolist
                         TextEntry::make('check_out')
                             ->label(__('booking.field.check_out'))
                             ->date('d/m/Y'),
+
+                        // Real origin channel, linking to the OTA's own
+                        // reservation page when available (airbnb, booking.com).
+                        TextEntry::make('source_name')
+                            ->label(__('booking.field.source_name'))
+                            ->placeholder('-')
+                            ->url(fn (Booking $record): ?string => $record->originUrl())
+                            ->openUrlInNewTab()
+                            ->color(fn (Booking $record): string => $record->originUrl() ? 'primary' : 'gray'),
                     ]),
 
                 Section::make(__('booking.section.guests'))

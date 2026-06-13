@@ -657,23 +657,26 @@ class Booking extends Model
         };
     }
 
+    /**
+     * Real origin channel as a normalized slug (airbnb, booking-com, beds24,
+     * hbook, …), derived from source_name. Note: metadata.api_source holds
+     * the channel manager's INTERNAL numeric code (Beds24: 46/19/…) and must
+     * never be used for display — only source_name names the real channel.
+     */
     public function apiSource(): Attribute
     {
-        $channel_manager = $this->source_name ?? '';
-        $ota_api = $this->getMetadata('api_source', '') ?? '';
-        $source = strtolower($ota_api ?? ($channel_manager ?? ''));
-        switch ($source) {
-            case 'direct':
-                $source = $channel_manager ?? $source;
-                break;
-                // case "booking":
-                //     $source = "booking-com";
-                //     break;
-                // default:
-                //     $url = null;
-        }
+        return Attribute::make(get: fn (): string => self::sourceSlug($this->source_name ?? ''));
+    }
 
-        return Attribute::make(get: fn ($value) => $source);
+    /**
+     * Direct link to the booking on its real origin OTA (airbnb,
+     * booking.com), or null when the origin is not a self-managed OTA
+     * (direct, beds24, hbook, …). Distinct from the transport/channel-
+     * manager link, which lives on the booking sources.
+     */
+    public function originUrl(): ?string
+    {
+        return $this->api_source === 'beds24' ? null : $this->ota_url;
     }
 
     /**

@@ -216,6 +216,43 @@ it('hides inactive properties and units from the calendar', function () {
         ->assertDontSee('Retired Unit');
 });
 
+it('exposes the real origin channel with its direct OTA link', function () {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Airbnb Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-09-01',
+        'check_out' => '2026-09-08',
+        'source_name' => 'airbnb',
+        'metadata' => ['api_ref' => 'HMZQ9BFEPN'],
+    ]);
+
+    $this->getJson("/booking/{$booking->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('origin.channel', 'airbnb')
+        ->assertJsonPath('origin.slug', 'airbnb')
+        ->assertJsonPath('origin.url', 'https://www.airbnb.com/hosting/reservations/details/HMZQ9BFEPN');
+});
+
+it('has no origin link for a direct beds24 booking', function () {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Direct Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-09-01',
+        'check_out' => '2026-09-08',
+        'source_name' => 'beds24',
+        'metadata' => ['api_ref' => '123'],
+    ]);
+
+    $this->getJson("/booking/{$booking->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('origin.slug', 'beds24')
+        ->assertJsonPath('origin.url', null);
+});
+
 it('returns null paid and balance when no payment info exists', function () {
     $booking = Booking::create([
         'property_id' => $this->property->id,

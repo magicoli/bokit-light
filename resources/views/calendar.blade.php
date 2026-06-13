@@ -253,9 +253,10 @@ use App\Traits\TimezoneTrait;
                                         @if($booking->getMetadata('is_new'))
                                         <span class="status-badge">{{ __('booking.tag.new') }}</span>
                                         @endif
-                                        @if($booking->api_source && $booking->api_source != 'beds24')
-                                        <span class="badge badge-ota ota-{{ $booking->api_source }}">
-                                            {{ $booking->api_source }}
+                                        @php $otaLogo = $booking->api_source !== 'beds24' ? icon_ota($booking->api_source) : null; @endphp
+                                        @if($otaLogo)
+                                        <span class="badge badge-ota ota-{{ $booking->api_source }}" title="{{ $booking->source_name }}">
+                                            {!! $otaLogo !!}
                                         </span>
                                         @endif
                                         {{-- @if($endsAfterPeriod)
@@ -309,7 +310,10 @@ use App\Traits\TimezoneTrait;
                                     <a :href="selectedBooking.view_url" class="action-link" title="{{ __('app.view') }}">{!! icon('eye') !!}</a>
                                     <a :href="selectedBooking.edit_url" class="action-link" title="{{ __('app.edit') }}">{!! icon('edit') !!}</a>
                                     <template x-if="selectedBooking.source?.url">
-                                        <a :href="selectedBooking.source.url" target="_blank" class="action-link" title="{{ __('booking.source.origin') }}">{!! icon('arrow-up-right') !!}</a>
+                                        <a :href="selectedBooking.source.url" target="_blank" class="action-link" title="{{ __('booking.source.beds24') }}">{!! icon('arrow-up-right') !!}</a>
+                                    </template>
+                                    <template x-if="selectedBooking.origin?.url">
+                                        <a :href="selectedBooking.origin.url" target="_blank" class="action-link" :title="selectedBooking.origin.channel" x-html="selectedBooking.origin.logo"></a>
                                     </template>
                                 </span>
                             </div>
