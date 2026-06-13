@@ -111,9 +111,21 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->price)->toBe(0.0);
     });
 
-    it('reports an unknown (null) price when there is no invoice and no price', function () {
+    it('reflects a Beds24 price field of zero as a definitive zero (booking zeroed in Beds24)', function () {
         $connector = makeBeds24Connector([
-            ['bookId' => '301', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'CESL Guest', 'price' => '0'],
+            ['bookId' => '301', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Zeroed Solo', 'price' => '0'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBe(0.0);
+    });
+
+    it('reports a null price for a group member without its own invoice', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '400', 'masterId' => '400', 'group' => ['401'], 'roomId' => '10', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Group Lead', 'price' => '3000'],
+            ['bookId' => '401', 'masterId' => '400', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '3', 'price' => '3000'],
         ]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);

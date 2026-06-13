@@ -296,11 +296,10 @@ class Beds24Connector implements PushableConnector, SourceConnector
             return ($invoice['payment_total'] ?? 0) > 0 ? $invoice['payment_total'] : 0.0;
         }
 
-        // Solo booking with no invoice: trust only a positive price field;
-        // a 0 there is ambiguous (CESL with no invoice yet) → unknown.
-        $priceField = (float) ($row['price'] ?? 0);
-
-        return $priceField > 0 ? $priceField : null;
+        // Solo booking with no invoice: the Beds24 price field is the
+        // authoritative price (Beds24 owns this booking), 0 included — so a
+        // booking zeroed in Beds24 reflects 0 here too.
+        return (float) ($row['price'] ?? 0);
     }
 
     /**
