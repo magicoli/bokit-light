@@ -487,28 +487,55 @@ function calendar() {
         baseUrl: '{{ url('/') }}',
         locale: '{{ app()->getLocale() }}',
 
-        async closeBooking() {
+        init() {
+            // Returning to this tab after editing the booking in its source
+            // (opened in a new tab) triggers the pull automatically — the
+            // source often closes its own modal on save, so the user rarely
+            // closes the bokit modal by hand.
+            const onReturn = () => {
+                if (document.visibilityState === 'visible') {
+                    this.maybeResync();
+                }
+            };
+            document.addEventListener('visibilitychange', onReturn);
+            window.addEventListener('focus', () => this.maybeResync());
+        },
+
+        maybeResync() {
+            const id = this.selectedBooking?.id;
+            if (! this.sourceOpened || ! id) {
+                return;
+            }
+            this.sourceOpened = false;
+            this.resyncAndReload(id);
+        },
+
+        closeBooking() {
             const id = this.selectedBooking?.id;
             const reload = this.sourceOpened && id;
             this.selectedBooking = null;
             this.sourceOpened = false;
 
-            // After editing the booking in its source (link opened in a new
-            // tab), pull that booking's unit so the change comes back in.
             if (reload) {
-                try {
-                    await fetch(`${this.baseUrl}/booking/${id}/resync`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content,
-                            'Accept': 'application/json',
-                        },
-                    });
-                } catch (error) {
-                    console.error('Resync failed:', error);
-                }
-                window.location.reload();
+                this.resyncAndReload(id);
             }
+        },
+
+        async resyncAndReload(id) {
+            // Pull the booking's unit so a change made in the source comes
+            // back into bokit, then refresh the calendar.
+            try {
+                await fetch(`${this.baseUrl}/booking/${id}/resync`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content,
+                        'Accept': 'application/json',
+                    },
+                });
+            } catch (error) {
+                console.error('Resync failed:', error);
+            }
+            window.location.reload();
         },
 
         async showBooking(bookingId) {
