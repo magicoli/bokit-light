@@ -7,6 +7,7 @@ use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Services\SyncEngine;
+use App\Services\SyncRegistry;
 use App\Support\NormalizedBooking;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -171,6 +172,43 @@ describe('SyncEngine push', function () {
         expect($stats['created'])->toBe(1)
             ->and($connector->pushes)->toBeEmpty()
             ->and(BookingSource::count())->toBe(0);
+    });
+
+    it('pushes a non-protected booking on save to the unit writable sources', function () {
+        $connector = makePushConnector();
+        app(SyncRegistry::class)->register($connector);
+        $this->unit->update(['options' => ['sources' => [['type' => 'beds24', 'enabled' => true]]]]);
+
+        $booking = ($this->makeManual)(['source_name' => 'direct']);
+        $stats = $this->engine->pushBooking($booking);
+
+        expect($stats['pushed'])->toBe(1)
+            ->and($connector->pushes)->toHaveCount(1)
+            ->and($booking->sources()->where('source_key', 'beds24')->first()->pushed_at)->not->toBeNull();
+    });
+
+    it('never pushes a protected airbnb booking on save', function () {
+        $connector = makePushConnector();
+        app(SyncRegistry::class)->register($connector);
+        $this->unit->update(['options' => ['sources' => [['type' => 'beds24', 'enabled' => true]]]]);
+
+        $booking = ($this->makeManual)(['source_name' => 'airbnb']);
+        $stats = $this->engine->pushBooking($booking);
+
+        expect($stats['pushed'])->toBe(0)
+            ->and($connector->pushes)->toBeEmpty();
+    });
+
+    it('skips read-only sources on save', function () {
+        $connector = makePushConnector();
+        app(SyncRegistry::class)->register($connector);
+        $this->unit->update(['options' => ['sources' => [['type' => 'beds24', 'enabled' => true, 'readonly' => true]]]]);
+
+        $booking = ($this->makeManual)(['source_name' => 'direct']);
+        $stats = $this->engine->pushBooking($booking);
+
+        expect($stats['pushed'])->toBe(0)
+            ->and($connector->pushes)->toBeEmpty();
     });
 
     it('a pulled echo of a pushed booking never duplicates nor overwrites', function () {

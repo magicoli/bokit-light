@@ -101,6 +101,9 @@ return [
     'invoice.total' => 'Total',
     'invoice.payment' => 'Paiement',
 
+    'push.failed' => 'Échec de la transmission aux canaux',
+    'protected_origin' => 'L\'OTA d\'origine gère cette réservation — dates et prix en lecture seule.',
+
     // Helper text
     'guests_auto_calculated' => 'Calculé automatiquement si vide',
 ];

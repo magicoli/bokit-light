@@ -101,6 +101,9 @@ return [
     'invoice.total' => 'Total',
     'invoice.payment' => 'Payment',
 
+    'push.failed' => 'Push to channels failed',
+    'protected_origin' => 'Origin OTA manages this booking — dates and price are read-only.',
+
     // Helper text
     'guests_auto_calculated' => 'Auto-calculated if empty',
 ];

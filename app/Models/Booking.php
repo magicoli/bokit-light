@@ -680,6 +680,20 @@ class Booking extends Model
     }
 
     /**
+     * Protected = the real origin is a self-managed OTA (airbnb,
+     * booking.com) that owns the change workflow: bokit must not edit its
+     * dates/price nor push to it. Everything else (direct, beds24 manual,
+     * hbook, manual bokit bookings) is editable, bokit acting as master.
+     * The locked-channel list is a global setting.
+     */
+    public function isProtected(): bool
+    {
+        $protected = options('sync.protected_channels', ['airbnb', 'booking-com']);
+
+        return in_array($this->api_source, (array) $protected, true);
+    }
+
+    /**
      * Return OTA booking URL for known sources
      *
      * @return string|null

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Bookings\Schemas;
 
 use App\Filament\Resources\Bookings\Tables\BookingsTable;
+use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
 use Filament\Forms\Components\DatePicker;
@@ -54,12 +55,14 @@ class BookingForm
                     DatePicker::make('check_in')
                         ->label(__('booking.field.check_in'))
                         ->required()
-                        ->native(false),
+                        ->native(false)
+                        ->disabled(fn (?Booking $record): bool => (bool) $record?->isProtected()),
 
                     DatePicker::make('check_out')
                         ->label(__('booking.field.check_out'))
                         ->required()
-                        ->native(false),
+                        ->native(false)
+                        ->disabled(fn (?Booking $record): bool => (bool) $record?->isProtected()),
                     Select::make('status')
                         ->label(__('booking.field.status'))
                         ->options(BookingsTable::statusOptions())
@@ -94,7 +97,9 @@ class BookingForm
                         ->label(__('booking.field.price'))
                         ->numeric()
                         ->prefix('€')
-                        ->step(0.01),
+                        ->step(0.01)
+                        ->disabled(fn (?Booking $record): bool => (bool) $record?->isProtected())
+                        ->helperText(fn (?Booking $record): ?string => $record?->isProtected() ? __('booking.protected_origin') : null),
 
                     TextInput::make('commission')
                         ->label(__('booking.field.commission'))

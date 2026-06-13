@@ -151,81 +151,126 @@ class SyncEngine
             ->get();
 
         foreach ($bookings as $booking) {
-            $reference = $booking->sources()
-                ->where('source_key', $sourceKey)
-                ->first();
-
-            if (! $reference) {
-                // Never been pushed: cancelled or deleted bookings have
-                // nothing to free up there.
-                if ($booking->isCancelled()) {
-                    continue;
-                }
-
-                if ($dryRun) {
-                    $stats['created']++;
-
-                    continue;
-                }
-
-                try {
-                    $externalId = $connector->pushBooking($unit, $sourceConfig, $booking, null);
-                } catch (\Throwable $e) {
-                    $stats['failed']++;
-                    $stats['error'] = $e->getMessage();
-                    Log::warning("[SyncEngine] Push failed for booking #{$booking->id} to {$sourceKey}: {$e->getMessage()}");
-
-                    continue;
-                }
-
-                $this->writeReference($booking, [
-                    'source_type' => $sourceType,
-                    'source_key' => $sourceKey,
-                    'external_id' => $externalId,
-                    'is_origin' => false,
-                    'is_placeholder' => false,
-                    'last_seen_at' => now(),
-                    'pushed_at' => now(),
-                ]);
-
-                $stats['created']++;
-                Log::info("[SyncEngine] Pushed booking #{$booking->id} to {$sourceKey} as {$externalId}");
-
-                continue;
-            }
-
-            $needsPush = $reference->pushed_at === null
-                || $booking->updated_at?->greaterThan($reference->pushed_at)
-                || ($booking->trashed() && $booking->deleted_at->greaterThan($reference->pushed_at));
-
-            if (! $needsPush) {
-                continue;
-            }
-
-            if ($dryRun) {
-                $stats['updated']++;
-
-                continue;
-            }
-
             try {
-                $connector->pushBooking($unit, $sourceConfig, $booking, $reference->external_id);
+                $result = $this->pushToSource($booking, $unit, $sourceConfig, $connector, $dryRun);
             } catch (\Throwable $e) {
                 $stats['failed']++;
                 $stats['error'] = $e->getMessage();
-                Log::warning("[SyncEngine] Push update failed for booking #{$booking->id} to {$sourceKey}: {$e->getMessage()}");
+                Log::warning("[SyncEngine] Push failed for booking #{$booking->id} to {$sourceKey}: {$e->getMessage()}");
 
                 continue;
             }
 
-            $reference->update(['pushed_at' => now(), 'last_seen_at' => now()]);
-            $stats['updated']++;
-            Log::info("[SyncEngine] Pushed update of booking #{$booking->id} to {$sourceKey} ({$reference->external_id})");
+            if ($result === 'created') {
+                $stats['created']++;
+            } elseif ($result === 'updated') {
+                $stats['updated']++;
+            }
         }
 
         $stats['success'] = $stats['failed'] === 0;
 
         return $stats;
+    }
+
+    /**
+     * Push one booking to every writable source of its unit — the on-save
+     * path for bokit-as-master edits. Protected (self-managed OTA) bookings
+     * are never pushed: their dates and price are owned by the OTA.
+     *
+     * @return array{pushed: int, failed: int, errors: array<int, string>}
+     */
+    public function pushBooking(Booking $booking, bool $dryRun = false): array
+    {
+        $stats = ['pushed' => 0, 'failed' => 0, 'errors' => []];
+
+        $unit = $booking->unit;
+
+        if (! $unit || $booking->isProtected()) {
+            return $stats;
+        }
+
+        $registry = app(SyncRegistry::class);
+
+        foreach ($unit->options['sources'] ?? [] as $sourceConfig) {
+            if (! ($sourceConfig['enabled'] ?? true) || ($sourceConfig['readonly'] ?? false)) {
+                continue;
+            }
+
+            $connector = $registry->getForType($sourceConfig['type'] ?? '');
+
+            if (! ($connector instanceof PushableConnector && $connector instanceof SourceConnector)) {
+                continue;
+            }
+
+            try {
+                if ($this->pushToSource($booking, $unit, $sourceConfig, $connector, $dryRun) !== 'skipped') {
+                    $stats['pushed']++;
+                }
+            } catch (\Throwable $e) {
+                $stats['failed']++;
+                $stats['errors'][] = $e->getMessage();
+                Log::warning("[SyncEngine] Push-on-save failed for booking #{$booking->id}: {$e->getMessage()}");
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Push one booking to one source: create or update its external
+     * booking and record the (source_key, external_id) pair with pushed_at
+     * for echo suppression. Returns 'created', 'updated' or 'skipped'.
+     *
+     * @throws \Throwable on API failure
+     */
+    private function pushToSource(Booking $booking, Unit $unit, array $sourceConfig, PushableConnector&SourceConnector $connector, bool $dryRun): string
+    {
+        $sourceKey = $connector->sourceKey($unit, $sourceConfig);
+        $sourceType = $connector->sourceType();
+
+        $reference = $booking->sources()->where('source_key', $sourceKey)->first();
+
+        if (! $reference) {
+            // A booking never pushed and already cancelled blocks nothing.
+            if ($booking->isCancelled()) {
+                return 'skipped';
+            }
+            if ($dryRun) {
+                return 'created';
+            }
+
+            $externalId = $connector->pushBooking($unit, $sourceConfig, $booking, null);
+            $this->writeReference($booking, [
+                'source_type' => $sourceType,
+                'source_key' => $sourceKey,
+                'external_id' => $externalId,
+                'is_origin' => false,
+                'is_placeholder' => false,
+                'last_seen_at' => now(),
+                'pushed_at' => now(),
+            ]);
+            Log::info("[SyncEngine] Pushed booking #{$booking->id} to {$sourceKey} as {$externalId}");
+
+            return 'created';
+        }
+
+        $needsPush = $reference->pushed_at === null
+            || $booking->updated_at?->greaterThan($reference->pushed_at)
+            || ($booking->trashed() && $booking->deleted_at?->greaterThan($reference->pushed_at));
+
+        if (! $needsPush) {
+            return 'skipped';
+        }
+        if ($dryRun) {
+            return 'updated';
+        }
+
+        $connector->pushBooking($unit, $sourceConfig, $booking, $reference->external_id);
+        $reference->update(['pushed_at' => now(), 'last_seen_at' => now()]);
+        Log::info("[SyncEngine] Pushed update of booking #{$booking->id} to {$sourceKey} ({$reference->external_id})");
+
+        return 'updated';
     }
 
     /**
