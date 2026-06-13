@@ -417,7 +417,7 @@ class SyncEngine
             'check_out' => $normalized->checkOut,
             'guest_name' => $normalized->guestName,
             'status' => $normalized->status,
-            'price' => $normalized->price ?: null,
+            'price' => $normalized->price,
             'commission' => $normalized->commission ?: null,
             'guests' => $normalized->guests,
             'adults' => $normalized->adults,
@@ -635,7 +635,11 @@ class SyncEngine
             $changes['status'] = $normalized->status;
         }
 
-        if ($normalized->price > 0 && (float) $booking->getRawOriginal('price') !== $normalized->price) {
+        // The acting origin (fullChanges only runs for it) may set the price
+        // to any definitive value it reports — including 0 (e.g. a Beds24
+        // invoice zeroed by the user). null means "no price information" and
+        // never touches the stored value, except to clear a group member.
+        if ($normalized->price !== null && (float) $booking->getRawOriginal('price') !== $normalized->price) {
             $changes['price'] = $normalized->price;
         } elseif ($normalized->price === null
             && $normalized->groupId !== null

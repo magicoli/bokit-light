@@ -99,6 +99,29 @@ describe('Beds24Connector', function () {
         'inquiry' => ['5', 'quote'],
     ]);
 
+    it('reports a definitive zero price when the invoice is emptied', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '300', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Zeroed Guest', 'price' => '0',
+                'invoice' => [['type' => '1', 'description' => 'Hébergement', 'price' => '0']]],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBe(0.0);
+    });
+
+    it('reports an unknown (null) price when there is no invoice and no price', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '301', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'CESL Guest', 'price' => '0'],
+        ]);
+
+        $bookings = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]);
+
+        expect($bookings)->toHaveCount(1)
+            ->and($bookings[0]->price)->toBeNull();
+    });
+
     it('tags New bookings with is_new metadata while keeping them confirmed', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '2', 'guestName' => 'Fresh Guest', 'price' => '100'],

@@ -192,7 +192,7 @@ class Beds24Connector implements PushableConnector, SourceConnector
         // unless they belong to a group (group rows are real occupancies even
         // when the amounts and guest live on another booking of the group) or
         // are blocks, which carry no guest or price by nature.
-        if ($guestName === 'Guest' && $price === 0.0 && $commission === 0.0 && $masterId === '' && ! $isBlock) {
+        if ($guestName === 'Guest' && ($price ?? 0.0) === 0.0 && $commission === 0.0 && $masterId === '' && ! $isBlock) {
             Log::debug("[Beds24] Skip: empty block [{$unit->name}] {$checkIn} (bookId={$row['bookId']})");
 
             return null;
@@ -240,7 +240,7 @@ class Beds24Connector implements PushableConnector, SourceConnector
             guestName: $guestName,
             status: $status,
             email: $email,
-            price: $price ?: null,
+            price: $price,
             commission: $commission ?: null,
             adults: isset($row['numAdult']) ? (int) $row['numAdult'] : null,
             children: isset($row['numChild']) ? (int) $row['numChild'] : null,
@@ -271,27 +271,36 @@ class Beds24Connector implements PushableConnector, SourceConnector
      * @param  array<string,mixed>  $row
      * @param  array{total: float, acc_ttc: float, taxe_invoiced: float, payment_total: float}|array{}  $invoice
      */
-    private function resolvePrice(array $row, array $invoice, bool $isGroupMaster, bool $isGroupSub = false): float
+    /**
+     * Resolve the booking price, distinguishing a DEFINITIVE value (a real
+     * float, including 0 — e.g. an invoice the user zeroed) from UNKNOWN
+     * (null — no pricing info, the engine then leaves the stored price
+     * untouched).
+     */
+    private function resolvePrice(array $row, array $invoice, bool $isGroupMaster, bool $isGroupSub = false): ?float
     {
-        if (($invoice['total'] ?? 0) > 0) {
+        // An invoice with a non-zero total is the definitive price.
+        if (($invoice['total'] ?? 0) != 0.0) {
             return $invoice['total'];
         }
 
-        if ($isGroupSub) {
+        // Group members carry only their own invoice; otherwise priceless —
+        // the group total lives on the carrier member.
+        if ($isGroupSub || $isGroupMaster) {
+            return null;
+        }
+
+        // Solo booking with an invoice that nets to zero: use what was
+        // actually paid, else a definitive 0 (the user emptied the invoice).
+        if (! empty($invoice)) {
             return ($invoice['payment_total'] ?? 0) > 0 ? $invoice['payment_total'] : 0.0;
         }
 
+        // Solo booking with no invoice: trust only a positive price field;
+        // a 0 there is ambiguous (CESL with no invoice yet) → unknown.
         $priceField = (float) ($row['price'] ?? 0);
 
-        if (empty($invoice)) {
-            return $isGroupMaster ? 0.0 : $priceField;
-        }
-
-        if (! $isGroupMaster && ($invoice['payment_total'] ?? 0) > 0) {
-            return $invoice['payment_total'];
-        }
-
-        return $priceField;
+        return $priceField > 0 ? $priceField : null;
     }
 
     /**

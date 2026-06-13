@@ -704,6 +704,37 @@ describe('SyncEngine', function () {
             ->and((string) $booking->getRawOriginal('group_id'))->toBe('hbook-12');
     });
 
+    it('lets the acting origin clear a price down to zero', function () {
+        $connector = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(externalId: '700', checkIn: '2027-06-01', checkOut: '2027-06-05', guestName: 'Zeroable', status: 'confirmed', price: 500.0, claimsOrigin: true),
+        ]);
+        $this->engine->sync($this->unit, [], $connector);
+        expect((float) Booking::first()->getRawOriginal('price'))->toBe(500.0);
+
+        // Same booking, price emptied in the source.
+        $connector->bookings = [
+            new NormalizedBooking(externalId: '700', checkIn: '2027-06-01', checkOut: '2027-06-05', guestName: 'Zeroable', status: 'confirmed', price: 0.0, claimsOrigin: true),
+        ];
+        $stats = $this->engine->sync($this->unit, [], $connector);
+
+        expect($stats['updated'])->toBe(1)
+            ->and((float) Booking::first()->getRawOriginal('price'))->toBe(0.0);
+    });
+
+    it('never touches the price when the source reports it as unknown (null)', function () {
+        $connector = makeEngineConnector('beds24', 'beds24', [
+            new NormalizedBooking(externalId: '701', checkIn: '2027-06-01', checkOut: '2027-06-05', guestName: 'Keepme', status: 'confirmed', price: 700.0, claimsOrigin: true),
+        ]);
+        $this->engine->sync($this->unit, [], $connector);
+
+        $connector->bookings = [
+            new NormalizedBooking(externalId: '701', checkIn: '2027-06-01', checkOut: '2027-06-05', guestName: 'Keepme', status: 'confirmed', price: null, claimsOrigin: true),
+        ];
+        $this->engine->sync($this->unit, [], $connector);
+
+        expect((float) Booking::first()->getRawOriginal('price'))->toBe(700.0);
+    });
+
     it('aligns created_at and updated_at on the source dates', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
