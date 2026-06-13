@@ -111,6 +111,20 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->price)->toBe(0.0);
     });
 
+    it('always emits amount metadata as zero so emptied bookings clear them', function () {
+        $connector = makeBeds24Connector([
+            ['bookId' => '302', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Emptied Guest', 'price' => '0', 'commission' => '0', 'deposit' => '0'],
+        ]);
+
+        $booking = $connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42])[0];
+
+        expect($booking->commission)->toBe(0.0)
+            ->and($booking->metadata['deposit'])->toBe(0.0)
+            ->and($booking->metadata['invoice_payment_total'])->toBe(0.0)
+            ->and($booking->metadata['invoice_total'])->toBe(0.0)
+            ->and($booking->metadata['invoice_lines'])->toBe([]);
+    });
+
     it('reflects a Beds24 price field of zero as a definitive zero (booking zeroed in Beds24)', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '301', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Zeroed Solo', 'price' => '0'],

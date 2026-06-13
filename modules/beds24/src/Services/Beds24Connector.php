@@ -241,7 +241,7 @@ class Beds24Connector implements PushableConnector, SourceConnector
             status: $status,
             email: $email,
             price: $price,
-            commission: $commission ?: null,
+            commission: $commission,
             adults: isset($row['numAdult']) ? (int) $row['numAdult'] : null,
             children: isset($row['numChild']) ? (int) $row['numChild'] : null,
             channel: $this->mapSourceName((string) ($row['apiSource'] ?? '')),
@@ -328,20 +328,18 @@ class Beds24Connector implements PushableConnector, SourceConnector
             'message' => $row['message'] ?? null,
         ];
 
-        $deposit = (float) ($row['deposit'] ?? 0);
-        $tax = (float) ($row['tax'] ?? 0);
-        $meta['deposit'] = $deposit ?: null;
-        $meta['tax'] = $tax ?: null;
+        // Amount keys are ALWAYS emitted (0 / empty when absent) so that the
+        // metadata merge in the engine overwrites stale values when a booking
+        // is emptied in Beds24 — otherwise removed amounts would persist.
+        $meta['deposit'] = (float) ($row['deposit'] ?? 0);
+        $meta['tax'] = (float) ($row['tax'] ?? 0);
+        $meta['invoice_total'] = $invoice['total'] ?? 0.0;
+        $meta['invoice_acc_ttc'] = $invoice['acc_ttc'] ?? 0.0;
+        $meta['invoice_taxe_invoiced'] = $invoice['taxe_invoiced'] ?? 0.0;
+        $meta['invoice_payment_total'] = $invoice['payment_total'] ?? 0.0;
 
-        if (! empty($invoice)) {
-            $meta['invoice_total'] = $invoice['total'];
-            $meta['invoice_acc_ttc'] = $invoice['acc_ttc'];
-            $meta['invoice_taxe_invoiced'] = $invoice['taxe_invoiced'];
-            $meta['invoice_payment_total'] = $invoice['payment_total'];
-        }
-
-        if (! empty($row['invoice']) && is_array($row['invoice'])) {
-            $meta['invoice_lines'] = array_map(function (array $line): array {
+        $meta['invoice_lines'] = ! empty($row['invoice']) && is_array($row['invoice'])
+            ? array_map(function (array $line): array {
                 $qty = (float) ($line['qty'] ?? 1) ?: 1.0;
                 $price = (float) ($line['price'] ?? 0);
 
@@ -352,10 +350,14 @@ class Beds24Connector implements PushableConnector, SourceConnector
                     'price' => $price,
                     'amount' => round($qty * $price, 2),
                 ];
-            }, array_values($row['invoice']));
-        }
+            }, array_values($row['invoice']))
+            : [];
 
-        return array_filter($meta, fn ($v) => $v !== null && $v !== '');
+        // Keep the contact/text keys only when set, but never drop the amount
+        // keys above (0 and [] are meaningful "cleared" values).
+        $always = ['deposit', 'tax', 'invoice_total', 'invoice_acc_ttc', 'invoice_taxe_invoiced', 'invoice_payment_total', 'invoice_lines'];
+
+        return array_filter($meta, fn ($v, $k) => in_array($k, $always, true) || ($v !== null && $v !== ''), ARRAY_FILTER_USE_BOTH);
     }
 
     /**

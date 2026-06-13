@@ -418,7 +418,7 @@ class SyncEngine
             'guest_name' => $normalized->guestName,
             'status' => $normalized->status,
             'price' => $normalized->price,
-            'commission' => $normalized->commission ?: null,
+            'commission' => $normalized->commission,
             'guests' => $normalized->guests,
             'adults' => $normalized->adults,
             'children' => $normalized->children,
@@ -652,7 +652,7 @@ class SyncEngine
             $changes['price'] = null;
         }
 
-        if ($normalized->commission > 0 && (float) $booking->getRawOriginal('commission') !== $normalized->commission) {
+        if ($normalized->commission !== null && (float) $booking->getRawOriginal('commission') !== $normalized->commission) {
             $changes['commission'] = $normalized->commission;
         }
 
