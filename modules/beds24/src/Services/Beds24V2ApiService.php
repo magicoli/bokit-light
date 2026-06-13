@@ -44,13 +44,15 @@ class Beds24V2ApiService
             ->withHeaders(['code' => $code, 'deviceName' => 'bokit'])
             ->get(self::API_URL.'/authentication/setup');
 
-        $token = $response->json('token');
+        // The setup response carries both a short-lived 'token' and the
+        // permanent 'refreshToken' — we must store the latter.
+        $refreshToken = $response->json('refreshToken');
 
-        if (! $response->successful() || empty($token)) {
+        if (! $response->successful() || empty($refreshToken)) {
             throw new \RuntimeException('Invite code exchange failed: '.($response->json('error') ?? $response->body()));
         }
 
-        return $token;
+        return $refreshToken;
     }
 
     /**
