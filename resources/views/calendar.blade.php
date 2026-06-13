@@ -278,7 +278,7 @@ use App\Traits\TimezoneTrait;
     <!-- Booking Detail Modal -->
     <div x-show="selectedBooking"
          x-cloak
-         @click.self="selectedBooking = null"
+         @click.self="closeBooking()"
          class="modal-backdrop">
         <div class="modal card p-0" @click.stop>
             <template x-if="selectedBooking">
@@ -291,7 +291,7 @@ use App\Traits\TimezoneTrait;
                             <span x-show="selectedBooking.deleted_at" class="badge-deleted">DELETED</span>
                             <span x-text="selectedBooking.guest_name"></span>
                         </h3>
-                        <button @click="selectedBooking = null" class="close-button text-white">
+                        <button @click="closeBooking()" class="close-button text-white">
                             {!! icon('close') !!}
                         </button>
                     </div>
@@ -310,10 +310,10 @@ use App\Traits\TimezoneTrait;
                                     <a :href="selectedBooking.view_url" class="action-link" title="{{ __('app.view') }}">{!! icon('eye') !!}</a>
                                     <a :href="selectedBooking.edit_url" class="action-link" title="{{ __('app.edit') }}">{!! icon('edit') !!}</a>
                                     <template x-if="selectedBooking.source?.url">
-                                        <a :href="selectedBooking.source.url" target="_blank" class="action-link" title="{{ __('booking.source.beds24') }}">{!! icon('arrow-up-right') !!}</a>
+                                        <a :href="selectedBooking.source.url" target="_blank" @click="sourceOpened = true" class="action-link" title="{{ __('booking.source.beds24') }}">{!! icon('arrow-up-right') !!}</a>
                                     </template>
                                     <template x-if="selectedBooking.origin?.url">
-                                        <a :href="selectedBooking.origin.url" target="_blank" class="action-link" :title="selectedBooking.origin.channel" x-html="selectedBooking.origin.logo"></a>
+                                        <a :href="selectedBooking.origin.url" target="_blank" @click="sourceOpened = true" class="action-link" :title="selectedBooking.origin.channel" x-html="selectedBooking.origin.logo"></a>
                                     </template>
                                 </span>
                             </div>
@@ -483,8 +483,33 @@ use App\Traits\TimezoneTrait;
 function calendar() {
     return {
         selectedBooking: null,
+        sourceOpened: false,
         baseUrl: '{{ url('/') }}',
         locale: '{{ app()->getLocale() }}',
+
+        async closeBooking() {
+            const id = this.selectedBooking?.id;
+            const reload = this.sourceOpened && id;
+            this.selectedBooking = null;
+            this.sourceOpened = false;
+
+            // After editing the booking in its source (link opened in a new
+            // tab), pull that booking's unit so the change comes back in.
+            if (reload) {
+                try {
+                    await fetch(`${this.baseUrl}/booking/${id}/resync`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content,
+                            'Accept': 'application/json',
+                        },
+                    });
+                } catch (error) {
+                    console.error('Resync failed:', error);
+                }
+                window.location.reload();
+            }
+        },
 
         async showBooking(bookingId) {
             try {

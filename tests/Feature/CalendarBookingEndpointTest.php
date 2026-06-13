@@ -253,6 +253,23 @@ it('has no origin link for a direct beds24 booking', function () {
         ->assertJsonPath('origin.url', null);
 });
 
+it('resyncs a booking unit on demand', function () {
+    $booking = Booking::create([
+        'property_id' => $this->property->id,
+        'unit_id' => $this->unit->id,
+        'guest_name' => 'Resync Guest',
+        'status' => 'confirmed',
+        'check_in' => '2026-09-01',
+        'check_out' => '2026-09-08',
+    ]);
+
+    // Unit has no sources here, so the endpoint is a safe no-op that
+    // confirms routing, access control and the JSON contract.
+    $this->postJson("/booking/{$booking->id}/resync")
+        ->assertSuccessful()
+        ->assertJsonPath('ok', true);
+});
+
 it('returns null paid and balance when no payment info exists', function () {
     $booking = Booking::create([
         'property_id' => $this->property->id,

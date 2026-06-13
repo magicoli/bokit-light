@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Models\Booking;
 use App\Models\Property;
+use App\Services\SyncEngine;
+use App\Services\SyncRegistry;
 use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CalendarController extends Controller
 {
@@ -140,6 +143,42 @@ class CalendarController extends Controller
         }
 
         return response()->json(self::bookingPayload($booking));
+    }
+
+    /**
+     * Re-pull the booking's unit from its sources — called when the modal
+     * closes after the user followed a source link to edit the booking in
+     * the channel manager / OTA, so their change comes back into bokit.
+     * Pull only (never push): the source is authoritative for this edit.
+     */
+    public function resync($id, SyncRegistry $registry, SyncEngine $engine)
+    {
+        $booking = Booking::with('unit.property')->findOrFail($id);
+
+        $property = $booking->property ?? $booking->unit?->property;
+        if (! $property || ! auth()->user()->hasAccessTo($property)) {
+            abort(403, 'Access denied');
+        }
+
+        $unit = $booking->unit;
+
+        foreach ($unit?->options['sources'] ?? [] as $sourceConfig) {
+            if (! ($sourceConfig['enabled'] ?? true)) {
+                continue;
+            }
+
+            $connector = $registry->getForType($sourceConfig['type'] ?? '');
+
+            if ($connector) {
+                try {
+                    $engine->sync($unit, $sourceConfig, $connector);
+                } catch (\Throwable $e) {
+                    Log::warning("[Calendar] Resync failed for unit #{$unit->id} / {$sourceConfig['type']}: {$e->getMessage()}");
+                }
+            }
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     /**

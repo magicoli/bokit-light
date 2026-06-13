@@ -155,6 +155,10 @@ if ($isInstalled) {
             CalendarController::class,
             'booking',
         ])->name('booking.show');
+        Route::post('/booking/{id}/resync', [
+            CalendarController::class,
+            'resync',
+        ])->name('booking.resync');
 
         // Properties list (specific route, must be before catch-all)
         Route::get('/properties', [PropertyController::class, 'index'])->name(
