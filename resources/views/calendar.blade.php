@@ -12,6 +12,14 @@ use App\Traits\TimezoneTrait;
 
 @section('content')
 <div x-data="calendar()" class="full-width" x-cloak>
+
+    <!-- Resync overlay: shown while pulling the edited booking back in -->
+    <div x-show="resyncing" x-cloak
+         style="position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);">
+        <div style="background:#fff;padding:1rem 1.5rem;border-radius:.5rem;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.15);">
+            {{ __('app.syncing') }}…
+        </div>
+    </div>
     <!-- Navigation Bar -->
     <div class="calendar-nav my-auto">
         <div class="nav-controls">
@@ -310,10 +318,10 @@ use App\Traits\TimezoneTrait;
                                     <a :href="selectedBooking.view_url" class="action-link" title="{{ __('app.view') }}">{!! icon('eye') !!}</a>
                                     <a :href="selectedBooking.edit_url" class="action-link" title="{{ __('app.edit') }}">{!! icon('edit') !!}</a>
                                     <template x-if="selectedBooking.source?.url">
-                                        <a :href="selectedBooking.source.url" target="_blank" @click="sourceOpened = true" class="action-link" title="{{ __('booking.source.beds24') }}">{!! icon('arrow-up-right') !!}</a>
+                                        <a :href="selectedBooking.source.url" target="_blank" @click="armResync()" class="action-link" title="{{ __('booking.source.beds24') }}">{!! icon('arrow-up-right') !!}</a>
                                     </template>
                                     <template x-if="selectedBooking.origin?.url">
-                                        <a :href="selectedBooking.origin.url" target="_blank" @click="sourceOpened = true" class="action-link" :title="selectedBooking.origin.channel" x-html="selectedBooking.origin.logo"></a>
+                                        <a :href="selectedBooking.origin.url" target="_blank" @click="armResync()" class="action-link" :title="selectedBooking.origin.channel" x-html="selectedBooking.origin.logo"></a>
                                     </template>
                                 </span>
                             </div>
@@ -483,47 +491,49 @@ use App\Traits\TimezoneTrait;
 function calendar() {
     return {
         selectedBooking: null,
-        sourceOpened: false,
+        // Booking id whose source link was followed: armed on click,
+        // flushed (pull + reload) when the tab regains focus or the modal
+        // closes. Kept independent of selectedBooking so the modal state
+        // can change without losing the pending refresh.
+        pendingResyncId: null,
+        resyncing: false,
         baseUrl: '{{ url('/') }}',
         locale: '{{ app()->getLocale() }}',
 
         init() {
-            // Returning to this tab after editing the booking in its source
-            // (opened in a new tab) triggers the pull automatically — the
-            // source often closes its own modal on save, so the user rarely
-            // closes the bokit modal by hand.
-            const onReturn = () => {
+            // The source usually closes its own modal on save, so the user
+            // rarely closes the bokit modal by hand — pull automatically
+            // when they come back to this tab.
+            document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                    this.maybeResync();
+                    this.flushResync();
                 }
-            };
-            document.addEventListener('visibilitychange', onReturn);
-            window.addEventListener('focus', () => this.maybeResync());
+            });
+            window.addEventListener('focus', () => this.flushResync());
         },
 
-        maybeResync() {
-            const id = this.selectedBooking?.id;
-            if (! this.sourceOpened || ! id) {
+        armResync() {
+            this.pendingResyncId = this.selectedBooking?.id ?? null;
+        },
+
+        flushResync() {
+            if (this.pendingResyncId === null || this.resyncing) {
                 return;
             }
-            this.sourceOpened = false;
+            const id = this.pendingResyncId;
+            this.pendingResyncId = null;
             this.resyncAndReload(id);
         },
 
         closeBooking() {
-            const id = this.selectedBooking?.id;
-            const reload = this.sourceOpened && id;
             this.selectedBooking = null;
-            this.sourceOpened = false;
-
-            if (reload) {
-                this.resyncAndReload(id);
-            }
+            this.flushResync();
         },
 
         async resyncAndReload(id) {
             // Pull the booking's unit so a change made in the source comes
             // back into bokit, then refresh the calendar.
+            this.resyncing = true;
             try {
                 await fetch(`${this.baseUrl}/booking/${id}/resync`, {
                     method: 'POST',

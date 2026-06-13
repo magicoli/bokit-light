@@ -36,6 +36,7 @@ return [
 
     // Time
     'today' => 'Today',
+    'syncing' => 'Syncing',
 
     // Resources
     'bookings' => 'Bookings',
