@@ -34,3 +34,5 @@ public/fonts/
 vendor/
 deploy.*ml*
 deploy.php
+composer.dev.json
+composer.dev.lock
