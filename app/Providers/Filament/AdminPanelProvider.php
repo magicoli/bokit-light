@@ -24,6 +24,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Magicoli\TwoWayTicket\ReportIssuePlugin;
+use Magicoli\TwoWayTicket\TicketsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -31,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
     {
         FilamentView::registerRenderHook(
             TablesRenderHook::TOOLBAR_START,
-            fn (): View => view('filament.tables.booking-inline-filters'),
+            fn(): View => view('filament.tables.booking-inline-filters'),
             scopes: ListBookings::class,
         );
 
@@ -40,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
         // 'confirmed' by payment state.
         FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_END,
-            fn (): HtmlString => new HtmlString('<style>
+            fn(): HtmlString => new HtmlString('<style>
                 :root {
                     --color-paid: #84cc16;
                     --color-due: #14b8a6;
@@ -65,7 +67,7 @@ class AdminPanelProvider extends PanelProvider
         // Member rows (individual units within a group) get a lighter tint.
         FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_END,
-            fn (): HtmlString => new HtmlString('<style>
+            fn(): HtmlString => new HtmlString('<style>
                 tr.booking-group-summary td { background-color: #fef9c3 !important; }
                 tr.booking-group-member  td { background-color: #fefce8 !important; }
                 .dark tr.booking-group-summary td { background-color: #422006 !important; }
@@ -76,7 +78,7 @@ class AdminPanelProvider extends PanelProvider
         // CSS for the shared nav/top-links partial rendered inside the Filament topbar.
         FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_END,
-            fn (): HtmlString => new HtmlString('<style>
+            fn(): HtmlString => new HtmlString('<style>
                 .fi-topbar .nav-link {
                     font-size:.875rem; font-weight:500; color:rgb(55 65 81);
                     padding:.375rem .75rem; border-radius:.375rem; text-decoration:none;
@@ -114,10 +116,7 @@ class AdminPanelProvider extends PanelProvider
         );
 
         // Calendar + Admin links in the Filament topbar (shared partial with frontend).
-        FilamentView::registerRenderHook(
-            PanelsRenderHook::USER_MENU_BEFORE,
-            fn (): View => view('nav.top-links'),
-        );
+        FilamentView::registerRenderHook(PanelsRenderHook::USER_MENU_BEFORE, fn(): View => view('nav.top-links'));
     }
 
     public function panel(Panel $panel): Panel
@@ -130,9 +129,9 @@ class AdminPanelProvider extends PanelProvider
             ->breadcrumbs(false)
             ->homeUrl('/')
             ->brandLogo('/images/logo.png')
-            ->brandLogoHeight(fn () => request()->is('login', '*/login') ? '128px' : '48px')
-            // ->sidebarCollapsibleOnDesktop()
-            ->sidebarFullyCollapsibleOnDesktop()
+            ->brandLogoHeight(fn() => request()->is('login', '*/login') ? '128px' : '48px')
+            ->sidebarCollapsibleOnDesktop()
+            // ->sidebarFullyCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -141,11 +140,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(
-                in: app_path('Filament/Widgets'),
-                for: 'App\Filament\Widgets')
-            ->widgets([
-            ])
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->widgets([])
             ->plugins([
                 FilamentLanguageSwitcherPlugin::make()
                     ->locales(['en', 'fr'])
@@ -153,7 +149,8 @@ class AdminPanelProvider extends PanelProvider
                     // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
                     ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
                     ->showOnAuthPages(),
-
+                TicketsPlugin::make(),
+                ReportIssuePlugin::make(),
             ])
             ->middleware([
                 EncryptCookies::class,
