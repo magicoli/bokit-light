@@ -3,13 +3,14 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
+    "version": "0.1.2",
     "keywords": [
         "laravel",
         "framework"
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "blade-ui-kit/blade-icons": "^1.8",
         "codeat3/blade-simple-icons": "^8.1",
         "craft-forge/filament-language-switcher": "^1.2",
@@ -22,9 +23,15 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^4.0",
+        "magicoli/two-way-ticket": "^0.1.2",
         "sabre/vobject": "^4.5"
     },
     "repositories": [
+        {
+            "name": "two-way-ticket",
+            "type": "vcs",
+            "url": "https://github.com/magicoli/two-way-ticket.git"
+        },
         {
             "type": "vcs",
             "url": "https://github.com/magicoli/pest-failure-summary.git"
@@ -34,7 +41,6 @@
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
-        "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "magicoli/pest-failure-summary": "dev-master",
         "mockery/mockery": "^1.6",
@@ -85,7 +91,8 @@
             "@php artisan filament:upgrade"
         ],
         "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan boost:update --ansi"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
@@ -113,7 +120,7 @@
             "php-http/discovery": true
         },
         "platform": {
-            "php": "8.2.0"
+            "php": "8.3.0"
         }
     },
     "minimum-stability": "stable",
