@@ -62,8 +62,8 @@
         @vite($style)
     @endforeach
 
-    <!-- App Scripts -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- App scripts. Alpine is not loaded here: @livewireScripts ships its own instance at the
+         end of the body, and a second one makes both fight over the same directives. --}}
     @vite('resources/js/app.js')
 
     @yield('scripts')
