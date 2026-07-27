@@ -156,6 +156,27 @@ class RateCalculator {
 }
 ```
 
+**PHP formatting — use `mago format`, not Pint**:
+
+Pint (php-cs-fixer) has, in rare cases, actually broken code: chained `->method()` calls and
+ternaries combined with parentheses are known weak spots where it miscounts precedence, forcing
+convoluted rewrites just to keep it from mangling otherwise-correct code (Oli, 2026-07-23). Its
+style doesn't match this project's actual convention either — Zed's `format_on_save` runs
+`mago format` — so anything Pint reformats gets undone the next time the file is saved in the
+editor.
+
+Install it globally, never as a project dependency:
+
+```bash
+composer global require carthage-software/mago
+mago format app/Services/SyncEngine.php   # changed files only
+```
+
+**Never run Pint, Mago, or any other formatter across the whole project.** It rewrites dozens of
+untouched files for futile formatting differences and drowns the real diff. `mago.toml` pins
+`php-version` for exactly that reason: with no configuration Mago assumes the newest PHP it knows
+and rewrites code to match.
+
 ### Configuration Management
 
 **Never use constants** for configuration:
@@ -438,42 +459,61 @@ if (Gate::denies('manage-properties')) {
 
 ## Commit Message Format
 
-Follow Conventional Commits specification:
-
 ```
-type(scope): short description
+(scope) short subject
 
-- Bullet point summary of changes
-- Reference issue numbers if applicable
-- Keep subject line under 72 characters
+- detail
+- detail
+
+Optional additional context.
 ```
 
-**Types**:
-- `feat` - New feature
-- `fix` - Bug fix
-- `chore` - Maintenance (deps, config)
-- `docs` - Documentation only
-- `test` - Adding tests
-- `perf` - Performance improvement
-- `refactor` - Code restructuring
-- `style` - Formatting, whitespace
-- `ci` - CI/CD changes
-- `build` - Build system changes
-- `revert` - Revert previous commit
+- **scope**: area of the change — e.g. `(sync)`, `(beds24)`, `(filament)`, `(build)`, `(tests)`,
+  `(doc)`, `(config)`
+- **subject**: imperative, lowercase, no trailing period, 72 characters max
+- **details**: bullet list with `-`, one item per logical change
+- Omit details for trivial single-change commits
+- Prefix with `(untested)` when the change has not been verified yet; reword after a successful
+  test
 
 **Examples**:
-```bash
-feat(rates): add calculator widget with property grouping
-fix(calendar): correct date handling for DST transitions
-chore(deps): update Laravel to 11.x
-docs(readme): update installation instructions
+```
+(rates) add calculator widget with property grouping
+
+(untested) (calendar) correct date handling for DST transitions
 ```
 
 **Rules**:
-- First line: 72 characters max
-- Body: Explain what and why, not how
-- Reference issues: "Fixes #123" or "Related to #456"
-- **Never push commits** - pushing is the user's responsibility
+- Body explains what and why, not how
+- English, whatever language the discussion happened in
+- Reference issues with `Related to #456`; `Fix #123` on a commit that reaches the default branch
+  actually closes the GitHub issue — and with it the two-way-ticket ticket linked to it
+- **Never claim co-authorship** — no `Co-Authored-By` trailer, no tool credit, anywhere
+- **Never push** — pushing is Oli's alone, and it is never offered either
+- **Work on `master`.** This repo accumulated too many branches; unless told otherwise, commit
+  straight to `master` rather than opening yet another one
+
+## Version Releases
+
+```
+v1.2.3 Main change if applicable
+- new ...
+- new ...
+- fix ...
+- update ...
+```
+
+- **subject**: the first line begins exactly with `v` + the version number, so automated workflows
+  and maintenance scripts can find it. A short description of the main change may follow if
+  relevant
+- **details**: the main changes since the previous version release commit
+- Create a version release only when the version is fully tested and approved — bumping the version
+  number in files does not mean the version must be released yet
+- Be concise; the full explanation is in the git history
+- Omit small patches and fixes, focus on essential features
+- Update every file carrying the version — here `composer.json` and the `APP_VERSION` fallback in
+  `config/app.php` — and CHANGELOG.md with the exact same description
+- After the commit, add a tag named `v1.2.3` with the exact same message as the commit
 
 ## Documentation
 
