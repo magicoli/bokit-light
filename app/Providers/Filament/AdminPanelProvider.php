@@ -24,6 +24,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
 use Magicoli\TwoWayTicket\ReportIssuePlugin;
 use Magicoli\TwoWayTicket\TicketsPlugin;
 
@@ -141,7 +142,9 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([])
+            ->widgets([
+                TicketStatsWidget::class,
+            ])
             ->plugins([
                 FilamentLanguageSwitcherPlugin::make()
                     ->locales(['en', 'fr'])
