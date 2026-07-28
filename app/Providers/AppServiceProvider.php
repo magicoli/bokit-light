@@ -8,9 +8,12 @@ use App\Services\AdminMenuService;
 use App\Sync\Ical\BookingSyncIcal;
 use App\Sync\Ical\IcalConnector;
 use App\Sync\SyncRegistry;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -58,6 +61,33 @@ class AppServiceProvider extends ServiceProvider
         $this->createStorageStructure();
         $this->registerGates();
         $this->registerObservers();
+        $this->registerRateLimiters();
+    }
+
+    /**
+     * Rate limit for the public pages, which anyone — including a scanner — can reach.
+     *
+     * Every rejection is logged with what is needed to judge whether it was deserved: the URL, the
+     * address, the agent. The point is not only to limit; it is to find out whether the limit ever
+     * fires on ordinary use, which would say something about the pages rather than about the
+     * visitor.
+     */
+    private function registerRateLimiters(): void
+    {
+        RateLimiter::for('public', fn(Request $request) => Limit::perMinute(60)->by(
+            $request->ip(),
+        )->response(function (Request $request) {
+            Log::warning('[Throttle] Public rate limit reached', [
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'referer' => $request->header('referer'),
+                'route' => $request->route()?->getName(),
+            ]);
+
+            return response()->view('errors.429', [], 429);
+        }));
     }
 
     /**
@@ -70,9 +100,7 @@ class AppServiceProvider extends ServiceProvider
     {
         /** @var SyncRegistry $registry */
         $registry = $this->app->make(SyncRegistry::class);
-        $registry->register(new IcalConnector(
-            $this->app->make(BookingSyncIcal::class),
-        ));
+        $registry->register(new IcalConnector($this->app->make(BookingSyncIcal::class)));
     }
 
     /**
@@ -91,7 +119,7 @@ class AppServiceProvider extends ServiceProvider
         // Admin gate - access to admin area
         // Super admins have full access, property managers have limited access
         Gate::define('admin', function ($user) {
-            if (! $user) {
+            if (!$user) {
                 return false;
             }
 
@@ -106,7 +134,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Manage resource gate - admin or owner
         Gate::define('manage-resource', function ($user, $resource) {
-            if (! $user) {
+            if (!$user) {
                 return false;
             }
 
@@ -121,14 +149,13 @@ class AppServiceProvider extends ServiceProvider
             }
 
             // Fallback to owner_id check
-            return isset($resource->owner_id) &&
-                $resource->owner_id === $user->id;
+            return isset($resource->owner_id) && $resource->owner_id === $user->id;
         });
 
         // Manage gate - check if user can manage a model class or instance
         // This is for GLOBAL management rights - only admins and managers
         Gate::define('manage', function ($user, $modelClass = null) {
-            if (! $user) {
+            if (!$user) {
                 return false;
             }
 
@@ -138,7 +165,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             // Convert short class names to full class names
-            if (is_string($modelClass) && ! class_exists($modelClass)) {
+            if (is_string($modelClass) && !class_exists($modelClass)) {
                 $shortName = ucfirst($modelClass);
                 $fullClass = "App\\Models\\{$shortName}";
 
@@ -161,7 +188,7 @@ class AppServiceProvider extends ServiceProvider
         // This is a ROLE check, not a permission check
         // Ownership filtering happens in controllers/queries
         Gate::define('property_manager', function ($user) {
-            if (! $user) {
+            if (!$user) {
                 return false;
             }
 
@@ -178,7 +205,7 @@ class AppServiceProvider extends ServiceProvider
         // This is a ROLE check, not a permission check
         // Ownership filtering happens in controllers/queries
         Gate::define('booking_manager', function ($user) {
-            if (! $user) {
+            if (!$user) {
                 return false;
             }
 
@@ -199,10 +226,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Set view compiled path if not already set
         $viewCompiledPath = storage_path('framework/views');
-        if (
-            ! Config::has('view.compiled') ||
-            empty(Config::get('view.compiled'))
-        ) {
+        if (!Config::has('view.compiled') || empty(Config::get('view.compiled'))) {
             Config::set('view.compiled', $viewCompiledPath);
         }
 
@@ -230,14 +254,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Create directories
         foreach ($directories as $dir) {
-            if (! empty($dir) && ! is_dir($dir)) {
+            if (!empty($dir) && !is_dir($dir)) {
                 try {
                     mkdir($dir, 0755, true);
                     Log::notice("Created directory {$dir}");
                 } catch (\Exception $e) {
-                    Log::error(
-                        "Failed to create directory {$dir}: {$e->getMessage()}",
-                    );
+                    Log::error("Failed to create directory {$dir}: {$e->getMessage()}");
                 }
             }
         }
@@ -249,15 +271,13 @@ class AppServiceProvider extends ServiceProvider
         ];
 
         foreach ($files as $file) {
-            if (! file_exists($file)) {
+            if (!file_exists($file)) {
                 try {
                     touch($file);
                     chmod($file, 0644);
                     Log::notice("Created file {$file}");
                 } catch (\Exception $e) {
-                    Log::error(
-                        "Failed to create file {$file}: {$e->getMessage()}",
-                    );
+                    Log::error("Failed to create file {$file}: {$e->getMessage()}");
                 }
             }
         }

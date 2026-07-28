@@ -13,8 +13,10 @@
         }
     }
 
-    // Fallback: extract from view name (e.g., "errors.403" -> 403)
-    if (!isset($exception) || !method_exists($exception, 'getStatusCode')) {
+    // Fallback: extract from view name (e.g., "errors.403" -> 403).
+    // Skipped when the view states its own code: a view rendered directly, without an exception —
+    // as the rate limiter does — has no name to read here, and asking for one throws.
+    if ((!isset($exception) || !method_exists($exception, 'getStatusCode')) && !View::hasSection('error-code')) {
         $viewName = View::getFacadeRoot()->getName();
         if (preg_match('/\.(\d{3})$/', $viewName, $matches)) {
             $errorCode = (int)$matches[1];

@@ -16,18 +16,12 @@ use Illuminate\Support\Facades\Route;
 
 // Installation routes (always accessible during installation)
 Route::get('/install', [InstallController::class, 'index'])->name('install');
-Route::post('/install', [InstallController::class, 'process'])->name(
-    'install.process',
-);
-Route::post('/install/complete', [InstallController::class, 'complete'])->name(
-    'install.complete',
-);
+Route::post('/install', [InstallController::class, 'process'])->name('install.process');
+Route::post('/install/complete', [InstallController::class, 'complete'])->name('install.complete');
 
 // Update routes (always accessible when installed)
 Route::get('/update', [UpdateController::class, 'index'])->name('update');
-Route::post('/update/execute', [UpdateController::class, 'execute'])->name(
-    'update.execute',
-);
+Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute');
 
 // Service Worker (always accessible for PWA)
 Route::get('/sw.js', function () {
@@ -65,9 +59,7 @@ if ($isInstalled) {
     } elseif ($authMethod === 'laravel') {
         Route::get('/login', function () {
             return view('auth.login');
-        })
-            ->middleware('guest')
-            ->name('login');
+        })->middleware('guest')->name('login');
 
         Route::post('/login', function (Request $request) {
             $credentials = $request->validate([
@@ -76,12 +68,7 @@ if ($isInstalled) {
             ]);
 
             // Permet l'utilisation de username ou email
-            $loginField = filter_var(
-                $credentials['username'],
-                FILTER_VALIDATE_EMAIL,
-            )
-                ? 'email'
-                : 'name';
+            $loginField = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
 
             $authCredentials = [
                 $loginField => $credentials['username'],
@@ -100,7 +87,7 @@ if ($isInstalled) {
                     $minutes = 10080; // 7 days
                     $recaller = Auth::guard()->getRecallerName();
                     $token = $user->getRememberToken();
-                    $value = $user->id.'|'.$token.'|'.$user->password;
+                    $value = $user->id . '|' . $token . '|' . $user->password;
 
                     cookie()->queue(
                         $recaller,
@@ -137,9 +124,7 @@ if ($isInstalled) {
     Route::get('/about', [AboutController::class, 'index'])->name('about');
 
     // Locale switcher (public)
-    Route::get('/locale/{locale}', [LocaleController::class, 'change'])->name(
-        'locale.change',
-    );
+    Route::get('/locale/{locale}', [LocaleController::class, 'change'])->name('locale.change');
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
@@ -148,9 +133,7 @@ if ($isInstalled) {
             return view('dashboard');
         })->name('dashboard');
 
-        Route::get('/calendar', [CalendarController::class, 'index'])->name(
-            'calendar',
-        );
+        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
         Route::get('/booking/{id}', [
             CalendarController::class,
             'booking',
@@ -161,23 +144,15 @@ if ($isInstalled) {
         ])->name('booking.resync');
 
         // Properties list (specific route, must be before catch-all)
-        Route::get('/properties', [PropertyController::class, 'index'])->name(
-            'properties',
-        );
+        Route::get('/properties', [PropertyController::class, 'index'])->name('properties');
 
         // User settings
-        Route::get('/settings', [UserController::class, 'settings'])->name(
-            'user.settings',
-        );
+        Route::get('/settings', [UserController::class, 'settings'])->name('user.settings');
 
         // rate edit should not be front-end, end use AdminResourceTrait routes instead
         Route::get('/rates', [RatesController::class, 'index'])->name('rates');
-        Route::post('/rates', [RatesController::class, 'store'])->name(
-            'rates.store',
-        );
-        Route::post('/rates/{rate}', [RatesController::class, 'update'])->name(
-            'rates.update',
-        );
+        Route::post('/rates', [RatesController::class, 'store'])->name('rates.store');
+        Route::post('/rates/{rate}', [RatesController::class, 'update'])->name('rates.update');
         Route::delete('/rates/{rate}', [
             RatesController::class,
             'destroy',
@@ -208,18 +183,23 @@ if ($isInstalled) {
         Route::post('/{property:slug}/{unit:slug}', [
             UnitController::class,
             'update',
-        ])->name('units.update')->where('property', '^(?!livewire-).*');
+        ])
+            ->name('units.update')
+            ->where('property', '^(?!livewire-).*');
     });
 
-    // Public pages (no auth required - MUST be last as they are catch-all routes)
-    Route::get('/{property:slug}/{unit:slug}', [
-        UnitController::class,
-        'show',
-    ])->name('units.show')->where('property', '^(?!livewire-).*');
+    // Public pages (no auth required - MUST be last as they are catch-all routes).
+    // Throttled: these are what anyone, scanners included, can reach without an account. Every
+    // rejection is logged with the url, the address and the agent, so it can be told apart from
+    // ordinary use afterwards.
+    Route::middleware('throttle:public')->group(function () {
+        Route::get('/{property:slug}/{unit:slug}', [
+            UnitController::class,
+            'show',
+        ])->name('units.show')->where('property', '^(?!livewire-).*');
 
-    Route::get('/{property:slug}', [PropertyController::class, 'show'])->name(
-        'property.show',
-    );
+        Route::get('/{property:slug}', [PropertyController::class, 'show'])->name('property.show');
+    });
 } else {
     // If not installed, redirect everything to install
     Route::get('/{any}', function () {
