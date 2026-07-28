@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Note: Auto-sync is handled by AutoSync middleware (WordPress-style)
-// No system cron needed - sync runs automatically on page loads
+// Note: Auto-sync is handled by AutoSync middleware (WordPress-style), and backups by AutoBackup
+// No system cron needed - both run automatically on page loads

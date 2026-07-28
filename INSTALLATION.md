@@ -34,8 +34,55 @@ php artisan migrate --force
 ```
 
 Migrations are part of an upgrade, not an option: the application expects the schema and the data
-shape they produce. **Back up the database before running them.** Nothing rolls back a data
-migration for you.
+shape they produce. Nothing rolls back a data migration for you, so take a backup first:
+
+```bash
+php artisan backup:run
+```
+
+## Backups
+
+Every archive holds the database dump, the per-property settings — which is where the Beds24 and
+WordPress credentials live, in JSON files rather than in the database — and `.env`, without which
+the encrypted values in the dump cannot be read. Together they weigh next to nothing, and
+`php artisan backup:run --essentials` stops there. A full backup — the plain
+`php artisan backup:run` — adds the uploaded files, the only part that can grow. The application
+code is in neither: it comes from git.
+
+Both commands answer to `bokit:backup` as well, and `backup:clean` to `bokit:backup-clean`: the
+name from the package's documentation and the name from `php artisan list` are the same command.
+
+The two kinds are written to two destinations under `storage/backups`, and that separation is the
+point: an hourly archive is worth keeping for a day — past that a full one covers the same
+ground — while a complete archive is what one wants to find a month later. They are kept across
+deploys, and taken:
+
+- **before every deploy** — complete, since a release is not known in advance to change the
+  database only, and a failed backup aborts the deploy;
+- **before automatic migrations**, when a page load finds the schema out of date — complete too,
+  for the same reason;
+- **while the site is being used** — the essentials at most once an hour, everything once a day.
+
+That last one needs no setting up: like the synchronisation, it rides on visits, and the work
+happens after the response so nobody waits for it. There is no cron entry to add and no queue
+worker to keep alive. A day without visitors is a day without changes, and gets no backup.
+
+On an installation whose uploads run to gigabytes, taking that work out of the web process is
+worth it: set `BACKUP_AUTO=false` and give the two commands a cron of your own.
+
+```
+0 * * * * cd /path/to/bokit && php artisan backup:run --essentials
+30 3 * * * cd /path/to/bokit && php artisan backup:run && php artisan backup:clean
+```
+
+Full backups are kept for good: every one of the last day, then one a day for a week, one a week
+for a month, one a month for a year, and one a year. Essential backups are kept a day. Each figure,
+the intervals and the destination are `.env` settings — see `.env.example`. `BACKUP_DISKS` accepts any disk configured in
+`config/filesystems.php`, so sending the archives off the machine is a matter of naming an S3 or
+SFTP disk there. Do set `BACKUP_ARCHIVE_PASSWORD` if you do: the archive carries `.env`.
+
+Restoring is manual, and deliberately so. Unzip the archive; `db-dumps/` holds the SQL dump to feed
+back into the database, and the rest of the tree mirrors the paths the files came from.
 
 ## Web server
 

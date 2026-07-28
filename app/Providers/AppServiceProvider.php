@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Backup\Console\Commands\BackupCommand;
+use App\Backup\Console\Commands\CleanBackupsCommand;
+use App\Backup\Console\Commands\ListBackupsCommand;
 use App\Models\Booking;
 use App\Observers\BookingObserver;
 use App\Services\AdminMenuService;
@@ -15,6 +18,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Backup\Commands\BackupCommand as SpatieBackupCommand;
+use Spatie\Backup\Commands\CleanupCommand as SpatieCleanupCommand;
+use Spatie\Backup\Commands\ListCommand as SpatieListCommand;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +29,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // The backup commands are replaced, not doubled: whichever registration path resolves
+        // them — the package's own, or this application's command directory — lands on the version
+        // that knows about the two destinations. `backup:run` and `bokit:backup` are then one
+        // command under two names, which is the only way they can be relied on to agree.
+        $this->app->bind(SpatieBackupCommand::class, BackupCommand::class);
+        $this->app->bind(SpatieCleanupCommand::class, CleanBackupsCommand::class);
+        $this->app->bind(SpatieListCommand::class, ListBackupsCommand::class);
+
         $this->app->singleton(AdminMenuService::class);
         $this->app->singleton(SyncRegistry::class);
 

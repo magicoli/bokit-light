@@ -2,20 +2,20 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Options;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use App\Support\Options;
 
 class ApplyMigrations
 {
     /**
      * Routes that should bypass the update check
      */
-    protected $except = ["update", "update/*", "install", "install/*"];
+    protected $except = ['update', 'update/*', 'install', 'install/*'];
 
     /**
      * Handle an incoming request.
@@ -23,7 +23,7 @@ class ApplyMigrations
     public function handle(Request $request, Closure $next)
     {
         // Skip check if not installed
-        if (!Options::get("install.complete", false)) {
+        if (!Options::get('install.complete', false)) {
             return $next($request);
         }
 
@@ -34,9 +34,10 @@ class ApplyMigrations
 
         // Check if migrations are pending
         if ($this->hasPendingMigrations()) {
-            Log::notice("[AutoUpdate] Migrations are pending");
+            Log::notice('[AutoUpdate] Migrations are pending');
             // Run migrations automatically (silent update)
             $this->runMigrationsAutomatically();
+
             // } else {
             //     Log::debug("[AutoUpdate] No migrations pending");
         }
@@ -50,110 +51,63 @@ class ApplyMigrations
     protected function runMigrationsAutomatically(): void
     {
         try {
-            Log::info("[AutoUpdate] Running migrations automatically");
+            Log::info('[AutoUpdate] Running migrations automatically');
 
             // 1. Backup database first
             $this->backupDatabase();
 
             // 2. Run migrations - capture output to prevent it from appearing in HTML
             ob_start();
-            Artisan::call("migrate", ["--force" => true]);
+            Artisan::call('migrate', ['--force' => true]);
             $output = ob_get_clean();
 
-            Log::notice("[AutoUpdate] Migrations completed successfully", [
-                "output" => $output,
+            Log::notice('[AutoUpdate] Migrations completed successfully', [
+                'output' => $output,
             ]);
 
             // Log successful migration for admin
-            Log::notice("[AutoUpdate] Database updated automatically", [
-                "timestamp" => now()->timestamp,
-                "output" => $output,
+            Log::notice('[AutoUpdate] Database updated automatically', [
+                'timestamp' => now()->timestamp,
+                'output' => $output,
             ]);
         } catch (\Exception $e) {
             ob_end_clean(); // Clean buffer in case of error
-            Log::error("[AutoUpdate] Migration failed: " . $e->getMessage());
+            Log::error('[AutoUpdate] Migration failed: ' . $e->getMessage());
 
             // Store error for admin notification
-            Options::set("admin.last_update_error", [
-                "timestamp" => now()->timestamp,
-                "error" => $e->getMessage(),
+            Options::set('admin.last_update_error', [
+                'timestamp' => now()->timestamp,
+                'error' => $e->getMessage(),
             ]);
         }
     }
 
     /**
      * Backup database before running migrations
+     *
+     * Delegates to the application's one backup procedure instead of copying the file by hand: the
+     * same archive, destination and retention as the scheduled and pre-deploy backups, and one
+     * dumper per database engine rather than two.
      */
     protected function backupDatabase(): void
     {
         try {
-            $backupDir = storage_path("backups");
+            // Complete, like the one a deploy takes: an update is not known in advance to touch
+            // the database only. The work happens after the response, so its size costs the visitor
+            // who triggered it nothing.
+            $status = Artisan::call('backup:run');
 
-            // Create backup directory if it doesn't exist
-            if (!File::exists($backupDir)) {
-                File::makeDirectory($backupDir, 0755, true);
+            if ($status === 0) {
+                Log::info('[AutoUpdate] Database backup created');
+            } else {
+                // Deliberately not fatal: the deploy aborts on a failed backup, but a live request
+                // that finds migrations pending has no better option than to apply them.
+                Log::warning('[AutoUpdate] Backup failed, migrating anyway');
             }
-
-            // Generate backup filename with timestamp
-            $timestamp = now()->format("Y-m-d_His");
-            $backupFile = $backupDir . "/backup_before_migration_{$timestamp}";
-
-            // Get database config
-            $database = config("database.default");
-            $connection = config("database.connections.{$database}");
-
-            // SQLite backup
-            if ($database === "sqlite") {
-                $dbPath = $connection["database"];
-                File::copy($dbPath, $backupFile . ".sqlite");
-                Log::info(
-                    "[AutoUpdate] Database backup created: {$backupFile}.sqlite",
-                );
-            }
-            // MySQL backup
-            elseif ($database === "mysql") {
-                $command = sprintf(
-                    "mysqldump -h%s -u%s -p%s %s > %s 2>&1",
-                    escapeshellarg($connection["host"]),
-                    escapeshellarg($connection["username"]),
-                    escapeshellarg($connection["password"]),
-                    escapeshellarg($connection["database"]),
-                    escapeshellarg($backupFile . ".sql"),
-                );
-                exec($command, $output, $returnCode);
-                if ($returnCode === 0) {
-                    Log::info(
-                        "[AutoUpdate] Database backup created: {$backupFile}.sql",
-                    );
-                }
-            }
-
-            // Keep only last 10 backups
-            $this->cleanOldBackups($backupDir);
         } catch (\Exception $e) {
-            Log::warning("[AutoUpdate] Backup failed: " . $e->getMessage());
+            Log::warning('[AutoUpdate] Backup failed: ' . $e->getMessage());
+
             // Don't stop migrations if backup fails
-        }
-    }
-
-    /**
-     * Clean old backups, keep only last 10
-     */
-    protected function cleanOldBackups(string $backupDir): void
-    {
-        $backups = File::glob($backupDir . "/backup_*");
-
-        if (count($backups) > 10) {
-            // Sort by date (filename contains timestamp)
-            usort($backups, function ($a, $b) {
-                return filemtime($a) - filemtime($b);
-            });
-
-            // Delete oldest backups
-            $toDelete = array_slice($backups, 0, count($backups) - 10);
-            foreach ($toDelete as $file) {
-                File::delete($file);
-            }
         }
     }
 
@@ -181,9 +135,7 @@ class ApplyMigrations
             $migrationFiles = $this->getMigrationFiles();
 
             // Get list of already run migrations from database
-            $ranMigrations = DB::table("migrations")
-                ->pluck("migration")
-                ->toArray();
+            $ranMigrations = DB::table('migrations')->pluck('migration')->toArray();
 
             // Check if any migration file hasn't been run
             foreach ($migrationFiles as $file) {
@@ -193,6 +145,7 @@ class ApplyMigrations
                     //     "[AutoUpdate] Migration pending: $migrationName",
                     // );
                     return true;
+
                     // } else {
                     //     Log::debug(
                     //         "[AutoUpdate] Migration already run: $migrationName",
@@ -203,9 +156,7 @@ class ApplyMigrations
             return false;
         } catch (\Exception $e) {
             // If migrations table doesn't exist or any error, assume we need to run migrations
-            Log::warning(
-                "[AutoUpdate] Error checking migrations: " . $e->getMessage(),
-            );
+            Log::warning('[AutoUpdate] Error checking migrations: ' . $e->getMessage());
             return true; // Force migration check if there's an error
         }
     }
@@ -215,8 +166,8 @@ class ApplyMigrations
      */
     protected function getMigrationFiles(): array
     {
-        $path = database_path("migrations");
-        return File::glob($path . "/*.php");
+        $path = database_path('migrations');
+        return File::glob($path . '/*.php');
     }
 
     /**
@@ -224,6 +175,6 @@ class ApplyMigrations
      */
     protected function getMigrationName(string $path): string
     {
-        return str_replace(".php", "", basename($path));
+        return str_replace('.php', '', basename($path));
     }
 }
