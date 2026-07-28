@@ -33,3 +33,10 @@ describe("home page", function () {
     //     $this->assertTrue(true);
     // });
 });
+
+describe("logging", function () {
+    it("rotates by default, so no single file can grow without bound", function () {
+        expect(config("logging.default"))->toBe("daily");
+        expect(config("logging.channels.daily.days"))->toBeGreaterThan(0);
+    });
+});

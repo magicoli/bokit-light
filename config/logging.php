@@ -23,7 +23,9 @@ return [
     |
     */
 
-    "default" => env("LOG_CHANNEL", "stack"),
+    // Rotating by default: a single file grows until it fills the disk, and the day it matters is
+    // the day nobody is watching. `LOG_DAILY_DAYS` decides how far back the trail goes.
+    "default" => env("LOG_CHANNEL", "daily"),
 
     /*
     |--------------------------------------------------------------------------
@@ -58,7 +60,7 @@ return [
     "channels" => [
         "stack" => [
             "driver" => "stack",
-            "channels" => explode(",", (string) env("LOG_STACK", "single")),
+            "channels" => explode(",", (string) env("LOG_STACK", "daily")),
             "ignore_exceptions" => false,
         ],
 

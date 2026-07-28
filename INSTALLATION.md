@@ -67,9 +67,10 @@ per address, and every rejection is logged with the URL, the address and the use
 protects against a visitor or a script hammering a legitimate page — it is not a substitute for
 the two measures above, which is why it sits at a deliberately generous limit.
 
-**Keep the log under control.** Set `LOG_LEVEL` in `.env` — `warning` is a reasonable production
-value — and rotate. Laravel's `daily` channel does it, so does logrotate. An unrotated log file
-grows until it fills the disk, and a full disk takes the site down.
+**Keep the log under control.** Logs rotate daily out of the box and `LOG_DAILY_DAYS` (14 by
+default) decides how many are kept, so the only thing left to set is how much gets written:
+`LOG_LEVEL` in `.env`, where `error` or `warning` suits a production site. Left at its default,
+every debug line is written — which is how a log file reaches a gigabyte without anyone noticing.
 
 ## Environment
 
@@ -78,7 +79,7 @@ Only a few values are needed beyond what `composer run setup` writes:
 ```
 APP_ENV=production
 APP_DEBUG=false
-LOG_LEVEL=warning
+LOG_LEVEL=error
 ```
 
 `APP_DEBUG` governs how much detail an error page shows. It has nothing to do with what reaches
