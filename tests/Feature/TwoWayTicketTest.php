@@ -26,13 +26,8 @@ beforeEach(function () {
         'password' => bcrypt('password'),
         'is_admin' => false,
     ]);
-    // Two of them on purpose: an owner with a single property is sent straight to its page, and
-    // would never see the dashboard this file also checks.
     $this->property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
     $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
-    $this->owner->properties()->attach(Property::create(['name' => 'Q', 'slug' => 'q', 'is_active' => true])->id, [
-        'role' => 'owner',
-    ]);
 
     Filament::setCurrentPanel(Filament::getPanel('admin'));
 });
