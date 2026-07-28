@@ -34,6 +34,7 @@ bokit-light/
 │   ├── Http/Controllers/      # Request handlers
 │   ├── Models/                # Eloquent models
 │   ├── Services/              # Business logic
+│   ├── Sync/                  # The synchronisation subsystem, entry points included
 │   └── Support/               # Helpers (DataList, etc.)
 ├── database/
 │   └── migrations/            # Database schema versions
@@ -41,7 +42,7 @@ bokit-light/
 ├── modules/                   # Optional premium/integration modules
 │   ├── beds24
 │   ├── hbook
-│   ├── ical
+│   ├── ical                  # Not yet implemented, will end up here
 │   ├── multipass
 │   └── wp-connector
 ├── resources/
@@ -50,6 +51,7 @@ bokit-light/
 │   └── views/                 # Blade templates
 ├── routes/
 │   ├── admin.php             # Admin zone routes
+│   ├── api.php               # Token-authenticated JSON endpoints
 │   ├── web.php               # Application routes
 │   └── console.php           # Scheduler configuration
 ├── dev/                      # Development documentation
@@ -60,25 +62,28 @@ bokit-light/
 
 ### Environment Setup
 
-1. **Local Development Server**:
-   ```bash
-   symfony serve -d  # Preferred for Mac (HTTPS support)
-   # or
-   php artisan serve
-   ```
-   Access at: https://localhost:8000
+See [INSTALLATION.md](INSTALLATION.md) for installing the app itself; what follows is only what
+differs when working on it.
 
-2. **Asset Compilation**:
+1. **Run the whole environment with one command**:
    ```bash
-   npm run dev    # Watch mode
-   npm run build  # Production build
+   composer run dev
    ```
+   It starts the server, the queue listener, the log tailer and Vite together, and stops them
+   together. Running `php artisan serve` or `npm run dev` on their own leaves half the environment
+   missing — most visibly, assets stop being rebuilt.
 
-3. **Database Migrations**:
+   Vite rebuilds take a few seconds, during which the manifest is briefly absent and any page or
+   test that renders a view fails. Wait for the rebuild before concluding anything about a change.
+
+2. **Database migrations**:
    ```bash
    php artisan migrate
-   php artisan migrate:fresh  # Reset database
    ```
+   `migrate:fresh` and `migrate:refresh` are deliberately blocked (see
+   `app/Console/Commands/ProtectedMigrateCommand.php`): they drop everything, and the local
+   database holds real bookings imported from live sources. To exercise a data migration, replay
+   it against a copy rather than resetting.
 
 ### Making Changes
 
@@ -94,10 +99,11 @@ bokit-light/
 
 3. **Test Changes**:
    ```bash
-   php artisan test               # Run tests
-   npm run build                  # Ensure assets compile
-   php artisan migrate:fresh      # Test migrations
+   php artisan test --compact                    # the whole suite
+   php artisan test --compact --filter=someTest  # while iterating
    ```
+   `composer run dev` already rebuilds the assets; a data migration is exercised against a copy of
+   a real database, never by resetting this one.
 
 4. **Commit with Convention**:
    ```bash
@@ -511,8 +517,10 @@ v1.2.3 Main change if applicable
   number in files does not mean the version must be released yet
 - Be concise; the full explanation is in the git history
 - Omit small patches and fixes, focus on essential features
-- Update every file carrying the version — here `composer.json` and the `APP_VERSION` fallback in
-  `config/app.php` — and CHANGELOG.md with the exact same description
+- Bump the version in `composer.json`, in the `APP_VERSION` fallback of `config/app.php` and in the
+  Version badge of README.md, and describe the release in CHANGELOG.md with the exact same wording
+- The Stable badge is a separate decision, and yours: bump it when you declare a release stable,
+  which an alpha, a beta or a release candidate is not
 - After the commit, add a tag named `v1.2.3` with the exact same message as the commit
 
 ## Documentation

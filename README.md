@@ -4,66 +4,80 @@
 
 Indie-grade scheduling for serious sunshine.
 
+![Version](https://img.shields.io/badge/Version-1.1.0-lightgrey)
+[![Stable](https://img.shields.io/badge/Stable-1.0.0-blue)](CHANGELOG.md)
+![PHP](https://img.shields.io/badge/PHP-8.3%2B-777bb4)
+![Laravel](https://img.shields.io/badge/Laravel-12-ff2d20)
+[![License](https://img.shields.io/badge/License-AGPL--3.0--or--later-green)](LICENSE)
+
 ## Description
 
-For indie property owners who want full calendars without full-time headaches. BOKIT centralizes bookings, syncs channels, and flags conflicts before they cost you nights. Brilliant orchestration. Zero busywork.
+For indie property owners who want full calendars without full-time headaches. BOKIT centralizes
+bookings, syncs channels, and flags conflicts before they cost you nights. Brilliant orchestration.
+Zero busywork.
 
-- **Channel-sync that just works** – keep listings aligned everywhere.
-- **Smart conflict flags** – avoid overlaps before they happen.
-- **One-glance calendar** – all listings, one clean view.
-- **Instant holds** – convert interest without chaos.
-- **Lightweight by design** – no training required  
-- **Built for playful brands** – powered by solid ops  
+## Features
 
-## What you get
+Centralized holiday rental booking calendar, synced with PMS, OTA platforms and iCal feeds.
 
-### One calendar, every unit
+- **One calendar, every unit** — grouped by property, week or month, readable on a phone
+- **Kept in step with your platforms** — Beds24, the bookings taken on your own WordPress site, and
+  anything publishing an iCal feed
+- **One booking, however many platforms report it** — no duplicates, and what you change here
+  survives the next sync
+- **Group reservations** — several units, one reservation, priced once
+- **The money in plain sight** — price, deposit, payments, balance, and the invoice detail when the
+  platform sends it
+- **Rates and pricing** — per unit and per period, with parent rates, minimum stay and coupons
+- **Who sees what** — owners see their own properties, managers and administrators see everything
 
-All your units on a single screen, grouped by property, in week or month view. Colours tell you at
-a glance what is confirmed, what is on hold, what is paid and what is still due. Click a stay and
-everything you know about it is there — guests, dates, amounts, and a link straight to the booking
-on the site it came from. It reads just as well on a phone at the beach as on a desktop.
+[ABOUT.md](ABOUT.md) tells the same story at greater length; [CHANGELOG.md](CHANGELOG.md) records
+what shipped when.
 
-### Your platforms, kept in step
+## Installation
 
-Bokit talks to the places your bookings actually come from:
+```bash
+git clone https://github.com/magicoli/bokit-light.git
+cd bokit-light
+composer run setup
+```
 
-- **Beds24**, in both directions
-- **your own website**, through the WooCommerce Booking and HBook plugins
-- **anything with an iCal feed** — Airbnb, Booking.com, and the rest
+Point your web server at `public/` and open the site: the first visit runs a guided setup in the
+browser — administrator account, properties, units — with no further command line.
 
-The same stay arriving from three different platforms stays one booking, not three. A booking that
-vanishes at the source is flagged rather than quietly disappearing. And what you typed yourself —
-a note, a corrected name, a phone number — survives the next sync instead of being wiped by the
-platform.
+Requirements, upgrades, web server configuration and hardening recommendations are in
+[INSTALLATION.md](INSTALLATION.md).
 
-It all happens while you use the site. Nothing to schedule, nothing to install on a server.
+## Usage
 
-### A booking that spans several units is still one booking
+Everything happens in the admin panel at `/admin`: properties, units, their sources, bookings,
+rates and users. The calendar lives at `/calendar`.
 
-Family taking the whole house? Bokit keeps the group together: one reservation, one total, and
-each unit still shown on the calendar where it belongs.
+Channel credentials belong to each property and unit, not to a configuration file — a Beds24 API
+key is entered on the property that uses it, and every unit declares the sources it is listed on,
+in the order it wants them applied.
 
-### The money, in plain sight
+Synchronisation runs by itself while the site is used, with no server task to set up. To run it by
+hand, or from a scheduler:
 
-Price, deposit, what has been paid, what is left. The full invoice detail when the platform sends
-it. Export everything to CSV when your accountant asks — channel, price, commission and guest
-counts included.
+```bash
+php artisan bokit:sync
+```
 
-### Rates that do the arithmetic
+## Contributing
 
-Set your rates per unit and per period, share a formula across units with parent rates, add a
-minimum stay and your coupons. The calculator gives you a price for any dates in one click.
+Conventions, architecture and workflow are in [DEVELOPERS.md](DEVELOPERS.md) — read it before
+opening a pull request. In short: English everywhere, Laravel and Filament features before custom
+code, tests with every change, and `mago format` on the files you touched.
 
-### Everyone sees what they should
+Bugs and ideas go through the tracker in the app itself, which promotes what belongs there to
+GitHub issues.
 
-Owners see their own properties and nothing else — an owner with a single unit lands straight on
-it. Managers and administrators see the whole picture.
+## License
 
-### Yours in a few minutes
+AGPL-3.0-or-later — see [LICENSE](LICENSE).
 
-A guided setup in the browser: no command line, no configuration file to edit. Entirely in English
-or French. Install it on your phone or your desktop like an app, and keep reading your calendar
-even without a connection.
-
-[Make the calendar feel easy](https://bokit.click)
+Copyleft, chosen for what this is: software people run as a service. Where most licences only ask
+something of you when you hand the code to someone, the AGPL also asks it when you offer the
+software over a network — run a modified version for others, and they are entitled to its source.
+Use it, change it, host it; leave the next person the same freedom.

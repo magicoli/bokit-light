@@ -8,7 +8,9 @@ class AboutController extends Controller
 {
     public function index()
     {
-        $readmePath = base_path('README.md');
+        // ABOUT.md, not README.md: this renders the public home page, and a repo readme is written
+        // for whoever clones the project, not for whoever books a holiday.
+        $readmePath = base_path('ABOUT.md');
         $readmeContent = File::exists($readmePath) 
             ? File::get($readmePath)
             : '# Welcome to Bokit
