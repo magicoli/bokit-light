@@ -51,6 +51,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Sync\Http\Middleware\AutoSync::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Every logged exception says WHICH request produced it. Without this, an error that only
+        // happens in production can only be guessed at: the log names the view and the line, never
+        // the URL that reached them.
+        $exceptions->context(fn (): array => request()
+            ? [
+                'url' => request()->fullUrl(),
+                'method' => request()->method(),
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'referer' => request()->header('referer'),
+            ]
+            : []);
+
         // Prevent 403 redirects for authenticated users - show error page instead
         $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
             // If user is authenticated, show 403 error page instead of redirecting to login
