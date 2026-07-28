@@ -20,9 +20,11 @@ from there.
 
 ## Git
 
-Full rules in [DEVELOPERS.md](DEVELOPERS.md) § Commit Message Format and § Version Releases — they
-apply to everyone, not just agents. In short: commit on `master`, `(scope) short subject` with `-`
-bullets, prefix `(untested)` until verified, never claim co-authorship, never push.
+Full rules in [DEVELOPERS.md](DEVELOPERS.md) § Commit Message Format and § Version Releases. 
+In short: work on `dev` branch, commit after user validation, merge in `master` only when asked to
+deploy, deployment usually requires a version bump and a release commit;
+`(scope) short subject` with `-` bullets; prefix `(untested)` until verified; never claim
+co-authorship; never push.
 
 ## Issue tracking
 

@@ -166,7 +166,7 @@ class RateCalculator {
 
 Pint (php-cs-fixer) has, in rare cases, actually broken code: chained `->method()` calls and
 ternaries combined with parentheses are known weak spots where it miscounts precedence, forcing
-convoluted rewrites just to keep it from mangling otherwise-correct code (Oli, 2026-07-23). Its
+convoluted rewrites just to keep it from mangling otherwise-correct code. Its
 style doesn't match this project's actual convention either — Zed's `format_on_save` runs
 `mago format` — so anything Pint reformats gets undone the next time the file is saved in the
 editor.
@@ -547,10 +547,6 @@ Optional additional context.
 - English, whatever language the discussion happened in
 - Reference issues with `Related to #456`; `Fix #123` on a commit that reaches the default branch
   actually closes the GitHub issue — and with it the two-way-ticket ticket linked to it
-- **Never claim co-authorship** — no `Co-Authored-By` trailer, no tool credit, anywhere
-- **Never push** — pushing is Oli's alone, and it is never offered either
-- **Work on `master`.** This repo accumulated too many branches; unless told otherwise, commit
-  straight to `master` rather than opening yet another one
 
 ## Version Releases
 
@@ -602,10 +598,13 @@ public function calculatePrice(Booking $booking, ?Rate $rate = null): float
 ```
 
 **Documentation Files**:
-- `README.md` - Project overview (marketing tone, non-technical)
+- `README.md` - What the project is, how to install it, where everything else lives
+- `ABOUT.md` - The long form, and the source of the public home page
+- `INSTALLATION.md` - Requirements, upgrades, web server, hardening
 - `DEVELOPERS.md` - This file (development guide)
-- `ROADMAP.md` - Feature timeline
-- `AGENTS.md` - Rules for AI assistants
+- `CHANGELOG.md` - What shipped, release by release
+- `ROADMAP.md` - The module architecture requirement and design sketches
+- `CLAUDE.md`, `AGENTS.md` - Rules for AI assistants, kept identical
 - `dev/*.md` - Technical deep-dives
 
 ## Module Development
@@ -676,12 +675,6 @@ php artisan tinker
 # Clear caches
 php artisan optimize:clear
 ```
-
-### Desktop Commander
-When working with AI assistants, use Desktop Commander for:
-- File operations (read, write, search)
-- Running commands (artisan, npm, git)
-- Never ask users to paste outputs - fetch them directly
 
 ## Common Pitfalls
 
