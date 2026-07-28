@@ -2,8 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\IcalSource;
-use App\Sync\Ical\BookingSyncIcal;
+use App\Sync\SyncRunner;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,79 +10,46 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * The periodic synchronisation, dispatched after the response by {@see \App\Http\Middleware\AutoSync}
+ * once the interval has elapsed.
+ *
+ * It owns no logic of its own: WHAT gets synced is {@see SyncRunner}'s business, the very procedure
+ * `bokit:sync` runs. This job only decides that it happens now, and writes the outcome to the log
+ * instead of a console. Having had an implementation of its own is exactly what let it go on
+ * reading the legacy `ical_sources` table, reporting success while doing nothing at all.
+ */
 class SyncBookingsJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
-    /**
-     * Execute the job.
-     */
-    public function handle(): void
+    public function handle(SyncRunner $runner): void
     {
-        Log::info("[SyncJob] Starting iCal synchronization");
+        Log::info('[SyncJob] Starting synchronization');
 
         try {
-            $parser = new BookingSyncIcal();
-            $sources = IcalSource::with("unit.property")->enabled()->get();
-
-            $totalStats = [
-                "total" => 0,
-                "new" => 0,
-                "updated" => 0,
-                "deleted" => 0,
-                "vanished" => 0,
-            ];
-            $errors = 0;
-
-            foreach ($sources as $source) {
-                try {
-                    $stats = $parser->syncSource($source);
-
-                    if ($stats["success"] ?? false) {
-                        foreach (
-                            ["total", "new", "updated", "deleted", "vanished"]
-                            as $key
-                        ) {
-                            $totalStats[$key] += $stats[$key] ?? 0;
-                        }
-                        Log::info(
-                            "[SyncJob] Synced {$source->fullname()}",
-                            $stats,
-                        );
-                    } else {
-                        $errors++;
-                        Log::warning(
-                            "[SyncJob] Failed to sync {$source->fullname()}",
-                            [
-                                "error" => $stats["error"] ?? "Unknown error",
-                            ],
-                        );
-                    }
-                } catch (\Exception $e) {
-                    $errors++;
-                    Log::warning(
-                        "[SyncJob] Failed to sync {$source->fullname()}",
-                        [
-                            "error" => $e->getMessage(),
-                        ],
-                    );
-                }
-            }
-
-            Log::info("[SyncJob] Synchronization completed", [
-                "total" => $totalStats["total"],
-                "new" => $totalStats["new"],
-                "updated" => $totalStats["updated"],
-                "deleted" => $totalStats["deleted"],
-                "vanished" => $totalStats["vanished"],
-                "errors" => $errors,
+            $result = $runner->run();
+        } catch (\Throwable $e) {
+            Log::error('[SyncJob] Synchronization failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
-        } catch (\Exception $e) {
-            Log::error("[SyncJob] Synchronization failed", [
-                "error" => $e->getMessage(),
-                "trace" => $e->getTraceAsString(),
-            ]);
+
             throw $e;
         }
+
+        foreach ($result['failures'] as $failure) {
+            Log::warning("[SyncJob] {$failure}");
+        }
+
+        Log::info('[SyncJob] Synchronization completed', [
+            ...$result['stats'],
+            'units' => $result['units'],
+            'sources' => $result['sources'],
+            'errors' => $result['errors'],
+        ]);
     }
 }

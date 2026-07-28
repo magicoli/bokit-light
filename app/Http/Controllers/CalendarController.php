@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Models\Booking;
 use App\Models\Property;
-use App\Sync\SyncEngine;
-use App\Sync\SyncRegistry;
+use App\Sync\SyncRunner;
 use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -36,9 +35,7 @@ class CalendarController extends Controller
 
         // Get date from request or use today in site timezone
         $dateParam = $request->get('date');
-        $currentDate = $dateParam
-            ? Carbon::parse($dateParam)
-            : Carbon::now($tzString);
+        $currentDate = $dateParam ? Carbon::parse($dateParam) : Carbon::now($tzString);
 
         // Calculate date range based on view type
         switch ($view) {
@@ -87,20 +84,20 @@ class CalendarController extends Controller
         $showQuotes = $request->boolean('quotes', true);
 
         $hiddenStatuses = $showCancelled ? [] : Booking::CANCELLED_STATUSES;
-        if (! $showQuotes) {
+        if (!$showQuotes) {
             $hiddenStatuses[] = 'quote';
         }
 
         // Load properties with their units and bookings
         // Filter by user access if not admin
         $query = Property::where('is_active', true)->with([
-            'units' => fn ($query) => $query->where('is_active', true),
+            'units' => fn($query) => $query->where('is_active', true),
             'units.bookings' => function ($query) use ($startDate, $endDate, $hiddenStatuses) {
                 $query
                     ->with(['unit', 'property']) // Eager-load for timezone() accessor
                     ->where('check_out', '>=', $startDate->format('Y-m-d'))
                     ->where('check_in', '<=', $endDate->format('Y-m-d'))
-                    ->when($hiddenStatuses, fn ($q) => $q->whereNotIn('status', $hiddenStatuses));
+                    ->when($hiddenStatuses, fn($q) => $q->whereNotIn('status', $hiddenStatuses));
             },
         ]);
 
@@ -125,8 +122,7 @@ class CalendarController extends Controller
             'showCancelled' => $showCancelled,
             'showQuotes' => $showQuotes,
             // Non-default filter params, appended to navigation links
-            'filterQuery' => ($showCancelled ? '&cancelled=1' : '')
-                .($showQuotes ? '' : '&quotes=0'),
+            'filterQuery' => ($showCancelled ? '&cancelled=1' : '') . ($showQuotes ? '' : '&quotes=0'),
         ]);
     }
 
@@ -138,7 +134,7 @@ class CalendarController extends Controller
         $booking = Booking::with(['unit.property', 'originSource'])->findOrFail($id);
 
         $property = $booking->property ?? $booking->unit?->property;
-        if (! $property || ! auth()->user()->hasAccessTo($property)) {
+        if (!$property || !auth()->user()->hasAccessTo($property)) {
             abort(403, 'Access denied');
         }
 
@@ -151,31 +147,24 @@ class CalendarController extends Controller
      * the channel manager / OTA, so their change comes back into bokit.
      * Pull only (never push): the source is authoritative for this edit.
      */
-    public function resync($id, SyncRegistry $registry, SyncEngine $engine)
+    public function resync($id, SyncRunner $runner)
     {
         $booking = Booking::with('unit.property')->findOrFail($id);
 
         $property = $booking->property ?? $booking->unit?->property;
-        if (! $property || ! auth()->user()->hasAccessTo($property)) {
+        if (!$property || !auth()->user()->hasAccessTo($property)) {
             abort(403, 'Access denied');
         }
 
+        // Same procedure as the periodic sync and as bokit:sync, narrowed to the booking's own
+        // unit. Scope kept exactly as it was: a booking belonging to a group spans several units
+        // and only this one is refreshed — see the ticket about targeted resync and groups.
         $unit = $booking->unit;
 
-        foreach ($unit?->options['sources'] ?? [] as $sourceConfig) {
-            if (! ($sourceConfig['enabled'] ?? true)) {
-                continue;
-            }
+        $result = $runner->run($unit ? [$unit] : []);
 
-            $connector = $registry->getForType($sourceConfig['type'] ?? '');
-
-            if ($connector) {
-                try {
-                    $engine->sync($unit, $sourceConfig, $connector);
-                } catch (\Throwable $e) {
-                    Log::warning("[Calendar] Resync failed for unit #{$unit->id} / {$sourceConfig['type']}: {$e->getMessage()}");
-                }
-            }
+        foreach ($result['failures'] as $failure) {
+            Log::warning("[Calendar] Resync failed: {$failure}");
         }
 
         return response()->json(['ok' => true]);
@@ -198,12 +187,12 @@ class CalendarController extends Controller
 
         // Cancelled members hold nothing: they stay listed in the group
         // detail but count for nothing in the aggregates.
-        $active = $members->reject(fn (Booking $m): bool => $m->isCancelled())->values();
+        $active = $members->reject(fn(Booking $m): bool => $m->isCancelled())->values();
         if ($active->isEmpty()) {
             $active = new Collection([$booking]);
         }
 
-        $rawPrice = fn (Booking $b): ?float => $b->getRawOriginal('price') !== null
+        $rawPrice = fn(Booking $b): ?float => $b->getRawOriginal('price') !== null
             ? (float) $b->getRawOriginal('price')
             : null;
         $paidOf = function (Booking $b): ?float {
@@ -211,20 +200,22 @@ class CalendarController extends Controller
 
             return $paid !== null ? (float) $paid : null;
         };
-        $depositOf = fn (Booking $b): ?float => $b->getMetadata('deposit') !== null
+        $depositOf = fn(Booking $b): ?float => $b->getMetadata('deposit') !== null
             ? (float) $b->getMetadata('deposit')
             : null;
 
         if ($booking->isCancelled()) {
             // No money is expected from a cancelled booking — hide amounts.
-            $rawPrice = fn (Booking $b): ?float => null;
-            $paidOf = fn (Booking $b): ?float => null;
-            $depositOf = fn (Booking $b): ?float => null;
+            $rawPrice = fn(Booking $b): ?float => null;
+            $paidOf = fn(Booking $b): ?float => null;
+            $depositOf = fn(Booking $b): ?float => null;
         }
 
-        $sumOf = fn (Collection $members, callable $amountOf): ?float => $members->contains(fn (Booking $m): bool => $amountOf($m) !== null)
-            ? $members->sum(fn (Booking $m): float => $amountOf($m) ?? 0)
-            : null;
+        $sumOf = fn(Collection $members, callable $amountOf): ?float => $members->contains(
+            fn(Booking $m): bool => $amountOf($m) !== null,
+        )
+                ? $members->sum(fn(Booking $m): float => $amountOf($m) ?? 0)
+                : null;
 
         if ($isGroup) {
             $price = $sumOf($active, $rawPrice);
@@ -242,7 +233,7 @@ class CalendarController extends Controller
             'id' => $booking->id,
             'guest_name' => $booking->guest_name,
             'status' => $booking->status,
-            'status_label' => __('booking.status.'.$booking->status),
+            'status_label' => __('booking.status.' . $booking->status),
             'display_status' => $booking->displayStatus(),
             'deleted_at' => $booking->deleted_at?->toIso8601String(),
             'check_in' => ($isGroup ? $active->min('check_in') : $booking->check_in)->format('Y-m-d'),
@@ -250,7 +241,7 @@ class CalendarController extends Controller
             'adults' => $isGroup ? ($active->sum('adults') ?: null) : $booking->adults,
             'children' => $isGroup ? ($active->sum('children') ?: null) : $booking->children,
             'guests' => $isGroup
-                ? ($active->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
+                ? ($active->sum(fn(Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
                 : $booking->guests,
             'price' => $price,
             'deposit' => $deposit,
@@ -269,10 +260,8 @@ class CalendarController extends Controller
             'view_url' => BookingResource::getUrl('view', ['record' => $booking], panel: 'admin'),
             'edit_url' => BookingResource::getUrl('edit', ['record' => $booking], panel: 'admin'),
             'source' => [
-                'label' => $origin
-                    ? preg_replace('/^✓ /u', '', $origin->display_label)
-                    : $booking->source_name,
-                'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
+                'label' => $origin ? preg_replace('/^✓ /u', '', $origin->display_label) : $booking->source_name,
+                'url' => $origin && !$origin->is_placeholder ? $origin->external_url : null,
             ],
             // Real origin channel (airbnb, booking.com, …) with its direct
             // link on the OTA — distinct from the transport source above.
@@ -282,18 +271,22 @@ class CalendarController extends Controller
                 'url' => $booking->originUrl(),
                 'logo' => icon_ota($booking->api_source) ?: icon('arrow-up-right'),
             ],
-            'group' => $isGroup ? [
-                'count' => $active->count(),
-                'members' => $members->map(fn (Booking $m): array => [
-                    'id' => $m->id,
-                    'unit_name' => $m->unit?->name,
-                    'check_in' => $m->check_in->format('Y-m-d'),
-                    'check_out' => $m->check_out->format('Y-m-d'),
-                    'price' => $m->isCancelled() ? null : $rawPrice($m),
-                    'is_current' => $m->id === $booking->id,
-                    'is_cancelled' => $m->isCancelled(),
-                ])->values()->all(),
-            ] : null,
+            'group' => $isGroup
+                ? [
+                    'count' => $active->count(),
+                    'members' => $members
+                        ->map(fn(Booking $m): array => [
+                            'id' => $m->id,
+                            'unit_name' => $m->unit?->name,
+                            'check_in' => $m->check_in->format('Y-m-d'),
+                            'check_out' => $m->check_out->format('Y-m-d'),
+                            'price' => $m->isCancelled() ? null : $rawPrice($m),
+                            'is_current' => $m->id === $booking->id,
+                            'is_cancelled' => $m->isCancelled(),
+                        ])
+                        ->values()
+                        ->all(),
+                ] : null,
         ];
     }
 }
