@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\IcalSource;
 use App\Models\Property;
 use App\Models\Unit;
-use App\Models\IcalSource;
 use Illuminate\Http\Request;
 
 class UnitController extends Controller
@@ -14,15 +14,19 @@ class UnitController extends Controller
      */
     public function show(Property $property, Unit $unit)
     {
-        // Verify unit belongs to property
-        if ($unit->property_id !== $property->id) {
+        // Both models must have been FOUND, then be linked. Route model binding is skipped when a
+        // segment is empty — //shell.php matches {property}/{unit} with an empty first segment —
+        // and Laravel then resolves the type-hints from the container, handing over blank models
+        // rather than null. Their ids are both null, so `!==` saw no mismatch and let scanners
+        // through to the view, where they became a 500 instead of a 404.
+        if (!$property->exists || !$unit->exists || $unit->property_id !== $property->id) {
             abort(404);
         }
 
         // For now, show a simple placeholder page
         // TODO: Implement full public unit page with booking calendar
-        return view("units.show", [
-            "unit" => $unit,
+        return view('units.show', [
+            'unit' => $unit,
         ]);
     }
 
@@ -31,27 +35,28 @@ class UnitController extends Controller
      */
     public function edit(Property $property, Unit $unit)
     {
-        // Verify unit belongs to property
-        if ($unit->property_id !== $property->id) {
+        // Both models must have been FOUND, then be linked. Route model binding is skipped when a
+        // segment is empty — //shell.php matches {property}/{unit} with an empty first segment —
+        // and Laravel then resolves the type-hints from the container, handing over blank models
+        // rather than null. Their ids are both null, so `!==` saw no mismatch and let scanners
+        // through to the view, where they became a 500 instead of a 404.
+        if (!$property->exists || !$unit->exists || $unit->property_id !== $property->id) {
             abort(404);
         }
 
         // Check access: admin or user has access to the unit's property
         if (!user_can('super_admin')) {
-            $hasAccess = $unit->property
-                ->users()
-                ->where("users.id", auth()->id())
-                ->exists();
+            $hasAccess = $unit->property->users()->where('users.id', auth()->id())->exists();
 
             if (!$hasAccess) {
-                abort(403, "You do not have access to this unit.");
+                abort(403, 'You do not have access to this unit.');
             }
         }
 
-        $unit->load(["property", "icalSources"]);
+        $unit->load(['property', 'icalSources']);
 
-        return view("units.edit", [
-            "unit" => $unit,
+        return view('units.edit', [
+            'unit' => $unit,
         ]);
     }
 
@@ -60,61 +65,55 @@ class UnitController extends Controller
      */
     public function update(Request $request, Property $property, Unit $unit)
     {
-        // Verify unit belongs to property
-        if ($unit->property_id !== $property->id) {
+        // Both models must have been FOUND, then be linked. Route model binding is skipped when a
+        // segment is empty — //shell.php matches {property}/{unit} with an empty first segment —
+        // and Laravel then resolves the type-hints from the container, handing over blank models
+        // rather than null. Their ids are both null, so `!==` saw no mismatch and let scanners
+        // through to the view, where they became a 500 instead of a 404.
+        if (!$property->exists || !$unit->exists || $unit->property_id !== $property->id) {
             abort(404);
         }
         // Check access
         if (!user_can('super_admin')) {
-            $hasAccess = $unit->property
-                ->users()
-                ->where("users.id", auth()->id())
-                ->exists();
+            $hasAccess = $unit->property->users()->where('users.id', auth()->id())->exists();
 
             if (!$hasAccess) {
-                abort(403, "You do not have access to this unit.");
+                abort(403, 'You do not have access to this unit.');
             }
         }
 
         // Validate basic unit info
         $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "slug" => "required|string|max:255",
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255',
         ]);
 
         // Update unit
         $unit->update($validated);
 
         // Handle sources
-        if ($request->has("sources")) {
+        if ($request->has('sources')) {
             // Get existing source IDs
-            $existingIds = $unit->icalSources->pluck("id")->toArray();
+            $existingIds = $unit->icalSources->pluck('id')->toArray();
             $keepIds = [];
 
             foreach ($request->sources as $sourceData) {
-                if (isset($sourceData["url"]) && !empty($sourceData["url"])) {
-                    if (
-                        isset($sourceData["id"]) &&
-                        in_array($sourceData["id"], $existingIds)
-                    ) {
+                if (isset($sourceData['url']) && !empty($sourceData['url'])) {
+                    if (isset($sourceData['id']) && in_array($sourceData['id'], $existingIds)) {
                         // Update existing source
-                        $source = IcalSource::find($sourceData["id"]);
+                        $source = IcalSource::find($sourceData['id']);
                         $source->update([
-                            "type" => $sourceData["type"] ?? "ical",
-                            "url" => $sourceData["url"],
-                            "name" =>
-                                parse_url($sourceData["url"], PHP_URL_HOST) ??
-                                __("app.external_calendar"),
+                            'type' => $sourceData['type'] ?? 'ical',
+                            'url' => $sourceData['url'],
+                            'name' => parse_url($sourceData['url'], PHP_URL_HOST) ?? __('app.external_calendar'),
                         ]);
                         $keepIds[] = $source->id;
                     } else {
                         // Create new source
                         $source = $unit->icalSources()->create([
-                            "type" => $sourceData["type"] ?? "ical",
-                            "url" => $sourceData["url"],
-                            "name" =>
-                                parse_url($sourceData["url"], PHP_URL_HOST) ??
-                                __("app.external_calendar"),
+                            'type' => $sourceData['type'] ?? 'ical',
+                            'url' => $sourceData['url'],
+                            'name' => parse_url($sourceData['url'], PHP_URL_HOST) ?? __('app.external_calendar'),
                         ]);
                         $keepIds[] = $source->id;
                     }
@@ -122,13 +121,11 @@ class UnitController extends Controller
             }
 
             // Delete sources not in the keep list
-            IcalSource::where("unit_id", $unit->id)
-                ->whereNotIn("id", $keepIds)
-                ->delete();
+            IcalSource::where('unit_id', $unit->id)->whereNotIn('id', $keepIds)->delete();
         }
 
         return redirect()
-            ->route("units.edit", [$property, $unit])
-            ->with("success", __("forms.unit_updated_successfully"));
+            ->route('units.edit', [$property, $unit])
+            ->with('success', __('forms.unit_updated_successfully'));
     }
 }
