@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Sync\Console\Commands;
 
 use App\Sync\SyncRegistry;
 use App\Sync\SyncRunner;

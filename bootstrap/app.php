@@ -7,6 +7,12 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
+    // Both paths, always: passing any path at all replaces the default, so naming only the sync
+    // one would quietly unregister every other command in the app.
+    ->withCommands([
+        __DIR__ . "/../app/Console/Commands",
+        __DIR__ . "/../app/Sync/Console/Commands",
+    ])
     ->withRouting(
         commands: __DIR__ . "/../routes/console.php",
         health: "/up",
@@ -42,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Auto-sync iCal sources on page loads
-        $middleware->append(\App\Http\Middleware\AutoSync::class);
+        $middleware->append(\App\Sync\Http\Middleware\AutoSync::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Prevent 403 redirects for authenticated users - show error page instead

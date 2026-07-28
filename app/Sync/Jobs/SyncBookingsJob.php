@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Sync\Jobs;
 
 use App\Sync\SyncRunner;
 use Illuminate\Bus\Queueable;
@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 /**
- * The periodic synchronisation, dispatched after the response by {@see \App\Http\Middleware\AutoSync}
+ * The periodic synchronisation, dispatched after the response by {@see \App\Sync\Http\Middleware\AutoSync}
  * once the interval has elapsed.
  *
  * It owns no logic of its own: WHAT gets synced is {@see SyncRunner}'s business, the very procedure

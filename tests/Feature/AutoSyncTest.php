@@ -1,6 +1,6 @@
 <?php
 
-use App\Jobs\SyncBookingsJob;
+use App\Sync\Jobs\SyncBookingsJob;
 use App\Models\Booking;
 use App\Models\BookingSource;
 use App\Models\IcalSource;

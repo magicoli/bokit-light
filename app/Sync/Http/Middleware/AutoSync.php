@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Sync\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Support\Options;
-use App\Jobs\SyncBookingsJob;
+use App\Sync\Jobs\SyncBookingsJob;
 
 class AutoSync
 {

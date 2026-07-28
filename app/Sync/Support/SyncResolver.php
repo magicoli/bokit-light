@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Support;
+namespace App\Sync\Support;
 
 use App\Models\SyncLog;
 use Illuminate\Database\Eloquent\Model;

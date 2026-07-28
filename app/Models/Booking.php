@@ -3,7 +3,7 @@
 namespace App\Models;
 
 // use App\Services\BookingMetadataParser;
-use App\Support\SyncResolver;
+use App\Sync\Support\SyncResolver;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use Carbon\Carbon;
