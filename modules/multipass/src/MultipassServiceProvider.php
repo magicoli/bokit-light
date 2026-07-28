@@ -4,7 +4,7 @@ namespace Modules\Multipass;
 
 use App\Filament\Resources\Units\Schemas\UnitForm;
 use App\Models\Unit;
-use App\Services\SyncRegistry;
+use App\Sync\SyncRegistry;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;

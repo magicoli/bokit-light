@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Traits;
+namespace App\Sync\Deprecated;
 
-use App\Contracts\BookingSyncInterface;
+use App\Sync\Deprecated\BookingSyncInterface;
 
 trait BookingSyncTrait
 {

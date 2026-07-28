@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts;
+namespace App\Sync\Contracts;
 
 use App\Models\Booking;
 use App\Models\Unit;

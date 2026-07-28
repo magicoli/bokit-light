@@ -1,11 +1,11 @@
 <?php
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\Booking;
 use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;
-use App\Services\SyncRegistry;
+use App\Sync\SyncRegistry;
 use App\Support\NormalizedBooking;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

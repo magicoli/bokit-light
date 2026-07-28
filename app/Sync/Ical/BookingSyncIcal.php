@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Sync\Ical;
 
 use App\Models\Booking;
 use App\Models\IcalSource;
 use App\Support\Options;
-use App\Traits\BookingSyncTrait;
+use App\Sync\Deprecated\BookingSyncTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

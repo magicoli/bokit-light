@@ -3,7 +3,7 @@
 namespace Modules\Hbook;
 
 use App\Models\Unit;
-use App\Services\SyncRegistry;
+use App\Sync\SyncRegistry;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;

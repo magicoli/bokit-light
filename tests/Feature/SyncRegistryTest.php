@@ -1,9 +1,9 @@
 <?php
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\BookingSource;
 use App\Models\Unit;
-use App\Services\SyncRegistry;
+use App\Sync\SyncRegistry;
 
 function makeRegistryConnector(string $type): SourceConnector
 {

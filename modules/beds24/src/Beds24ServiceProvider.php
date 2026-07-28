@@ -3,7 +3,7 @@
 namespace Modules\Beds24;
 
 use App\Filament\Resources\Properties\Schemas\PropertyForm;
-use App\Services\SyncRegistry;
+use App\Sync\SyncRegistry;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;

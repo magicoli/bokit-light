@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Sync\Ical;
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\BookingSource;
 use App\Models\IcalSource;
 use App\Models\Unit;

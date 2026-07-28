@@ -1,6 +1,6 @@
 <?php
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\Property;
 use App\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;

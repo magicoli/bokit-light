@@ -1,10 +1,10 @@
 <?php
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\Property;
 use App\Models\Unit;
-use App\Services\BookingSyncIcal;
-use App\Services\IcalConnector;
+use App\Sync\Ical\BookingSyncIcal;
+use App\Sync\Ical\IcalConnector;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 

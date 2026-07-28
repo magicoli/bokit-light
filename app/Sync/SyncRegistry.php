@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Sync;
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 
 /**
  * Collects source connectors registered by modules, keyed by source type.

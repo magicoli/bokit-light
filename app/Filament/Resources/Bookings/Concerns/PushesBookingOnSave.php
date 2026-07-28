@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Bookings\Concerns;
 
-use App\Services\SyncEngine;
+use App\Sync\SyncEngine;
 use Filament\Notifications\Notification;
 
 /**

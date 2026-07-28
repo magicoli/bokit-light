@@ -2,7 +2,7 @@
 
 namespace Modules\Multipass\Services;
 
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\BookingSource;
 use App\Models\Property;
 use App\Models\Unit;

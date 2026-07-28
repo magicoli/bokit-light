@@ -2,8 +2,8 @@
 
 namespace Modules\Beds24\Services;
 
-use App\Contracts\PushableConnector;
-use App\Contracts\SourceConnector;
+use App\Sync\Contracts\PushableConnector;
+use App\Sync\Contracts\SourceConnector;
 use App\Models\Booking;
 use App\Models\BookingSource;
 use App\Models\Property;
