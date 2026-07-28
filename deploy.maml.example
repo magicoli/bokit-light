@@ -1,0 +1,64 @@
+# Deployment with Deployer 8 (https://deployer.org), invoked as `dep deploy`.
+#
+# Copy to deploy.maml — the name and the extension both matter, Deployer reads the format from
+# them — and fill in your own host. The copy is gitignored, since it names a server and its paths.
+# `dep tree deploy` prints the resulting order of tasks.
+
+{
+    import: [
+        "recipe/laravel.php"
+    ]
+
+    config: {
+        repository: "git@github.com:magicoli/bokit-light.git",
+        keep_releases: 5,
+        # The database and the environment belong to the installation, not to a release. storage/
+        # holds the uploads, the per-record options and the backups, so it is shared too.
+        shared_files: [".env", "database/database.sqlite"],
+        shared_dirs: ["storage"],
+        http_user: "www-data"
+    }
+
+    hosts: {
+        "example.com": {
+            remote_user: "deploy"
+            deploy_path: "~/domains/example.com/app"
+            branch: "master"
+        }
+    }
+
+    tasks: {
+        "deploy:build": [
+            { desc: "Build and upload frontend assets" }
+            { runLocally: "npm run build" }
+            { upload: { src: "public/build/", dest: "{{release_path}}/public/build/" } }
+        ]
+
+        "db:backup": [
+            { desc: "Back up everything before the release replaces it" }
+            { run: "cd {{release_path}} && {{bin/php}} artisan backup:run" }
+        ]
+
+        # Uncomment to push the bokit-connector plugin to the WordPress site after a successful
+        # deploy, so the two never drift apart. Only for a site that uses the WordPress connector.
+        #"wp:connector": [
+        #    { desc: "Deploy bokit-connector plugin to the WordPress site" }
+        #    { upload: { src: "wordpress/bokit-connector/", dest: "/path/to/wordpress/wp-content/plugins/bokit-connector/" } }
+        #]
+    }
+
+    before: {
+        # The last moment when the installation is still the old one, and a complete backup because
+        # a release can change more than the schema — a cleanup shipped with it would take storage
+        # with it. A failure here stops the deploy, which is the point.
+        "artisan:migrate": "db:backup"
+    }
+
+    after: {
+        "deploy:vendors": "deploy:build"
+        "deploy:failed": "deploy:unlock"
+
+        # Uncomment deploy:success line if wp:connector is enabled above:
+        #"deploy:success": "wp:connector"
+    }
+}

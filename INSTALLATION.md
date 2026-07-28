@@ -40,6 +40,17 @@ shape they produce. Nothing rolls back a data migration for you, so take a backu
 php artisan backup:run
 ```
 
+## Deploying
+
+`deploy.maml.example` is a working [Deployer](https://deployer.org) recipe: copy it to
+`deploy.maml`, put your own host in it, and deploy with `dep deploy`. The real file stays out of
+git, since it names a server and its paths.
+
+Two things in it are not decoration. `shared_files` and `shared_dirs` keep the database, the
+environment and `storage/` out of the releases, so a rollback does not take the data with it. And
+`db:backup`, hooked before `artisan:migrate`, is what makes the guarantee below true — deploying
+by other means means arranging that step yourself.
+
 ## Backups
 
 Every archive holds the database dump, the per-property settings — which is where the Beds24 and

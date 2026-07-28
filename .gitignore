@@ -32,7 +32,7 @@ public/css/
 public/js/
 public/fonts/
 vendor/
-deploy.*ml*
+deploy.*ml
 deploy.php
 composer.dev.json
 composer.dev.lock
