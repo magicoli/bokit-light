@@ -209,6 +209,59 @@ $timezone = $property->settings('timezone', 'UTC');
 // - $unit->settings() > $property->settings() [ > Options::get() > Config::get() implied by property ]
 ```
 
+#### Per-record options
+
+The bottom layer of that cascade is an `options` array carried by the record itself, managed
+through `SettingsTrait`. It is what holds a unit's sources, and anything else that belongs to one
+record rather than to the application.
+
+A model opts in by using the trait, casting the column and declaring what it accepts:
+
+```php
+class Unit extends Model
+{
+    use SettingsTrait;
+
+    protected $fillable = [/* ... */, 'options'];
+
+    protected $casts = ['options' => 'array'];
+
+    public static function settingsFields(): array
+    {
+        return [
+            'capability' => 'admin',          // who may edit these
+            'max_guests' => [
+                'type' => 'number',
+                'label' => 'Maximum guests',
+                'description' => 'Shown on the public unit page',
+            ],
+        ];
+    }
+}
+```
+
+`SettingsTrait::commonSettingsFields()` declares what every model gets; `settingsFields()` adds
+what one model gets. Both appear together, and both are stored in the same column:
+
+```php
+$unit->options['max_guests'] ?? null;
+
+$unit->options = array_merge($unit->options ?? [], ['max_guests' => 6]);
+$unit->save();
+```
+
+Field types are the ordinary form ones — `text`, `textarea`, `select` (with its own `options`
+array), `checkbox`, `number`, `date`, `datetime-local`.
+
+Two things worth knowing about the plumbing, because they explain the shape of the data:
+
+- Options are submitted as nested fields, `name="options[max_guests]"`, which Laravel hands back
+  as `options.max_guests`. The cast takes care of the rest — in code it is an array, from the form
+  to the model and back, and nothing converts anything by hand.
+- **There is no validation layer.** Whatever the form submits lands in the array. Anything that
+  matters — a source URL, a room id — should be validated where it is used until that gap is
+  closed.
+
 ### Database Changes
 
 **Always use migrations**:
