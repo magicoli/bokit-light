@@ -74,6 +74,35 @@ body.home-page footer {
     }
 }
 
+/* The layout gives main an opaque background — right for a working screen, fatal in front of a
+   photograph. Cleared here rather than from the script: this stylesheet is loaded on this page and
+   nowhere else, and a rule applies on the first frame where a script only applies after it. */
+
+body.home-page #page-layout > #main-area > main,
+body.home-page #main-area > main {
+    background: transparent;
+}
+
+/* Pushed down the window, so the photograph has room to be looked at before the text asks for
+   attention. Scoped to the home page: elsewhere the glass is just a surface, and starting halfway
+   down the screen would be an odd thing for a card to do. */
+body.home-page .glass {
+    margin-top: 30vh;
+    /* The photograph is the page; the pane joins it a moment later. */
+    animation: glass-in 700ms 150ms ease-out both;
+}
+
+@keyframes glass-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 /**
  * The pane.
  *
@@ -118,6 +147,10 @@ body.home-page footer {
 @media (prefers-reduced-motion: reduce) {
     body.home-page .wallpaper {
         transition: none;
+    }
+
+    body.home-page .glass {
+        animation: none;
     }
 }
 

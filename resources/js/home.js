@@ -23,11 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const sets = JSON.parse(source.textContent);
-
-    // The layout gives main an opaque background — right for a working screen, fatal in front of a
-    // photograph, and it puts a second panel around the glass one. Undone here rather than in the
-    // stylesheet, so the rule stays untouched for every page that does not run this.
-    area.querySelector(':scope > main')?.style.setProperty('background', 'transparent');
     const dark = window.matchMedia('(prefers-color-scheme: dark)');
 
     // Two surfaces, built here rather than sitting in the markup: they are a mechanism, not
@@ -67,8 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return photographs;
     };
 
-    /** Load first, show second: a half-drawn photograph fading in is worse than a slower change. */
-    const show = (url) => {
+    /**
+     * Load first, show second: a half-drawn photograph fading in is worse than a slower change.
+     *
+     * The first one of a set arrives without a fade — it replaces the gradient, and there is
+     * nothing to fade from. Only the changes that follow are crossfaded.
+     */
+    const show = (url, instant = false) => {
         const image = new Image();
 
         image.onload = () => {
@@ -77,7 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const incoming = layers[(front + 1) % layers.length];
 
             incoming.style.backgroundImage = `url("${url}")`;
+
+            if (instant) {
+                incoming.style.transition = 'none';
+            }
+
             incoming.classList.add('is-visible');
+
+            if (instant) {
+                // Read a layout property so the new opacity is applied before the transition comes
+                // back; without it the browser would collapse both changes into one and fade.
+                void incoming.offsetHeight;
+                incoming.style.transition = '';
+            }
 
             if (front >= 0) {
                 layers[front].classList.remove('is-visible');
@@ -111,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        show(photographs[0]);
+        show(photographs[0], true);
         next = 1;
 
         // One photograph is a background, not a slideshow.

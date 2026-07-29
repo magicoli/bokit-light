@@ -10,15 +10,7 @@
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     @vite('resources/js/home.js')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const readmeContent = @json($readme);
-            const contentDiv = document.getElementById('readme-content');
-            contentDiv.innerHTML = marked.parse(readmeContent);
-        });
-    </script>
 @endpush
 
 @section('content')
@@ -26,8 +18,8 @@
     <script type="application/json" id="wallpapers">@json($wallpapers)</script>
 
     <div class="glass">
-        <div id="readme-content" class="prose prose-slate max-w-none">
-            <!-- Markdown content will be rendered here -->
+        <div class="prose prose-slate max-w-none">
+            {!! $content !!}
         </div>
 
         @auth

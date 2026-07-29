@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
@@ -19,7 +20,9 @@ class HomeController extends Controller
 This is a Laravel-based calendar management application for vacation rental properties.';
 
         return view('home', [
-            'readme' => $readmeContent,
+            // Turned into HTML here rather than by a script in the browser: the page then arrives
+            // written, instead of showing an empty pane until a library has been fetched.
+            'content' => Str::markdown($readmeContent),
             'wallpapers' => $this->wallpapers(),
         ]);
     }
