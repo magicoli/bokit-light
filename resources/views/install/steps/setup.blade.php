@@ -1,3 +1,16 @@
+<div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <div class="flex items-start">
+        <svg class="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        <div class="flex-1">
+            <p class="text-sm text-blue-700">
+                {{ __('install.setup.hint') }}
+            </p>
+        </div>
+    </div>
+</div>
+
 <form id="setupForm" class="space-y-6">
     <!-- Properties Container -->
     <div id="propertiesContainer" class="space-y-6">
@@ -8,23 +21,9 @@
         <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Add Another Property
+        {{ __('install.setup.add_property') }}
     </button>
 </form>
-
-<div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-    <div class="flex items-start">
-        <svg class="w-5 h-5 text-primary mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-        </svg>
-        <div class="flex-1">
-            <p class="text-sm text-blue-700">
-                Create your properties (organizations or companies), their rental units (apartments, villas, cottages),
-                and configure calendar synchronization sources for each unit.
-            </p>
-        </div>
-    </div>
-</div>
 
 <script>
 let propertyCount = 0;
@@ -53,25 +52,25 @@ function addProperty() {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-dark mb-1">
-                        Property Name <span class="text-red-500">*</span>
+                        {{ __('install.setup.property_name') }} <span class="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         name="properties[${propertyCount}][name]"
                         class="property-name w-full px-3 py-2 border border-light rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="My Company"
+                        placeholder="{{ __('install.setup.property_name_placeholder') }}"
                         required
                     >
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-dark mb-1">
-                        Slug <span class="text-red-500">*</span>
+                        {{ __('install.setup.slug') }} <span class="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         name="properties[${propertyCount}][slug]"
                         class="property-slug w-full px-3 py-2 border border-light rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="my-company"
+                        placeholder="{{ __('install.setup.property_slug_placeholder') }}"
                         required
                     >
                 </div>
@@ -80,7 +79,7 @@ function addProperty() {
             <!-- Property URL (Optional) -->
             <div>
                 <label class="block text-sm font-medium text-dark mb-1">
-                    Website <span class="text-xs text-secondary font-normal">(optional)</span>
+                    {{ __('install.setup.website') }} <span class="text-xs text-secondary font-normal">{{ __('install.setup.optional') }}</span>
                 </label>
                 <input
                     type="url"
@@ -99,7 +98,7 @@ function addProperty() {
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Unit
+                    {{ __('install.setup.add_unit') }}
                 </button>
             </div>
         </div>
@@ -153,25 +152,25 @@ function addUnit(propertyId) {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
                 <div>
                     <label class="block text-xs font-medium text-dark mb-1">
-                        Unit Name <span class="text-red-500">*</span>
+                        {{ __('install.setup.unit_name') }} <span class="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         name="properties[${propertyId}][units][${unitCount}][name]"
                         class="unit-name w-full px-2 py-1.5 text-sm border border-light rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="My Accommodation"
+                        placeholder="{{ __('install.setup.unit_name_placeholder') }}"
                         required
                     >
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-dark mb-1">
-                        Slug <span class="text-red-500">*</span>
+                        {{ __('install.setup.slug') }} <span class="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         name="properties[${propertyId}][units][${unitCount}][slug]"
                         class="unit-slug w-full px-2 py-1.5 text-sm border border-light rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="my-accommodation"
+                        placeholder="{{ __('install.setup.unit_slug_placeholder') }}"
                         required
                     >
                 </div>
@@ -186,7 +185,7 @@ function addUnit(propertyId) {
                     <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Source
+                    {{ __('install.setup.add_source') }}
                 </button>
             </div>
         </div>
@@ -241,7 +240,7 @@ function addIcalSource(propertyId, unitId) {
                 type="url"
                 name="properties[${propertyId}][units][${unitId}][ical_sources][${sourceCount}][url]"
                 class="px-2 py-1 text-xs border border-light rounded focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="https://calendar.example.com/my-accommodation.ics"
+                placeholder="{{ __('install.setup.source_url_placeholder') }}"
                 required
             >
         </div>

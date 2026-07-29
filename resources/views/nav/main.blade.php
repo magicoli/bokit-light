@@ -47,19 +47,24 @@
                                 <a href="{{ route('user.settings') }}" class="dropdown-item">
                                     {{ __('app.user_account') }}
                                 </a>
-                                <form method="POST" action="{{ route('logout') }}">
+                                @if(Route::has('logout'))
+                        <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="dropdown-item-button">
                                         {{ __('app.logout') }}
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </div>
                     @else
-                        <!-- Login link for guests -->
-                        <a href="{{ route('login') }}" class="nav-login">
-                            {{ __('app.login') }}
-                        </a>
+                        <!-- Login link for guests, and only where logging in means something:
+                             with auth.method on 'none' the route is not even declared. -->
+                        @if(Route::has('login'))
+                            <a href="{{ route('login') }}" class="nav-login">
+                                {{ __('app.login') }}
+                            </a>
+                        @endif
                     @endif
 
                     <!-- Language switcher -->
@@ -101,12 +106,14 @@
                         <a href="{{ route('user.settings') }}" class="nav-link">
                             {{ __('app.user_account') }}
                         </a>
+                        @if(Route::has('logout'))
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="nav-link">
                                 {{ __('app.logout') }}
                             </button>
                         </form>
+                        @endif
                     </div>
 
                     <!-- Admin section (if user can manage properties) -->
@@ -129,9 +136,11 @@
                 @else
                     <!-- Login for guests -->
                     <div class="menu-section">
-                        <a href="{{ route('login') }}" class="nav-link">
-                            {{ __('app.login') }}
-                        </a>
+                        @if(Route::has('login'))
+                            <a href="{{ route('login') }}" class="nav-link">
+                                {{ __('app.login') }}
+                            </a>
+                        @endif
                     </div>
                 @endif
 

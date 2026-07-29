@@ -31,6 +31,10 @@ Route::get('/sw.js', function () {
         ->header('Service-Worker-Allowed', '/');
 })->name('sw');
 
+// Locale switcher (public, and registered before anything else: the installation wizard offers a
+// choice of language, and at that moment none of the routes below exist yet)
+Route::get('/locale/{locale}', [LocaleController::class, 'change'])->name('locale.change');
+
 // Check if installation is complete - single source of truth
 $isInstalled = Options::get('install.complete', false);
 
@@ -121,9 +125,6 @@ if ($isInstalled) {
 
     // Home / About page (public, no auth required)
     Route::get('/', [HomeController::class, 'index'])->name('home');
-
-    // Locale switcher (public)
-    Route::get('/locale/{locale}', [LocaleController::class, 'change'])->name('locale.change');
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {

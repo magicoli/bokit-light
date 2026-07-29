@@ -10,8 +10,9 @@ class CheckInstalled
 {
     public function handle(Request $request, Closure $next)
     {
-        // Skip check if already on install route
-        if ($request->is('install') || $request->is('install/*')) {
+        // Skip check if already on install route — and on the language switch, without which the
+        // wizard could offer a choice of language that bounces straight back to it, unchanged.
+        if ($request->is('install') || $request->is('install/*') || $request->is('locale/*')) {
             return $next($request);
         }
 

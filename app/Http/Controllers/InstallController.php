@@ -13,14 +13,13 @@ use App\Support\Options;
 use App\Models\User;
 use App\Models\Property;
 use App\Models\Unit;
-use App\Models\IcalSource;
 
 class InstallController extends Controller
 {
     private array $steps = [
         1 => [
             "name" => "welcome",
-            "title" => "Welcome",
+            "title" => "install.steps.welcome",
             "view" => "welcome",
         ],
         // 2 => [
@@ -35,12 +34,12 @@ class InstallController extends Controller
         // ],
         2 => [
             "name" => "setup",
-            "title" => "Configure Properties & Units",
+            "title" => "install.steps.setup",
             "view" => "setup",
         ],
         3 => [
             "name" => "complete",
-            "title" => "Installation Complete",
+            "title" => "install.steps.complete",
             "view" => "complete",
             "no_process" => true,
         ],
@@ -388,20 +387,27 @@ class InstallController extends Controller
                         "is_active" => true,
                     ]);
 
-                    // Create iCal sources for this unit
-                    foreach ($unitData["ical_sources"] as $sourceData) {
-                        // Generate source name from URL hostname
-                        $sourceName =
-                            parse_url($sourceData["url"], PHP_URL_HOST) ??
-                            "External Calendar";
-
-                        IcalSource::create([
-                            "unit_id" => $unit->id,
-                            "name" => $sourceName,
-                            "url" => $sourceData["url"],
-                            "sync_enabled" => true,
-                        ]);
-                    }
+                    // Sources live in the unit's own options, which is where the synchronisation
+                    // reads them. The ical_sources table is the previous home, emptied into
+                    // options by a migration and no longer read by anything — writing there would
+                    // create sources nothing would ever synchronise.
+                    $unit->options = array_merge($unit->options ?? [], [
+                        "sources" => collect($unitData["ical_sources"])
+                            ->map(
+                                fn (array $source): array => array_filter(
+                                    [
+                                        "type" => $source["type"] ?? "ical",
+                                        "url" => $source["url"],
+                                        "label" => parse_url($source["url"], PHP_URL_HOST) ?: null,
+                                        "enabled" => true,
+                                    ],
+                                    fn ($value): bool => $value !== null,
+                                ),
+                            )
+                            ->values()
+                            ->all(),
+                    ]);
+                    $unit->save();
                 }
             }
 

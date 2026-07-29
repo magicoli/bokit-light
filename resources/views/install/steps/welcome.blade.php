@@ -6,28 +6,27 @@
 
     <div class="mb-6">
         <p class="text-dark mb-6">
-            This wizard will help you create the initial configuration of your calendar system.
+            {{ __('install.welcome.intro') }}
         </p>
     </div>
 
     <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-2 text-blue-900">
-        <h3 class="font-semibold">What will be installed:</h3>
+        <h3 class="font-semibold">{{ __('install.welcome.installed_title') }}</h3>
         <ul class="text-sm list-disc ps-4">
-            <li>Database tables</li>
-            <li>Cache system</li>
-            <li>Session management</li>
-            <li>Calendar sync system</li>
+            @foreach(__('install.welcome.installed') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
-        <h3 class="font-semibold">What will be configured:</h3>
+        <h3 class="font-semibold">{{ __('install.welcome.configured_title') }}</h3>
         <ul class="text-sm list-disc ps-4">
-            <li>Authentication system</li>
-            <li>Initial admin user</li>
-            <li>Initial properties and rental units</li>
+            @foreach(__('install.welcome.configured') as $item)
+                <li>{{ $item }}</li>
+            @endforeach
         </ul>
     </div>
 
 
     <div class="text-center text-sm text-secondary">
-        <p>Installation should take less than 5 minutes</p>
+        <p>{{ __('install.welcome.duration') }}</p>
     </div>
 </div>

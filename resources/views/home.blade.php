@@ -21,13 +21,5 @@
         <div class="prose prose-slate max-w-none">
             {!! $content !!}
         </div>
-
-        @auth
-        <div class="mt-6 text-center">
-            <a href="{{ route('calendar') }}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors">
-                {{ __('app.go_to_calendar') }} →
-            </a>
-        </div>
-        @endauth
     </div>
 @endsection

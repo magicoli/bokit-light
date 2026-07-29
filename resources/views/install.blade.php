@@ -1,13 +1,13 @@
 @extends('install.layout')
 
-@section('title', $step['title'])
+@section('title', __($step['title']))
 @section('container-width', $step['name'] === 'setup' ? 'max-w-5xl' : ($step['name'] === 'auth' ? 'max-w-2xl' : 'max-w-md'))
 
 @section('content')
     <!-- Progress indicator -->
     <div class="mb-6">
         <div class="flex items-center justify-between text-sm text-secondary mb-2">
-            <span>Step {{ $stepNumber }} of {{ $totalSteps }}</span>
+            <span>{{ __('install.step_of', ['current' => $stepNumber, 'total' => $totalSteps]) }}</span>
             <span>{{ round(($stepNumber / $totalSteps) * 100) }}%</span>
         </div>
         <div class="w-full bg-light rounded-full h-2">
@@ -17,7 +17,7 @@
 
     <!-- Step title -->
     @if($step['name'] !== 'welcome')
-    <h1 class="text-2xl font-bold text-dark mb-6">{{ $step['title'] }}</h1>
+    <h1 class="text-2xl font-bold text-dark mb-6">{{ __($step['title']) }}</h1>
     @endif
 
     <div id="step-container">
@@ -30,10 +30,10 @@
         <button
             type="button"
             onclick="handleSubmit()"
-            data-loading="Processing..."
+            data-loading="{{ __('install.processing') }}"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
         >
-            Continue
+            {{ __('install.continue') }}
         </button>
     </div>
     @endif
@@ -128,7 +128,7 @@
         const submitBtn = document.querySelector('button[onclick="handleSubmit()"]');
         if (submitBtn) {
             submitBtn.disabled = true;
-            const loadingText = submitBtn.dataset.loading || 'Processing...';
+            const loadingText = submitBtn.dataset.loading || @json(__('install.processing'));
             submitBtn.dataset.originalText = submitBtn.textContent;
             submitBtn.textContent = loadingText;
         }
@@ -151,7 +151,7 @@
                 window.location.reload();
             } else {
                 // Show error
-                showError(data.message || 'An error occurred');
+                showError(data.message || @json(__('install.error')));
 
                 // Restore button
                 if (submitBtn) {
@@ -160,7 +160,7 @@
                 }
             }
         } catch (error) {
-            showError('Network error: ' + error.message);
+            showError(@json(__('install.network_error')) + ' ' + error.message);
 
             // Restore button
             if (submitBtn) {
