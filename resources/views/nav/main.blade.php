@@ -11,10 +11,6 @@
 
                 <!-- Desktop menu -->
                 <div class="main-menu">
-                    <!-- About page -->
-                    <a href="{{ route('about') }}" class="nav-link">
-                        {{ __('app.about') }}
-                    </a>
                 </div>
 
                 <div class="nav-actions">
@@ -89,10 +85,6 @@
 
                 <!-- Main navigation -->
                 <div class="menu-section main-nav">
-                    <a href="{{ route('about') }}" class="nav-link">
-                        {{ __('app.about') }}
-                    </a>
-
                     @if(auth()->check())
                         @if(user_can('property_manager'))
                         <a href="{{ route('calendar') }}" class="nav-link">

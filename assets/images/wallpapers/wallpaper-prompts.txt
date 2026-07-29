@@ -1,0 +1,48 @@
+<random:
+<random:late morning sunshine|blue hour after sunset>, tropical lagoon seen from a shaded wooden
+terrace, palm fronds and bougainvillea framing the left and right edges, a couple leaning on the
+railing at the right, a small fishing boat moored at the left edge, wide open turquoise water
+across the middle, low horizon in the bottom third
+|
+<random:clear morning light|starry night, warm windows glowing>, alpine lake below granite peaks,
+pine branches framing the upper corners, two hikers small on a rocky outcrop in the left third, a
+wooden chalet with a lit terrace at the right edge, still water and soft mist across the middle,
+peaks low on the horizon
+|
+<random:sunbeams through the canopy|misty dusk, lanterns lit>, birch and pine forest, slender
+trunks framing both edges, two people around a low fire in the left third, a
+narrow path leading away to the right, open pale depth across the middle, forest floor in the
+bottom third
+|
+<random:bright afternoon|warm evening, terrace lights on>, whitewashed clifftop village above the
+sea, stone stairs and flowering vines framing the left edge, a remarkable domed villa with an
+awning at the side of the frame, a swimmer and a small sailboat far below on the other side, open sea
+and sky across the middle
+|
+<random:golden hour|night, bonfire and string lights>, wide tropical beach, coconut palms leaning
+in from both edges, a group of friends playing in the shallows on the side of the frame, a beach shack
+with a thatched roof on the other side, long stretch of wet sand reflecting the sky across
+the middle
+|
+<random:bright midday|evening, lanterns and pool lights>, creole villa with a wide veranda,
+flowering hibiscus and a coconut palm framing the left edge, a hammock and two loungers under the
+veranda at the right, someone swimming in the pool below, the sea and the horizon across the middle
+|
+<random:late afternoon|warm night, café lights on>, old coastal town street opening onto the
+harbour, stone façades and shutters framing both edges, a café terrace with a few tables at the
+left, a fisherman folding nets on the quay at the right, boats and open water across the middle
+|
+<random:golden hour|summer night, festoon lights>, stone farmhouse in the countryside, an old olive
+tree framing the left edge, a long table set for dinner under a pergola at the right, friends
+carrying dishes out, rolling fields and a low sun across the middle
+|
+<random:calm morning|clear night, cabin windows lit>, wooden cabin on a lake shore, tall firs
+framing both edges, a wooden jetty with a canoe at the left, two people sitting at the end of it,
+smooth water and distant shore across the middle
+|
+<random:blue sky, fresh snow|dusk, chalet windows glowing>, alpine village under snow, timber
+balconies and a laden fir framing the left edge, skiers walking back with their skis on their
+shoulders at the right, groomed slopes and peaks across the middle
+>
+
+photorealistic travel photography, calm low-contrast, natural colours, soft gradients, gentle atmospheric haze

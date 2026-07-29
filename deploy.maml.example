@@ -34,6 +34,11 @@
             { upload: { src: "public/build/", dest: "{{release_path}}/public/build/" } }
         ]
 
+        "wallpapers": [
+            { desc: "Convert the wallpaper sources into stripped JPEGs" }
+            { run: "cd {{release_path}} && {{bin/php}} artisan bokit:wallpapers" }
+        ]
+
         "db:backup": [
             { desc: "Back up everything before the release replaces it" }
             { run: "cd {{release_path}} && {{bin/php}} artisan backup:run" }
@@ -56,6 +61,7 @@
 
     after: {
         "deploy:vendors": "deploy:build"
+        "deploy:build": "wallpapers"
         "deploy:failed": "deploy:unlock"
 
         # Uncomment deploy:success line if wp:connector is enabled above:

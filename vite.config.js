@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
+                "resources/css/home.css",
                 "resources/css/app.css",
                 "resources/css/admin.css",
                 "resources/css/calendar.css",
@@ -20,6 +21,7 @@ export default defineConfig({
                 "resources/css/properties.css",
                 "resources/css/units.css",
                 "resources/css/flatpickr.css",
+                "resources/js/home.js",
                 "resources/js/app.js",
                 "resources/js/forms.js",
                 "resources/js/rates.js",

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AboutController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
@@ -120,8 +120,7 @@ if ($isInstalled) {
     }
 
     // Home / About page (public, no auth required)
-    Route::get('/', [AboutController::class, 'index'])->name('home');
-    Route::get('/about', [AboutController::class, 'index'])->name('about');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Locale switcher (public)
     Route::get('/locale/{locale}', [LocaleController::class, 'change'])->name('locale.change');
