@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 /**
  * Turns the wallpaper sources into what the browser gets.
@@ -43,9 +44,17 @@ class BuildWallpapersCommand extends Command
             File::ensureDirectoryExists($target);
 
             foreach (File::glob("{$sources}/{$theme}/*.{png,jpg,jpeg,webp}", GLOB_BRACE) ?: [] as $source) {
-                $destination = $target . '/' . pathinfo($source, PATHINFO_FILENAME) . '.jpg';
+                // The source is an archive file and may be named as one pleases; what lands in
+                // public/ becomes a URL, so spaces and the like are folded out here rather than
+                // encoded at every use.
+                $name = Str::slug(pathinfo($source, PATHINFO_FILENAME));
+                $destination = $target . '/' . $name . '.jpg';
 
-                if (!$this->option('force') && File::exists($destination) && File::lastModified($destination) >= File::lastModified($source)) {
+                if (
+                    !$this->option('force')
+                    && File::exists($destination)
+                    && File::lastModified($destination) >= File::lastModified($source)
+                ) {
                     $skipped++;
 
                     continue;
@@ -90,7 +99,14 @@ class BuildWallpapersCommand extends Command
 
         // A PNG with transparency would otherwise flatten to black.
         $flattened = imagecreatetruecolor(imagesx($image), imagesy($image));
-        imagefilledrectangle($flattened, 0, 0, imagesx($image), imagesy($image), imagecolorallocate($flattened, 255, 255, 255));
+        imagefilledrectangle(
+            $flattened,
+            0,
+            0,
+            imagesx($image),
+            imagesy($image),
+            imagecolorallocate($flattened, 255, 255, 255),
+        );
         imagecopy($flattened, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
 
         $written = imagejpeg($flattened, $destination, (int) $this->option('quality'));

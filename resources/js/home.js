@@ -47,11 +47,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let front = -1;
     let timer = null;
 
-    /** The set matching the current theme, falling back to the other one rather than to nothing. */
+    /**
+     * The set matching the current theme, falling back to the other one rather than to nothing.
+     *
+     * Shuffled, and shuffled again on every visit: the file names decide nothing, so a visitor
+     * does not always land on the same photograph and the series has no first or last.
+     */
     const currentSet = () => {
         const preferred = dark.matches ? sets.dark : sets.light;
+        const photographs = [...(preferred.length ? preferred : dark.matches ? sets.light : sets.dark)];
 
-        return preferred.length ? preferred : dark.matches ? sets.light : sets.dark;
+        for (let i = photographs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+
+            [photographs[i], photographs[j]] = [photographs[j], photographs[i]];
+        }
+
+        return photographs;
     };
 
     /** Load first, show second: a half-drawn photograph fading in is worse than a slower change. */
