@@ -14,6 +14,10 @@ use Illuminate\Support\Str;
  * through GD drops every EXIF, XMP and generation-parameter block on the way, which is the point
  * as much as the weight is.
  *
+ * The public name carries a short hash of the source, so replacing a photograph without renaming
+ * it produces a different URL. Without that, browsers — and the service worker, which serves images
+ * from its cache first — would keep showing the old one until the application's version changed.
+ *
  * Run by `npm run build`, and on its own with `php artisan bokit:wallpapers`.
  */
 class BuildWallpapersCommand extends Command
@@ -37,24 +41,22 @@ class BuildWallpapersCommand extends Command
 
         $built = 0;
         $skipped = 0;
+        $removed = 0;
 
         foreach (['light', 'dark'] as $theme) {
             $target = public_path("images/wallpapers/{$theme}");
 
             File::ensureDirectoryExists($target);
 
-            foreach (File::glob("{$sources}/{$theme}/*.{png,jpg,jpeg,webp}", GLOB_BRACE) ?: [] as $source) {
-                // The source is an archive file and may be named as one pleases; what lands in
-                // public/ becomes a URL, so spaces and the like are folded out here rather than
-                // encoded at every use.
-                $name = Str::slug(pathinfo($source, PATHINFO_FILENAME));
-                $destination = $target . '/' . $name . '.jpg';
+            $expected = [];
 
-                if (
-                    !$this->option('force')
-                    && File::exists($destination)
-                    && File::lastModified($destination) >= File::lastModified($source)
-                ) {
+            foreach (File::glob("{$sources}/{$theme}/*.{png,jpg,jpeg,webp}", GLOB_BRACE) ?: [] as $source) {
+                $destination = $target . '/' . $this->publicName($source) . '.jpg';
+                $expected[] = $destination;
+
+                // The name holds the hash, so a file that is there is a file that is current —
+                // there is no such thing as an out-of-date destination under the right name.
+                if (!$this->option('force') && File::exists($destination)) {
                     $skipped++;
 
                     continue;
@@ -68,11 +70,35 @@ class BuildWallpapersCommand extends Command
                     $built++;
                 }
             }
+
+            // What no source claims any more: the previous version of a photograph that changed,
+            // or one whose source is gone. Leaving them would slowly fill the folder with images
+            // nothing links to.
+            foreach (File::glob("{$target}/*.jpg") ?: [] as $file) {
+                if (!in_array($file, $expected, true)) {
+                    File::delete($file);
+                    $removed++;
+                }
+            }
         }
 
-        $this->components->info("Wallpapers: {$built} built, {$skipped} already up to date");
+        $summary = "Wallpapers: {$built} built, {$skipped} already up to date";
+
+        $this->components->info($removed > 0 ? "{$summary}, {$removed} stale removed" : $summary);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The public file name: readable, URL-safe, and ending in what the source contains.
+     *
+     * A source may be named as one pleases — spaces, accents, capitals — while what lands in
+     * public/ becomes a URL. The hash is what makes the name change when the picture does, and it
+     * settles by the way the case of two sources whose names would otherwise slug alike.
+     */
+    private function publicName(string $source): string
+    {
+        return Str::slug(pathinfo($source, PATHINFO_FILENAME)) . '-' . substr(md5_file($source), 0, 8);
     }
 
     private function convert(string $source, string $destination): bool
