@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let next = 0;
     let front = -1;
     let timer = null;
+    let failures = 0;
 
     /**
      * The set matching the current theme, falling back to the other one rather than to nothing.
@@ -71,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const image = new Image();
 
         image.onload = () => {
+            failures = 0;
+
             const incoming = layers[(front + 1) % layers.length];
 
             incoming.style.backgroundImage = `url("${url}")`;
@@ -83,7 +86,18 @@ document.addEventListener('DOMContentLoaded', () => {
             front = (front + 1) % layers.length;
         };
 
-        image.onerror = () => console.warn(`[wallpaper] could not load ${url}`);
+        image.onerror = () => {
+            failures += 1;
+            console.warn(`[wallpaper] could not load ${url}`);
+
+            // A deploy renames every file, so the list this page was handed no longer exists and
+            // never will again. Retrying every 45 seconds would only repeat the miss, in the
+            // console and in the server's access log. Keep what is on screen until a reload.
+            if (failures > 1) {
+                window.clearInterval(timer);
+                console.warn('[wallpaper] rotation stopped, the list is out of date — reload');
+            }
+        };
         image.src = url;
     };
 
@@ -91,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.clearInterval(timer);
 
         photographs = currentSet();
+        failures = 0;
 
         if (photographs.length === 0) {
             return;
