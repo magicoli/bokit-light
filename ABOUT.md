@@ -66,4 +66,5 @@ A guided setup in the browser: no command line, no configuration file to edit. E
 or French. Install it on your phone or your desktop like an app, and keep reading your calendar
 even without a connection.
 
-[Make the calendar feel easy](https://bokit.click)
+---
+*Make the calendar feel easy*
