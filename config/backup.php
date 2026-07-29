@@ -320,7 +320,11 @@ return [
      * Set to false to disable backup logging entirely.
      * Set to null to use the default log channel.
      */
-    'log_channel' => null,
+    // Silent by default: the package narrates eight lines for one backup — starting, dumping,
+    // determining, zipping, created, copying, copied, completed — and the job that runs it already
+    // says in one line whether it worked. On failure the job logs the whole output, so nothing is
+    // lost where it matters. Name a channel here to get the running commentary back.
+    'log_channel' => env('BACKUP_LOG_CHANNEL', false),
 
     /*
      * NOT part of the published Spatie configuration — added by Bokit, and to be restored if this

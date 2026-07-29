@@ -62,7 +62,12 @@ class RunBackupJob implements ShouldQueue
             if ($status === 0) {
                 Log::info("[BackupJob] {$task} backup completed");
             } else {
-                Log::error("[BackupJob] {$task} backup failed", ['status' => $status]);
+                // The package's own logging is off, so its account of what went wrong exists
+                // nowhere else — this is the only place it can be kept.
+                Log::error("[BackupJob] {$task} backup failed", [
+                    'status' => $status,
+                    'output' => trim(Artisan::output()),
+                ]);
             }
         }
     }
