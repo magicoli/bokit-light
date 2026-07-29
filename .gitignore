@@ -35,6 +35,7 @@ public/images/wallpapers/
 vendor/
 deploy.*ml
 deploy.php
+herd.yml
 composer.dev.json
 composer.dev.lock
 composer.local.json

@@ -1,0 +1,20 @@
+# Herd's per-project settings. Copy to herd.yml and adjust — the real file names the domains of
+# one machine, sometimes a client's, and stays out of git.
+#
+# `name` decides the hostname Herd serves the project under, `aliases` adds others answering to
+# the same site. Both are what makes the site reachable under something else than its folder name
+# — a domain of your own, resolved by your own DNS, is what lets another device on the network
+# open it without any setup of its own.
+
+name: bokit-light
+php: "8.3"
+secured: true
+
+aliases:
+  - tenant1.bokit-light
+  - tenant2.bokit-light
+
+services: {}
+
+integrations:
+  forge: {}
