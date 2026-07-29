@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PropertyController;
@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Installation routes (always accessible during installation)
-Route::get('/install', [InstallController::class, 'index'])->name('install');
-Route::post('/install', [InstallController::class, 'process'])->name('install.process');
-Route::post('/install/complete', [InstallController::class, 'complete'])->name('install.complete');
+Route::get('/install-legacy', [InstallController::class, 'index'])->name('install');
+Route::post('/install-legacy', [InstallController::class, 'process'])->name('install.process');
+Route::post('/install-legacy/complete', [InstallController::class, 'complete'])->name('install.complete');
 
 // Update routes (always accessible when installed)
 Route::get('/update', [UpdateController::class, 'index'])->name('update');

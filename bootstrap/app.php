@@ -22,6 +22,16 @@ return Application::configure(basePath: dirname(__DIR__))
         Route::middleware('web')->group(base_path('routes/web.php'));
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        // Where an anonymous visitor is sent when something requires a session. Laravel aims at a
+        // route named 'login', which only exists when auth.method is 'laravel' — anywhere else,
+        // and on any panel of its own, the redirect died with "Route [login] not defined" and a
+        // 500 in place of a login screen.
+        $middleware->redirectGuestsTo(fn (): string => match (true) {
+            Route::has('login') => route('login'),
+            Route::has('filament.admin.auth.login') => route('filament.admin.auth.login'),
+            default => url('/'),
+        });
+
         // Global middleware - always check if installed first
         $middleware->web(append: [
             \App\Http\Middleware\CheckInstalled::class,
