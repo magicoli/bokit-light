@@ -10,6 +10,8 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -44,7 +46,7 @@ class AppPanelProvider extends PanelProvider
         );
 
         // Calendar + Admin links in the Filament topbar (shared partial with frontend).
-        FilamentView::registerRenderHook(PanelsRenderHook::USER_MENU_BEFORE, fn(): View => view('nav.top-links'));
+        // FilamentView::registerRenderHook(PanelsRenderHook::USER_MENU_BEFORE, fn(): View => view('nav.top-links'));
     }
 
     public function panel(Panel $panel): Panel
@@ -60,6 +62,46 @@ class AppPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
+            ])
+            ->navigationGroups([
+                NavigationGroup::make(__('Deprecated'))->collapsed(),
+            ])
+            ->navigationItems([
+                // route('calendar')
+                NavigationItem::make('calendar')
+                    ->label(__('app.calendar'))
+                    ->icon('heroicon-o-calendar-date-range')
+                    // ->group('legacy')
+                    ->url(fn(): string => route('calendar'))
+                    ->sort(1)
+                    ->badge(__('Legacy')),
+                // ->visible(
+                //     fn(): bool => (
+                //         Filament::getTenant() instanceof Project
+                //         && (
+                //             auth()->user()?->isAdmin()
+                //             || Filament::getTenant()->roleFor(auth()->user()) === 'owner'
+                //         )
+                //     ),
+                // ),
+                NavigationItem::make('legacy-admin')
+                    ->label(__('app.admin_legacy'))
+                    ->icon('heroicon-s-building-office-2')
+                    ->group(__('Deprecated'))
+                    ->url('/legacy-admin')
+                    ->badge(__('Legacy')),
+                NavigationItem::make('properties')
+                    ->label(__('app.properties'))
+                    ->icon('heroicon-s-building-office-2')
+                    ->group(__('Deprecated'))
+                    ->url(fn(): string => route('properties'))
+                    ->badge(__('Legacy')),
+                NavigationItem::make('rates')
+                    ->label(__('app.rates'))
+                    ->icon('heroicon-s-banknotes')
+                    ->group(__('Deprecated'))
+                    ->url(fn(): string => route('rates'))
+                    ->badge(__('Legacy')),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

@@ -27,7 +27,7 @@
                         </svg>
                     </button>
                     @if(auth()->check())
-                        @include('nav.top-links')
+                        {{-- @include('nav.top-links') --}}
 
                         <!-- User menu -->
                         <div class="dropdown"

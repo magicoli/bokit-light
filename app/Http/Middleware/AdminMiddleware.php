@@ -3,9 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
 
 class AdminMiddleware
@@ -21,12 +21,12 @@ class AdminMiddleware
     {
         // Check if user is authenticated
         if (!auth()->check()) {
-            return redirect()->route("login");
+            return redirect()->route('login');
         }
 
         // Check admin gate (defined in AuthServiceProvider)
-        if (Gate::denies("admin")) {
-            throw new AuthorizationException(__("app.unauthorized"));
+        if (Gate::denies('app')) {
+            throw new AuthorizationException(__('app.unauthorized'));
         }
 
         return $next($request);
