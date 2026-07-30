@@ -28,7 +28,7 @@ use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
 use Magicoli\TwoWayTicket\ReportIssuePlugin;
 use Magicoli\TwoWayTicket\TicketsPlugin;
 
-class AdminPanelProvider extends PanelProvider
+class AppPanelProvider extends PanelProvider
 {
     public string $panel_id;
     public string $panel_path;
@@ -52,8 +52,8 @@ class AdminPanelProvider extends PanelProvider
         $panel = $this->applyCommonConfig($panel);
 
         return $panel
-            ->id('admin')
-            ->path('admin')
+            ->id('app')
+            ->path('app')
             ->default()
             ->login()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

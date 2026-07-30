@@ -144,7 +144,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Admin gate - access to admin area
         // Super admins have full access, property managers have limited access
-        Gate::define('admin', function ($user) {
+        Gate::define('app', function ($user) {
             if (!$user) {
                 return false;
             }

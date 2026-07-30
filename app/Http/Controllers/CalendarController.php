@@ -257,8 +257,8 @@ class CalendarController extends Controller
                 'id' => $booking->property?->id,
                 'name' => $booking->property?->name,
             ],
-            'view_url' => BookingResource::getUrl('view', ['record' => $booking], panel: 'admin'),
-            'edit_url' => BookingResource::getUrl('edit', ['record' => $booking], panel: 'admin'),
+            'view_url' => BookingResource::getUrl('view', ['record' => $booking], panel: 'app'),
+            'edit_url' => BookingResource::getUrl('edit', ['record' => $booking], panel: 'app'),
             'source' => [
                 'label' => $origin ? preg_replace('/^✓ /u', '', $origin->display_label) : $booking->source_name,
                 'url' => $origin && !$origin->is_placeholder ? $origin->external_url : null,

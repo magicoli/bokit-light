@@ -7,7 +7,7 @@
          x-data="{ open: false }"
          @mouseenter="open = true"
          @mouseleave="open = false">
-        <a href="/admin"
+        <a href="/app"
            class="dropdown-button nav-link badge-admin">
             <span>{{ __('app.admin') }}</span>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -39,12 +39,12 @@ export default defineConfig({
                 "resources/js/units-edit.js",
             ],
             // detectTls: 'bokit-light.test',
-            // refresh: [
-            //     "resources/css/**",
-            //     "resources/fonts/**",
-            //     "resources/js/**",
-            // ],
-            refresh: true,
+            // refresh: true,
+            refresh: [
+                "resources/css/**",
+                "resources/fonts/**",
+                "resources/js/**",
+            ],
             // fonts: [
             //     google('Inter', { alias: 'sans' }),
             //     bunny('Figtree', { alias: 'body' }),

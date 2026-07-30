@@ -49,9 +49,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function properties()
     {
-        return $this->belongsToMany(Property::class, 'property_user')
-            ->withPivot('role')
-            ->withTimestamps();
+        return $this->belongsToMany(Property::class, 'property_user')->withPivot('role')->withTimestamps();
     }
 
     /**
@@ -70,9 +68,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->isAdmin()
-            || $this->hasAnyRole(['manager', 'property_manager'])
-            || $this->properties()->exists();
+        return $this->isAdmin() || $this->hasAnyRole(['manager', 'property_manager']) || $this->properties()->exists();
     }
 
     /**
@@ -81,9 +77,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function homeUrl(): string
     {
-        return $this->canAccessPanel(Filament::getPanel('admin'))
-            ? '/admin'
-            : '/dashboard';
+        return $this->canAccessPanel(Filament::getPanel('app')) ? '/admin' : '/dashboard';
     }
 
     /**
@@ -107,7 +101,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function hasAnyRole(array $roles): bool
     {
-        return ! empty(array_intersect($roles, $this->roles ?? []));
+        return !empty(array_intersect($roles, $this->roles ?? []));
     }
 
     /**
@@ -116,7 +110,7 @@ class User extends Authenticatable implements FilamentUser
     public function addRole(string $role): void
     {
         $roles = $this->roles ?? [];
-        if (! in_array($role, $roles)) {
+        if (!in_array($role, $roles)) {
             $roles[] = $role;
             $this->roles = $roles;
             $this->save();
@@ -154,11 +148,9 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        $propertyUser = $this->properties()
-            ->where('properties.id', $property->id)
-            ->first();
+        $propertyUser = $this->properties()->where('properties.id', $property->id)->first();
 
-        if (! $propertyUser) {
+        if (!$propertyUser) {
             return false;
         }
 
@@ -177,18 +169,19 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        $propertyUser = $this->properties()
-            ->where('properties.id', $property->id)
-            ->first();
+        $propertyUser = $this->properties()->where('properties.id', $property->id)->first();
 
-        if (! $propertyUser) {
+        if (!$propertyUser) {
             return false;
         }
 
-        return in_array($propertyUser->pivot->role, [
-            'admin',
-            'owner',
-            'manager',
-        ]);
+        return in_array(
+            $propertyUser->pivot->role,
+            [
+                'admin',
+                'owner',
+                'manager',
+            ],
+        );
     }
 }

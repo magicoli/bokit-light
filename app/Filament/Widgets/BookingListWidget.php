@@ -15,7 +15,7 @@ use Illuminate\Support\Number;
 /**
  * Base for the dashboard booking mini-lists: a fixed-sort, ten-row list of
  * booking titles linking to the booking page, with a payment-status dot
- * (colors injected in the panel head by AdminPanelProvider). One row per
+ * (colors injected in the panel head by AppPanelProvider). One row per
  * group reservation; data is scoped to the user's properties.
  */
 abstract class BookingListWidget extends TableWidget
@@ -54,28 +54,28 @@ abstract class BookingListWidget extends TableWidget
         return $table
             ->heading($this->tableHeading())
             // The header row has no API to remove it; tagging the table lets
-            // the panel CSS (AdminPanelProvider) hide the empty thead.
+            // the panel CSS (AppPanelProvider) hide the empty thead.
             ->extraAttributes(['class' => 'bokit-mini-list'])
-            ->query(fn (): Builder => $this->scopeList(
-                self::groupRepresentatives(Booking::query()->forUser()->with(['unit', 'property']))
-            )->limit(10))
+            ->query(
+                fn(): Builder => $this->scopeList(self::groupRepresentatives(
+                    Booking::query()->forUser()->with(['unit', 'property']),
+                ))->limit(10),
+            )
             ->paginated(false)
             ->columns([
-                TextColumn::make('title')
-                    ->label('')
-                    ->wrap(),
+                TextColumn::make('title')->label('')->wrap(),
 
                 ...$this->extraColumns(),
             ])
             // Whole-row background by payment status (styles injected in
-            // the panel head by AdminPanelProvider).
-            ->recordClasses(fn (Booking $record): string => 'booking-status-'.$record->displayStatus())
-            ->recordUrl(fn (Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
+            // the panel head by AppPanelProvider).
+            ->recordClasses(fn(Booking $record): string => 'booking-status-' . $record->displayStatus())
+            ->recordUrl(fn(Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
             ->headerActions([
                 Action::make('seeAll')
                     ->label(__('booking.widget.see_all'))
                     ->link()
-                    ->url(BookingResource::getUrl('index').'?'.http_build_query($this->listParameters())),
+                    ->url(BookingResource::getUrl('index') . '?' . http_build_query($this->listParameters())),
             ]);
     }
 
@@ -86,8 +86,11 @@ abstract class BookingListWidget extends TableWidget
     {
         return TextColumn::make('amounts')
             ->label('')
-            ->state(fn (Booking $record): string => self::compactMoney($record->paidAmount())
-                .' / '.self::compactMoney($record->totalAmount()))
+            ->state(
+                fn(Booking $record): string => (
+                    self::compactMoney($record->paidAmount()) . ' / ' . self::compactMoney($record->totalAmount())
+                ),
+            )
             ->alignEnd()
             ->grow(false);
     }
@@ -97,11 +100,7 @@ abstract class BookingListWidget extends TableWidget
      */
     protected function updatedAtColumn(): TextColumn
     {
-        return TextColumn::make('updated_at')
-            ->label('')
-            ->date('d/m/Y')
-            ->alignEnd()
-            ->grow(false);
+        return TextColumn::make('updated_at')->label('')->date('d/m/Y')->alignEnd()->grow(false);
     }
 
     /**
@@ -116,8 +115,6 @@ abstract class BookingListWidget extends TableWidget
 
         $formatted = Number::currency($value, 'EUR', app()->getLocale());
 
-        return fmod($value, 1.0) === 0.0
-            ? preg_replace('/[.,]00(?=\D|$)/', '', $formatted)
-            : $formatted;
+        return fmod($value, 1.0) === 0.0 ? preg_replace('/[.,]00(?=\D|$)/', '', $formatted) : $formatted;
     }
 }
