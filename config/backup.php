@@ -26,7 +26,7 @@ $essentials = [env('OPTIONS_PATH', storage_path('options')), base_path('.env')];
  * recursively, so an 'essentials' folder inside the full one would have its archives counted, and
  * thinned out, as if they were complete.
  */
-$name = localAppName();
+$name = config('app.name', 'Bokit');
 
 return [
     'backup' => [

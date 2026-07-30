@@ -11,9 +11,16 @@ use App\Services\AdminMenuService;
 use App\Sync\Ical\BookingSyncIcal;
 use App\Sync\Ical\IcalConnector;
 use App\Sync\SyncRegistry;
+use BezhanSalleh\LanguageSwitch\Enums\ItemStyle;
+use BezhanSalleh\LanguageSwitch\Enums\Placement;
+use BezhanSalleh\LanguageSwitch\Enums\TriggerStyle;
+use BezhanSalleh\LanguageSwitch\Events\LocaleChanged;
+use BezhanSalleh\LanguageSwitch\LanguageSwitch;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -76,6 +83,11 @@ class AppServiceProvider extends ServiceProvider
         $this->registerGates();
         $this->registerObservers();
         $this->registerRateLimiters();
+        $this->configureLanguageSwitch();
+
+        // LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
+        //     $switch->locales(config('app.locales', ['en']));
+        // });
     }
 
     /**
@@ -295,5 +307,30 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         }
+    }
+
+    protected function configureLanguageSwitch(): void
+    {
+        LanguageSwitch::configureUsing(function (LanguageSwitch $switch): void {
+            $switch
+                ->locales(config('app.locales', [config('app.locale', 'en')]))
+                // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
+                ->visible(outsidePanels: true)
+                ->outsidePanelPlacement(Placement::TopEnd)
+                ->trigger(style: TriggerStyle::Flag)
+                ->userPreferredLocale(fn(): ?string => auth()->user()?->locale)
+                ->circular()
+                ->nativeLabel();
+
+            if (!empty(config('app.locale_flags'))) {
+                $switch->flags(array_map(callback: 'asset', array: config('app.locale_flags')));
+            }
+
+            // if(!empty(->flags(config('app.flags'))))
+        });
+
+        Event::listen(function (LocaleChanged $event): void {
+            auth()->user()?->update(['locale' => $event->locale]);
+        });
     }
 }

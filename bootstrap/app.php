@@ -26,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // route named 'login', which only exists when auth.method is 'laravel' — anywhere else,
         // and on any panel of its own, the redirect died with "Route [login] not defined" and a
         // 500 in place of a login screen.
-        $middleware->redirectGuestsTo(fn (): string => match (true) {
+        $middleware->redirectGuestsTo(fn(): string => match (true) {
             Route::has('login') => route('login'),
             Route::has('filament.admin.auth.login') => route('filament.admin.auth.login'),
             default => url('/'),
@@ -36,7 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\CheckInstalled::class,
             \App\Http\Middleware\ApplyMigrations::class,
-            \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\RenewRememberToken::class,
         ]);
 

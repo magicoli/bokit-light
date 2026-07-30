@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+// use CraftForge\FilamentLanguageSwitcher\FilamentLanguageSwitcherPlugin;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
@@ -9,6 +10,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -40,6 +42,14 @@ class InstallPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
+            ])
+            ->plugins([
+                // FilamentLanguageSwitcherPlugin::make()
+                //     ->locales(config('app.locales', ['en']))
+                //     ->rememberLocale()
+                //     // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
+                //     ->renderHook(PanelsRenderHook::GLOBAL_SEARCH_AFTER)
+                //     ->showOnAuthPages(),
             ])
             ->middleware([
                 EncryptCookies::class,

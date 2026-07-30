@@ -3,7 +3,6 @@
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
-use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RatesController;
 use App\Http\Controllers\UnitController;
@@ -30,10 +29,6 @@ Route::get('/sw.js', function () {
         ->header('Content-Type', 'application/javascript')
         ->header('Service-Worker-Allowed', '/');
 })->name('sw');
-
-// Locale switcher (public, and registered before anything else: the installation wizard offers a
-// choice of language, and at that moment none of the routes below exist yet)
-Route::get('/locale/{locale}', [LocaleController::class, 'change'])->name('locale.change');
 
 // Check if installation is complete - single source of truth
 $isInstalled = Options::get('install.complete', false);

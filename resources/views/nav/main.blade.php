@@ -67,18 +67,6 @@
                         @endif
                     @endif
 
-                    <!-- Language switcher -->
-                    <div class="locale-switcher">
-                        <a href="{{ route('locale.change', 'en') }}"
-                           class="locale-link {{ app()->getLocale() === 'en' ? 'active' : '' }}">
-                            EN
-                        </a>
-                        <a href="{{ route('locale.change', 'fr') }}"
-                           class="locale-link {{ app()->getLocale() === 'fr' ? 'active' : '' }}">
-                            FR
-                        </a>
-                    </div>
-
                 </div>
             </div>
 
@@ -143,19 +131,5 @@
                         @endif
                     </div>
                 @endif
-
-                <!-- Language switcher -->
-                <div class="menu-section">
-                    <div class="locale-switcher">
-                        <a href="{{ route('locale.change', 'en') }}"
-                           class="locale-link {{ app()->getLocale() === 'en' ? 'active' : '' }}">
-                            EN
-                        </a>
-                        <a href="{{ route('locale.change', 'fr') }}"
-                           class="locale-link {{ app()->getLocale() === 'fr' ? 'active' : '' }}">
-                            FR
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>

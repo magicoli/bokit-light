@@ -130,9 +130,7 @@ nav {
 
             .dropdown,
             .nav-login,
-            .locale-switcher {
-                @apply hidden;
-            }
+
         }
 
         /* Sur tablet: cacher admin/user menus, garder locale */
@@ -183,37 +181,6 @@ nav {
         /* Sur mobile et tablet: format court avant hamburger */
         @media (max-width: 1023px) {
             @apply text-xs;
-        }
-    }
-
-    .locale-switcher {
-        @apply flex items-center space-x-1 border-l border-light pl-4;
-
-        /* Cacher sur mobile (sera dans le menu hamburger) */
-        @media (max-width: 767px) {
-            @apply hidden;
-        }
-
-        /* Sur tablet: visible dans la nav */
-        @media (min-width: 768px) and (max-width: 1023px) {
-            @apply flex;
-        }
-
-        /* Dans le menu mobile */
-        .mobile-menu & {
-            @apply flex border-l-0 pl-0 justify-center;
-        }
-    }
-
-    .locale-link {
-        @apply text-xs px-2 py-1 rounded;
-
-        &.active {
-            @apply bg-blue-100 text-blue-800 font-semibold;
-        }
-
-        &:not(.active) {
-            @apply text-secondary;
         }
     }
 }

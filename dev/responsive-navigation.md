@@ -59,7 +59,6 @@
   - `.menu-section.main-nav` - Hidden on tablet (768-1023px)
 - `.nav-actions` - Contains date + hamburger + desktop menus
 - `.dropdown` - Admin/User dropdowns, hidden until 1024px
-- `.locale-switcher` - Hidden on mobile, visible from 768px
 - `.nav-date` - Format changes based on screen size
 
 ## Implementation Notes
