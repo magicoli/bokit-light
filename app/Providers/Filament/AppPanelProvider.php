@@ -69,12 +69,12 @@ class AppPanelProvider extends PanelProvider
             ->navigationItems([
                 // route('calendar')
                 NavigationItem::make('calendar')
-                    ->label(__('app.calendar'))
+                    ->label(fn(): string => __('app.calendar'))
                     ->icon('heroicon-o-calendar-date-range')
                     // ->group('legacy')
                     ->url(fn(): string => route('calendar'))
                     ->sort(1)
-                    ->badge(__('Legacy'))
+                    ->badge(fn(): string => __('Legacy'))
                     ->visible(fn(): bool => auth()->check()),
                 // ->visible(
                 //     fn(): bool => (
@@ -86,25 +86,25 @@ class AppPanelProvider extends PanelProvider
                 //     ),
                 // ),
                 NavigationItem::make('legacy-admin')
-                    ->label(__('app.admin_legacy'))
+                    ->label(fn(): string => __('app.admin_legacy'))
                     ->icon('heroicon-s-building-office-2')
-                    ->group(__('Deprecated'))
+                    ->group(fn(): string => __('Deprecated'))
                     ->url(fn(): string => route('admin.dashboard'))
-                    ->badge(__('Legacy'))
+                    ->badge(fn(): string => __('Legacy'))
                     ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
                 NavigationItem::make('properties')
-                    ->label(__('app.properties'))
+                    ->label(fn(): string => __('app.properties'))
                     ->icon('heroicon-s-building-office-2')
-                    ->group(__('Deprecated'))
+                    ->group(fn(): string => __('Deprecated'))
                     ->url(fn(): string => route('properties'))
-                    ->badge(__('Legacy'))
+                    ->badge(fn(): string => __('Legacy'))
                     ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
                 NavigationItem::make('rates')
-                    ->label(__('app.rates'))
+                    ->label(fn(): string => __('app.rates'))
                     ->icon('heroicon-s-banknotes')
-                    ->group(__('Deprecated'))
+                    ->group(fn(): string => __('Deprecated'))
                     ->url(fn(): string => route('rates'))
-                    ->badge(__('Legacy'))
+                    ->badge(fn(): string => __('Legacy'))
                     ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')

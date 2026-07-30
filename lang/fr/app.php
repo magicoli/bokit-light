@@ -10,10 +10,12 @@ return [
     'login' => 'Connexion',
     'admin' => 'Admin',
     'admin_legacy' => 'Admin (legacy)',
+    'obsolete' => 'Obsolète',
     'account' => 'Compte',
     'admin_settings' => 'Paramètres admin',
     'user_account' => 'Compte',
     'language' => 'Langue',
+    'dashboard' => 'Tableau de bord',
 
     // Login page
     'username_or_email' => "Nom d'utilisateur ou adresse e-mail",
@@ -21,6 +23,7 @@ return [
     'sign_in' => 'Se connecter',
 
     // Calendar
+    'legacy' => 'Obsolète',
     'calendar' => 'Calendrier',
     'booking' => 'Réservation',
     'check_in' => 'Arrivée',

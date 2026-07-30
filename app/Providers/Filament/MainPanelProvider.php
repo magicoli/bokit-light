@@ -59,7 +59,7 @@ class MainPanelProvider extends PanelProvider
             ->navigationItems([
                 // route('calendar')
                 NavigationItem::make()
-                    ->label(__('Dashboard'))
+                    ->label(fn(): string => __('app.dashboard'))
                     ->icon('bi-luggage')
                     // ->group('legacy')
                     ->url(fn(): string => route('filament.app.pages.dashboard'))
@@ -67,13 +67,13 @@ class MainPanelProvider extends PanelProvider
                     // account, in truth — that distinction arrives with the tenants.
                     ->visible(fn(): bool => auth()->check()),
                 NavigationItem::make()
-                    ->label(__('app.calendar'))
+                    ->label(fn(): string => __('app.calendar'))
                     ->icon('heroicon-o-calendar-date-range')
                     // ->group('legacy')
                     ->url(fn(): string => route('calendar'))
                     ->visible(fn(): bool => auth()->check()),
                 NavigationItem::make()
-                    ->label(__('app.legacy'))
+                    ->label(fn(): string => __('app.obsolete'))
                     ->icon('ri-dashboard-line')
                     ->url(fn(): string => route('admin.dashboard'))
                     ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),

@@ -10,11 +10,12 @@ return [
     'login' => 'Login',
     'admin' => 'Admin',
     'admin_legacy' => 'Admin (legacy)',
-    'legacy' => 'Legacy',
+    'obsolete' => 'Obsolete',
     'account' => 'Account',
     'admin_settings' => 'Admin Settings',
     'user_account' => 'Account',
     'language' => 'Language',
+    'dashboard' => 'Dashboard',
 
     // Login page
     'username_or_email' => 'Username or email address',
