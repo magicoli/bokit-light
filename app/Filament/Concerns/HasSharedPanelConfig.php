@@ -38,7 +38,7 @@ trait HasSharedPanelConfig
         return $panel
             // Shared Theme & Styling
             ->homeUrl('/')
-            // ->login()
+            ->login()
             ->brandLogo('/images/logo.png')
             ->brandLogoHeight(fn() => request()->is('login', '*/login') ? '128px' : '48px')
             ->colors([

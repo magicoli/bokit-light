@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\CalendarController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RatesController;
@@ -56,70 +55,15 @@ if ($isInstalled) {
             return redirect('/');
         })->name('logout');
     } elseif ($authMethod === 'laravel') {
-        Route::get('/login', function () {
-            return view('auth.login');
-        })->middleware('guest')->name('login');
-
-        Route::post('/login', function (Request $request) {
-            $credentials = $request->validate([
-                'username' => 'required|string',
-                'password' => 'required',
-            ]);
-
-            // Permet l'utilisation de username ou email
-            $loginField = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
-
-            $authCredentials = [
-                $loginField => $credentials['username'],
-                'password' => $credentials['password'],
-            ];
-
-            $remember = $request->boolean('remember');
-
-            if (Auth::attempt($authCredentials, $remember)) {
-                $request->session()->regenerate();
-
-                // Set remember me cookie duration: 7 days (10080 minutes)
-                // The RenewRememberToken middleware will renew this on each visit
-                if ($remember) {
-                    $user = Auth::user();
-                    $minutes = 10080; // 7 days
-                    $recaller = Auth::guard()->getRecallerName();
-                    $token = $user->getRememberToken();
-                    $value = $user->id . '|' . $token . '|' . $user->password;
-
-                    cookie()->queue(
-                        $recaller,
-                        encrypt($value),
-                        $minutes,
-                        config('session.path'),
-                        config('session.domain'),
-                        config('session.secure'),
-                        config('session.http_only', true),
-                        false,
-                        config('session.same_site'),
-                    );
-                }
-
-                return redirect()->intended(Auth::user()->homeUrl());
-            }
-
-            return back()->withErrors([
-                'username' => 'The provided credentials do not match our records.',
-            ]);
-        });
-
-        Route::post('/logout', function () {
-            Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
-
-            return redirect('/');
-        })->name('logout');
+        // Login and logout are the panels' own routes now. Declared here, at the root, they
+        // replaced the main panel's — Laravel indexes routes by method and URI, so the later
+        // declaration wins and takes the earlier one's NAME down with it. That is how
+        // filament.main.auth.logout came to be undefined while filament.app.auth.logout existed.
     }
 
-    // Home / About page (public, no auth required)
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    // '/' is deliberately NOT declared here: App\Filament\Main\Pages\Home returns '/' from
+    // getRoutePath(), and the main panel — whose path is '' — registers that route itself, with the
+    // panel's own middleware. Declaring it by hand would shadow the panel.
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {

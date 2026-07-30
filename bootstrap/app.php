@@ -28,7 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // 500 in place of a login screen.
         $middleware->redirectGuestsTo(fn(): string => match (true) {
             Route::has('login') => route('login'),
-            Route::has('filament.admin.auth.login') => route('filament.admin.auth.login'),
+            Route::has('filament.main.auth.login') => route('filament.main.auth.login'),
+            Route::has('filament.app.auth.login') => route('filament.app.auth.login'),
             default => url('/'),
         });
 

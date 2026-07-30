@@ -1,6 +1,6 @@
         <div class="nav-container">
             <div class="nav-inner">
-                <a href="{{ auth()->check() ? route('calendar') : route('home') }}">
+                <a href="{{ auth()->check() ? route('calendar') : \App\Filament\Main\Pages\Home::getUrl(panel: 'main') }}">
                     <h1 class="nav-branding">
                         <div class="w-12 h-12">{!! appLogoHtml("") !!}</div>
                         <div class="app-title">

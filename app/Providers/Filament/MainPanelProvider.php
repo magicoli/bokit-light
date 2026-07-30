@@ -3,13 +3,12 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Concerns\HasSharedPanelConfig;
+use App\Filament\Pages\Dashboard;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
-use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
-use Magicoli\TwoWayTicket\ReportIssuePlugin;
-use Magicoli\TwoWayTicket\TicketsPlugin;
-
 // use Filament\Facades\Filament;
 // use Filament\Http\Middleware\Authenticate;
 // use Filament\Http\Middleware\AuthenticateSession;
@@ -21,6 +20,10 @@ use Magicoli\TwoWayTicket\TicketsPlugin;
 // use Filament\Support\Colors\Color;
 // use Filament\View\PanelsRenderHook;
 // use Filament\Widgets\AccountWidget;
+use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
+use Magicoli\TwoWayTicket\ReportIssuePlugin;
+use Magicoli\TwoWayTicket\TicketsPlugin;
+
 // use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 // use Illuminate\Cookie\Middleware\EncryptCookies;
 // use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -42,19 +45,37 @@ class MainPanelProvider extends PanelProvider
             // Specific config, this panel only
             ->id('main')
             ->path('')
+            ->login()
             ->default()
             ->topNavigation()
+            ->sidebarCollapsibleOnDesktop(false) // Disabled for top navigation, overrides common config
+            ->sidebarFullyCollapsibleOnDesktop(false) // Disabled for top navigation, overrides common config
             ->maxContentWidth(Width::Full)
             ->discoverResources(in: app_path('Filament/Main/Resources'), for: 'App\Filament\Main\Resources')
             ->discoverPages(in: app_path('Filament/Main/Pages'), for: 'App\Filament\Main\Pages')
             ->pages([
                 // Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Main/Widgets'), for: 'App\Filament\Main\Widgets')
-            ->widgets([
-                AccountWidget::class,
-                // FilamentInfoWidget::class,
+            ->navigationItems([
+                // route('calendar')
+                NavigationItem::make('calendar')
+                    ->label(__('app.calendar'))
+                    ->icon('heroicon-o-calendar-date-range')
+                    // ->group('legacy')
+                    ->url(fn(): string => route('calendar'))
+                    ->sort(1),
+                NavigationItem::make('app')
+                    ->label(__('app.app'))
+                    ->icon('heroicon-o-calendar-date-range')
+                    // ->group('legacy')
+                    ->url('/app')
+                    ->sort(1),
             ])
+            ->discoverWidgets(in: app_path('Filament/Main/Widgets'), for: 'App\Filament\Main\Widgets')
+            // ->widgets([
+            //     // AccountWidget::class,
+            //     // FilamentInfoWidget::class,
+            // ])
             ->plugins([
                 ReportIssuePlugin::make(),
             ]);

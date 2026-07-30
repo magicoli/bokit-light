@@ -638,6 +638,23 @@ A ticket has exactly the fields a GitHub issue has: title, description, status (
 
 Check `?status=open` periodically for newly reported items and handle them like a bug reported in conversation.
 
+### Never set `assignees` by default
+
+Assigning carries a meaning in the workflow: an assigned ticket is one somebody has taken up, and it surfaces in the projects currently in progress. So never fill the field when filing a ticket, and never assign it to whoever you are acting for out of politeness — that marks as under way work nobody has started.
+
+Assigning when work actually begins is the point of the field: when you start on a ticket, assigning it is the right move. The field takes GitHub user ids, nothing else — not a name, not an email.
+
+### Two numbers, two sigils
+
+A ticket id and a GitHub issue number are **different numbers** — ticket 82 is not issue 82, and most tickets have no issue at all. GitHub turns any `#n` it finds in an issue body or comment into a link to *its* issue n, so a `#82` meant for a ticket silently points at an unrelated issue.
+
+- **`°82`** — a local ticket.
+- **`#88`** — a GitHub issue; `owner/repo#88` when it lives in another repository.
+
+**Once a ticket has an issue, only the issue number is ever spoken.** The local id stops existing — in conversation, descriptions, comments and commit messages alike. One number, no lookup, nothing to disambiguate.
+
+`°` is not reachable on every keyboard. **`twt-82`** is the fallback for writing a local reference without it. There is no third form: a ticket that has no issue needs no cross-reference machinery, and anything more elaborate belongs on GitHub — which is what GitHub is for.
+
 ### Status belongs to GitHub
 
 Once a ticket is linked to an issue, its status **only** reflects that issue. Writing "FIXED" in the description changes nothing, and the next sync overwrites any local status that disagrees with GitHub. Closing one for real means closing the issue — a `Fix #N` keyword in a commit that reaches the default branch, or `gh issue close <n>`. `PATCH {base}/{id} {"status": "closed"}` is durable only for a ticket that was never pushed to GitHub.
