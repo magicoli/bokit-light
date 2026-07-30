@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Concerns\HasSharedPanelConfig;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
 // use CraftForge\FilamentLanguageSwitcher\FilamentLanguageSwitcherPlugin;
@@ -29,6 +30,11 @@ use Magicoli\TwoWayTicket\TicketsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public string $panel_id;
+    public string $panel_path;
+
+    use HasSharedPanelConfig;
+
     public function boot(): void
     {
         FilamentView::registerRenderHook(
@@ -43,20 +49,13 @@ class AdminPanelProvider extends PanelProvider
 
     public function panel(Panel $panel): Panel
     {
+        $panel = $this->applyCommonConfig($panel);
+
         return $panel
-            ->default()
             ->id('admin')
             ->path('admin')
+            ->default()
             ->login()
-            ->breadcrumbs(false)
-            ->homeUrl('/')
-            ->brandLogo('/images/logo.png')
-            ->brandLogoHeight(fn() => request()->is('login', '*/login') ? '128px' : '48px')
-            ->sidebarCollapsibleOnDesktop()
-            // ->sidebarFullyCollapsibleOnDesktop()
-            ->colors([
-                'primary' => Color::Amber,
-            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -67,24 +66,8 @@ class AdminPanelProvider extends PanelProvider
                 TicketStatsWidget::make(),
             ])
             ->plugins([
-                // FilamentLanguageSwitcherPlugin::make()                    ->locales(['en', 'fr'])
-                //     ->rememberLocale()
-                //     // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
-                //     ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
-                //     ->showOnAuthPages(),
                 TicketsPlugin::make(),
                 ReportIssuePlugin::make(),
-            ])
-            ->middleware([
-                EncryptCookies::class,
-                AddQueuedCookiesToResponse::class,
-                StartSession::class,
-                AuthenticateSession::class,
-                ShareErrorsFromSession::class,
-                VerifyCsrfToken::class,
-                SubstituteBindings::class,
-                DisableBladeIconComponents::class,
-                DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

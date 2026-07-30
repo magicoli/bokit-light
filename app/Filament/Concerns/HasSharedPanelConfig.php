@@ -2,15 +2,13 @@
 
 namespace App\Filament\Concerns;
 
-use BezhanSalleh\LanguageSwitch\Enums\Placement;
-use BezhanSalleh\LanguageSwitch\Enums\TriggerStyle;
-use BezhanSalleh\LanguageSwitch\Events\LocaleChanged;
-use BezhanSalleh\LanguageSwitch\LanguageSwitch;
 use Filament\Facades\Filament;
+use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\Support\Assets\Css;
@@ -24,13 +22,18 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
+use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
 
 trait HasSharedPanelConfig
 {
+    public string $panel_id;
+    public string $panel_path;
+
     /**
      * Apply common configurations to a Filament panel.
      */
-    public function applyCommonConfig(Panel $panel): Panel
+    public function applyCommonConfig(Panel $panel, string $id = null, string $path = null): Panel
     {
         return $panel
             // Shared Theme & Styling
@@ -44,8 +47,21 @@ trait HasSharedPanelConfig
             ])
             ->assets([
                 Css::make('panels-stylesheet', resource_path('css/panels.css')),
+                Css::make('legacy-stylesheet', resource_path('css/legacy.css')),
                 Js::make('panels-script', resource_path('js/panels.js')),
             ])
+            // ->breadcrumbs(false)
+            ->sidebarCollapsibleOnDesktop()
+            // ->sidebarFullyCollapsibleOnDesktop()
+            // ->userMenuItems([
+            //     'profile' => MenuItem::make()
+            //         ->label(fn() => auth()->user()?->name ?? __('Profile'))
+            //         ->url(fn(): string => EditProfilePage::getUrl())
+            //         ->icon('heroicon-m-user-circle')
+            //         ->visible(fn(): bool => auth()->check()),
+            // ])
+            // ->widgets([]) // $id is needed for that
+            ->unsavedChangesAlerts()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

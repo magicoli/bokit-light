@@ -10,13 +10,14 @@
 **/
 
 @import "tailwindcss";
+@import "./_theme.css";
+@import "./legacy.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
-@import "./_theme.css";
 
 /* =============================================================================
    NAVIGATION
@@ -127,10 +128,6 @@ nav {
         /* Sur mobile: seulement date + hamburger */
         @media (max-width: 767px) {
             @apply space-x-3;
-
-            .dropdown,
-            .nav-login,
-
         }
 
         /* Sur tablet: cacher admin/user menus, garder locale */
