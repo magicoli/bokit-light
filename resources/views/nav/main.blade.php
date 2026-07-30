@@ -1,6 +1,8 @@
         <div class="nav-container">
             <div class="nav-inner">
-                <a href="{{ auth()->check() ? route('calendar') : \App\Filament\Main\Pages\Home::getUrl(panel: 'main') }}">
+                {{-- The logo goes home, signed in or not. Sending an authenticated visitor to the
+                     calendar made the site's own front page unreachable from every legacy screen. --}}
+                <a href="{{ \App\Filament\Main\Pages\Home::getUrl(panel: 'main') }}">
                     <h1 class="nav-branding">
                         <div class="w-12 h-12">{!! appLogoHtml("") !!}</div>
                         <div class="app-title">

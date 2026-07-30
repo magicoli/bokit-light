@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::has('login') => route('login'),
             Route::has('filament.main.auth.login') => route('filament.main.auth.login'),
             Route::has('filament.app.auth.login') => route('filament.app.auth.login'),
+            // The front page, asked of the panel that serves it rather than assumed to be the
+            // site root — which it stops being the day that panel takes a path.
+            Route::has('filament.main.pages.home') => route('filament.main.pages.home'),
             default => url('/'),
         });
 

@@ -10,6 +10,7 @@ return [
     'login' => 'Login',
     'admin' => 'Admin',
     'admin_legacy' => 'Admin (legacy)',
+    'legacy' => 'Legacy',
     'account' => 'Account',
     'admin_settings' => 'Admin Settings',
     'user_account' => 'Account',

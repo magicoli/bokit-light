@@ -45,7 +45,7 @@ class MainPanelProvider extends PanelProvider
             // Specific config, this panel only
             ->id('main')
             ->path('')
-            ->login()
+            // ->login() // Already set by applyCommonConfig()
             ->default()
             ->topNavigation()
             ->sidebarCollapsibleOnDesktop(false) // Disabled for top navigation, overrides common config
@@ -58,18 +58,25 @@ class MainPanelProvider extends PanelProvider
             ])
             ->navigationItems([
                 // route('calendar')
-                NavigationItem::make('calendar')
+                NavigationItem::make()
+                    ->label(__('Dashboard'))
+                    ->icon('bi-luggage')
+                    // ->group('legacy')
+                    ->url(fn(): string => route('filament.app.pages.dashboard'))
+                    // Nothing to offer a visitor who cannot enter it. Owners rather than every
+                    // account, in truth — that distinction arrives with the tenants.
+                    ->visible(fn(): bool => auth()->check()),
+                NavigationItem::make()
                     ->label(__('app.calendar'))
                     ->icon('heroicon-o-calendar-date-range')
                     // ->group('legacy')
                     ->url(fn(): string => route('calendar'))
-                    ->sort(1),
-                NavigationItem::make('app')
-                    ->label(__('app.app'))
-                    ->icon('heroicon-o-calendar-date-range')
-                    // ->group('legacy')
-                    ->url('/app')
-                    ->sort(1),
+                    ->visible(fn(): bool => auth()->check()),
+                NavigationItem::make()
+                    ->label(__('app.legacy'))
+                    ->icon('ri-dashboard-line')
+                    ->url(fn(): string => route('admin.dashboard'))
+                    ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
             ])
             ->discoverWidgets(in: app_path('Filament/Main/Widgets'), for: 'App\Filament\Main\Widgets')
             // ->widgets([
