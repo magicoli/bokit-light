@@ -1,9 +1,6 @@
 {
     "agents": [
-        "claude_code",
-        "codex",
-        "copilot",
-        "opencode"
+        "claude_code"
     ],
     "editors": [
         "claude_code"
