@@ -68,7 +68,7 @@ php artisan bokit:sync
 
 Conventions, architecture and workflow are in [DEVELOPERS.md](DEVELOPERS.md) — read it before
 opening a pull request. In short: English everywhere, Laravel and Filament features before custom
-code, tests with every change, and `mago format` on the files you touched.
+code, tests with every change.
 
 Bugs and ideas go through the tracker in the app itself, which promotes what belongs there to
 GitHub issues.

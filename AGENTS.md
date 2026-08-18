@@ -5,19 +5,6 @@ These rules always apply. Boost owns the tagged block below and rewrites it on e
 opening tag anywhere else in this file — Boost matches the first occurrence and would overwrite
 from there.
 
-## PHP formatting — Mago, never Pint
-
-- Format with `mago format <path>`. `laravel/pint` has been removed from this project on purpose:
-  php-cs-fixer has broken working code here (chained `->method()` calls, parenthesised ternaries),
-  and its style disagrees with the editor's format-on-save, which runs Mago.
-- `mago.toml` pins `php-version = "8.3.0"` and that pin is the point: left to itself Mago assumes
-  the newest PHP it knows and applies simplifications that are valid in 8.4 but not in 8.3. Keep it
-  in step with `composer.json`.
-- Format **only the files you changed**, after editing them. Never run a formatter across the whole
-  project — it rewrites dozens of untouched files and buries the real diff.
-- Mago is installed globally (`composer global require carthage-software/mago`), not as a project
-  dependency. If the command is missing, say so rather than reaching for another formatter.
-
 ## Git
 
 Full rules in [DEVELOPERS.md](DEVELOPERS.md) § Commit Message Format and § Version Releases. 

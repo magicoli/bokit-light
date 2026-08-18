@@ -162,27 +162,6 @@ class RateCalculator {
 }
 ```
 
-**PHP formatting — use `mago format`, not Pint**:
-
-Pint (php-cs-fixer) has, in rare cases, actually broken code: chained `->method()` calls and
-ternaries combined with parentheses are known weak spots where it miscounts precedence, forcing
-convoluted rewrites just to keep it from mangling otherwise-correct code. Its
-style doesn't match this project's actual convention either — Zed's `format_on_save` runs
-`mago format` — so anything Pint reformats gets undone the next time the file is saved in the
-editor.
-
-Install it globally, never as a project dependency:
-
-```bash
-composer global require carthage-software/mago
-mago format app/Services/SyncEngine.php   # changed files only
-```
-
-**Never run Pint, Mago, or any other formatter across the whole project.** It rewrites dozens of
-untouched files for futile formatting differences and drowns the real diff. `mago.toml` pins
-`php-version` for exactly that reason: with no configuration Mago assumes the newest PHP it knows
-and rewrites code to match.
-
 ### Configuration Management
 
 **Never use constants** for configuration:

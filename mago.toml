@@ -1,5 +1,0 @@
-#:schema https://mago.carthage.software/1.30.0/schema.json
-version = "1"
-
-# Keep in step with composer.json's `php` constraint.
-php-version = "8.3.0"
