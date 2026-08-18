@@ -67,31 +67,9 @@ class AppPanelProvider extends PanelProvider
                 NavigationGroup::make(__('Deprecated'))->collapsed(),
             ])
             ->navigationItems([
-                // route('calendar')
-                NavigationItem::make('calendar')
-                    ->label(fn(): string => __('app.calendar'))
-                    ->icon('heroicon-o-calendar-date-range')
-                    // ->group('legacy')
-                    ->url(fn(): string => route('calendar'))
-                    ->sort(1)
-                    ->badge(fn(): string => __('Legacy'))
-                    ->visible(fn(): bool => auth()->check()),
-                // ->visible(
-                //     fn(): bool => (
-                //         Filament::getTenant() instanceof Project
-                //         && (
-                //             auth()->user()?->isAdmin()
-                //             || Filament::getTenant()->roleFor(auth()->user()) === 'owner'
-                //         )
-                //     ),
-                // ),
-                NavigationItem::make('legacy-admin')
-                    ->label(fn(): string => __('app.admin_legacy'))
-                    ->icon('heroicon-s-building-office-2')
-                    ->group(fn(): string => __('Deprecated'))
-                    ->url(fn(): string => route('admin.dashboard'))
-                    ->badge(fn(): string => __('Legacy'))
-                    ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
+                // Calendar and the legacy admin now come from the shared cross-panel shortcuts in
+                // HasSharedPanelConfig, rendered next to the user menu on every panel. What stays
+                // here is the panel's own "Deprecated" group of deep legacy links.
                 NavigationItem::make('properties')
                     ->label(fn(): string => __('app.properties'))
                     ->icon('heroicon-s-building-office-2')

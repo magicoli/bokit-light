@@ -57,7 +57,6 @@ class MainPanelProvider extends PanelProvider
                 // Dashboard::class,
             ])
             ->navigationItems([
-                // route('calendar')
                 NavigationItem::make()
                     ->label(fn(): string => __('app.dashboard'))
                     ->icon('bi-luggage')
@@ -66,17 +65,8 @@ class MainPanelProvider extends PanelProvider
                     // Nothing to offer a visitor who cannot enter it. Owners rather than every
                     // account, in truth — that distinction arrives with the tenants.
                     ->visible(fn(): bool => auth()->check()),
-                NavigationItem::make()
-                    ->label(fn(): string => __('app.calendar'))
-                    ->icon('heroicon-o-calendar-date-range')
-                    // ->group('legacy')
-                    ->url(fn(): string => route('calendar'))
-                    ->visible(fn(): bool => auth()->check()),
-                NavigationItem::make()
-                    ->label(fn(): string => __('app.obsolete'))
-                    ->icon('ri-dashboard-line')
-                    ->url(fn(): string => route('admin.dashboard'))
-                    ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
+                // Calendar and the legacy admin now come from the shared cross-panel shortcuts in
+                // HasSharedPanelConfig, rendered next to the user menu on every panel.
             ])
             ->discoverWidgets(in: app_path('Filament/Main/Widgets'), for: 'App\Filament\Main\Widgets')
             // ->widgets([
