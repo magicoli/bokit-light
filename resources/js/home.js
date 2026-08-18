@@ -4,21 +4,40 @@
  * The two surfaces it fades between are created here rather than written into the page: they carry
  * nothing a reader needs, and without this script there is nothing to fade.
  *
- * The two sets are two folders on disk, listed by the controller. Which one is used follows the
- * visitor's system theme and switches with it, without a reload.
+ * The two sets are two folders on disk, listed by the page. Which one is used follows the visitor's
+ * system theme and switches with it, without a reload.
+ *
+ * The home page is served by the main panel now, so it arrives and leaves through the panel's own
+ * SPA navigation as much as through a full load: the surfaces are wired on both, and torn down
+ * again the moment a panel page that is not the home page comes up in their place.
  */
 
 const ROTATION_MS = 45000;
 
 /** How much of the scroll the photograph follows. Zero would be a fixed background, one would be a
- *  background scrolling with the page; a third of it reads as depth without drawing attention. */
+ *  background scrolling with the page; a sliver of it reads as depth without drawing attention. */
 const PARALLAX = 0.05;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const area = document.getElementById('main-area');
+/**
+ * Wire the wallpaper for the page that is on screen.
+ *
+ * The `#wallpapers` data island is part of the home page and of no other, so its absence is how
+ * this knows a different panel page has taken over: it then removes any surfaces a previous visit
+ * left behind and stops. `.fi-layout` is the panel's outermost box, the stage the photographs sit
+ * at the back of; a full-load fallback keeps the old `#main-area` host working too.
+ */
+function initWallpaper() {
     const source = document.getElementById('wallpapers');
+    const area = document.querySelector('.fi-layout') || document.getElementById('main-area');
 
-    if (!area || !source) {
+    if (!source || !area) {
+        document.querySelectorAll('.wallpaper').forEach((layer) => layer.remove());
+
+        return;
+    }
+
+    // Already wired for this page — a second navigated event on the same layout changes nothing.
+    if (area.querySelector('.wallpaper')) {
         return;
     }
 
@@ -194,4 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
     dark.addEventListener('change', start);
     start();
     parallax();
-});
+}
+
+document.addEventListener('DOMContentLoaded', initWallpaper);
+// The main panel swaps pages without a reload; the home page comes and goes through this too.
+document.addEventListener('livewire:navigated', initWallpaper);

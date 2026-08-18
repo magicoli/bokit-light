@@ -12,6 +12,7 @@ use Filament\Navigation\MenuItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\Support\Assets\Css;
+use Illuminate\Support\Facades\Vite;
 use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
@@ -46,9 +47,13 @@ trait HasSharedPanelConfig
                 'gray' => Color::Teal,
             ])
             ->assets([
-                Css::make('panels-stylesheet', resource_path('css/panels.css')),
-                Css::make('legacy-stylesheet', resource_path('css/legacy.css')),
-                Js::make('panels-script', resource_path('js/panels.js')),
+                // Vite::asset(), not resource_path(): Filament publishes a local path verbatim,
+                // which would ship @import and @apply straight to the browser. Everything under
+                // resources/ is built, and the panels are served what the build produced.
+                Css::make('glass-stylesheet', Vite::asset('resources/css/glass.css')),
+                Css::make('panels-stylesheet', Vite::asset('resources/css/panels.css')),
+                Css::make('legacy-stylesheet', Vite::asset('resources/css/legacy.css')),
+                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
             ])
             // ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()

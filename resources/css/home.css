@@ -2,20 +2,23 @@
 @import "./_theme.css";
 
 /**
- * The home page: a photograph across the whole width, and the text floating on a pane of glass.
+ * The home page: a photograph across the whole window, and the text floating on a pane of glass.
  *
- * Everything here is scoped to body.home-page — the rest of the application is a working tool and
- * has no business being decorated.
+ * Loaded by the page itself rather than by the panel: the panel serves every public page, while
+ * what follows only makes sense in front of a photograph, so it applies on this page and nowhere
+ * else. The glass surface the text sits on is not here — that is resources/css/glass.css, which
+ * every panel carries; here is only what turns the panel's working chrome into a stage for it.
+ *
+ * The photographs are fixed to the window and sit at the back of the layout; the panel's content
+ * boxes are cleared to glass so they show through, and the glass pane samples them. Everything is
+ * keyed to the Filament layout (.fi-layout and the page boxes under it), which is what wraps this
+ * page now that it is served by the main panel rather than a standalone view.
  */
 
-body.home-page #main-area {
-    /* Only a positioning context for what the script puts inside. NOT isolation: isolate — that
-       would make this element a backdrop root, and the glass further down would have nothing left
-       to sample. Chromium and Firefox apply that to the letter; Safari does not, which is exactly
-       how a bug like this survives a first look. */
+/* The layout is the stage: a positioning context for the photographs, and the gradient shown
+   before the first one loads — or for good, if no wallpaper was ever added. */
+.fi-layout {
     position: relative;
-
-    /* Shown before the first photograph loads, and for good if none was ever added. */
     background-color: oklch(0.95 0.02 90);
     background-image: linear-gradient(
         135deg,
@@ -25,15 +28,27 @@ body.home-page #main-area {
     );
 }
 
+@media (prefers-color-scheme: dark) {
+    .fi-layout {
+        background-color: oklch(0.18 0.02 260);
+        background-image: linear-gradient(
+            135deg,
+            oklch(0.35 0.06 265) 0%,
+            oklch(0.24 0.04 230) 50%,
+            oklch(0.28 0.05 200) 100%
+        );
+    }
+}
+
 /**
  * The photographs, as two surfaces the script builds and crossfades between.
  *
- * Fixed rather than attached to the element: sized on the window, so a long page crops nothing and
- * scrolling moves the text over a still photograph. An element rather than a fixed background,
- * because a background-attachment: fixed is composited apart in Chromium and Firefox and never
- * makes it into what backdrop-filter samples — the glass would stop frosting.
+ * Fixed rather than in flow: sized on the window, so a long page crops nothing and scrolling moves
+ * the text over a still photograph. An element rather than a fixed background, because a
+ * background-attachment: fixed is composited apart in Chromium and Firefox and never reaches what
+ * backdrop-filter samples — the glass would stop frosting.
  */
-body.home-page .wallpaper {
+.wallpaper {
     position: fixed;
     /* Taller than the window on both sides: the parallax slides the photograph, and this is the
        slack it slides into rather than showing an edge. */
@@ -50,49 +65,32 @@ body.home-page .wallpaper {
     pointer-events: none;
 }
 
-body.home-page .wallpaper.is-visible {
+.wallpaper.is-visible {
     opacity: 1;
 }
 
-/* Above the photographs. Without this they would paint over the page, being positioned. */
-body.home-page #main-area > main,
-body.home-page #main-area > .sidebar,
-body.home-page footer {
+/* The panel paints its working background on these boxes — right for a calendar, fatal in front of
+   a photograph. Cleared to glass so the wallpaper behind shows and the pane can sample it, and
+   lifted above the fixed photographs, which are positioned and would otherwise paint over them. */
+.fi-main-ctn,
+.fi-main,
+.fi-page,
+.fi-page-content {
     position: relative;
     z-index: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-    body.home-page #main-area {
-        background-color: oklch(0.18 0.02 260);
-        background-image: linear-gradient(
-            135deg,
-            oklch(0.35 0.06 265) 0%,
-            oklch(0.24 0.04 230) 50%,
-            oklch(0.28 0.05 200) 100%
-        );
-    }
-}
-
-/* The layout gives main an opaque background — right for a working screen, fatal in front of a
-   photograph. Cleared here rather than from the script: this stylesheet is loaded on this page and
-   nowhere else, and a rule applies on the first frame where a script only applies after it. */
-
-body.home-page #page-layout > #main-area > main,
-body.home-page #main-area > main {
     background: transparent;
 }
 
-/* Pushed down the window, so the photograph has room to be looked at before the text asks for
-   attention. Scoped to the home page: elsewhere the glass is just a surface, and starting halfway
-   down the screen would be an odd thing for a card to do. */
-body.home-page .glass {
+.home-pane {
+    /* Pushed down the window, so the photograph has room to be looked at before the text asks for
+       attention. */
     margin-top: 30vh;
-    /* The photograph is the page; the pane joins it a moment later. */
-    animation: glass-in 700ms 150ms ease-out both;
+    /* The photograph is the page; the pane joins it a moment later. Short on purpose: while the
+       opacity is below one the element is a backdrop root, and the blur behind it is inactive. */
+    animation: home-pane-in 700ms 150ms ease-out both;
 }
 
-@keyframes glass-in {
+@keyframes home-pane-in {
     from {
         opacity: 0;
         transform: translateY(16px);
@@ -103,66 +101,12 @@ body.home-page .glass {
     }
 }
 
-/**
- * The pane.
- *
- * Apple's glass is not a translucent rectangle: it is a blurred, over-saturated sample of what sits
- * behind, with a lit top edge and a shadow underneath. Nothing here moves: a travelling highlight
- * repaints a large blurred surface on every frame, and a decoration that costs a core is a
- * decoration that makes the site unusable on an ordinary machine.
- */
-.glass {
-    position: relative;
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border-radius: 28px;
-    border: 1px solid oklch(1 0 0 / 0.35);
-    background: oklch(1 0 0 / 0.5);
-    /* Saturation is what keeps the glass from looking like frosted plastic: the colours behind stay
-       colours, only softened. */
-    /* No hand-written -webkit- twin: the build adds the prefixes it decides are needed, and a
-       prefixed copy written after the standard property made it drop the standard one as
-       redundant — leaving Firefox, which has no such alias, with no glass at all. */
-    backdrop-filter: blur(16px) saturate(180%);
-    box-shadow:
-        /* the pane's own weight */
-        0 24px 60px -20px oklch(0 0 0 / 0.35),
-        /* the lit top edge, and the darker one it rests on */
-        inset 0 1px 0 0 oklch(1 0 0 / 0.7),
-        inset 0 -1px 0 0 oklch(1 0 0 / 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-    .glass {
-        border-color: oklch(1 0 0 / 0.14);
-        background: oklch(0.2 0.02 260 / 0.45);
-        box-shadow:
-            0 24px 60px -20px oklch(0 0 0 / 0.6),
-            inset 0 1px 0 0 oklch(1 0 0 / 0.18),
-            inset 0 -1px 0 0 oklch(0 0 0 / 0.3);
-        color: oklch(0.97 0 0);
-    }
-
-}
-
 @media (prefers-reduced-motion: reduce) {
-    body.home-page .wallpaper {
+    .wallpaper {
         transition: none;
     }
 
-    body.home-page .glass {
+    .home-pane {
         animation: none;
-    }
-}
-
-/* Without backdrop-filter there is no glass, only an unreadable transparent box. */
-@supports not (backdrop-filter: blur(1px)) {
-    .glass {
-        background: oklch(1 0 0 / 0.92);
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .glass {
-            background: oklch(0.2 0.02 260 / 0.92);
-        }
     }
 }

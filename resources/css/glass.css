@@ -1,0 +1,67 @@
+/**
+ * The glass surface, available to every panel.
+ *
+ * Plain CSS on purpose, and self-contained: Filament publishes this file verbatim through
+ * `filament:assets`, so an @import or a Tailwind directive would reach the browser unprocessed.
+ * Nothing here depends on the application's build.
+ *
+ * Add `class="glass"` to anything — a card, a section, a button. The padding is a default, not a
+ * decision: override it on the target where it does not suit. The blur shows nothing on a flat
+ * surface and costs nothing there either; it starts working by itself the day that element lands
+ * over a photograph.
+ *
+ * Nothing animates: a travelling highlight repaints a large blurred surface on every frame, which
+ * measured a full core on an ordinary machine. See the liquid-glass skill for the traps.
+ */
+
+.glass {
+    position: relative;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 28px;
+    border: 1px solid oklch(1 0 0 / 0.35);
+    background: oklch(1 0 0 / 0.5);
+    /* Saturation is what keeps the glass from looking like frosted plastic: the colours behind
+       stay colours, only softened. Never hand-write the -webkit- twin — written after the standard
+       property, it makes the build drop that one, and Firefox loses the effect entirely. */
+    backdrop-filter: blur(16px) saturate(180%);
+    box-shadow:
+        /* the pane's own weight */
+        0 24px 60px -20px oklch(0 0 0 / 0.35),
+        /* the lit top edge, and the darker one it rests on */
+        inset 0 1px 0 0 oklch(1 0 0 / 0.7),
+        inset 0 -1px 0 0 oklch(1 0 0 / 0.12);
+}
+
+/* Filament switches theme by a class on the root, not only by the system preference. */
+.dark .glass,
+:root[data-theme="dark"] .glass {
+    border-color: oklch(1 0 0 / 0.14);
+    background: oklch(0.2 0.02 260 / 0.45);
+    box-shadow:
+        0 24px 60px -20px oklch(0 0 0 / 0.6),
+        inset 0 1px 0 0 oklch(1 0 0 / 0.18),
+        inset 0 -1px 0 0 oklch(0 0 0 / 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    .glass {
+        border-color: oklch(1 0 0 / 0.14);
+        background: oklch(0.2 0.02 260 / 0.45);
+        box-shadow:
+            0 24px 60px -20px oklch(0 0 0 / 0.6),
+            inset 0 1px 0 0 oklch(1 0 0 / 0.18),
+            inset 0 -1px 0 0 oklch(0 0 0 / 0.3);
+    }
+}
+
+/* Without backdrop-filter there is no glass, only an unreadable transparent box. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+        background: oklch(1 0 0 / 0.92);
+    }
+
+    .dark .glass,
+    :root[data-theme="dark"] .glass {
+        background: oklch(0.2 0.02 260 / 0.92);
+    }
+}
