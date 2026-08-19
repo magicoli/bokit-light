@@ -4,16 +4,12 @@ namespace App\Providers\Filament;
 
 use App\Filament\Concerns\HasSharedPanelConfig;
 use App\Filament\Pages\Dashboard;
-use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
-use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
-use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
-use Magicoli\TwoWayTicket\ReportIssuePlugin;
-use Magicoli\TwoWayTicket\TicketsPlugin;
 use Filament\View\PanelsRenderHook;
+use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
 
 class MainPanelProvider extends PanelProvider
 {
@@ -50,7 +46,17 @@ class MainPanelProvider extends PanelProvider
             // ])
             ->plugins([
                 // The credit line at the foot of every panel.
-                NavigationItemsPlugin::make()->renderHook(PanelsRenderHook::FOOTER)->items(self::footerItems()),
+                NavigationItemsPlugin::make()->renderHook(PanelsRenderHook::FOOTER)->items(
+                    [
+                        NavigationItem::make('credit')->label(fn (): string => config('app.name').' '.config('app.version')),
+                        NavigationItem::make('github')
+                            ->label('GitHub')
+                            ->url('https://github.com/magicoli/bokit-light', shouldOpenInNewTab: true)
+                            ->icon('ri-github-line')
+                            ->group('External')
+                            ->sort(10),
+                    ]
+                ),
             ]);
     }
 }

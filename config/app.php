@@ -1,19 +1,65 @@
 <?php
 
 // Generate a random key and save it if not provided
-$key = env('APP_KEY', 'base64:' . base64_encode(random_bytes(32)));
+$key = env('APP_KEY', 'base64:'.base64_encode(random_bytes(32)));
 if (empty(env('APP_KEY'))) {
     putenv("APP_KEY={$key}");
 
-    if (!file_exists($envPath = dirname(__DIR__) . '/.env')) {
+    if (! file_exists($envPath = dirname(__DIR__).'/.env')) {
         file_put_contents($envPath, "APP_KEY={$key}\n");
     } else {
         // Replace APP_KEY in .env file if it exists, otherwise add it
         $env = file_get_contents($envPath);
-        $env = "APP_KEY={$key}\n" . preg_replace('/^APP_KEY=.*$(?:\r\n|\n)?/m', '', $env);
+        $env = "APP_KEY={$key}\n".preg_replace('/^APP_KEY=.*$(?:\r\n|\n)?/m', '', $env);
         file_put_contents($envPath, $env);
     }
 }
+
+$env_env = env('APP_ENV', 'production');
+$env_debug = env('APP_DEBUG', false);
+$env_debug = $env_debug == true || $env_debug == 'true';
+
+/**
+ * Get app version (stored for production, live and git hash in dev)
+ */
+$root = dirname(__DIR__);
+$version = null;
+$gitHash = null;
+
+// Get stored version and hash
+if (is_file($versionFile = $root.'/storage/version')) {
+    $contents = trim((string) file_get_contents($versionFile));
+    $version = strtok($contents, " \n\t");
+    $gitHash = strtok(" \n\t") ?: null;
+}
+
+// Allow local override — only replaces what was found above if actually set
+$version = env('APP_VERSION', null) ?: $version;
+
+// Try to get actual version and hash in debug mode
+if ($env_debug || $env_env !== 'production') {
+    $composerJson = json_decode((string) @file_get_contents($root.'/composer.json'), true);
+    $version = $composerJson['version'] ?? $version;
+
+    if (is_file($headFile = $root.'/.git/HEAD')) {
+        $head = @file_get_contents($headFile);
+
+        if ($head !== false && str_starts_with($head = trim($head), 'ref: ')) {
+            $head = @file_get_contents(dirname($headFile).'/'.substr($head, 5));
+            $head = $head !== false ? trim($head) : false;
+        }
+        $gitHash = $head ? substr($head, 0, 7) : $gitHash;
+    }
+}
+
+// Fallback to composer installed version
+if (empty($version)) {
+    $package = InstalledVersions::getRootPackage()['name'];
+    $version = InstalledVersions::getPrettyVersion($package);
+}
+
+// Build final version
+$version .= $gitHash ? " ($gitHash)" : '';
 
 return [
     /*
@@ -27,16 +73,15 @@ return [
      |
      */
 
-    'name' =>
-        env('APP_NAME', 'Bokit')
-            . (
+    'name' => env('APP_NAME', 'Bokit')
+            .(
                 env('APP_ENV', 'production') == 'production'
                     ? ''
-                    : ' (' . preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? 'localhost' ?: 'localhost') . ')'
+                    : ' ('.preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? 'localhost' ?: 'localhost').')'
             ),
     'slogan' => env('APP_SLOGAN', 'Bring On Kitsch Island Time'),
     'logo' => env('APP_LOGO', '/images/logo.png'),
-    'version' => env('APP_VERSION', '1.1.0-dev'),
+    'version' => $version ?: '',
 
     /*
      |--------------------------------------------------------------------------
