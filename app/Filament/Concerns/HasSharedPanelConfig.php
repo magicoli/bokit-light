@@ -27,6 +27,9 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
 use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
+use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
+use Magicoli\TwoWayTicket\ReportIssuePlugin;
+use Magicoli\TwoWayTicket\TicketsPlugin;
 
 trait HasSharedPanelConfig
 {
@@ -36,10 +39,13 @@ trait HasSharedPanelConfig
     /**
      * Apply common configurations to a Filament panel.
      */
-    public function applyCommonConfig(Panel $panel, string $id = null, string $path = null): Panel
+    public function applyCommonConfig(Panel $panel, string $id, ?string $path = null): Panel
     {
+        $path = $path === null ? $id : $path;
+
         return $panel
-            // Shared Theme & Styling
+            ->id($id)
+            ->path($path)
             ->homeUrl('/')
             ->login()
             ->brandLogo('/images/logo.png')
@@ -60,14 +66,36 @@ trait HasSharedPanelConfig
             // ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->plugins([
+                ReportIssuePlugin::make(),
+                // The edit-profile page + its "Edit profile" entry in the user menu (rendered by
+                // extra-navigation-items' user-menu override). No navigation item of its own — it
+                // is reached from the user menu.
+                FilamentEditProfilePlugin::make()->shouldRegisterNavigation(false),
                 // Cross-panel shortcuts (Calendar + the legacy admin), rendered next to the user
                 // menu on every panel that shares this config — realising the "Calendar + Admin
                 // links in the topbar, shared with the frontend" that each panel used to carry as
                 // its own duplicated navigationItems(). Each item hides itself when it does not
                 // apply. See NavigationItemsPlugin (magicoli/extra-navigation-items).
-                NavigationItemsPlugin::make()->items(self::sharedShortcuts()),
-                // The credit line at the foot of every panel.
-                NavigationItemsPlugin::make()->renderHook(PanelsRenderHook::FOOTER)->items(self::footerItems()),
+                NavigationItemsPlugin::make()->items([
+                    NavigationItem::make('calendar')
+                        ->label(fn(): string => __('app.calendar'))
+                        ->icon('heroicon-o-calendar-date-range')
+                        ->url(fn(): string => route('calendar'))
+                        ->visible(fn(): bool => auth()->check()),
+                    NavigationItem::make("dashboard")
+                        ->label(fn(): string => __('app.dashboard'))
+                        ->icon('bi-luggage')
+                        // ->group('legacy')
+                        ->url(fn(): string => route('filament.app.pages.dashboard'))
+                        // Nothing to offer a visitor who cannot enter it. Owners rather than every
+                        // account, in truth — that distinction arrives with the tenants.
+                        ->visible(fn(): bool => auth()->check()),
+                    NavigationItem::make('legacy-admin')
+                        ->label(fn(): string => __('app.obsolete'))
+                        ->icon('ri-dashboard-line')
+                        ->url(fn(): string => route('admin.dashboard'))
+                        ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
+                ]),
             ])
             // ->sidebarFullyCollapsibleOnDesktop()
             // ->userMenuItems([
@@ -93,29 +121,6 @@ trait HasSharedPanelConfig
                 // ->authMiddleware([
                 //     Authenticate::class,
             ]);
-    }
-
-    /**
-     * The shortcuts shown on every shared panel, next to the user menu — the panel switchers that
-     * used to be repeated, and drift, in each panel's own navigationItems(). Defined once here;
-     * every item carries its own visibility.
-     *
-     * @return array<int, NavigationItem>
-     */
-    protected static function sharedShortcuts(): array
-    {
-        return [
-            NavigationItem::make('shared-calendar')
-                ->label(fn(): string => __('app.calendar'))
-                ->icon('heroicon-o-calendar-date-range')
-                ->url(fn(): string => route('calendar'))
-                ->visible(fn(): bool => auth()->check()),
-            NavigationItem::make('shared-admin')
-                ->label(fn(): string => __('app.obsolete'))
-                ->icon('ri-dashboard-line')
-                ->url(fn(): string => route('admin.dashboard'))
-                ->visible(fn(): bool => (bool) auth()->user()?->isAdmin()),
-        ];
     }
 
     /**

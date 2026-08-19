@@ -32,7 +32,7 @@ public/css/
 public/js/
 public/fonts/
 public/images/wallpapers/
-vendor/
+/vendor/
 deploy.*ml
 deploy.php
 herd.yml

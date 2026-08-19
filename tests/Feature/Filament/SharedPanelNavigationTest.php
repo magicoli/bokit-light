@@ -3,20 +3,22 @@
 use Filament\Facades\Filament;
 use Filament\View\PanelsRenderHook;
 
-it('registers the shared cross-panel shortcuts and the footer on every shared panel', function (string $panelId): void {
-    $ids = array_keys(Filament::getPanel($panelId)->getPlugins());
-
-    expect($ids)
-        ->toContain('navigation-items-plugin:' . PanelsRenderHook::USER_MENU_BEFORE)
-        ->toContain('navigation-items-plugin:' . PanelsRenderHook::FOOTER);
+it('registers the shared cross-panel shortcuts next to the user menu on every shared panel', function (string $panelId): void {
+    expect(array_keys(Filament::getPanel($panelId)->getPlugins()))
+        ->toContain('navigation-items-plugin:' . PanelsRenderHook::USER_MENU_BEFORE);
 })->with(['main', 'app']);
 
-it('defines two shared shortcuts (calendar, admin) and a single footer credit item', function (): void {
-    $shortcuts = (new ReflectionMethod(\App\Providers\Filament\MainPanelProvider::class, 'sharedShortcuts'))
-        ->invoke(null);
-    $footer = (new ReflectionMethod(\App\Providers\Filament\MainPanelProvider::class, 'footerItems'))
-        ->invoke(null);
+it('renders the footer credit line on the main panel only', function (): void {
+    $footerId = 'navigation-items-plugin:' . PanelsRenderHook::FOOTER;
 
-    expect($shortcuts)->toHaveCount(2)
-        ->and($footer)->toHaveCount(1);
+    expect(array_keys(Filament::getPanel('main')->getPlugins()))->toContain($footerId)
+        ->and(array_keys(Filament::getPanel('app')->getPlugins()))->not->toContain($footerId);
 });
+
+it('gives every shared panel the edit-profile page reached from the user menu', function (string $panelId): void {
+    Filament::setCurrentPanel(Filament::getPanel($panelId));
+
+    expect(\Illuminate\Support\Facades\Route::has(
+        \Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage::getRouteName(),
+    ))->toBeTrue();
+})->with(['main', 'app']);

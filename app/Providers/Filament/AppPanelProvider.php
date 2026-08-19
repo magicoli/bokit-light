@@ -5,7 +5,6 @@ namespace App\Providers\Filament;
 use App\Filament\Concerns\HasSharedPanelConfig;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
-// use CraftForge\FilamentLanguageSwitcher\FilamentLanguageSwitcherPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -51,11 +50,11 @@ class AppPanelProvider extends PanelProvider
 
     public function panel(Panel $panel): Panel
     {
-        $panel = $this->applyCommonConfig($panel);
+        $panel = $this->applyCommonConfig($panel, 'app');
 
         return $panel
-            ->id('app')
-            ->path('app')
+            // ->id('app')
+            // ->path('app')
             ->default()
             ->login()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -63,6 +62,7 @@ class AppPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
+            ->topbar(false)
             ->navigationGroups([
                 NavigationGroup::make(__('Deprecated'))->collapsed(),
             ])
@@ -91,7 +91,6 @@ class AppPanelProvider extends PanelProvider
             ])
             ->plugins([
                 TicketsPlugin::make(),
-                ReportIssuePlugin::make(),
             ])
             ->authMiddleware([
                 Authenticate::class,

@@ -314,12 +314,12 @@ class AppServiceProvider extends ServiceProvider
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch): void {
             $switch
                 ->locales(config('app.locales', [config('app.locale', 'en')]))
-                // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
-                ->visible(outsidePanels: true)
-                ->outsidePanelPlacement(Placement::TopEnd)
+                ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
+                // ->visible(outsidePanels: true)
+                // ->outsidePanelPlacement(Placement::TopCenter)
                 ->trigger(style: TriggerStyle::Flag)
                 ->userPreferredLocale(fn(): ?string => auth()->user()?->locale)
-                ->circular()
+                // ->circular()
                 ->nativeLabel();
 
             if (!empty(config('app.locale_flags'))) {

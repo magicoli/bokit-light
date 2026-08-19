@@ -9,30 +9,11 @@ use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
-// use Filament\Facades\Filament;
-// use Filament\Http\Middleware\Authenticate;
-// use Filament\Http\Middleware\AuthenticateSession;
-// use Filament\Http\Middleware\DisableBladeIconComponents;
-// use Filament\Http\Middleware\DispatchServingFilamentEvent;
-// use Filament\Pages\Dashboard;
-// use Filament\Support\Assets\Css;
-// use Filament\Support\Assets\Js;
-// use Filament\Support\Colors\Color;
-// use Filament\View\PanelsRenderHook;
-// use Filament\Widgets\AccountWidget;
+use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
 use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
 use Magicoli\TwoWayTicket\ReportIssuePlugin;
 use Magicoli\TwoWayTicket\TicketsPlugin;
-
-// use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-// use Illuminate\Cookie\Middleware\EncryptCookies;
-// use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
-// use Illuminate\Routing\Middleware\SubstituteBindings;
-// use Illuminate\Session\Middleware\StartSession;
-// use Illuminate\View\Middleware\ShareErrorsFromSession;
-// use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
-// use Magicoli\TwoWayTicket\ReportIssuePlugin;
-// use Magicoli\TwoWayTicket\TicketsPlugin;
+use Filament\View\PanelsRenderHook;
 
 class MainPanelProvider extends PanelProvider
 {
@@ -40,11 +21,12 @@ class MainPanelProvider extends PanelProvider
 
     public function panel(Panel $panel): Panel
     {
-        $panel = $this->applyCommonConfig($panel);
+        $panel = $this->applyCommonConfig($panel, 'main', '');
+
         return $panel
             // Specific config, this panel only
-            ->id('main')
-            ->path('')
+            // ->id('main')
+            // ->path('')
             // ->login() // Already set by applyCommonConfig()
             ->default()
             ->topNavigation()
@@ -57,14 +39,6 @@ class MainPanelProvider extends PanelProvider
                 // Dashboard::class,
             ])
             ->navigationItems([
-                NavigationItem::make()
-                    ->label(fn(): string => __('app.dashboard'))
-                    ->icon('bi-luggage')
-                    // ->group('legacy')
-                    ->url(fn(): string => route('filament.app.pages.dashboard'))
-                    // Nothing to offer a visitor who cannot enter it. Owners rather than every
-                    // account, in truth — that distinction arrives with the tenants.
-                    ->visible(fn(): bool => auth()->check()),
                 // Calendar and the legacy admin now come from the shared cross-panel shortcuts in
                 // HasSharedPanelConfig, rendered next to the user menu on every panel.
             ])
@@ -74,7 +48,8 @@ class MainPanelProvider extends PanelProvider
             //     // FilamentInfoWidget::class,
             // ])
             ->plugins([
-                ReportIssuePlugin::make(),
+                // The credit line at the foot of every panel.
+                NavigationItemsPlugin::make()->renderHook(PanelsRenderHook::FOOTER)->items(self::footerItems()),
             ]);
     }
 }
