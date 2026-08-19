@@ -54,15 +54,7 @@ trait HasSharedPanelConfig
                 'primary' => Color::Emerald,
                 'gray' => Color::Teal,
             ])
-            ->assets([
-                // Vite::asset(), not resource_path(): Filament publishes a local path verbatim,
-                // which would ship @import and @apply straight to the browser. Everything under
-                // resources/ is built, and the panels are served what the build produced.
-                Css::make('glass-stylesheet', Vite::asset('resources/css/glass.css')),
-                Css::make('panels-stylesheet', Vite::asset('resources/css/panels.css')),
-                Css::make('legacy-stylesheet', Vite::asset('resources/css/legacy.css')),
-                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
-            ])
+            ->assets($this->panelViteAssets())
             // ->breadcrumbs(false)
             ->sidebarCollapsibleOnDesktop()
             ->plugins([
@@ -121,6 +113,34 @@ trait HasSharedPanelConfig
                 // ->authMiddleware([
                 //     Authenticate::class,
             ]);
+    }
+
+    /**
+     * The panels' built stylesheets and scripts, resolved through Vite.
+     *
+     * Vite::asset(), not resource_path(): Filament publishes a local path verbatim, which would
+     * ship @import and @apply straight to the browser. Everything under resources/ is built, and
+     * the panels are served what the build produced.
+     *
+     * Wrapped so a transiently missing manifest cannot crash panel registration — the dev watcher
+     * rewriting manifest.json, or a test run against an unbuilt tree, would otherwise throw here on
+     * every request. When it cannot resolve, the assets simply do not load for that request and
+     * return on the next one; in production the manifest is always present, so this never triggers.
+     *
+     * @return array<int, Css|Js>
+     */
+    protected function panelViteAssets(): array
+    {
+        try {
+            return [
+                Css::make('glass-stylesheet', Vite::asset('resources/css/glass.css')),
+                Css::make('panels-stylesheet', Vite::asset('resources/css/panels.css')),
+                Css::make('legacy-stylesheet', Vite::asset('resources/css/legacy.css')),
+                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
+            ];
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

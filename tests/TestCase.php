@@ -18,6 +18,11 @@ abstract class TestCase extends BaseTestCase
         // Pin the facade root as a true singleton so all calls share the same instance.
         $this->app->instance('blade.compiler', Blade::getFacadeRoot());
 
+        // Stub Vite so @vite and Vite::asset() resolve to nothing instead of reading the build
+        // manifest. Tests need no real assets, and reading the manifest makes them flake whenever
+        // the dev watcher (composer run dev) is mid-rebuild and has momentarily rewritten it.
+        $this->withoutVite();
+
         // Disable auto-sync during tests by setting last sync to now
         // This prevents the ~90 second sync delay on each test request
         // To include sync in tests, use: php artisan test --env=testing-with-sync

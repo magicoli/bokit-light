@@ -11,7 +11,7 @@ class LaravelAuth
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check()) {
-            return redirect()->route('login');
+            return redirect()->route('filament.main.auth.login');
         }
         
         return $next($request);

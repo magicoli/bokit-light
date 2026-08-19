@@ -77,7 +77,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function homeUrl(): string
     {
-        return $this->canAccessPanel(Filament::getPanel('app')) ? '/admin' : '/dashboard';
+        return $this->canAccessPanel(Filament::getPanel('app')) ? '/app' : '/dashboard';
     }
 
     /**

@@ -33,7 +33,7 @@ describe('Single record redirect', function () {
         ]);
         $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         PropertyResource::skipAuthorization();
         UnitResource::skipAuthorization();
     });
@@ -46,14 +46,14 @@ describe('Single record redirect', function () {
     test('sends an owner with a single property straight to its page', function () {
         $this->actingAs($this->owner);
 
-        $this->get('/admin/properties')
+        $this->get('/app/properties')
             ->assertRedirect(PropertyResource::getUrl('view', ['record' => $this->property]));
     });
 
     test('sends an owner with a single unit straight to its page', function () {
         $this->actingAs($this->owner);
 
-        $this->get('/admin/units')
+        $this->get('/app/units')
             ->assertRedirect(UnitResource::getUrl('view', ['record' => $this->unit]));
     });
 
@@ -73,8 +73,8 @@ describe('Single record redirect', function () {
 
         $this->actingAs($this->owner);
 
-        $this->get('/admin/properties')->assertSuccessful();
-        $this->get('/admin/units')->assertSuccessful();
+        $this->get('/app/properties')->assertSuccessful();
+        $this->get('/app/units')->assertSuccessful();
     });
 
     test('renders the property edit page with the module sections', function () {
@@ -86,7 +86,7 @@ describe('Single record redirect', function () {
         ]);
 
         $this->actingAs($admin)
-            ->get('/admin/properties/'.$this->property->id.'/edit')
+            ->get('/app/properties/'.$this->property->id.'/edit')
             ->assertSuccessful()
             ->assertSee(__('beds24::property.field.beds24_invite_code'));
     });
@@ -101,7 +101,7 @@ describe('Single record redirect', function () {
 
         $this->actingAs($admin);
 
-        $this->get('/admin/properties')->assertSuccessful();
-        $this->get('/admin/units')->assertSuccessful();
+        $this->get('/app/properties')->assertSuccessful();
+        $this->get('/app/units')->assertSuccessful();
     });
 });

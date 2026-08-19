@@ -40,7 +40,7 @@ describe('Booking resource', function () {
         ]);
 
         $this->actingAs($this->admin);
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
         BookingResource::skipAuthorization();
     });
 
@@ -50,11 +50,11 @@ describe('Booking resource', function () {
 
     test('redirects guests from the bookings list', function () {
         auth()->logout();
-        $this->get('/admin/bookings')->assertRedirect('/admin/login');
+        $this->get('/app/bookings')->assertRedirect('/app/login');
     });
 
     test('lets admins into the panel', function () {
-        $this->get('/admin/bookings')->assertSuccessful();
+        $this->get('/app/bookings')->assertSuccessful();
     });
 
     test('denies users without any property access to the panel', function () {
@@ -66,7 +66,7 @@ describe('Booking resource', function () {
         ]);
 
         $this->actingAs($user);
-        $this->get('/admin/bookings')->assertForbidden();
+        $this->get('/app/bookings')->assertForbidden();
     });
 
     test('lets property owners in and scopes bookings to their properties', function () {
@@ -109,17 +109,17 @@ describe('Booking resource', function () {
 
         $this->actingAs($owner);
 
-        $this->get('/admin/bookings')->assertSuccessful();
+        $this->get('/app/bookings')->assertSuccessful();
 
         Livewire::test(ListBookings::class)
             ->assertCanSeeTableRecords([$mine])
             ->assertCanNotSeeTableRecords([$foreign]);
 
         // Other properties' records are out of reach, even by direct URL
-        $this->get('/admin/bookings/'.$foreign->id)->assertNotFound();
+        $this->get('/app/bookings/'.$foreign->id)->assertNotFound();
 
         // User management stays admin-only
-        $this->get('/admin/users')->assertForbidden();
+        $this->get('/app/users')->assertForbidden();
     });
 
     test('renders the bookings list', function () {

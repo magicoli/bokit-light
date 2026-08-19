@@ -31,14 +31,14 @@ describe('Two Way Tickets', function () {
         $this->property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
         $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setCurrentPanel(Filament::getPanel('app'));
     });
 
     test('reaches the panel with both plugins registered', function () {
-        expect($this->owner->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
+        expect($this->owner->canAccessPanel(Filament::getPanel('app')))->toBeTrue();
 
-        $this->actingAs($this->admin)->get('/admin/tickets')->assertOk();
-        $this->actingAs($this->admin)->get('/admin/report-issue')->assertOk();
+        $this->actingAs($this->admin)->get('/app/tickets')->assertOk();
+        $this->actingAs($this->admin)->get('/app/report-issue')->assertOk();
     });
 
     test('keeps the backlog to admins', function () {
@@ -47,8 +47,8 @@ describe('Two Way Tickets', function () {
         expect(TicketResource::canAccess())->toBeFalse();
         expect(TicketResource::canCreate())->toBeFalse();
 
-        $this->get('/admin/tickets')->assertForbidden();
-        $this->get('/admin/tickets/create')->assertForbidden();
+        $this->get('/app/tickets')->assertForbidden();
+        $this->get('/app/tickets/create')->assertForbidden();
     });
 
     test('lets an owner report an issue', function () {
@@ -56,7 +56,7 @@ describe('Two Way Tickets', function () {
 
         expect(ReportIssue::canAccess())->toBeTrue();
 
-        $this->get('/admin/report-issue')->assertOk();
+        $this->get('/app/report-issue')->assertOk();
     });
 
     test('shows the ticket stats widget to admins only', function () {
@@ -68,13 +68,13 @@ describe('Two Way Tickets', function () {
     });
 
     test('puts the stats widget on the admin dashboard', function () {
-        $this->actingAs($this->admin)->get('/admin')->assertSuccessful()->assertSeeLivewire(TicketStatsWidget::class);
+        $this->actingAs($this->admin)->get('/app')->assertSuccessful()->assertSeeLivewire(TicketStatsWidget::class);
     });
 
     test('leaves it off the dashboard of someone who cannot triage', function () {
         // One user per test on purpose: a second actingAs() after a request lands on the panel's
         // login screen instead of switching identity.
-        $this->actingAs($this->owner)->get('/admin')->assertSuccessful()->assertDontSeeLivewire(TicketStatsWidget::class);
+        $this->actingAs($this->owner)->get('/app')->assertSuccessful()->assertDontSeeLivewire(TicketStatsWidget::class);
     });
 
     test('files a ticket through the API with the token', function () {

@@ -68,7 +68,7 @@ class AdminResourceTraitTest extends TestCase
     public function guest_is_redirected_from_admin_routes()
     {
         $response = $this->get(route('admin.bookings.list'));
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('filament.main.auth.login'));
     }
 
     #[Test]

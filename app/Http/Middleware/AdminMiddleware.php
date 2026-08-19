@@ -21,7 +21,7 @@ class AdminMiddleware
     {
         // Check if user is authenticated
         if (!auth()->check()) {
-            return redirect()->route('login');
+            return redirect()->route('filament.main.auth.login');
         }
 
         // Check admin gate (defined in AuthServiceProvider)

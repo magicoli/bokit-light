@@ -64,8 +64,8 @@ describe('calendar booking endpoint', function () {
             ->assertJsonPath('source.label', 'Beds24 API')
             ->assertJsonPath('source.url', 'https://beds24.com/control2.php?ajax=bookedit&id=66036992');
 
-        expect($response->json('view_url'))->toContain('/admin/bookings/'.$booking->id);
-        expect($response->json('edit_url'))->toContain('/admin/bookings/'.$booking->id);
+        expect($response->json('view_url'))->toContain('/app/bookings/'.$booking->id);
+        expect($response->json('edit_url'))->toContain('/app/bookings/'.$booking->id);
     });
 
     test('aggregates group reservations and lists members', function () {
