@@ -29,107 +29,108 @@ function runIcalSourcesMigration(): void
     $migration->up();
 }
 
-it('moves a legacy ical source into the unit options', function () {
-    $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
-    $unit = Unit::create(['property_id' => $property->id, 'name' => 'Le lit d\'Oli', 'slug' => 'lit-oli', 'is_active' => true]);
+describe('iCal Sources Migration', function () {
+    test('moves a legacy ical source into the unit options', function () {
+        $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
+        $unit = Unit::create(['property_id' => $property->id, 'name' => 'Le lit d\'Oli', 'slug' => 'lit-oli', 'is_active' => true]);
 
-    insertLegacySource([
-        'unit_id' => $unit->id,
-        'name' => 'lelitdoli.com',
-        'type' => 'ical',
-        'url' => 'https://lelitdoli.com/feed.ics',
-        'sync_enabled' => true,
-    ]);
+        insertLegacySource([
+            'unit_id' => $unit->id,
+            'name' => 'lelitdoli.com',
+            'type' => 'ical',
+            'url' => 'https://lelitdoli.com/feed.ics',
+            'sync_enabled' => true,
+        ]);
 
-    runIcalSourcesMigration();
+        runIcalSourcesMigration();
 
-    expect(DB::table('ical_sources')->count())->toBe(0);
+        expect(DB::table('ical_sources')->count())->toBe(0);
 
-    $sources = $unit->fresh()->options['sources'] ?? [];
+        $sources = $unit->fresh()->options['sources'] ?? [];
 
-    expect($sources)->toHaveCount(1);
-    expect($sources[0]['type'])->toBe('ical');
-    expect($sources[0]['url'])->toBe('https://lelitdoli.com/feed.ics');
-    expect($sources[0]['enabled'])->toBeTrue();
-});
+        expect($sources)->toHaveCount(1);
+        expect($sources[0]['type'])->toBe('ical');
+        expect($sources[0]['url'])->toBe('https://lelitdoli.com/feed.ics');
+        expect($sources[0]['enabled'])->toBeTrue();
+    });
 
-it('keeps the sources already declared, and does not duplicate one', function () {
-    $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
-    $unit = Unit::create([
-        'property_id' => $property->id,
-        'name' => 'Moon',
-        'slug' => 'moon',
-        'is_active' => true,
-        'options' => ['sources' => [
-            ['type' => 'beds24', 'roomId' => '12345', 'enabled' => true],
-            ['type' => 'ical', 'url' => 'https://api.beds24.com/feed.ics', 'enabled' => true],
-        ]],
-    ]);
+    test('keeps the sources already declared, and does not duplicate one', function () {
+        $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
+        $unit = Unit::create([
+            'property_id' => $property->id,
+            'name' => 'Moon',
+            'slug' => 'moon',
+            'is_active' => true,
+            'options' => ['sources' => [
+                ['type' => 'beds24', 'roomId' => '12345', 'enabled' => true],
+                ['type' => 'ical', 'url' => 'https://api.beds24.com/feed.ics', 'enabled' => true],
+            ]],
+        ]);
 
-    insertLegacySource([
-        'unit_id' => $unit->id,
-        'name' => 'api.beds24.com',
-        'type' => 'ical',
-        'url' => 'https://api.beds24.com/feed.ics',
-        'sync_enabled' => true,
-    ]);
+        insertLegacySource([
+            'unit_id' => $unit->id,
+            'name' => 'api.beds24.com',
+            'type' => 'ical',
+            'url' => 'https://api.beds24.com/feed.ics',
+            'sync_enabled' => true,
+        ]);
 
-    runIcalSourcesMigration();
+        runIcalSourcesMigration();
 
-    $sources = $unit->fresh()->options['sources'] ?? [];
+        $sources = $unit->fresh()->options['sources'] ?? [];
 
-    // The duplicate is dropped, the beds24 source and the source order are untouched.
-    expect($sources)->toHaveCount(2);
-    expect($sources[0]['type'])->toBe('beds24');
-    expect(DB::table('ical_sources')->count())->toBe(0);
-});
+        // The duplicate is dropped, the beds24 source and the source order are untouched.
+        expect($sources)->toHaveCount(2);
+        expect($sources[0]['type'])->toBe('beds24');
+        expect(DB::table('ical_sources')->count())->toBe(0);
+    });
 
+    test('drops a beds24 feed the api already covers, and only that one', function () {
+        $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
 
-it('drops a beds24 feed the api already covers, and only that one', function () {
-    $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
+        $covered = Unit::create([
+            'property_id' => $property->id,
+            'name' => 'Moon',
+            'slug' => 'moon',
+            'is_active' => true,
+            'options' => ['sources' => [
+                ['type' => 'beds24', 'room_id' => 552313, 'enabled' => true],
+                ['type' => 'ical', 'url' => 'https://api.beds24.com/ical/bookings.ics?roomid=552313&token=x', 'enabled' => true],
+                ['type' => 'ical', 'url' => 'https://www.airbnb.fr/calendar/ical/1.ics', 'enabled' => true],
+            ]],
+        ]);
 
-    $covered = Unit::create([
-        'property_id' => $property->id,
-        'name' => 'Moon',
-        'slug' => 'moon',
-        'is_active' => true,
-        'options' => ['sources' => [
-            ['type' => 'beds24', 'room_id' => 552313, 'enabled' => true],
-            ['type' => 'ical', 'url' => 'https://api.beds24.com/ical/bookings.ics?roomid=552313&token=x', 'enabled' => true],
-            ['type' => 'ical', 'url' => 'https://www.airbnb.fr/calendar/ical/1.ics', 'enabled' => true],
-        ]],
-    ]);
+        // Same host, another room: an intentional cross-block, not a duplicate.
+        $crossBlocking = Unit::create([
+            'property_id' => $property->id,
+            'name' => 'Sun',
+            'slug' => 'sun',
+            'is_active' => true,
+            'options' => ['sources' => [
+                ['type' => 'beds24', 'room_id' => 552316, 'enabled' => true],
+                ['type' => 'ical', 'url' => 'https://api.beds24.com/ical/bookings.ics?roomid=999999&token=y', 'enabled' => true],
+            ]],
+        ]);
 
-    // Same host, another room: an intentional cross-block, not a duplicate.
-    $crossBlocking = Unit::create([
-        'property_id' => $property->id,
-        'name' => 'Sun',
-        'slug' => 'sun',
-        'is_active' => true,
-        'options' => ['sources' => [
-            ['type' => 'beds24', 'room_id' => 552316, 'enabled' => true],
-            ['type' => 'ical', 'url' => 'https://api.beds24.com/ical/bookings.ics?roomid=999999&token=y', 'enabled' => true],
-        ]],
-    ]);
+        // No API source at all: the feed is this unit's only link to Beds24.
+        $feedOnly = Unit::create([
+            'property_id' => $property->id,
+            'name' => 'Le lit d\'Oli',
+            'slug' => 'lit-oli-2',
+            'is_active' => true,
+            'options' => ['sources' => [
+                ['type' => 'ical', 'url' => 'https://api.beds24.com/ical/bookings.ics?roomid=535462&token=z', 'enabled' => true],
+            ]],
+        ]);
 
-    // No API source at all: the feed is this unit's only link to Beds24.
-    $feedOnly = Unit::create([
-        'property_id' => $property->id,
-        'name' => 'Le lit d\'Oli',
-        'slug' => 'lit-oli-2',
-        'is_active' => true,
-        'options' => ['sources' => [
-            ['type' => 'ical', 'url' => 'https://api.beds24.com/ical/bookings.ics?roomid=535462&token=z', 'enabled' => true],
-        ]],
-    ]);
+        runIcalSourcesMigration();
 
-    runIcalSourcesMigration();
+        $kept = collect($covered->fresh()->options['sources']);
+        expect($kept)->toHaveCount(2);
+        expect($kept->pluck('type')->all())->toBe(['beds24', 'ical']);
+        expect($kept->last()['url'])->toContain('airbnb');
 
-    $kept = collect($covered->fresh()->options['sources']);
-    expect($kept)->toHaveCount(2);
-    expect($kept->pluck('type')->all())->toBe(['beds24', 'ical']);
-    expect($kept->last()['url'])->toContain('airbnb');
-
-    expect($crossBlocking->fresh()->options['sources'])->toHaveCount(2);
-    expect($feedOnly->fresh()->options['sources'])->toHaveCount(1);
+        expect($crossBlocking->fresh()->options['sources'])->toHaveCount(2);
+        expect($feedOnly->fresh()->options['sources'])->toHaveCount(1);
+    });
 });

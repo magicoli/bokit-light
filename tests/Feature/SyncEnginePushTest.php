@@ -86,7 +86,7 @@ describe('SyncEngine push', function () {
         ], $attributes));
     });
 
-    it('pushes a manual booking and records the pair for echo suppression', function () {
+    test('pushes a manual booking and records the pair for echo suppression', function () {
         $booking = ($this->makeManual)();
         $connector = makePushConnector();
 
@@ -109,7 +109,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes)->toHaveCount(1);
     });
 
-    it('pushes an update when the booking changed since the last push', function () {
+    test('pushes an update when the booking changed since the last push', function () {
         $booking = ($this->makeManual)();
         $connector = makePushConnector();
         $this->engine->pushBookings($this->unit, [], $connector);
@@ -125,7 +125,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes[1]['external_id'])->toBe('9000');
     });
 
-    it('propagates the cancellation of a pushed booking', function () {
+    test('propagates the cancellation of a pushed booking', function () {
         $booking = ($this->makeManual)();
         $connector = makePushConnector();
         $this->engine->pushBookings($this->unit, [], $connector);
@@ -139,7 +139,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes[1]['status'])->toBe('cancelled');
     });
 
-    it('never pushes cancelled bookings that were never pushed', function () {
+    test('never pushes cancelled bookings that were never pushed', function () {
         ($this->makeManual)(['status' => 'cancelled']);
         $connector = makePushConnector();
 
@@ -149,7 +149,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes)->toBeEmpty();
     });
 
-    it('ignores non-manual and past bookings', function () {
+    test('ignores non-manual and past bookings', function () {
         ($this->makeManual)(['is_manual' => false]);
         ($this->makeManual)([
             'check_in' => now()->subDays(20)->format('Y-m-d'),
@@ -163,7 +163,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes)->toBeEmpty();
     });
 
-    it('counts without pushing in dry-run mode', function () {
+    test('counts without pushing in dry-run mode', function () {
         ($this->makeManual)();
         $connector = makePushConnector();
 
@@ -174,7 +174,7 @@ describe('SyncEngine push', function () {
             ->and(BookingSource::count())->toBe(0);
     });
 
-    it('pushes a non-protected booking on save to the unit writable sources', function () {
+    test('pushes a non-protected booking on save to the unit writable sources', function () {
         $connector = makePushConnector();
         app(SyncRegistry::class)->register($connector);
         $this->unit->update(['options' => ['sources' => [['type' => 'beds24', 'enabled' => true]]]]);
@@ -187,7 +187,7 @@ describe('SyncEngine push', function () {
             ->and($booking->sources()->where('source_key', 'beds24')->first()->pushed_at)->not->toBeNull();
     });
 
-    it('never pushes a protected airbnb booking on save', function () {
+    test('never pushes a protected airbnb booking on save', function () {
         $connector = makePushConnector();
         app(SyncRegistry::class)->register($connector);
         $this->unit->update(['options' => ['sources' => [['type' => 'beds24', 'enabled' => true]]]]);
@@ -199,7 +199,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes)->toBeEmpty();
     });
 
-    it('skips read-only sources on save', function () {
+    test('skips read-only sources on save', function () {
         $connector = makePushConnector();
         app(SyncRegistry::class)->register($connector);
         $this->unit->update(['options' => ['sources' => [['type' => 'beds24', 'enabled' => true, 'readonly' => true]]]]);
@@ -211,7 +211,7 @@ describe('SyncEngine push', function () {
             ->and($connector->pushes)->toBeEmpty();
     });
 
-    it('a pulled echo of a pushed booking never duplicates nor overwrites', function () {
+    test('a pulled echo of a pushed booking never duplicates nor overwrites', function () {
         $booking = ($this->makeManual)();
         $pushConnector = makePushConnector();
         $this->engine->pushBookings($this->unit, [], $pushConnector);

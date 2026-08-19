@@ -9,103 +9,106 @@ use Magicoli\TwoWayTicket\Filament\Resources\Tickets\TicketResource;
 use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
 use Magicoli\TwoWayTicket\Models\Ticket;
 
-uses(RefreshDatabase::class);
+describe('Two Way Tickets', function () {
 
-beforeEach(function () {
-    $this->admin = User::create([
-        'name' => 'Admin',
-        'email' => 'admin@test.local',
-        'password' => bcrypt('password'),
-        'is_admin' => true,
-    ]);
+    uses(RefreshDatabase::class);
 
-    // A property owner: reaches the panel, and has no business seeing the backlog.
-    $this->owner = User::create([
-        'name' => 'Owner',
-        'email' => 'owner@test.local',
-        'password' => bcrypt('password'),
-        'is_admin' => false,
-    ]);
-    $this->property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
-    $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
+    beforeEach(function () {
+        $this->admin = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@test.local',
+            'password' => bcrypt('password'),
+            'is_admin' => true,
+        ]);
 
-    Filament::setCurrentPanel(Filament::getPanel('admin'));
-});
+        // A property owner: reaches the panel, and has no business seeing the backlog.
+        $this->owner = User::create([
+            'name' => 'Owner',
+            'email' => 'owner@test.local',
+            'password' => bcrypt('password'),
+            'is_admin' => false,
+        ]);
+        $this->property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
+        $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
 
-it('reaches the panel with both plugins registered', function () {
-    expect($this->owner->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+    });
 
-    $this->actingAs($this->admin)->get('/admin/tickets')->assertOk();
-    $this->actingAs($this->admin)->get('/admin/report-issue')->assertOk();
-});
+    test('reaches the panel with both plugins registered', function () {
+        expect($this->owner->canAccessPanel(Filament::getPanel('admin')))->toBeTrue();
 
-it('keeps the backlog to admins', function () {
-    $this->actingAs($this->owner);
+        $this->actingAs($this->admin)->get('/admin/tickets')->assertOk();
+        $this->actingAs($this->admin)->get('/admin/report-issue')->assertOk();
+    });
 
-    expect(TicketResource::canAccess())->toBeFalse();
-    expect(TicketResource::canCreate())->toBeFalse();
+    test('keeps the backlog to admins', function () {
+        $this->actingAs($this->owner);
 
-    $this->get('/admin/tickets')->assertForbidden();
-    $this->get('/admin/tickets/create')->assertForbidden();
-});
+        expect(TicketResource::canAccess())->toBeFalse();
+        expect(TicketResource::canCreate())->toBeFalse();
 
-it('lets an owner report an issue', function () {
-    $this->actingAs($this->owner);
+        $this->get('/admin/tickets')->assertForbidden();
+        $this->get('/admin/tickets/create')->assertForbidden();
+    });
 
-    expect(ReportIssue::canAccess())->toBeTrue();
+    test('lets an owner report an issue', function () {
+        $this->actingAs($this->owner);
 
-    $this->get('/admin/report-issue')->assertOk();
-});
+        expect(ReportIssue::canAccess())->toBeTrue();
 
-it('shows the ticket stats widget to admins only', function () {
-    $this->actingAs($this->admin);
-    expect(TicketStatsWidget::canView())->toBeTrue();
+        $this->get('/admin/report-issue')->assertOk();
+    });
 
-    $this->actingAs($this->owner);
-    expect(TicketStatsWidget::canView())->toBeFalse();
-});
+    test('shows the ticket stats widget to admins only', function () {
+        $this->actingAs($this->admin);
+        expect(TicketStatsWidget::canView())->toBeTrue();
 
-it('puts the stats widget on the admin dashboard', function () {
-    $this->actingAs($this->admin)->get('/admin')->assertSuccessful()->assertSeeLivewire(TicketStatsWidget::class);
-});
+        $this->actingAs($this->owner);
+        expect(TicketStatsWidget::canView())->toBeFalse();
+    });
 
-it('leaves it off the dashboard of someone who cannot triage', function () {
-    // One user per test on purpose: a second actingAs() after a request lands on the panel's
-    // login screen instead of switching identity.
-    $this->actingAs($this->owner)->get('/admin')->assertSuccessful()->assertDontSeeLivewire(TicketStatsWidget::class);
-});
+    test('puts the stats widget on the admin dashboard', function () {
+        $this->actingAs($this->admin)->get('/admin')->assertSuccessful()->assertSeeLivewire(TicketStatsWidget::class);
+    });
 
-it('files a ticket through the API with the token', function () {
-    config(['two-way-ticket.api.token' => 'test-token']);
+    test('leaves it off the dashboard of someone who cannot triage', function () {
+        // One user per test on purpose: a second actingAs() after a request lands on the panel's
+        // login screen instead of switching identity.
+        $this->actingAs($this->owner)->get('/admin')->assertSuccessful()->assertDontSeeLivewire(TicketStatsWidget::class);
+    });
 
-    $this->postJson(
-        '/api/tickets',
-        [
-            'title' => 'Filed by a script',
-            'labels' => ['bug'],
-        ],
-        ['Authorization' => 'Bearer test-token'],
-    )->assertSuccessful();
+    test('files a ticket through the API with the token', function () {
+        config(['two-way-ticket.api.token' => 'test-token']);
 
-    expect(Ticket::where('title', 'Filed by a script')->exists())->toBeTrue();
-});
+        $this->postJson(
+            '/api/tickets',
+            [
+                'title' => 'Filed by a script',
+                'labels' => ['bug'],
+            ],
+            ['Authorization' => 'Bearer test-token'],
+        )->assertSuccessful();
 
-it('refuses the API without the token', function () {
-    config(['two-way-ticket.api.token' => 'test-token']);
+        expect(Ticket::where('title', 'Filed by a script')->exists())->toBeTrue();
+    });
 
-    $this->postJson('/api/tickets', ['title' => 'No token'])->assertUnauthorized();
+    test('refuses the API without the token', function () {
+        config(['two-way-ticket.api.token' => 'test-token']);
 
-    expect(Ticket::count())->toBe(0);
-});
+        $this->postJson('/api/tickets', ['title' => 'No token'])->assertUnauthorized();
 
-it('stamps tickets with the running app version', function () {
-    config(['two-way-ticket.api.token' => 'test-token']);
+        expect(Ticket::count())->toBe(0);
+    });
 
-    $this->postJson(
-        '/api/tickets',
-        ['title' => 'Versioned'],
-        ['Authorization' => 'Bearer test-token'],
-    )->assertSuccessful();
+    test('stamps tickets with the running app version', function () {
+        config(['two-way-ticket.api.token' => 'test-token']);
 
-    expect(Ticket::where('title', 'Versioned')->value('app_version'))->toBe(config('app.version'));
+        $this->postJson(
+            '/api/tickets',
+            ['title' => 'Versioned'],
+            ['Authorization' => 'Bearer test-token'],
+        )->assertSuccessful();
+
+        expect(Ticket::where('title', 'Versioned')->value('app_version'))->toBe(config('app.version'));
+    });
 });

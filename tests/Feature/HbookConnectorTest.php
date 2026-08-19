@@ -64,7 +64,7 @@ describe('HbookConnector', function () {
         $this->unit->setRelation('property', $this->property);
     });
 
-    it('normalizes a solo booking with amounts and origin claim', function () {
+    test('normalizes a solo booking with amounts and origin claim', function () {
         $connector = makeHbookConnector([hbookRow()]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'hbook', 'hbook_unit_id' => '3539_1']);
@@ -87,7 +87,7 @@ describe('HbookConnector', function () {
             ->and($booking->metadata['deposit'])->toBe(294.0);
     });
 
-    it('ignores self-blocks of a solo booking', function () {
+    test('ignores self-blocks of a solo booking', function () {
         $connector = makeHbookConnector([
             hbookRow(),
             hbookRow(['is_blocked' => true]),
@@ -99,7 +99,7 @@ describe('HbookConnector', function () {
             ->and($bookings[0]->groupId)->toBeNull();
     });
 
-    it('maps pending bookings to options', function () {
+    test('maps pending bookings to options', function () {
         $connector = makeHbookConnector([hbookRow(['status' => 'pending'])]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'hbook', 'hbook_unit_id' => '3539_1']);
@@ -107,14 +107,14 @@ describe('HbookConnector', function () {
         expect($bookings[0]->status)->toBe('option');
     });
 
-    it('skips bookings of other accommodations', function () {
+    test('skips bookings of other accommodations', function () {
         $connector = makeHbookConnector([hbookRow(['unit_id' => '3539_2'])]);
 
         expect($connector->fetchBookings($this->unit, ['type' => 'hbook', 'hbook_unit_id' => '3539_1']))
             ->toBeEmpty();
     });
 
-    it('lets the lowest-accommodation member carry the group amounts', function () {
+    test('lets the lowest-accommodation member carry the group amounts', function () {
         // "Site entier" package on an untracked accommodation, blocking two units.
         $rows = [
             hbookRow(['unit_id' => '3573_9', 'unit' => 'Site entier', 'price' => 5000.0, 'paid' => 1500.0, 'adults' => 12, 'children' => 3]),
@@ -147,14 +147,14 @@ describe('HbookConnector', function () {
             ->and($moonBookings[0]->guestName)->toBe('Gudule Lapointe');
     });
 
-    it('skips orphaned blocked rows without their parent booking', function () {
+    test('skips orphaned blocked rows without their parent booking', function () {
         $connector = makeHbookConnector([hbookRow(['is_blocked' => true])]);
 
         expect($connector->fetchBookings($this->unit, ['type' => 'hbook', 'hbook_unit_id' => '3539_1']))
             ->toBeEmpty();
     });
 
-    it('maps the source timestamps, guarding against zero-dates', function () {
+    test('maps the source timestamps, guarding against zero-dates', function () {
         $connector = makeHbookConnector([
             hbookRow(),
             hbookRow(['hbook_uid' => 'uid-2', 'check_in' => '2027-05-01', 'check_out' => '2027-05-05', 'created_at' => '0000-00-00 00:00:00', 'updated_at' => '']),
@@ -168,7 +168,7 @@ describe('HbookConnector', function () {
             ->and($bookings[1]->sourceUpdatedAt)->toBeNull();
     });
 
-    it('links to the HBook reservations page filtered on the customer', function () {
+    test('links to the HBook reservations page filtered on the customer', function () {
         $booking = Booking::create([
             'property_id' => $this->property->id,
             'unit_id' => $this->unit->id,
@@ -195,7 +195,7 @@ describe('HbookConnector', function () {
         expect($connector->externalBookingUrl($source->fresh()))->toBeNull();
     });
 
-    it('builds the source key from the WordPress host', function () {
+    test('builds the source key from the WordPress host', function () {
         $connector = makeHbookConnector([]);
 
         expect($connector->sourceKey($this->unit, []))->toBe('hbook:gites-mosaiques.com');

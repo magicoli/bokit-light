@@ -22,7 +22,7 @@ describe('BookingSource display label', function () {
         ]);
     });
 
-    it('shows the connector label with a check mark for the origin', function () {
+    test('shows the connector label with a check mark for the origin', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'beds24',
             'source_key' => 'beds24',
@@ -33,7 +33,7 @@ describe('BookingSource display label', function () {
         expect($source->display_label)->toBe('✓ Beds24 API');
     });
 
-    it('appends the feed name for keyed sources without a check when not origin', function () {
+    test('appends the feed name for keyed sources without a check when not origin', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'ical',
             'source_key' => 'ical:beds24.com',
@@ -44,7 +44,7 @@ describe('BookingSource display label', function () {
         expect($source->display_label)->toBe('iCal beds24.com');
     });
 
-    it('marks placeholder origins as not connected', function () {
+    test('marks placeholder origins as not connected', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'ical',
             'source_key' => 'ical',
@@ -56,7 +56,7 @@ describe('BookingSource display label', function () {
         expect($source->display_label)->toBe('✓ iCal ('.__('booking.source.not_connected').')');
     });
 
-    it('exposes the Beds24 edit page URL for API sources', function () {
+    test('exposes the Beds24 edit page URL for API sources', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'beds24',
             'source_key' => 'beds24',
@@ -67,7 +67,7 @@ describe('BookingSource display label', function () {
         expect($source->external_url)->toBe('https://beds24.com/control2.php?ajax=bookedit&id=66036992');
     });
 
-    it('has no external URL for iCal sources', function () {
+    test('has no external URL for iCal sources', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'ical',
             'source_key' => 'ical:beds24.com',
@@ -78,7 +78,7 @@ describe('BookingSource display label', function () {
         expect($source->external_url)->toBeNull();
     });
 
-    it('falls back to the raw type when no connector is registered', function () {
+    test('falls back to the raw type when no connector is registered', function () {
         $source = $this->booking->sources()->create([
             'source_type' => 'unknown-source',
             'source_key' => 'unknown-source',

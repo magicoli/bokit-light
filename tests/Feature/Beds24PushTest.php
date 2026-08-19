@@ -26,7 +26,7 @@ describe('Beds24 push', function () {
         $this->unit->setRelation('property', $this->property);
     });
 
-    it('creates a booking through the V2 API with the canonical status mapped', function () {
+    test('creates a booking through the V2 API with the canonical status mapped', function () {
         Http::fake([
             'api.beds24.com/v2/authentication/token' => Http::response(['token' => 'auth-token', 'expiresIn' => 86400]),
             'api.beds24.com/v2/bookings' => Http::response([['success' => true, 'new' => ['id' => 987654]]], 201),
@@ -75,7 +75,7 @@ describe('Beds24 push', function () {
         });
     });
 
-    it('updates an existing external booking, cancellation included', function () {
+    test('updates an existing external booking, cancellation included', function () {
         Http::fake([
             'api.beds24.com/v2/authentication/token' => Http::response(['token' => 'auth-token']),
             'api.beds24.com/v2/bookings' => Http::response([['success' => true, 'modified' => ['id' => 555]]], 201),
@@ -100,7 +100,7 @@ describe('Beds24 push', function () {
             && ($request->data()[0]['status'] ?? null) === 'cancelled');
     });
 
-    it('throws when the API rejects the booking', function () {
+    test('throws when the API rejects the booking', function () {
         Http::fake([
             'api.beds24.com/v2/authentication/token' => Http::response(['token' => 'auth-token']),
             'api.beds24.com/v2/bookings' => Http::response([['success' => false, 'errors' => [['message' => 'roomId invalid']]]], 201),

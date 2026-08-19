@@ -8,97 +8,100 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(RefreshDatabase::class);
+describe('Single record redirect', function () {
 
-beforeEach(function () {
-    $this->property = Property::create([
-        'name' => 'Solo Property',
-        'slug' => 'solo-property',
-        'is_active' => true,
-    ]);
-    $this->unit = Unit::create([
-        'property_id' => $this->property->id,
-        'name' => 'Solo Unit',
-        'slug' => 'solo-unit',
-        'is_active' => true,
-    ]);
+    uses(RefreshDatabase::class);
 
-    $this->owner = User::create([
-        'name' => 'Owner',
-        'email' => 'owner@test.local',
-        'password' => bcrypt('password'),
-        'is_admin' => false,
-    ]);
-    $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
+    beforeEach(function () {
+        $this->property = Property::create([
+            'name' => 'Solo Property',
+            'slug' => 'solo-property',
+            'is_active' => true,
+        ]);
+        $this->unit = Unit::create([
+            'property_id' => $this->property->id,
+            'name' => 'Solo Unit',
+            'slug' => 'solo-unit',
+            'is_active' => true,
+        ]);
 
-    Filament::setCurrentPanel(Filament::getPanel('admin'));
-    PropertyResource::skipAuthorization();
-    UnitResource::skipAuthorization();
-});
+        $this->owner = User::create([
+            'name' => 'Owner',
+            'email' => 'owner@test.local',
+            'password' => bcrypt('password'),
+            'is_admin' => false,
+        ]);
+        $this->owner->properties()->attach($this->property->id, ['role' => 'owner']);
 
-afterEach(function () {
-    PropertyResource::skipAuthorization(false);
-    UnitResource::skipAuthorization(false);
-});
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        PropertyResource::skipAuthorization();
+        UnitResource::skipAuthorization();
+    });
 
-it('sends an owner with a single property straight to its page', function () {
-    $this->actingAs($this->owner);
+    afterEach(function () {
+        PropertyResource::skipAuthorization(false);
+        UnitResource::skipAuthorization(false);
+    });
 
-    $this->get('/admin/properties')
-        ->assertRedirect(PropertyResource::getUrl('view', ['record' => $this->property]));
-});
+    test('sends an owner with a single property straight to its page', function () {
+        $this->actingAs($this->owner);
 
-it('sends an owner with a single unit straight to its page', function () {
-    $this->actingAs($this->owner);
+        $this->get('/admin/properties')
+            ->assertRedirect(PropertyResource::getUrl('view', ['record' => $this->property]));
+    });
 
-    $this->get('/admin/units')
-        ->assertRedirect(UnitResource::getUrl('view', ['record' => $this->unit]));
-});
+    test('sends an owner with a single unit straight to its page', function () {
+        $this->actingAs($this->owner);
 
-it('keeps the list for owners with several records', function () {
-    $second = Property::create([
-        'name' => 'Second Property',
-        'slug' => 'second-property',
-        'is_active' => true,
-    ]);
-    Unit::create([
-        'property_id' => $second->id,
-        'name' => 'Second Unit',
-        'slug' => 'second-unit',
-        'is_active' => true,
-    ]);
-    $this->owner->properties()->attach($second->id, ['role' => 'owner']);
+        $this->get('/admin/units')
+            ->assertRedirect(UnitResource::getUrl('view', ['record' => $this->unit]));
+    });
 
-    $this->actingAs($this->owner);
+    test('keeps the list for owners with several records', function () {
+        $second = Property::create([
+            'name' => 'Second Property',
+            'slug' => 'second-property',
+            'is_active' => true,
+        ]);
+        Unit::create([
+            'property_id' => $second->id,
+            'name' => 'Second Unit',
+            'slug' => 'second-unit',
+            'is_active' => true,
+        ]);
+        $this->owner->properties()->attach($second->id, ['role' => 'owner']);
 
-    $this->get('/admin/properties')->assertSuccessful();
-    $this->get('/admin/units')->assertSuccessful();
-});
+        $this->actingAs($this->owner);
 
-it('renders the property edit page with the module sections', function () {
-    $admin = User::create([
-        'name' => 'Admin2',
-        'email' => 'admin2@test.local',
-        'password' => bcrypt('password'),
-        'is_admin' => true,
-    ]);
+        $this->get('/admin/properties')->assertSuccessful();
+        $this->get('/admin/units')->assertSuccessful();
+    });
 
-    $this->actingAs($admin)
-        ->get('/admin/properties/'.$this->property->id.'/edit')
-        ->assertSuccessful()
-        ->assertSee(__('beds24::property.field.beds24_invite_code'));
-});
+    test('renders the property edit page with the module sections', function () {
+        $admin = User::create([
+            'name' => 'Admin2',
+            'email' => 'admin2@test.local',
+            'password' => bcrypt('password'),
+            'is_admin' => true,
+        ]);
 
-it('keeps the list for admins even with a single record', function () {
-    $admin = User::create([
-        'name' => 'Admin',
-        'email' => 'admin@test.local',
-        'password' => bcrypt('password'),
-        'is_admin' => true,
-    ]);
+        $this->actingAs($admin)
+            ->get('/admin/properties/'.$this->property->id.'/edit')
+            ->assertSuccessful()
+            ->assertSee(__('beds24::property.field.beds24_invite_code'));
+    });
 
-    $this->actingAs($admin);
+    test('keeps the list for admins even with a single record', function () {
+        $admin = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@test.local',
+            'password' => bcrypt('password'),
+            'is_admin' => true,
+        ]);
 
-    $this->get('/admin/properties')->assertSuccessful();
-    $this->get('/admin/units')->assertSuccessful();
+        $this->actingAs($admin);
+
+        $this->get('/admin/properties')->assertSuccessful();
+        $this->get('/admin/units')->assertSuccessful();
+    });
 });

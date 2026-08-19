@@ -31,19 +31,19 @@ describe('Beds24Connector', function () {
         $this->unit->setRelation('property', $this->property);
     });
 
-    it('implements SourceConnector', function () {
+    test('implements SourceConnector', function () {
         expect(new Beds24Connector)->toBeInstanceOf(SourceConnector::class);
     });
 
-    it('has source type beds24', function () {
+    test('has source type beds24', function () {
         expect((new Beds24Connector)->sourceType())->toBe('beds24');
     });
 
-    it('throws when no room_id is configured', function () {
+    test('throws when no room_id is configured', function () {
         makeBeds24Connector([])->fetchBookings($this->unit, ['type' => 'beds24']);
     })->throws(RuntimeException::class, 'room_id');
 
-    it('normalizes a booking row', function () {
+    test('normalizes a booking row', function () {
         $connector = makeBeds24Connector([
             [
                 'bookId' => '79643287',
@@ -82,7 +82,7 @@ describe('Beds24Connector', function () {
             ->and($booking->claimsOrigin)->toBeTrue();
     });
 
-    it('maps Beds24 v1 status codes correctly', function (string $rawStatus, string $expected) {
+    test('maps Beds24 v1 status codes correctly', function (string $rawStatus, string $expected) {
         $connector = makeBeds24Connector([
             ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => $rawStatus, 'guestName' => 'Guest X', 'price' => '100'],
         ]);
@@ -99,7 +99,7 @@ describe('Beds24Connector', function () {
         'inquiry' => ['5', 'quote'],
     ]);
 
-    it('reports a definitive zero price when the invoice is emptied', function () {
+    test('reports a definitive zero price when the invoice is emptied', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '300', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Zeroed Guest', 'price' => '0',
                 'invoice' => [['type' => '1', 'description' => 'Hébergement', 'price' => '0']]],
@@ -111,7 +111,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->price)->toBe(0.0);
     });
 
-    it('always emits amount metadata as zero so emptied bookings clear them', function () {
+    test('always emits amount metadata as zero so emptied bookings clear them', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '302', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Emptied Guest', 'price' => '0', 'commission' => '0', 'deposit' => '0'],
         ]);
@@ -125,7 +125,7 @@ describe('Beds24Connector', function () {
             ->and($booking->metadata['invoice_lines'])->toBe([]);
     });
 
-    it('reflects a Beds24 price field of zero as a definitive zero (booking zeroed in Beds24)', function () {
+    test('reflects a Beds24 price field of zero as a definitive zero (booking zeroed in Beds24)', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '301', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Zeroed Solo', 'price' => '0'],
         ]);
@@ -136,7 +136,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->price)->toBe(0.0);
     });
 
-    it('reports a null price for a group member without its own invoice', function () {
+    test('reports a null price for a group member without its own invoice', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '400', 'masterId' => '400', 'group' => ['401'], 'roomId' => '10', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '1', 'guestName' => 'Group Lead', 'price' => '3000'],
             ['bookId' => '401', 'masterId' => '400', 'roomId' => '42', 'firstNight' => '2027-05-01', 'lastNight' => '2027-05-05', 'status' => '3', 'price' => '3000'],
@@ -148,7 +148,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->price)->toBeNull();
     });
 
-    it('tags New bookings with is_new metadata while keeping them confirmed', function () {
+    test('tags New bookings with is_new metadata while keeping them confirmed', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '2', 'guestName' => 'Fresh Guest', 'price' => '100'],
             ['bookId' => '2', 'roomId' => '42', 'firstNight' => '2027-01-05', 'lastNight' => '2027-01-06', 'status' => '1', 'guestName' => 'Old Guest', 'price' => '100'],
@@ -162,7 +162,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[1]->metadata['is_new'])->toBeFalse();
     });
 
-    it('sets an origin hint for iCal-imported bookings, trimming the uid', function () {
+    test('sets an origin hint for iCal-imported bookings, trimming the uid', function () {
         $connector = makeBeds24Connector([
             [
                 'bookId' => '79549562',
@@ -188,7 +188,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->claimsOrigin)->toBeFalse();
     });
 
-    it('imports future blocks, skips past blocks and rows from other rooms', function () {
+    test('imports future blocks, skips past blocks and rows from other rooms', function () {
         $past = now()->subDays(10)->format('Y-m-d');
         $connector = makeBeds24Connector([
             // Future Black block: imported as 'blocked' even without guest or price.
@@ -207,7 +207,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[1]->externalId)->toBe('3');
     });
 
-    it('skips empty placeholder rows with no guest and no money', function () {
+    test('skips empty placeholder rows with no guest and no money', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '1', 'roomId' => '42', 'firstNight' => '2027-01-01', 'lastNight' => '2027-01-02', 'status' => '2'],
         ]);
@@ -215,7 +215,7 @@ describe('Beds24Connector', function () {
         expect($connector->fetchBookings($this->unit, ['type' => 'beds24', 'room_id' => 42]))->toBeEmpty();
     });
 
-    it('imports group sub-bookings as confirmed when the master is confirmed', function () {
+    test('imports group sub-bookings as confirmed when the master is confirmed', function () {
         $connector = makeBeds24Connector([
             // Master in another room, confirmed, carries the group field.
             ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1', 'guestName' => 'Groupe Kervella', 'price' => '0'],
@@ -234,7 +234,7 @@ describe('Beds24Connector', function () {
             ->and($sub->groupId)->toBe('100');
     });
 
-    it('keeps group sub-bookings as options when the master is not confirmed', function () {
+    test('keeps group sub-bookings as options when the master is not confirmed', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3', 'guestName' => 'Groupe Peeva', 'price' => '9600'],
             ['bookId' => '101', 'masterId' => '100', 'roomId' => '42', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '3', 'price' => '4800'],
@@ -247,7 +247,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->guestName)->toBe('Groupe Peeva');
     });
 
-    it('reports no price for a group master without invoice', function () {
+    test('reports no price for a group master without invoice', function () {
         $connector = makeBeds24Connector([
             ['bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '42', 'firstNight' => '2027-02-01', 'lastNight' => '2027-02-05', 'status' => '1', 'guestName' => 'Groupe CESL', 'price' => '2100'],
         ]);
@@ -259,7 +259,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->groupId)->toBe('100');
     });
 
-    it('never uses the replicated price field for group sub-bookings', function () {
+    test('never uses the replicated price field for group sub-bookings', function () {
         // Beds24 copies the group total into every sub's price field;
         // summing them would multiply the group price by the unit count.
         $connector = makeBeds24Connector([
@@ -283,7 +283,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->metadata['group_total'])->toBe(3000.0);
     });
 
-    it('keeps per-unit prices from the sub-booking own invoice', function () {
+    test('keeps per-unit prices from the sub-booking own invoice', function () {
         $connector = makeBeds24Connector([
             [
                 'bookId' => '100', 'masterId' => '100', 'group' => ['101'], 'roomId' => '10',
@@ -306,7 +306,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->metadata['group_total'])->toBe(700.0);
     });
 
-    it('stores the full invoice line detail in metadata', function () {
+    test('stores the full invoice line detail in metadata', function () {
         $connector = makeBeds24Connector([
             [
                 'bookId' => '200', 'roomId' => '42', 'firstNight' => '2027-03-01', 'lastNight' => '2027-03-05',
@@ -334,7 +334,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->price)->toBe(1962.0);
     });
 
-    it('includes every invoice line in the price, taxe de séjour included', function () {
+    test('includes every invoice line in the price, taxe de séjour included', function () {
         // Real-world case: 400 € accommodation + 40 € taxe de séjour →
         // the client owes 440 €, not 400 €.
         $connector = makeBeds24Connector([
@@ -354,7 +354,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->metadata['invoice_taxe_invoiced'])->toBe(40.0);
     });
 
-    it('multiplies unit prices by quantity', function () {
+    test('multiplies unit prices by quantity', function () {
         // Beds24 invoices carry unit prices: 7 nights at 100 €/night come
         // as qty=7, price=100. Payments come with qty=-1.
         $connector = makeBeds24Connector([
@@ -374,7 +374,7 @@ describe('Beds24Connector', function () {
             ->and($bookings[0]->metadata['invoice_payment_total'])->toBe(300.0);
     });
 
-    it('uses payment lines when the invoice nets to zero on a standalone booking', function () {
+    test('uses payment lines when the invoice nets to zero on a standalone booking', function () {
         $connector = makeBeds24Connector([
             [
                 'bookId' => '200', 'roomId' => '42', 'firstNight' => '2027-03-01', 'lastNight' => '2027-03-05',

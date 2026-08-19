@@ -63,13 +63,13 @@ describe('bokit:sync', function () {
         app()->instance(SyncRegistry::class, new SyncRegistry);
     });
 
-    it('warns when no handlers are registered', function () {
+    test('warns when no handlers are registered', function () {
         $this->artisan('bokit:sync')
             ->expectsOutput('No sync handlers registered.')
             ->assertExitCode(0);
     });
 
-    it('syncs each matching unit source through the engine', function () {
+    test('syncs each matching unit source through the engine', function () {
         $called = [];
         app(SyncRegistry::class)->register(makeCommandConnector('test-source', [
             new NormalizedBooking(
@@ -97,7 +97,7 @@ describe('bokit:sync', function () {
             ->and(Booking::first()->guest_name)->toBe('Gudule Lapointe');
     });
 
-    it('does not persist anything in dry-run mode', function () {
+    test('does not persist anything in dry-run mode', function () {
         app(SyncRegistry::class)->register(makeCommandConnector('dry-test', [
             new NormalizedBooking(
                 externalId: 'x-1',
@@ -122,7 +122,7 @@ describe('bokit:sync', function () {
         expect(Booking::count())->toBe(0);
     });
 
-    it('skips unit sources whose type has no registered handler', function () {
+    test('skips unit sources whose type has no registered handler', function () {
         $property = Property::create(['name' => 'BokitP3', 'slug' => 'bokit-p3', 'is_active' => true]);
         Unit::create([
             'property_id' => $property->id,

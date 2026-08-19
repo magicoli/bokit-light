@@ -79,7 +79,7 @@ describe('MultipassConnector', function () {
         $this->moon->setRelation('property', $this->property);
     });
 
-    it('normalizes a solo prestation with the full total and source timestamps', function () {
+    test('normalizes a solo prestation with the full total and source timestamps', function () {
         $connector = makeMultipassConnector([multipassRow()]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'multipass', 'multipass_unit_id' => '9587']);
@@ -101,7 +101,7 @@ describe('MultipassConnector', function () {
             ->and($booking->sourceUpdatedAt)->toBe('2024-02-01 18:30:00');
     });
 
-    it('keeps the OTA origin as channel when present', function () {
+    test('keeps the OTA origin as channel when present', function () {
         $connector = makeMultipassConnector([multipassRow(['origin' => 'bookingcom'])]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'multipass', 'multipass_unit_id' => '9587']);
@@ -109,7 +109,7 @@ describe('MultipassConnector', function () {
         expect($bookings[0]->channel)->toBe('bookingcom');
     });
 
-    it('maps prestation statuses to canonical statuses', function (string $raw, string $expected) {
+    test('maps prestation statuses to canonical statuses', function (string $raw, string $expected) {
         $connector = makeMultipassConnector([multipassRow(['status' => $raw])]);
 
         $bookings = $connector->fetchBookings($this->unit, ['type' => 'multipass', 'multipass_unit_id' => '9587']);
@@ -122,7 +122,7 @@ describe('MultipassConnector', function () {
         'draft' => ['draft', 'quote'],
     ]);
 
-    it('ignores prestations without a detail on this unit', function () {
+    test('ignores prestations without a detail on this unit', function () {
         $connector = makeMultipassConnector([multipassRow([
             'units' => [
                 ['detail_id' => 7002, 'status' => 'publish', 'unit' => 'Moon', 'resource_id' => 9586, 'check_in' => '2024-04-01', 'check_out' => '2024-04-08', 'subtotal' => 900.0],
@@ -133,7 +133,7 @@ describe('MultipassConnector', function () {
             ->toBeEmpty();
     });
 
-    it('treats service resources as part of the total, not as occupancies', function () {
+    test('treats service resources as part of the total, not as occupancies', function () {
         // Lodging + car rental: solo booking carrying the full total.
         $connector = makeMultipassConnector([multipassRow([
             'total' => 1480.0,
@@ -150,7 +150,7 @@ describe('MultipassConnector', function () {
             ->and($bookings[0]->price)->toBe(1480.0);
     });
 
-    it('splits group prestations: members keep their subtotal, the carrier absorbs the rest', function () {
+    test('splits group prestations: members keep their subtotal, the carrier absorbs the rest', function () {
         $rows = [multipassRow([
             'total' => 2000.0,
             'units' => [
@@ -181,7 +181,7 @@ describe('MultipassConnector', function () {
             ->and($sunBookings[0]->metadata)->not->toHaveKey('paid');
     });
 
-    it('skips dateless prestations', function () {
+    test('skips dateless prestations', function () {
         $connector = makeMultipassConnector([multipassRow([
             'check_in' => null,
             'check_out' => null,
@@ -194,7 +194,7 @@ describe('MultipassConnector', function () {
             ->toBeEmpty();
     });
 
-    it('links to the prestation edit page in the WordPress admin', function () {
+    test('links to the prestation edit page in the WordPress admin', function () {
         $booking = Booking::create([
             'property_id' => $this->property->id,
             'unit_id' => $this->unit->id,

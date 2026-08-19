@@ -44,7 +44,7 @@ function makeRegistryConnector(string $type): SourceConnector
 }
 
 describe('SyncRegistry', function () {
-    it('resolves as a singleton from the container', function () {
+    test('resolves as a singleton from the container', function () {
         $a = app(SyncRegistry::class);
         $b = app(SyncRegistry::class);
 
@@ -52,11 +52,11 @@ describe('SyncRegistry', function () {
             ->and($a)->toBe($b);
     });
 
-    it('starts empty', function () {
+    test('starts empty', function () {
         expect((new SyncRegistry)->all())->toBeArray()->toBeEmpty();
     });
 
-    it('registers a connector keyed by its source type', function () {
+    test('registers a connector keyed by its source type', function () {
         $registry = new SyncRegistry;
         $connector = makeRegistryConnector('test');
 
@@ -66,7 +66,7 @@ describe('SyncRegistry', function () {
             ->and($registry->getForType('test'))->toBe($connector);
     });
 
-    it('accumulates multiple connectors', function () {
+    test('accumulates multiple connectors', function () {
         $registry = new SyncRegistry;
         $first = makeRegistryConnector('alpha');
         $second = makeRegistryConnector('beta');
@@ -79,7 +79,7 @@ describe('SyncRegistry', function () {
             ->and($registry->getForType('beta'))->toBe($second);
     });
 
-    it('returns null for an unregistered source type', function () {
+    test('returns null for an unregistered source type', function () {
         expect((new SyncRegistry)->getForType('unknown'))->toBeNull();
     });
 });

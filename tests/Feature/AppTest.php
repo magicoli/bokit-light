@@ -4,7 +4,7 @@ echo "Processing " . basename(__FILE__);
 
 describe("home page", function () {
     $validcodes = [200, 302, 307];
-    it("has status in " . implode(" ", $validcodes), function () use (
+    test("has status in " . implode(" ", $validcodes), function () use (
         $validcodes,
     ) {
         $response = $this->get("/");
@@ -14,7 +14,7 @@ describe("home page", function () {
         expect($status)->toBeInt()->toBein($validcodes);
     });
 
-    it("passes a dummy test", function () {
+    test("passes a dummy test", function () {
         expect(true)->toBe(true);
     });
     // it("fails dummy test", function () {
@@ -35,7 +35,7 @@ describe("home page", function () {
 });
 
 describe("logging", function () {
-    it("rotates by default, so no single file can grow without bound", function () {
+    test("rotates by default, so no single file can grow without bound", function () {
         expect(config("logging.default"))->toBe("daily");
         expect(config("logging.channels.daily.days"))->toBeGreaterThan(0);
     });

@@ -18,38 +18,38 @@ describe('IcalConnector', function () {
         $this->connector = new IcalConnector(new BookingSyncIcal);
     });
 
-    it('implements SourceConnector', function () {
+    test('implements SourceConnector', function () {
         expect($this->connector)->toBeInstanceOf(SourceConnector::class);
     });
 
-    it('has source type ical', function () {
+    test('has source type ical', function () {
         expect($this->connector->sourceType())->toBe('ical');
     });
 
-    it('builds display label and source key from the config label', function () {
+    test('builds display label and source key from the config label', function () {
         $config = ['type' => 'ical', 'label' => 'beds24.com', 'url' => 'https://beds24.com/feed.ics'];
 
         expect($this->connector->displayLabel($config))->toBe('iCal beds24.com')
             ->and($this->connector->sourceKey($this->unit, $config))->toBe('ical:beds24.com');
     });
 
-    it('falls back to the URL host when no label is configured', function () {
+    test('falls back to the URL host when no label is configured', function () {
         $config = ['type' => 'ical', 'url' => 'https://feeds.example.com/cal.ics'];
 
         expect($this->connector->sourceKey($this->unit, $config))->toBe('ical:feeds.example.com');
     });
 
-    it('throws when no URL is configured', function () {
+    test('throws when no URL is configured', function () {
         $this->connector->fetchBookings($this->unit, ['type' => 'ical', 'url' => '']);
     })->throws(RuntimeException::class, 'URL');
 
-    it('throws when the feed cannot be fetched', function () {
+    test('throws when the feed cannot be fetched', function () {
         Http::fake(['*' => Http::response('', 500)]);
 
         $this->connector->fetchBookings($this->unit, ['type' => 'ical', 'url' => 'https://example.com/cal.ics']);
     })->throws(RuntimeException::class, '500');
 
-    it('normalizes feed events', function () {
+    test('normalizes feed events', function () {
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',
             'BEGIN:VEVENT',
@@ -84,7 +84,7 @@ describe('IcalConnector', function () {
             ->and($booking->claimsOrigin)->toBeFalse();
     });
 
-    it('skips past or ongoing unavailable blocks but keeps future ones', function () {
+    test('skips past or ongoing unavailable blocks but keeps future ones', function () {
         $past = now()->subDays(10)->format('Ymd');
         $pastEnd = now()->addDays(5)->format('Ymd');
         $future = now()->addDays(30)->format('Ymd');
@@ -118,7 +118,7 @@ describe('IcalConnector', function () {
             ->and($bookings[0]->status)->toBe('blocked');
     });
 
-    it('declares a Beds24 origin hint when the UID embeds a beds24 booking id', function () {
+    test('declares a Beds24 origin hint when the UID embeds a beds24 booking id', function () {
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',
             'BEGIN:VEVENT',
@@ -147,7 +147,7 @@ describe('IcalConnector', function () {
             ->and($bookings[1]->originHint)->toBeNull();
     });
 
-    it('skips events without UID or dates', function () {
+    test('skips events without UID or dates', function () {
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',
             'BEGIN:VEVENT',

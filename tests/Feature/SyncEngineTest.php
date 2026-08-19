@@ -66,7 +66,7 @@ describe('SyncEngine', function () {
         $this->engine = new SyncEngine;
     });
 
-    it('creates a new booking with an origin reference', function () {
+    test('creates a new booking with an origin reference', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -96,7 +96,7 @@ describe('SyncEngine', function () {
             ->and($booking->sources->first()->external_id)->toBe('111');
     });
 
-    it('reattaches a leftover reference instead of violating the unique pair', function () {
+    test('reattaches a leftover reference instead of violating the unique pair', function () {
         // A reference pair left behind (e.g. bookings wiped manually without
         // FK cascades) must not block recreation — it gets reattached.
         $stale = Booking::create([
@@ -136,7 +136,7 @@ describe('SyncEngine', function () {
             ->and(BookingSource::where('external_id', 'uid-hint@gites-mosaiques.com')->count())->toBe(1);
     });
 
-    it('persists and updates the group linkage', function () {
+    test('persists and updates the group linkage', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '101',
@@ -154,7 +154,7 @@ describe('SyncEngine', function () {
         expect((string) Booking::first()->group_id)->toBe('100');
     });
 
-    it('is idempotent on consecutive runs', function () {
+    test('is idempotent on consecutive runs', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -175,7 +175,7 @@ describe('SyncEngine', function () {
             ->and(Booking::count())->toBe(1);
     });
 
-    it('matches by external id even when dates and guest changed at source', function () {
+    test('matches by external id even when dates and guest changed at source', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -208,7 +208,7 @@ describe('SyncEngine', function () {
             ->and($booking->guest_name)->toBe('Gudule Lapointe-Tremblay');
     });
 
-    it('attaches a reference instead of duplicating when a second source matches by email and dates', function () {
+    test('attaches a reference instead of duplicating when a second source matches by email and dates', function () {
         $beds24 = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -251,7 +251,7 @@ describe('SyncEngine', function () {
             ->and($icalRef->is_origin)->toBeFalse();
     });
 
-    it('attaches a reference when a second source matches by guest name and dates', function () {
+    test('attaches a reference when a second source matches by guest name and dates', function () {
         $beds24 = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -279,7 +279,7 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->sources)->toHaveCount(2);
     });
 
-    it('records additional sources for information only, without modifying the booking', function () {
+    test('records additional sources for information only, without modifying the booking', function () {
         $beds24 = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -315,7 +315,7 @@ describe('SyncEngine', function () {
             ->and($booking->metadata)->not->toHaveKey('phone');
     });
 
-    it('never lets a non-origin source change dates or price', function () {
+    test('never lets a non-origin source change dates or price', function () {
         $beds24 = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -360,7 +360,7 @@ describe('SyncEngine', function () {
             ->and((float) $booking->price)->toBe(500.0);
     });
 
-    it('records an origin hint as a placeholder; an iCal feed takes it over without becoming origin', function () {
+    test('records an origin hint as a placeholder; an iCal feed takes it over without becoming origin', function () {
         // Beds24 reports a booking it imported from an external iCal feed.
         $beds24 = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
@@ -410,7 +410,7 @@ describe('SyncEngine', function () {
             ->and($booking->check_in->format('Y-m-d'))->toBe('2027-03-01');
     });
 
-    it('lets the first source sync when no source claims origin', function () {
+    test('lets the first source sync when no source claims origin', function () {
         $ical = makeEngineConnector('ical', 'ical:airbnb', [
             new NormalizedBooking(
                 externalId: 'uid-bbb@airbnb.com',
@@ -441,7 +441,7 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->check_in->format('Y-m-d'))->toBe('2027-06-02');
     });
 
-    it('hands ownership to a source that reliably claims origin', function () {
+    test('hands ownership to a source that reliably claims origin', function () {
         // An iCal feed found the booking first (no reliable origin).
         $ical = makeEngineConnector('ical', 'ical:beds24.com', [
             new NormalizedBooking(
@@ -490,7 +490,7 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->check_in->format('Y-m-d'))->toBe('2027-07-01');
     });
 
-    it('attaches to a manual booking without claiming origin or overwriting', function () {
+    test('attaches to a manual booking without claiming origin or overwriting', function () {
         $booking = Booking::create([
             'unit_id' => $this->unit->id,
             'property_id' => $this->property->id,
@@ -525,7 +525,7 @@ describe('SyncEngine', function () {
             ->and($booking->price)->toBeNull();
     });
 
-    it('marks vanished bookings when the origin stops reporting them', function () {
+    test('marks vanished bookings when the origin stops reporting them', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -544,7 +544,7 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->status)->toBe('vanished');
     });
 
-    it('detaches the reference when a non-origin source stops reporting a booking', function () {
+    test('detaches the reference when a non-origin source stops reporting a booking', function () {
         $beds24 = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -576,7 +576,7 @@ describe('SyncEngine', function () {
             ->and(Booking::first()->status)->toBe('confirmed');
     });
 
-    it('never merges two bookings of the same source, even on identical dates and guest', function () {
+    test('never merges two bookings of the same source, even on identical dates and guest', function () {
         // Real confirmed booking, no amount (group sub style).
         $real = new NormalizedBooking(
             externalId: '79549562',
@@ -619,7 +619,7 @@ describe('SyncEngine', function () {
             ->and($cancelledBooking->status)->toBe('cancelled');
     });
 
-    it('lets the real origin claim a placeholder typed by another source guess', function () {
+    test('lets the real origin claim a placeholder typed by another source guess', function () {
         $hbookUid = 'D2025-12-14T07:57:39U693e6df31291b@https://gites-mosaiques.com';
 
         // Beds24 imports the booking first, declaring an iCal-typed origin
@@ -664,7 +664,7 @@ describe('SyncEngine', function () {
             ->and((float) $booking->getRawOriginal('price'))->toBe(5145.0);
     });
 
-    it('clears a stale price on group members the claiming origin reports priceless', function () {
+    test('clears a stale price on group members the claiming origin reports priceless', function () {
         // The booking got a price from a first source: Beds24 saw it via an
         // iCal import, so it does not claim origin (placeholder hint only).
         $beds24 = makeEngineConnector('beds24', 'beds24', [
@@ -704,7 +704,7 @@ describe('SyncEngine', function () {
             ->and((string) $booking->getRawOriginal('group_id'))->toBe('hbook-12');
     });
 
-    it('lets the acting origin clear a price down to zero', function () {
+    test('lets the acting origin clear a price down to zero', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(externalId: '700', checkIn: '2027-06-01', checkOut: '2027-06-05', guestName: 'Zeroable', status: 'confirmed', price: 500.0, claimsOrigin: true),
         ]);
@@ -721,7 +721,7 @@ describe('SyncEngine', function () {
             ->and((float) Booking::first()->getRawOriginal('price'))->toBe(0.0);
     });
 
-    it('never touches the price when the source reports it as unknown (null)', function () {
+    test('never touches the price when the source reports it as unknown (null)', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(externalId: '701', checkIn: '2027-06-01', checkOut: '2027-06-05', guestName: 'Keepme', status: 'confirmed', price: 700.0, claimsOrigin: true),
         ]);
@@ -735,7 +735,7 @@ describe('SyncEngine', function () {
         expect((float) Booking::first()->getRawOriginal('price'))->toBe(700.0);
     });
 
-    it('aligns created_at and updated_at on the source dates', function () {
+    test('aligns created_at and updated_at on the source dates', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '500',
@@ -783,7 +783,7 @@ describe('SyncEngine', function () {
         expect($stats['updated'])->toBe(0);
     });
 
-    it('deletes auto-generated availability blocks when they vanish', function () {
+    test('deletes auto-generated availability blocks when they vanish', function () {
         $connector = makeEngineConnector('ical', 'ical:airbnb', [
             new NormalizedBooking(
                 externalId: 'uid-block@airbnb.com',
@@ -803,7 +803,7 @@ describe('SyncEngine', function () {
             ->and(Booking::count())->toBe(0);
     });
 
-    it('does not write anything in dry-run mode', function () {
+    test('does not write anything in dry-run mode', function () {
         $connector = makeEngineConnector('beds24', 'beds24', [
             new NormalizedBooking(
                 externalId: '111',
@@ -821,7 +821,7 @@ describe('SyncEngine', function () {
             ->and(BookingSource::count())->toBe(0);
     });
 
-    it('returns a failure result when the connector throws', function () {
+    test('returns a failure result when the connector throws', function () {
         $connector = new class implements SourceConnector
         {
             public function sourceType(): string
