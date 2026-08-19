@@ -14,19 +14,19 @@ uses(
 		// $testName = $this->name() ?? "test";
 		// $testName = new ReflectionClass($this)->getName();
 		// $testClass = preg_replace("/.*\\\Tests\\\/", "", self::class);
-		$testName = preg_replace(
-			"/_/",
-			" ",
-			preg_replace("/__(.*)__(.*)__→_/", '\\2 → ', $this->name()),
-		);
-		echo "  {$testName}" . PHP_EOL;
+		// $testName = preg_replace(
+		// 	"/_/",
+		// 	" ",
+		// 	preg_replace("/__(.*)__(.*)__→_/", '\\2 → ', $this->name()),
+		// );
+		// echo "  {$testName}" . PHP_EOL;
 	})
 	->afterEach(function () {
 		// Runs after each test...
 	})
 	->afterAll(function () {
 		// Runs after each file...
-		echo "File completed" . PHP_EOL;
+		// echo "File completed" . PHP_EOL;
 	})
 	->group("integration")
 	->in("Feature");
