@@ -119,7 +119,7 @@
                                 {{ __('app.properties') }} (legacy)
                             </a>
                             <a href="{{ route('rates') }}" class="nav-link">
-                                {{ __('rates.menu') }} (legacy)
+                                {{ __('rate.plural_label') }} (legacy)
                             </a>
                         </div>
                     @endif

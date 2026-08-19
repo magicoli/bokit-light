@@ -27,6 +27,16 @@ class PropertyResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return __('property.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('property.plural_label');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PropertyForm::configure($schema)->columns(1);

@@ -1,5 +1,7 @@
 <?php
 
 return [
-    "field.name" => "Nom",
+    'label' => 'Propriété',
+    'plural_label' => 'Propriétés',
+    'field.name' => 'Nom',
 ];

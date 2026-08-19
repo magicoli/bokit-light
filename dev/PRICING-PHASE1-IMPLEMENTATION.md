@@ -185,10 +185,10 @@ Base Rate: "Summer Nights" (base: 100, formula: 'base * nights')
 {!! (new DataList($results))
     ->groupBy('property_name')
     ->columns([
-        'unit_name' => ['label' => __('rates.unit')],
-        'rate_name' => ['label' => __('rates.rate'), 'class' => 'mobile-hidden'],
-        'price_per_night' => ['label' => __('rates.price_per_night'), 'format' => 'currency'],
-        'total' => ['label' => __('rates.total'), 'format' => 'currency'],
+        'unit_name' => ['label' => __('rate.unit')],
+        'rate_name' => ['label' => __('rate.rate'), 'class' => 'mobile-hidden'],
+        'price_per_night' => ['label' => __('rate.price_per_night'), 'format' => 'currency'],
+        'total' => ['label' => __('rate.total'), 'format' => 'currency'],
     ])
     ->render() !!}
 ```

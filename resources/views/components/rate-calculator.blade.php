@@ -23,16 +23,16 @@
 
             $listColumns = [
                 'unit_name' => ['label' => __('app.unit')],
-                'rate_name' => ['label' => __('rates.rate_used'), 'class' => 'mobile-hidden'],
+                'rate_name' => ['label' => __('rate.rate_used'), 'class' => 'mobile-hidden'],
                 'price_per_night' => [
-                    'label' => __('rates.price_per_night'),
+                    'label' => __('rate.price_per_night'),
                     'format' => 'custom',
                     'formatter' => fn($item) => is_array($item)
                         ? number_format($item['price_per_night'], 2)
                         : number_format($item->price_per_night, 2)
                 ],
                 'total' => [
-                    'label' => __('rates.total'),
+                    'label' => __('rate.total'),
                     'format' => 'custom',
                     'formatter' => fn($item) => is_array($item)
                         ? number_format($item['total'], 2)

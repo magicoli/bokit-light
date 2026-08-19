@@ -34,9 +34,9 @@ class RatesTable
                 SelectFilter::make('priority')
                     ->label(__(self::LANG.'.field.priority'))
                     ->options([
-                        'high' => __('rates.priority_high'),
-                        'normal' => __('rates.priority_normal'),
-                        'low' => __('rates.priority_low'),
+                        'high' => __('rate.priority_high'),
+                        'normal' => __('rate.priority_normal'),
+                        'low' => __('rate.priority_low'),
                     ]),
             ])
             ->recordActions(DynamicTable::recordActions(Rate::class, self::LANG))

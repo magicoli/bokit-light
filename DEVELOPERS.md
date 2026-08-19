@@ -391,7 +391,7 @@ function setupDateValidation() {
 ```php
 // Field labels follow the pattern: {resource}.field.{column}
 __('booking.field.check_in')    // "Check-in"
-__('rates.field.display_name')  // "Display Name"
+__('rate.field.display_name')  // "Display Name"
 __('unit.field.name')           // "Name"
 __('user.field.email')          // "Email"
 
@@ -431,8 +431,8 @@ File names are **singular** (matching the model name), except `rates.php` which 
 
 ```php
 // ✅ GOOD - User-facing text uses translation keys
-<h1>{{ __('rates.calculator_title') }}</h1>
-notice(__('rates.calculation_success'), 'success');
+<h1>{{ __('rate.calculator_title') }}</h1>
+notice(__('rate.calculation_success'), 'success');
 
 // ✅ GOOD - Logs and internal messages are English only, no translation
 Log::info("Rate calculation completed for booking {$booking->id}");

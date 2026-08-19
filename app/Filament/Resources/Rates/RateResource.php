@@ -27,6 +27,16 @@ class RateResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return __('rate.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('rate.plural_label');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return RateForm::configure($schema)->columns(1);

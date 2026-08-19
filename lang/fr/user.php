@@ -1,12 +1,16 @@
 <?php
 
 return [
+    'label' => 'Utilisateur',
+    'plural_label' => 'Utilisateurs',
     'dashboard' => 'Tableau de bord',
     'welcome_back_name' => 'Bienvenue, :name',
-    'field.name' => 'Nom',
-    'field.email' => 'Email',
-    'field.password' => 'Mot de passe',
-    'field.auth_provider' => "Fournisseur d'auth",
-    'field.roles' => 'Rôles',
-    'field.is_admin' => 'Admin',
+    'field' => [
+        'name' => 'Nom',
+        'email' => 'Email',
+        'password' => 'Mot de passe',
+        'auth_provider' => "Fournisseur d'auth",
+        'roles' => 'Rôles',
+        'is_admin' => 'Admin',
+    ],
 ];

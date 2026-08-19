@@ -3,7 +3,7 @@
 
 @extends('layouts.app')
 
-@section('title', __('rates.title'))
+@section('title', __('rate.label'))
 
 @push('styles')
 @vite('resources/css/form.css')
@@ -31,7 +31,7 @@ window.ratesFormData = {
 <!-- Rate Calculator Widget -->
 <div class="card rate-calculator">
     <div class="card-header">
-        <h3>{{ __('rates.test_calculator') }}</h3>
+        <h3>{{ __('rate.test_calculator') }}</h3>
     </div>
     <div class="card-body">
         @include('components.rate-calculator')
@@ -40,7 +40,7 @@ window.ratesFormData = {
 
 <!-- Add Rate Form -->
 <div class="card">
-    <h2 class="card-header">{{ __('rates.add_rate') }}</h2>
+    <h2 class="card-header">{{ __('rate.add_rate') }}</h2>
     @php
         $propertyOptions = $properties->pluck('name', 'id')->toArray();
     @endphp

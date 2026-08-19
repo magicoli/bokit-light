@@ -13,7 +13,7 @@
 <!-- Rate Calculator Widget -->
 <div class="card rate-calculator">
     <div class="card-header">
-        <h3>{{ __('rates.test_calculator') }}</h3>
+        <h3>{{ __('rate.test_calculator') }}</h3>
     </div>
     <div class="card-body">
         @include('components.rate-calculator')

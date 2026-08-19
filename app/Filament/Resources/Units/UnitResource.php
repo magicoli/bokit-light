@@ -27,6 +27,16 @@ class UnitResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return __('unit.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('unit.plural_label');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UnitForm::configure($schema)->columns(1);

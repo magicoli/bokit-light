@@ -24,7 +24,7 @@
                 {{ __('app.properties') }} (legacy)
             </a>
             <a href="{{ route('rates') }}" class="dropdown-item">
-                {{ __('rates.menu') }} (legacy)
+                {{ __('rate.plural_label') }} (legacy)
             </a>
         </div>
     </div>

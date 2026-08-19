@@ -28,6 +28,16 @@ class BookingResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'guest_name';
 
+    public static function getModelLabel(): string
+    {
+        return __('booking.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('booking.plural_label');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return BookingForm::configure($schema);

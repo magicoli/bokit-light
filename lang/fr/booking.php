@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'label' => 'Réservation',
+    'plural_label' => 'Réservations',
     'field.status' => 'Statut',
     'field.guest_name' => 'Nom',
     'field.check_in' => 'Arrivée',

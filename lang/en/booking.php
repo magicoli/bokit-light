@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'label' => 'Booking',
+    'plural_label' => 'Bookings',
     'field.status' => 'Status',
     'field.guest_name' => 'Name',
     'field.check_in' => 'Check-in',
