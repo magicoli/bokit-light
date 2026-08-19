@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "68258c8d7c24272de6f7cfbebfe7ce68",
+    "content-hash": "9f30f8d6970e20e0159baa239fe42983",
     "packages": [
         {
             "name": "andreiio/blade-remix-icon",
@@ -4097,7 +4097,7 @@
             "dist": {
                 "type": "path",
                 "url": "../extra-navigation-items",
-                "reference": "fc1e9341100c0eb3570c30809038b375082a6b64"
+                "reference": "f03783ae566de2df48431ee047f958b66fb142f1"
             },
             "require": {
                 "andreiio/blade-remix-icon": "^3.9",
@@ -4153,20 +4153,15 @@
         {
             "name": "magicoli/two-way-ticket",
             "version": "0.4.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/magicoli/two-way-ticket.git",
-                "reference": "ee050c3d74430e7a1ff303869e01b6af95b0f62f"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/magicoli/two-way-ticket/zipball/ee050c3d74430e7a1ff303869e01b6af95b0f62f",
-                "reference": "ee050c3d74430e7a1ff303869e01b6af95b0f62f",
-                "shasum": ""
+                "type": "path",
+                "url": "../two-way-ticket",
+                "reference": "ee050c3d74430e7a1ff303869e01b6af95b0f62f"
             },
             "require": {
                 "filament/filament": "^5.0",
                 "illuminate/contracts": "^12.0|^13.0",
+                "magicoli/extra-navigation-items": "@dev",
                 "php": "^8.3",
                 "spatie/laravel-package-tools": "^1.16"
             },
@@ -4189,7 +4184,16 @@
                     "Magicoli\\TwoWayTicket\\Database\\Factories\\": "database/factories/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Magicoli\\TwoWayTicket\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "pest"
+                ]
+            },
             "license": [
                 "AGPL-3.0-or-later"
             ],
@@ -4201,11 +4205,10 @@
                 "laravel",
                 "tickets"
             ],
-            "support": {
-                "issues": "https://github.com/magicoli/two-way-ticket/issues",
-                "source": "https://github.com/magicoli/two-way-ticket/tree/v0.4.0"
-            },
-            "time": "2026-08-15T19:21:50+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "masterminds/html5",
@@ -13333,7 +13336,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "magicoli/extra-navigation-items": 20
+        "magicoli/extra-navigation-items": 20,
+        "magicoli/two-way-ticket": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

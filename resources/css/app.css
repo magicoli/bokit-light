@@ -203,8 +203,11 @@ nav {
     }
 }
 
+/* The panel footer (ul.extra-navigation-panelsfooter) is styled in panels.css instead: app.css
+   only reaches the classic front-end layout, not the Filament panels. */
 footer {
     @apply w-full bg-dark text-light p-4;
+    @apply gap-4 p-8;
 
     > * {
         @apply container mx-auto;

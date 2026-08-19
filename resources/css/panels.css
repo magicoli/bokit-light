@@ -1,3 +1,16 @@
+/* _theme.css pulls in Tailwind and defines the theme, so @apply below resolves and the theme's CSS
+   variables (--color-dark, --color-light…) are emitted for the panel to use at runtime. */
+@import "./_theme.css";
 @import "./legacy.css";
 
 @source '../../../../vendor/bezhansalleh/filament-language-switch/**';
+
+/* The credit line extra-navigation-items renders at the FOOTER hook (class from its group). Styled
+   here, in a panel-loaded stylesheet — app.css only reaches the classic front-end, not the panels. */
+ul.extra-navigation-panelsfooter {
+    @apply w-full flex flex-row flex-wrap gap-4 py-4 px-8 bg-dark/75 text-light/75 ;
+
+    > :first-child {
+        @apply me-auto;
+    }
+}
