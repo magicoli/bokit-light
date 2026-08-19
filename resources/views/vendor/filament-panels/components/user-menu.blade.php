@@ -140,7 +140,7 @@
                 class="cursor-pointer"
                 icon="heroicon-m-user-circle"
             >
-                {{ __('Edit profile') }}
+                {{ __('user.menu.edit_profile') }}
             </x-filament::dropdown.header>
 
             {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::USER_MENU_PROFILE_AFTER) }}

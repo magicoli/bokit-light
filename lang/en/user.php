@@ -5,6 +5,9 @@ return [
     'plural_label' => 'Users',
     'dashboard' => 'Dashboard',
     'welcome_back_name' => 'Welcome back, :name',
+    'menu' => [
+        'edit_profile' => 'Edit profile',
+    ],
     'field' => [
         'name' => 'Name',
         'email' => 'Email',
