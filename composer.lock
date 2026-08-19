@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bd40d951571714d0db310411397009b5",
+    "content-hash": "68258c8d7c24272de6f7cfbebfe7ce68",
     "packages": [
         {
             "name": "andreiio/blade-remix-icon",
@@ -4097,11 +4097,13 @@
             "dist": {
                 "type": "path",
                 "url": "../extra-navigation-items",
-                "reference": "9d20e47cc229312e87c316349be34263a0bb3497"
+                "reference": "fc1e9341100c0eb3570c30809038b375082a6b64"
             },
             "require": {
+                "andreiio/blade-remix-icon": "^3.9",
                 "filament/filament": "^5.0",
                 "illuminate/contracts": "^12.0|^13.0",
+                "joaopaulolndev/filament-edit-profile": "^3.0",
                 "php": "^8.3",
                 "spatie/laravel-package-tools": "^1.16"
             },
@@ -10391,6 +10393,76 @@
                 "source": "https://github.com/laravel/pail"
             },
             "time": "2026-05-20T22:24:57+00:00"
+        },
+        {
+            "name": "laravel/pint",
+            "version": "v1.30.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/pint.git",
+                "reference": "fe4148c503a0e266353d61396b79bbf7f35122df"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/fe4148c503a0e266353d61396b79bbf7f35122df",
+                "reference": "fe4148c503a0e266353d61396b79bbf7f35122df",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-tokenizer": "*",
+                "ext-xml": "*",
+                "php": "^8.3.0"
+            },
+            "require-dev": {
+                "composer/semver": "^3.4.4",
+                "friendsofphp/php-cs-fixer": "^3.95.18",
+                "illuminate/view": "^13.24.0",
+                "larastan/larastan": "^3.10.0",
+                "laravel-zero/framework": "^13.0.0",
+                "laravel/agent-detector": "^2.0.2",
+                "laravel/prompts": "^0.3.22",
+                "mockery/mockery": "^1.6.12",
+                "nunomaduro/termwind": "^2.4.0",
+                "pestphp/pest": "^4.7.8"
+            },
+            "bin": [
+                "builds/pint"
+            ],
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "App\\": "app/",
+                    "Database\\Seeders\\": "database/seeders/",
+                    "Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nuno Maduro",
+                    "email": "enunomaduro@gmail.com"
+                }
+            ],
+            "description": "An opinionated code formatter for PHP.",
+            "homepage": "https://laravel.com",
+            "keywords": [
+                "dev",
+                "format",
+                "formatter",
+                "lint",
+                "linter",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/pint/issues",
+                "source": "https://github.com/laravel/pint"
+            },
+            "time": "2026-08-10T15:35:50+00:00"
         },
         {
             "name": "laravel/roster",

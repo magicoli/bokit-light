@@ -35,6 +35,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/sanctum (SANCTUM) - v4
 - livewire/livewire (LIVEWIRE) - v4
 - laravel/mcp (MCP) - v0
+- laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v3
 - phpunit/phpunit (PHPUNIT) - v11
@@ -246,6 +247,13 @@ protected function isAccessible(User $user, ?string $path = null): bool
     $this->get('/posts/create')
     ->assertSeeLivewire(CreatePost::class);
 </code-snippet>
+
+=== pint/core rules ===
+
+## Laravel Pint Code Formatter
+
+- You must run `vendor/bin/pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
+- Do not run `vendor/bin/pint --test --format agent`, simply run `vendor/bin/pint --format agent` to fix any formatting issues.
 
 === pest/core rules ===
 
