@@ -59,7 +59,8 @@ export default defineConfig({
             assets: [
                 "assets/images/**",
                 "assets/flags/**",
-                "resources/fonts/**"
+                "assets/logos/**",
+                "assets/fonts/**"
             ],
         }),
         tailwindcss(),
