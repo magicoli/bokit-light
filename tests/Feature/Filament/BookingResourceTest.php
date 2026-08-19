@@ -50,7 +50,7 @@ describe('Booking resource', function () {
 
     test('redirects guests from the bookings list', function () {
         auth()->logout();
-        $this->get('/app/bookings')->assertRedirect('/app/login');
+        $this->get('/app/bookings')->assertRedirect('/login');
     });
 
     test('lets admins into the panel', function () {

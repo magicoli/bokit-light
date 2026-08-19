@@ -47,7 +47,8 @@ trait HasSharedPanelConfig
             ->id($id)
             ->path($path)
             ->homeUrl('/')
-            ->login()
+            // No ->login() here: login is the main panel's alone — one /login for the whole app.
+            // Other panels send their guests there through redirectGuestsTo (bootstrap/app.php).
             ->brandLogo('/images/logo.png')
             ->brandLogoHeight(fn() => request()->is('login', '*/login') ? '128px' : '48px')
             ->colors([

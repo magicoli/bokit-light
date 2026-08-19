@@ -27,7 +27,8 @@ class MainPanelProvider extends PanelProvider
             // Specific config, this panel only
             // ->id('main')
             // ->path('')
-            // ->login() // Already set by applyCommonConfig()
+            // The one login route for the whole app: /login on the main panel.
+            ->login()
             ->default()
             ->topNavigation()
             ->sidebarCollapsibleOnDesktop(false) // Disabled for top navigation, overrides common config
