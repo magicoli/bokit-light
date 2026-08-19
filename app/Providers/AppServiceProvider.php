@@ -11,7 +11,6 @@ use App\Services\AdminMenuService;
 use App\Sync\Ical\BookingSyncIcal;
 use App\Sync\Ical\IcalConnector;
 use App\Sync\SyncRegistry;
-use BezhanSalleh\LanguageSwitch\Enums\ItemStyle;
 use BezhanSalleh\LanguageSwitch\Enums\Placement;
 use BezhanSalleh\LanguageSwitch\Enums\TriggerStyle;
 use BezhanSalleh\LanguageSwitch\Events\LocaleChanged;
@@ -100,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerRateLimiters(): void
     {
-        RateLimiter::for('public', fn(Request $request) => Limit::perMinute(60)->by(
+        RateLimiter::for('public', fn (Request $request) => Limit::perMinute(60)->by(
             $request->ip(),
         )->response(function (Request $request) {
             Log::warning('[Throttle] Public rate limit reached', [
@@ -145,7 +144,7 @@ class AppServiceProvider extends ServiceProvider
         // Admin gate - access to admin area
         // Super admins have full access, property managers have limited access
         Gate::define('app', function ($user) {
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
@@ -160,7 +159,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Manage resource gate - admin or owner
         Gate::define('manage-resource', function ($user, $resource) {
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
@@ -181,7 +180,7 @@ class AppServiceProvider extends ServiceProvider
         // Manage gate - check if user can manage a model class or instance
         // This is for GLOBAL management rights - only admins and managers
         Gate::define('manage', function ($user, $modelClass = null) {
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
@@ -191,7 +190,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             // Convert short class names to full class names
-            if (is_string($modelClass) && !class_exists($modelClass)) {
+            if (is_string($modelClass) && ! class_exists($modelClass)) {
                 $shortName = ucfirst($modelClass);
                 $fullClass = "App\\Models\\{$shortName}";
 
@@ -214,7 +213,7 @@ class AppServiceProvider extends ServiceProvider
         // This is a ROLE check, not a permission check
         // Ownership filtering happens in controllers/queries
         Gate::define('property_manager', function ($user) {
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
@@ -231,7 +230,7 @@ class AppServiceProvider extends ServiceProvider
         // This is a ROLE check, not a permission check
         // Ownership filtering happens in controllers/queries
         Gate::define('booking_manager', function ($user) {
-            if (!$user) {
+            if (! $user) {
                 return false;
             }
 
@@ -252,7 +251,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Set view compiled path if not already set
         $viewCompiledPath = storage_path('framework/views');
-        if (!Config::has('view.compiled') || empty(Config::get('view.compiled'))) {
+        if (! Config::has('view.compiled') || empty(Config::get('view.compiled'))) {
             Config::set('view.compiled', $viewCompiledPath);
         }
 
@@ -280,7 +279,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Create directories
         foreach ($directories as $dir) {
-            if (!empty($dir) && !is_dir($dir)) {
+            if (! empty($dir) && ! is_dir($dir)) {
                 try {
                     mkdir($dir, 0755, true);
                     Log::notice("Created directory {$dir}");
@@ -297,7 +296,7 @@ class AppServiceProvider extends ServiceProvider
         ];
 
         foreach ($files as $file) {
-            if (!file_exists($file)) {
+            if (! file_exists($file)) {
                 try {
                     touch($file);
                     chmod($file, 0644);
@@ -317,12 +316,12 @@ class AppServiceProvider extends ServiceProvider
                 ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
                 // ->visible(outsidePanels: true)
                 // ->outsidePanelPlacement(Placement::TopCenter)
-                ->trigger(style: TriggerStyle::Flag)
-                ->userPreferredLocale(fn(): ?string => auth()->user()?->locale)
+                ->trigger(style: TriggerStyle::FlagLabel)
+                ->userPreferredLocale(fn (): ?string => auth()->user()?->locale)
                 // ->circular()
                 ->nativeLabel();
 
-            if (!empty(config('app.locale_flags'))) {
+            if (! empty(config('app.locale_flags'))) {
                 $switch->flags(array_map(callback: 'asset', array: config('app.locale_flags')));
             }
 

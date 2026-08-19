@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9f30f8d6970e20e0159baa239fe42983",
+    "content-hash": "4b790552e3ab2975092f2fc1641cf54d",
     "packages": [
         {
             "name": "andreiio/blade-remix-icon",
@@ -4094,10 +4094,16 @@
         {
             "name": "magicoli/extra-navigation-items",
             "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magicoli/extra-navigation-items.git",
+                "reference": "c784c6e38dceda78dc780bef9dbb3fd5d2a8f9af"
+            },
             "dist": {
-                "type": "path",
-                "url": "../extra-navigation-items",
-                "reference": "f03783ae566de2df48431ee047f958b66fb142f1"
+                "type": "zip",
+                "url": "https://api.github.com/repos/magicoli/extra-navigation-items/zipball/c784c6e38dceda78dc780bef9dbb3fd5d2a8f9af",
+                "reference": "c784c6e38dceda78dc780bef9dbb3fd5d2a8f9af",
+                "shasum": ""
             },
             "require": {
                 "andreiio/blade-remix-icon": "^3.9",
@@ -4125,16 +4131,7 @@
                     "Magicoli\\ExtraNavigationItems\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Magicoli\\ExtraNavigationItems\\Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "test": [
-                    "pest"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "AGPL-3.0-or-later"
             ],
@@ -4145,23 +4142,44 @@
                 "navigation",
                 "render-hook"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/magicoli/extra-navigation-items/issues",
+                "source": "https://github.com/magicoli/extra-navigation-items/tree/v0.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.buymeacoffee.com/magicoli",
+                    "type": "buy_me_a_coffee"
+                },
+                {
+                    "url": "https://magiiic.org/donate/",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/magicoli",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-19T23:19:11+00:00"
         },
         {
             "name": "magicoli/two-way-ticket",
-            "version": "0.4.0",
+            "version": "0.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magicoli/two-way-ticket.git",
+                "reference": "c208882328873b1a4ad5de470ef17e974174c0ab"
+            },
             "dist": {
-                "type": "path",
-                "url": "../two-way-ticket",
-                "reference": "ee050c3d74430e7a1ff303869e01b6af95b0f62f"
+                "type": "zip",
+                "url": "https://api.github.com/repos/magicoli/two-way-ticket/zipball/c208882328873b1a4ad5de470ef17e974174c0ab",
+                "reference": "c208882328873b1a4ad5de470ef17e974174c0ab",
+                "shasum": ""
             },
             "require": {
                 "filament/filament": "^5.0",
                 "illuminate/contracts": "^12.0|^13.0",
-                "magicoli/extra-navigation-items": "@dev",
+                "magicoli/extra-navigation-items": "^0.1.0",
                 "php": "^8.3",
                 "spatie/laravel-package-tools": "^1.16"
             },
@@ -4184,16 +4202,7 @@
                     "Magicoli\\TwoWayTicket\\Database\\Factories\\": "database/factories/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Magicoli\\TwoWayTicket\\Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "test": [
-                    "pest"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "AGPL-3.0-or-later"
             ],
@@ -4205,10 +4214,25 @@
                 "laravel",
                 "tickets"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/magicoli/two-way-ticket/issues",
+                "source": "https://github.com/magicoli/two-way-ticket/tree/v0.4.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.buymeacoffee.com/magicoli",
+                    "type": "buy_me_a_coffee"
+                },
+                {
+                    "url": "https://magiiic.org/donate/",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/magicoli",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-19T23:59:15+00:00"
         },
         {
             "name": "masterminds/html5",
@@ -13335,10 +13359,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "magicoli/extra-navigation-items": 20,
-        "magicoli/two-way-ticket": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

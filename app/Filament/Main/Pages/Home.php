@@ -58,7 +58,7 @@ class Home extends Page
     {
         $path = base_path('ABOUT.md');
 
-        return Str::markdown(File::exists($path) ? File::get($path) : '# ' . config('app.name'));
+        return Str::markdown(File::exists($path) ? File::get($path) : '# '.config('app.name'));
     }
 
     /**
@@ -78,8 +78,8 @@ class Home extends Page
 
             sort($files);
 
-            return array_map(fn(string $path): string => asset(
-                "images/wallpapers/{$theme}/" . basename($path),
+            return array_map(fn (string $path): string => asset(
+                "images/wallpapers/{$theme}/".basename($path),
             ), $files);
         };
 

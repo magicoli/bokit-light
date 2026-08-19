@@ -1,5 +1,74 @@
 # Changelog
 
+## 1.1.0
+
+- feat: serve the home page from the main panel
+- feat: home page random wallpaper and a pane of glass
+- feat: add magicoli/extra-navigation-items, better custom navigation handling (user menu, user menu before, footer)
+- feat: automatic live data backup (database, settings and the uploaded files)
+- feat: show each legacy entry to whoever it is meant for
+- feat: security - rate limit the public pages, log rejections
+- fix: main menu translations
+- fix: add missing andreiio/blade-remix-icon package
+- fix: remove unnecessary link in home page signature
+- fix: let the home page arrive already dressed
+- fix: stop the wallpaper rotation when its list is out of date
+- fix: 404 the scanner urls that reached the unit page as 500
+- fix: name the request in every logged exception
+- fix: run the periodic sync through the shared procedure
+- fix: revert wrong version to 1.0.0 - error introduced in in 59f8354
+- panels: style the extra-navigation footer in a panel-loaded stylesheet
+- home: add github link in footer menu, move footer menu definition in MainPanelProvider
+- test: follow the navigation-items merge model and steady the build check
+- localization: add missing model labels localization
+- test: convert the last two PHPUnit tests to Pest
+- auth: one login route for the whole app, on the main panel
+- login: restore home link on logo and language switcher
+- test: fix the suite after the /admin→/app rename and kill the vite flakiness
+- testing) fix unclear reports by using describe(: and tests()
+- dev: move fonts in assets/fonts/
+- dev: remove deprecated pest customization, covered by magicoli/pest-failure-summary package
+add laravel/pint dev package
+- nav: shared user menu with edit-profile and a signed-out login
+- dev: discard mago formatting rule, use standard pint
+- nav: render shared cross-panel shortcuts and a footer through the plugin
+- dev: add magicoli/two-way-ticket dev package, switch two-way-ticket and pest-failure-summary to packagist repo
+- home: restore the wallpaper behind the glass content pane
+- panel refactoring:
+    - rename AdminPanel as AppPanel and change route to /app
+    - apply HasSharedPanelConfig to AppPanel (formerr AdminPanel)
+    - add Switzer font (not yet implemented)
+    - move legacy menus in sidebar
+    - move flags back in assets/flags
+    - replace craft-forge/filament-language-switcher with bezhansalleh/filament-language-switch
+    - add Install and Main panels
+- refactor: turn the ical sources migration into a real migration
+- refactor: move the sync entry points under App\Sync
+- refactor: remove the legacy ical sync path
+- refactor: gather the sync subsystem under App\Sync
+- admin: register two-way-ticket panel plugins
+- admin: show the ticket stats widget on the dashboard
+- ui: load alpine only once, through livewire
+- chore: keep herd.yml out of the repository
+- config: rotate the logs, keeping a fortnight
+- config: ignore composer.local.json
+- config: ignore composer.dev.json and composer.dev.lock
+- style: reformat config/app.php with mago
+- deps: add two-way-ticket, require php 8.3
+- ai: install two-way-ticket boost guidelines and record project rules
+- tests: drop a wrong claim about single-property owners
+- tests: cover the two-way-ticket integration
+- doc: ship the deploy recipe as an example
+- doc: keep the developer guide addressed to humans
+- doc: fold the model options guide into the developer guide
+- doc: split the readme, and license the app as AGPL
+- doc: refresh the boost guidelines from two-way-ticket
+- doc: describe the features in README.md
+- doc: add CHANGELOG.md with 1.0.0 as the initial release
+- doc: move the roadmap and issue inventories to the ticket tracker
+- doc: move the todo inventory to the ticket tracker
+- doc: switch php formatting to mago and refresh commit rules
+
 ## 1.0.0 Initial release 594f325d
 
 Centralized holiday rental booking calendar, synced with PMS, OTA platforms and iCal feeds.
