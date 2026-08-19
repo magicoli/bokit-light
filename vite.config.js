@@ -14,6 +14,7 @@ export default defineConfig({
                 "resources/css/calendar.css",
                 "resources/css/flatpickr.css",
                 "resources/css/form.css",
+                "resources/css/fonts.css",
                 "resources/css/glass.css",
                 "resources/css/home.css",
                 "resources/css/layout-flex.css",
