@@ -31,6 +31,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // Load admin routes FIRST (before web.php catch-all routes)
         Route::middleware('web')->group(base_path('routes/admin.php'));
 
+        // Bokit's own MCP server (dev/project-bokit-mcp-server.md) — also before web.php: its
+        // catch-all property/unit routes (POST '/{property:slug}/{unit:slug}' included) would
+        // otherwise swallow a two-segment path like /mcp/bookings, since Laravel resolves
+        // ambiguous routes in registration order. Mcp::web()/Mcp::local() register their own
+        // routes directly, not through Route::group().
+        require base_path('routes/mcp.php');
+
         // Then load web routes (includes catch-all for properties)
         Route::middleware('web')->group(base_path('routes/web.php'));
     })
