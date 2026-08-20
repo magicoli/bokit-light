@@ -13,7 +13,6 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Facades\FilamentView;
 use Filament\Tables\View\TablesRenderHook;
-use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\View\View;
 use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
 use Magicoli\TwoWayTicket\TicketsPlugin;
@@ -33,9 +32,6 @@ class AppPanelProvider extends PanelProvider
             fn (): View => view('filament.tables.booking-inline-filters'),
             scopes: ListBookings::class,
         );
-
-        // Calendar + Admin links in the Filament topbar (shared partial with frontend).
-        // FilamentView::registerRenderHook(PanelsRenderHook::USER_MENU_BEFORE, fn(): View => view('nav.top-links'));
     }
 
     public function panel(Panel $panel): Panel

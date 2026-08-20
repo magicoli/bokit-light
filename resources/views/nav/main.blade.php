@@ -29,8 +29,6 @@
                         </svg>
                     </button>
                     @if(auth()->check())
-                        {{-- @include('nav.top-links') --}}
-
                         <!-- User menu -->
                         <div class="dropdown"
                              x-data="{ open: false }"

@@ -15,3 +15,30 @@ ul.extra-navigation-panelsfooter {
         @apply me-auto;
     }
 }
+
+.card {
+    @apply bg-white shadow-sm space-y-6 my-6;
+    @apply md:rounded-lg;
+
+    > * {
+        @apply p-4;
+    }
+
+    .card-header {
+        @apply bg-light/75 px-4 py-2 m-0;
+        @apply md:rounded-t-lg;
+    }
+
+    .card-body {
+        @apply p-4;
+    }
+
+    .card-footer {
+        @apply bg-light px-4 py-2;
+        @apply md:rounded-b-lg;
+    }
+
+    h2 {
+        @apply text-base/7 font-semibold text-dark;
+    }
+}

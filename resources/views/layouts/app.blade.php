@@ -43,6 +43,8 @@
 
     <!-- App Styles -->
     @vite('resources/css/layout-grid.css')
+
+    {{-- Legacy styling for deprecated pages outside Filament --}}
     @vite('resources/css/app.css')
 
     <!-- Bootstrap Icons for custom grip icon -->
