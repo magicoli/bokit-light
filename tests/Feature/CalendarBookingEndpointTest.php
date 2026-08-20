@@ -172,12 +172,12 @@ describe('calendar booking endpoint', function () {
             'check_out' => $date->copy()->addDays(3)->format('Y-m-d'),
         ]);
 
-        $this->get('/calendar?date='.$date->format('Y-m-d'))
+        $this->get('/app/calendar?date='.$date->format('Y-m-d'))
             ->assertSuccessful()
             ->assertSee('Confirmée Visible')
             ->assertDontSee('Annulée Visible');
 
-        $this->get('/calendar?date='.$date->format('Y-m-d').'&cancelled=1')
+        $this->get('/app/calendar?date='.$date->format('Y-m-d').'&cancelled=1')
             ->assertSuccessful()
             ->assertSee('Annulée Visible');
     });
@@ -191,7 +191,7 @@ describe('calendar booking endpoint', function () {
         ]);
 
         // One active property, several units: no property grouping row.
-        $this->get('/calendar')
+        $this->get('/app/calendar')
             ->assertSuccessful()
             ->assertDontSee('property-name');
 
@@ -200,7 +200,7 @@ describe('calendar booking endpoint', function () {
         Unit::create(['property_id' => $other->id, 'name' => 'Other Unit A', 'slug' => 'other-unit-a', 'is_active' => true]);
         Unit::create(['property_id' => $other->id, 'name' => 'Other Unit B', 'slug' => 'other-unit-b', 'is_active' => true]);
 
-        $this->get('/calendar')
+        $this->get('/app/calendar')
             ->assertSuccessful()
             ->assertSee('property-name');
     });
@@ -210,7 +210,7 @@ describe('calendar booking endpoint', function () {
         Unit::create(['property_id' => $inactive->id, 'name' => 'Dormant Unit', 'slug' => 'dormant-unit', 'is_active' => true]);
         Unit::create(['property_id' => $this->property->id, 'name' => 'Retired Unit', 'slug' => 'retired-unit', 'is_active' => false]);
 
-        $this->get('/calendar')
+        $this->get('/app/calendar')
             ->assertSuccessful()
             ->assertDontSee('Dormant Property')
             ->assertDontSee('Dormant Unit')

@@ -3,6 +3,21 @@ import laravel from "laravel-vite-plugin";
 // import { local } from 'laravel-vite-plugin/fonts';
 // import local from 'laravel-vite-plugin';
 import tailwindcss from "@tailwindcss/vite";
+import { execFileSync } from "node:child_process";
+
+/**
+ * Regenerates the wallpapers as part of the build itself — closeBundle fires after every build,
+ * including each rebuild in `vite build --watch` (the "start"/"dev" scripts), so this is not a
+ * separate step a developer or a deploy script has to remember to run on the side (see °118).
+ */
+function wallpapers() {
+    return {
+        name: "bokit-wallpapers",
+        closeBundle() {
+            execFileSync("php", ["artisan", "bokit:wallpapers"], { stdio: "inherit" });
+        },
+    };
+}
 
 export default defineConfig({
     plugins: [
@@ -64,6 +79,7 @@ export default defineConfig({
             ],
         }),
         tailwindcss(),
+        wallpapers(),
     ],
     server: {
         watch: {

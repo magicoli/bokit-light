@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "start": "node --max-old-space-size=4096 node_modules/.bin/vite build --watch",
-        "build": "node --max-old-space-size=4096 node_modules/.bin/vite build && php artisan bokit:wallpapers",
+        "build": "node --max-old-space-size=4096 node_modules/.bin/vite build",
         "dev": "concurrently \"npm:start\" \"symfony serve\""
     },
     "devDependencies": {

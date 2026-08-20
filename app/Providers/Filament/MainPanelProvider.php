@@ -27,9 +27,7 @@ class MainPanelProvider extends PanelProvider
             ->login()
             ->default()
             ->topNavigation()
-            ->sidebarCollapsibleOnDesktop(false) // Disabled for top navigation, overrides common config
-            ->sidebarFullyCollapsibleOnDesktop(false) // Disabled for top navigation, overrides common config
-            ->maxContentWidth(Width::Full)
+            // ->maxContentWidth(Width::Full)
             ->discoverResources(in: app_path('Filament/Main/Resources'), for: 'App\Filament\Main\Resources')
             ->discoverPages(in: app_path('Filament/Main/Pages'), for: 'App\Filament\Main\Pages')
             ->pages([
@@ -61,7 +59,7 @@ class MainPanelProvider extends PanelProvider
                     NavigationItem::make('calendar')
                         ->label(fn (): string => __('app.calendar'))
                         ->icon('heroicon-o-calendar-date-range')
-                        ->url(fn (): string => route('calendar'))
+                        ->url(fn (): string => route('filament.app.pages.calendar'))
                         ->visible(fn (): bool => auth()->check()),
                     NavigationItem::make('dashboard')
                         ->label(fn (): string => __('app.dashboard'))

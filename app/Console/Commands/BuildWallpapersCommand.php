@@ -18,7 +18,8 @@ use Illuminate\Support\Str;
  * it produces a different URL. Without that, browsers — and the service worker, which serves images
  * from its cache first — would keep showing the old one until the application's version changed.
  *
- * Run by `npm run build`, and on its own with `php artisan bokit:wallpapers`.
+ * Run as part of every Vite build — including each rebuild under `vite build --watch` — by the
+ * `bokit-wallpapers` plugin in vite.config.js, and on its own with `php artisan bokit:wallpapers`.
  */
 class BuildWallpapersCommand extends Command
 {
@@ -33,7 +34,7 @@ class BuildWallpapersCommand extends Command
     {
         $sources = base_path('assets/images/wallpapers');
 
-        if (!File::isDirectory($sources)) {
+        if (! File::isDirectory($sources)) {
             $this->components->warn("No wallpaper sources in {$sources}");
 
             return self::SUCCESS;
@@ -51,12 +52,12 @@ class BuildWallpapersCommand extends Command
             $expected = [];
 
             foreach (File::glob("{$sources}/{$theme}/*.{png,jpg,jpeg,webp}", GLOB_BRACE) ?: [] as $source) {
-                $destination = $target . '/' . $this->publicName($source) . '.jpg';
+                $destination = $target.'/'.$this->publicName($source).'.jpg';
                 $expected[] = $destination;
 
                 // The name holds the hash, so a file that is there is a file that is current —
                 // there is no such thing as an out-of-date destination under the right name.
-                if (!$this->option('force') && File::exists($destination)) {
+                if (! $this->option('force') && File::exists($destination)) {
                     $skipped++;
 
                     continue;
@@ -64,7 +65,7 @@ class BuildWallpapersCommand extends Command
 
                 if ($this->convert($source, $destination)) {
                     $this->components->twoColumnDetail(
-                        "{$theme}/" . basename($destination),
+                        "{$theme}/".basename($destination),
                         $this->weight($destination),
                     );
                     $built++;
@@ -75,7 +76,7 @@ class BuildWallpapersCommand extends Command
             // or one whose source is gone. Leaving them would slowly fill the folder with images
             // nothing links to.
             foreach (File::glob("{$target}/*.jpg") ?: [] as $file) {
-                if (!in_array($file, $expected, true)) {
+                if (! in_array($file, $expected, true)) {
                     File::delete($file);
                     $removed++;
                 }
@@ -98,7 +99,7 @@ class BuildWallpapersCommand extends Command
      */
     private function publicName(string $source): string
     {
-        return Str::slug(pathinfo($source, PATHINFO_FILENAME)) . '-' . substr(md5_file($source), 0, 8);
+        return Str::slug(pathinfo($source, PATHINFO_FILENAME)).'-'.substr(md5_file($source), 0, 8);
     }
 
     private function convert(string $source, string $destination): bool
@@ -106,7 +107,7 @@ class BuildWallpapersCommand extends Command
         $image = @imagecreatefromstring(File::get($source));
 
         if ($image === false) {
-            $this->components->error('Not an image GD can read: ' . basename($source));
+            $this->components->error('Not an image GD can read: '.basename($source));
 
             return false;
         }
@@ -145,6 +146,6 @@ class BuildWallpapersCommand extends Command
 
     private function weight(string $path): string
     {
-        return number_format(File::size($path) / 1024, 0, '.', ' ') . ' kB';
+        return number_format(File::size($path) / 1024, 0, '.', ' ').' kB';
     }
 }

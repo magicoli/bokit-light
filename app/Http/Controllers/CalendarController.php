@@ -4,128 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Models\Booking;
-use App\Models\Property;
 use App\Sync\SyncRunner;
-use App\Traits\TimezoneTrait;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * The calendar itself is App\Filament\Pages\Calendar now (a standard Filament page). What is left
+ * here are its JSON endpoints — not navigation, so there was no reason to fold them into the page.
+ */
 class CalendarController extends Controller
 {
-    use TimezoneTrait;
-
-    /**
-     * Display the calendar
-     */
-    public function index(Request $request)
-    {
-        // Get view type from request (default: month)
-        $view = $request->get('view', 'month');
-
-        // Get site default timezone (used for calendar navigation)
-        // Each unit displays in its own timezone
-        // TODO:
-        // - first fetch properties and units to display
-        // - if all properties use the same timezone, use it as main timezone
-        // - otherwise, use the first property's timezone as main timezone
-        $tzString = self::defaultTimezone();
-        $tzShort = self::timezoneShort($tzString);
-
-        // Get date from request or use today in site timezone
-        $dateParam = $request->get('date');
-        $currentDate = $dateParam ? Carbon::parse($dateParam) : Carbon::now($tzString);
-
-        // Calculate date range based on view type
-        switch ($view) {
-            case 'week':
-                $startDate = $currentDate->copy()->startOfWeek();
-                $endDate = $startDate->copy()->addDays(6);
-                $prevPeriod = $startDate->copy()->subWeek();
-                $nextPeriod = $startDate->copy()->addWeek();
-                break;
-            case '2weeks':
-                $startDate = $currentDate->copy()->startOfWeek();
-                $endDate = $startDate->copy()->addDays(13);
-                $prevPeriod = $startDate->copy()->subWeeks(2);
-                $nextPeriod = $startDate->copy()->addWeeks(2);
-                break;
-            case 'month':
-            default:
-                // Afficher uniquement les jours du mois en cours
-                $startDate = $currentDate->copy()->startOfMonth();
-                $endDate = $currentDate->copy()->endOfMonth();
-                $prevPeriod = $currentDate->copy()->subMonth();
-                $nextPeriod = $currentDate->copy()->addMonth();
-                break;
-        }
-
-        // Year navigation
-        $prevYear = $currentDate->copy()->subYear();
-        $nextYear = $currentDate->copy()->addYear();
-
-        // Check if we can navigate forward (not beyond today + 2 years)
-        $maxFutureDate = Carbon::now()->addYears(2);
-        $canNavigateForward = $nextPeriod->lte($maxFutureDate);
-        $canNavigateYearForward = $nextYear->lte($maxFutureDate);
-
-        // Generate array of days for the view
-        $days = [];
-        $day = $startDate->copy();
-        while ($day <= $endDate) {
-            $days[] = $day->copy();
-            $day->addDay();
-        }
-
-        // Display filters: cancelled bookings are hidden by default,
-        // quotes (priced but not blocking) are shown by default
-        $showCancelled = $request->boolean('cancelled');
-        $showQuotes = $request->boolean('quotes', true);
-
-        $hiddenStatuses = $showCancelled ? [] : Booking::CANCELLED_STATUSES;
-        if (!$showQuotes) {
-            $hiddenStatuses[] = 'quote';
-        }
-
-        // Load properties with their units and bookings
-        // Filter by user access if not admin
-        $query = Property::where('is_active', true)->with([
-            'units' => fn($query) => $query->where('is_active', true),
-            'units.bookings' => function ($query) use ($startDate, $endDate, $hiddenStatuses) {
-                $query
-                    ->with(['unit', 'property']) // Eager-load for timezone() accessor
-                    ->where('check_out', '>=', $startDate->format('Y-m-d'))
-                    ->where('check_in', '<=', $endDate->format('Y-m-d'))
-                    ->when($hiddenStatuses, fn($q) => $q->whereNotIn('status', $hiddenStatuses));
-            },
-        ]);
-
-        // Filter by user authorization
-        $properties = $query->forUser()->get();
-
-        return view('calendar', [
-            'view' => $view,
-            'currentDate' => $currentDate,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'days' => $days,
-            'prevYear' => $prevYear,
-            'nextYear' => $nextYear,
-            'prevPeriod' => $prevPeriod,
-            'nextPeriod' => $nextPeriod,
-            'canNavigateForward' => $canNavigateForward,
-            'canNavigateYearForward' => $canNavigateYearForward,
-            'properties' => $properties,
-            'displayTimezone' => $tzString,
-            'displayTimezoneShort' => $tzShort,
-            'showCancelled' => $showCancelled,
-            'showQuotes' => $showQuotes,
-            // Non-default filter params, appended to navigation links
-            'filterQuery' => ($showCancelled ? '&cancelled=1' : '') . ($showQuotes ? '' : '&quotes=0'),
-        ]);
-    }
-
     /**
      * Get booking details (API endpoint for the calendar modal)
      */
@@ -134,7 +22,7 @@ class CalendarController extends Controller
         $booking = Booking::with(['unit.property', 'originSource'])->findOrFail($id);
 
         $property = $booking->property ?? $booking->unit?->property;
-        if (!$property || !auth()->user()->hasAccessTo($property)) {
+        if (! $property || ! auth()->user()->hasAccessTo($property)) {
             abort(403, 'Access denied');
         }
 
@@ -152,7 +40,7 @@ class CalendarController extends Controller
         $booking = Booking::with('unit.property')->findOrFail($id);
 
         $property = $booking->property ?? $booking->unit?->property;
-        if (!$property || !auth()->user()->hasAccessTo($property)) {
+        if (! $property || ! auth()->user()->hasAccessTo($property)) {
             abort(403, 'Access denied');
         }
 
@@ -187,12 +75,12 @@ class CalendarController extends Controller
 
         // Cancelled members hold nothing: they stay listed in the group
         // detail but count for nothing in the aggregates.
-        $active = $members->reject(fn(Booking $m): bool => $m->isCancelled())->values();
+        $active = $members->reject(fn (Booking $m): bool => $m->isCancelled())->values();
         if ($active->isEmpty()) {
             $active = new Collection([$booking]);
         }
 
-        $rawPrice = fn(Booking $b): ?float => $b->getRawOriginal('price') !== null
+        $rawPrice = fn (Booking $b): ?float => $b->getRawOriginal('price') !== null
             ? (float) $b->getRawOriginal('price')
             : null;
         $paidOf = function (Booking $b): ?float {
@@ -200,21 +88,21 @@ class CalendarController extends Controller
 
             return $paid !== null ? (float) $paid : null;
         };
-        $depositOf = fn(Booking $b): ?float => $b->getMetadata('deposit') !== null
+        $depositOf = fn (Booking $b): ?float => $b->getMetadata('deposit') !== null
             ? (float) $b->getMetadata('deposit')
             : null;
 
         if ($booking->isCancelled()) {
             // No money is expected from a cancelled booking — hide amounts.
-            $rawPrice = fn(Booking $b): ?float => null;
-            $paidOf = fn(Booking $b): ?float => null;
-            $depositOf = fn(Booking $b): ?float => null;
+            $rawPrice = fn (Booking $b): ?float => null;
+            $paidOf = fn (Booking $b): ?float => null;
+            $depositOf = fn (Booking $b): ?float => null;
         }
 
-        $sumOf = fn(Collection $members, callable $amountOf): ?float => $members->contains(
-            fn(Booking $m): bool => $amountOf($m) !== null,
+        $sumOf = fn (Collection $members, callable $amountOf): ?float => $members->contains(
+            fn (Booking $m): bool => $amountOf($m) !== null,
         )
-                ? $members->sum(fn(Booking $m): float => $amountOf($m) ?? 0)
+                ? $members->sum(fn (Booking $m): float => $amountOf($m) ?? 0)
                 : null;
 
         if ($isGroup) {
@@ -233,7 +121,7 @@ class CalendarController extends Controller
             'id' => $booking->id,
             'guest_name' => $booking->guest_name,
             'status' => $booking->status,
-            'status_label' => __('booking.status.' . $booking->status),
+            'status_label' => __('booking.status.'.$booking->status),
             'display_status' => $booking->displayStatus(),
             'deleted_at' => $booking->deleted_at?->toIso8601String(),
             'check_in' => ($isGroup ? $active->min('check_in') : $booking->check_in)->format('Y-m-d'),
@@ -241,7 +129,7 @@ class CalendarController extends Controller
             'adults' => $isGroup ? ($active->sum('adults') ?: null) : $booking->adults,
             'children' => $isGroup ? ($active->sum('children') ?: null) : $booking->children,
             'guests' => $isGroup
-                ? ($active->sum(fn(Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
+                ? ($active->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
                 : $booking->guests,
             'price' => $price,
             'deposit' => $deposit,
@@ -261,7 +149,7 @@ class CalendarController extends Controller
             'edit_url' => BookingResource::getUrl('edit', ['record' => $booking], panel: 'app'),
             'source' => [
                 'label' => $origin ? preg_replace('/^✓ /u', '', $origin->display_label) : $booking->source_name,
-                'url' => $origin && !$origin->is_placeholder ? $origin->external_url : null,
+                'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
             ],
             // Real origin channel (airbnb, booking.com, …) with its direct
             // link on the OTA — distinct from the transport source above.
@@ -275,7 +163,7 @@ class CalendarController extends Controller
                 ? [
                     'count' => $active->count(),
                     'members' => $members
-                        ->map(fn(Booking $m): array => [
+                        ->map(fn (Booking $m): array => [
                             'id' => $m->id,
                             'unit_name' => $m->unit?->name,
                             'check_in' => $m->check_in->format('Y-m-d'),

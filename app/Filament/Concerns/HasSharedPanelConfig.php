@@ -51,7 +51,7 @@ trait HasSharedPanelConfig
             ])
             ->assets($this->panelViteAssets())
             // ->breadcrumbs(false)
-            ->sidebarCollapsibleOnDesktop()
+            // ->sidebarCollapsibleOnDesktop()
             ->plugins([
                 ReportIssuePlugin::make(),
                 // The edit-profile page + its "Edit profile" entry in the user menu (rendered by

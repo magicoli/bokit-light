@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\Calendar;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\PropertyController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Support\Options;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -72,7 +72,11 @@ if ($isInstalled) {
             return view('dashboard');
         })->name('dashboard');
 
-        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+        // The calendar is now a standard Filament page (App\Filament\Pages\Calendar, panel 'app');
+        // this keeps old bookmarks/links to /calendar working, query string included.
+        Route::get('/calendar', fn () => redirect(
+            Calendar::getUrl(request()->query(), panel: 'app'),
+        ))->name('calendar');
         Route::get('/booking/{id}', [
             CalendarController::class,
             'booking',

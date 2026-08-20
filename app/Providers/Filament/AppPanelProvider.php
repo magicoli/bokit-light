@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Concerns\HasSharedPanelConfig;
+use App\Filament\Pages\Calendar;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
 use Filament\Http\Middleware\Authenticate;
@@ -47,10 +48,12 @@ class AppPanelProvider extends PanelProvider
             ->default()
             // No ->login(): the app panel has no login route of its own; its guests are sent to
             // the main panel's /login by redirectGuestsTo (bootstrap/app.php).
+            ->sidebarCollapsibleOnDesktop()
+            // ->sidebarFullyCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
-                Dashboard::class,
+                // No need to include Filament/Pages, auto-discovered
             ])
             ->topbar(false)
             ->navigationGroups([
@@ -62,14 +65,9 @@ class AppPanelProvider extends PanelProvider
                     ->collapsed(),
             ])
             ->navigationItems([
-                NavigationItem::make('calendar')
-                    ->label(fn (): string => __('app.calendar'))
-                    ->icon('heroicon-o-calendar-date-range')
-                    ->url(fn (): string => route('calendar'))
-                    ->visible(fn (): bool => auth()->check()),
-                // Calendar and the legacy admin now come from the shared cross-panel shortcuts in
-                // HasSharedPanelConfig, rendered next to the user menu on every panel. What stays
-                // here is the panel's own "Deprecated" group of deep legacy links.
+                // Calendar is a real Filament page now (App\Filament\Pages\Calendar) and registers
+                // its own navigation entry — no manual item needed here any more. What stays here
+                // is the panel's own "Deprecated" group of legacy deep links.
                 NavigationItem::make('legacy-admin')
                     ->label(fn (): string => __('app.admin'))
                     ->group(fn (): string => __('app.obsolete'))
