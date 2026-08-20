@@ -6,9 +6,12 @@ use App\Models\User;
 use Illuminate\Console\Command;
 
 /**
- * Minimal token issuance for the MCP server (dev/project-bokit-mcp-server.md) and any other
- * Sanctum-authenticated API consumer — a Filament "API tokens" UI can come later, once there is
- * a real need for self-service; an admin running this command is enough for now.
+ * Maintenance/debug fallback only — every user's own profile page (Edit Profile ->
+ * shouldShowSanctumTokens(), see HasSharedPanelConfig) is the real, primary way to issue and
+ * revoke a Sanctum personal access token for the MCP server (dev/project-bokit-mcp-server.md)
+ * or any other Sanctum-authenticated API consumer. The app must be fully manageable from the UI
+ * — artisan commands are for an operator debugging locally, never something a real workflow
+ * depends on.
  */
 class IssueApiTokenCommand extends Command
 {

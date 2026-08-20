@@ -3,6 +3,7 @@
 namespace App\Filament\Concerns;
 
 use Filament\Facades\Filament;
+use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -43,13 +44,21 @@ trait HasSharedPanelConfig
             ->homeUrl('/')
             // No ->login() here: login is the main panel's alone — one /login for the whole app.
             // Other panels send their guests there through redirectGuestsTo (bootstrap/app.php).
-            ->brandLogo('/images/logo.png')
-            ->brandLogoHeight(fn () => request()->is('login', '*/login') ? '128px' : '48px')
+            // ->brandLogo('/images/logo.png')
+            ->brandLogo(config('app.logo') ?: null)
+            // ->brandLogoHeight(fn () => request()->is('login', '*/login') ? '128px' : '48px')
+            ->brandLogoHeight('48px')
             ->colors([
                 'primary' => Color::Emerald,
                 'gray' => Color::Teal,
             ])
-            ->assets($this->panelViteAssets())
+            ->font('Switzer', url: Vite::asset('resources/css/fonts.css'), provider: LocalFontProvider::class)
+            ->assets([
+                Css::make('panels-stylesheet', Vite::asset('resources/css/panels.css')),
+                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
+                // Css::make('glass-stylesheet', Vite::asset('resources/css/glass.css')),
+                // Css::make('legacy-stylesheet', Vite::asset('resources/css/legacy.css')),
+            ])
             // ->breadcrumbs(false)
             // ->sidebarCollapsibleOnDesktop()
             ->plugins([
@@ -57,7 +66,14 @@ trait HasSharedPanelConfig
                 // The edit-profile page + its "Edit profile" entry in the user menu (rendered by
                 // extra-navigation-items' user-menu override). No navigation item of its own — it
                 // is reached from the user menu.
-                FilamentEditProfilePlugin::make()->shouldRegisterNavigation(false),
+                // ->shouldShowSanctumTokens(): lets any user issue/revoke their own personal
+                // access tokens from their profile page — the MCP server (routes/mcp.php) and
+                // any other Sanctum-authenticated API consumer authenticate with one of these.
+                // bokit:issue-api-token stays for maintenance/debug only, never the primary
+                // path — the app must be fully manageable from the UI.
+                FilamentEditProfilePlugin::make()
+                    ->shouldRegisterNavigation(false)
+                    ->shouldShowSanctumTokens(),
                 // Cross-panel shortcuts (Calendar + the legacy admin), rendered next to the user
                 // menu on every panel that shares this config — realising the "Calendar + Admin
                 // links in the topbar, shared with the frontend" that each panel used to carry as
@@ -88,33 +104,5 @@ trait HasSharedPanelConfig
                 // ->authMiddleware([
                 //     Authenticate::class,
             ]);
-    }
-
-    /**
-     * The panels' built stylesheets and scripts, resolved through Vite.
-     *
-     * Vite::asset(), not resource_path(): Filament publishes a local path verbatim, which would
-     * ship @import and @apply straight to the browser. Everything under resources/ is built, and
-     * the panels are served what the build produced.
-     *
-     * Wrapped so a transiently missing manifest cannot crash panel registration — the dev watcher
-     * rewriting manifest.json, or a test run against an unbuilt tree, would otherwise throw here on
-     * every request. When it cannot resolve, the assets simply do not load for that request and
-     * return on the next one; in production the manifest is always present, so this never triggers.
-     *
-     * @return array<int, Css|Js>
-     */
-    protected function panelViteAssets(): array
-    {
-        try {
-            return [
-                Css::make('glass-stylesheet', Vite::asset('resources/css/glass.css')),
-                Css::make('panels-stylesheet', Vite::asset('resources/css/panels.css')),
-                Css::make('legacy-stylesheet', Vite::asset('resources/css/legacy.css')),
-                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
-            ];
-        } catch (\Throwable) {
-            return [];
-        }
     }
 }
