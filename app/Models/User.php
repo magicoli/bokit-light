@@ -26,6 +26,7 @@ class User extends Authenticatable implements FilamentUser
         'is_admin',
         'roles',
         'options',
+        'locale',
     ];
 
     protected $casts = [
@@ -101,7 +102,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function hasAnyRole(array $roles): bool
     {
-        return !empty(array_intersect($roles, $this->roles ?? []));
+        return ! empty(array_intersect($roles, $this->roles ?? []));
     }
 
     /**
@@ -110,7 +111,7 @@ class User extends Authenticatable implements FilamentUser
     public function addRole(string $role): void
     {
         $roles = $this->roles ?? [];
-        if (!in_array($role, $roles)) {
+        if (! in_array($role, $roles)) {
             $roles[] = $role;
             $this->roles = $roles;
             $this->save();
@@ -150,7 +151,7 @@ class User extends Authenticatable implements FilamentUser
 
         $propertyUser = $this->properties()->where('properties.id', $property->id)->first();
 
-        if (!$propertyUser) {
+        if (! $propertyUser) {
             return false;
         }
 
@@ -171,7 +172,7 @@ class User extends Authenticatable implements FilamentUser
 
         $propertyUser = $this->properties()->where('properties.id', $property->id)->first();
 
-        if (!$propertyUser) {
+        if (! $propertyUser) {
             return false;
         }
 
