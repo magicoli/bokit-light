@@ -40,3 +40,26 @@ describe("logging", function () {
         expect(config("logging.channels.daily.days"))->toBeGreaterThan(0);
     });
 });
+
+describe("version resolution", function () {
+    // Reproduces the production deploy path: APP_ENV=production, APP_DEBUG off, no APP_VERSION and
+    // (on a fresh release) no storage/version — exactly the state during `composer install` →
+    // post-autoload-dump → package:discover. config/app.php then falls back to
+    // Composer\InstalledVersions, which lives in the global-namespace config file and MUST be
+    // fully qualified: an unqualified reference resolved to \InstalledVersions, threw "Class
+    // InstalledVersions not found", and took the whole deploy down (v1.1.0). Run in a subprocess
+    // so the config file is evaluated fresh under that environment rather than the test's.
+    test("boots under production env without a stored version", function () {
+        $code = 'require "vendor/autoload.php";'
+            . '$app = require "bootstrap/app.php";'
+            . '$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();'
+            . 'echo config("app.version");';
+
+        $result = \Illuminate\Support\Facades\Process::path(base_path())
+            ->env(["APP_ENV" => "production", "APP_DEBUG" => "false", "APP_VERSION" => ""])
+            ->run([PHP_BINARY, "-r", $code]);
+
+        expect($result->successful())->toBeTrue();
+        expect(trim($result->output()))->not->toBe("");
+    });
+});

@@ -1,5 +1,7 @@
 <?php
 
+use Composer\InstalledVersions;
+
 // Generate a random key and save it if not provided
 $key = env('APP_KEY', 'base64:'.base64_encode(random_bytes(32)));
 if (empty(env('APP_KEY'))) {
@@ -52,8 +54,12 @@ if ($env_debug || $env_env !== 'production') {
     }
 }
 
-// Fallback to composer installed version
-if (empty($version)) {
+// Fallback to the composer-installed version. Reached on production, where the debug block above
+// is skipped and neither storage/version nor APP_VERSION was set yet — which is exactly the case
+// during a fresh release's `composer install` (post-autoload-dump → package:discover). This file
+// is in the global namespace, so the class must be fully qualified; guarded so an unresolvable
+// class leaves $version empty rather than fataling the whole boot.
+if (empty($version) && class_exists(InstalledVersions::class)) {
     $package = InstalledVersions::getRootPackage()['name'];
     $version = InstalledVersions::getPrettyVersion($package);
 }
