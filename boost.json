@@ -5,9 +5,10 @@
     "editors": [
         "claude_code"
     ],
-    "guidelines": [
+    "guidelines": true,
+    "herd_mcp": true,
+    "packages": [
         "filament/filament",
         "magicoli/two-way-ticket"
-    ],
-    "herd_mcp": true
+    ]
 }

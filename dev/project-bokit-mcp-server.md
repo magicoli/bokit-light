@@ -68,10 +68,34 @@ every tool bokit writes from here on.
 
 1. ~~This plan.~~
 2. Add `magicoli/assistant-mcp-engine` as a path-repo dev dependency (`@dev`, `../assistant-mcp-engine`
-   — same pattern as `personal-assistant-mcp`'s own `composer.json`), confirm it installs clean
-   alongside bokit's existing deps (Filament v5, Sanctum, no Passport conflict expected since
-   Passport is additive). Mechanical, low-risk, reversible — proceeding without waiting on the
-   shape decision above.
+   — same pattern as `personal-assistant-mcp`'s own `composer.json`).
+
+   **Found while doing this, not assumed**: `AssistantMcpEngineServiceProvider::configurePackage()`
+   calls `->runsMigrations()->hasMigrations([...])` with a hardcoded list of 27 migrations,
+   including `0001_01_01_000000_create_users_table` and
+   `2026_07_31_071816_create_personal_access_tokens_table` — both of which bokit **already has**,
+   under different filenames. Laravel's migrator tracks by filename, so it wouldn't recognize
+   these as already-run; a plain `composer require` + `php artisan migrate` would try to
+   `Schema::create('users', ...)` a second time and fatal, taking the whole migration batch down
+   with it. `spatie/laravel-package-tools` (confirmed by reading
+   `Concerns/Package/HasMigrations.php`) has no per-consumer exclusion mechanism — the migration
+   list is baked into the package's own provider, nothing a consumer's `composer.json` can filter.
+
+   PAM never hit this because PAM's own `users`/`personal_access_tokens` tables were extracted
+   *into* the engine in the first place — bokit is the first consumer with pre-existing schema of
+   its own, so this is a genuinely new problem, not something already solved upstream.
+
+   **Mitigation, verified safe**: `composer.json`'s existing `extra.laravel.dont-discover` array
+   (already present, empty) can name `magicoli/assistant-mcp-engine` to stop Laravel from
+   auto-registering `AssistantMcpEngineServiceProvider` at all — no migrations, no config, no
+   routes, no Filament resources from the engine load. This matches the Minimal-shape decision
+   (B) exactly: bokit only wants specific plain-PHP pieces (`Laravel\Mcp\Server`/`Tool` — already
+   reachable directly since `laravel/mcp` is a transitive dependency; `Concerns\HasDependency`;
+   optionally `Mcp\Concerns\HasToolAvailability`), and confirmed by reading both — neither has any
+   container/config coupling to the engine's own provider, so referencing them by class name
+   works with the provider fully disabled.
+   Confirm after installing: `php artisan migrate:status` shows nothing new pending from the
+   engine before ever running an actual migration.
 3. Wire up Sanctum properly: `HasApiTokens` on `App\Models\User`, `api:` entry in
    `bootstrap/app.php`'s `withRouting()`, a way for an admin to issue a token (start minimal —
    `php artisan` command or tinker; a Filament "API tokens" UI section can come later, PAM's Edit
