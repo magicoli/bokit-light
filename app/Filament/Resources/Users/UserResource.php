@@ -36,6 +36,11 @@ class UserResource extends Resource
         return __('user.plural_label');
     }
 
+    public static function getNavigationGroup(): string
+    {
+        return __('app.admin');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema)->columns(1);

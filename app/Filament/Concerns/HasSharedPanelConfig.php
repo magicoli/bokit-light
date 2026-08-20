@@ -8,7 +8,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\MenuItem;
-use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
@@ -64,26 +63,6 @@ trait HasSharedPanelConfig
                 // links in the topbar, shared with the frontend" that each panel used to carry as
                 // its own duplicated navigationItems(). Each item hides itself when it does not
                 // apply. See NavigationItemsPlugin (magicoli/extra-navigation-items).
-                NavigationItemsPlugin::make()->items([
-                    NavigationItem::make('calendar')
-                        ->label(fn (): string => __('app.calendar'))
-                        ->icon('heroicon-o-calendar-date-range')
-                        ->url(fn (): string => route('calendar'))
-                        ->visible(fn (): bool => auth()->check()),
-                    NavigationItem::make('dashboard')
-                        ->label(fn (): string => __('app.dashboard'))
-                        ->icon('bi-luggage')
-                        // ->group('legacy')
-                        ->url(fn (): string => route('filament.app.pages.dashboard'))
-                        // Nothing to offer a visitor who cannot enter it. Owners rather than every
-                        // account, in truth — that distinction arrives with the tenants.
-                        ->visible(fn (): bool => auth()->check()),
-                    NavigationItem::make('legacy-admin')
-                        ->label(fn (): string => __('app.obsolete'))
-                        ->icon('ri-dashboard-line')
-                        ->url(fn (): string => route('admin.dashboard'))
-                        ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
-                ]),
             ])
             // ->sidebarFullyCollapsibleOnDesktop()
             // ->userMenuItems([

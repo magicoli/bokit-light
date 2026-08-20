@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "778d5c1ccebae2452b58efede3f40c9b",
+    "content-hash": "58ac5364aec739629e9fe3ed044a23a2",
     "packages": [
         {
             "name": "andreiio/blade-remix-icon",
@@ -4164,16 +4164,16 @@
         },
         {
             "name": "magicoli/two-way-ticket",
-            "version": "0.4.2",
+            "version": "0.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magicoli/two-way-ticket.git",
-                "reference": "0459ee2a069611c1193276965fe38f15de0e909b"
+                "reference": "e88e6fc117e84940c3ff1dbcb67f169f3635b0ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magicoli/two-way-ticket/zipball/0459ee2a069611c1193276965fe38f15de0e909b",
-                "reference": "0459ee2a069611c1193276965fe38f15de0e909b",
+                "url": "https://api.github.com/repos/magicoli/two-way-ticket/zipball/e88e6fc117e84940c3ff1dbcb67f169f3635b0ab",
+                "reference": "e88e6fc117e84940c3ff1dbcb67f169f3635b0ab",
                 "shasum": ""
             },
             "require": {
@@ -4216,7 +4216,7 @@
             ],
             "support": {
                 "issues": "https://github.com/magicoli/two-way-ticket/issues",
-                "source": "https://github.com/magicoli/two-way-ticket/tree/v0.4.2"
+                "source": "https://github.com/magicoli/two-way-ticket/tree/v0.4.3"
             },
             "funding": [
                 {
@@ -4232,7 +4232,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-20T14:20:20+00:00"
+            "time": "2026-08-20T15:59:22+00:00"
         },
         {
             "name": "masterminds/html5",

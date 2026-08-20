@@ -57,6 +57,26 @@ class MainPanelProvider extends PanelProvider
                             ->sort(10),
                     ]
                 ),
+                NavigationItemsPlugin::make()->items([
+                    NavigationItem::make('calendar')
+                        ->label(fn (): string => __('app.calendar'))
+                        ->icon('heroicon-o-calendar-date-range')
+                        ->url(fn (): string => route('calendar'))
+                        ->visible(fn (): bool => auth()->check()),
+                    NavigationItem::make('dashboard')
+                        ->label(fn (): string => __('app.dashboard'))
+                        ->icon('bi-luggage')
+                        // ->group('legacy')
+                        ->url(fn (): string => route('filament.app.pages.dashboard'))
+                        // Nothing to offer a visitor who cannot enter it. Owners rather than every
+                        // account, in truth — that distinction arrives with the tenants.
+                        ->visible(fn (): bool => auth()->check()),
+                    // NavigationItem::make('legacy-admin')
+                    //     ->label(fn (): string => __('app.obsolete'))
+                    //     ->icon('ri-dashboard-line')
+                    //     ->url(fn (): string => route('admin.dashboard'))
+                    //     ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
+                ]),
             ]);
     }
 }

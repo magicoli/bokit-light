@@ -54,23 +54,40 @@ class AppPanelProvider extends PanelProvider
             ])
             ->topbar(false)
             ->navigationGroups([
-                NavigationGroup::make(__('Deprecated'))->collapsed(),
+                NavigationGroup::make()
+                    ->label(fn (): string => __('app.admin'))
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label(fn (): string => __('app.obsolete'))
+                    ->collapsed(),
             ])
             ->navigationItems([
+                NavigationItem::make('calendar')
+                    ->label(fn (): string => __('app.calendar'))
+                    ->icon('heroicon-o-calendar-date-range')
+                    ->url(fn (): string => route('calendar'))
+                    ->visible(fn (): bool => auth()->check()),
                 // Calendar and the legacy admin now come from the shared cross-panel shortcuts in
                 // HasSharedPanelConfig, rendered next to the user menu on every panel. What stays
                 // here is the panel's own "Deprecated" group of deep legacy links.
+                NavigationItem::make('legacy-admin')
+                    ->label(fn (): string => __('app.admin'))
+                    ->group(fn (): string => __('app.obsolete'))
+                    // ->icon('ri-dashboard-line')
+                    ->url(fn (): string => route('admin.dashboard'))
+                    ->badge(fn (): string => __('Legacy'))
+                    ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
                 NavigationItem::make('properties')
                     ->label(fn (): string => __('app.properties'))
-                    ->icon('heroicon-s-building-office-2')
-                    ->group(fn (): string => __('Deprecated'))
+                    // ->icon('heroicon-s-building-office-2')
+                    ->group(fn (): string => __('app.obsolete'))
                     ->url(fn (): string => route('properties'))
                     ->badge(fn (): string => __('Legacy'))
                     ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
                 NavigationItem::make('rates')
                     ->label(fn (): string => __('app.rates'))
-                    ->icon('heroicon-s-banknotes')
-                    ->group(fn (): string => __('Deprecated'))
+                    // ->icon('heroicon-s-banknotes')
+                    ->group(fn (): string => __('app.obsolete'))
                     ->url(fn (): string => route('rates'))
                     ->badge(fn (): string => __('Legacy'))
                     ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
@@ -80,7 +97,7 @@ class AppPanelProvider extends PanelProvider
                 TicketStatsWidget::make(),
             ])
             ->plugins([
-                TicketsPlugin::make(),
+                TicketsPlugin::make()->group(fn (): string => __('app.admin'))->sort(90),
             ])
             ->authMiddleware([
                 Authenticate::class,
