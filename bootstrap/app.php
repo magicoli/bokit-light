@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Sync/Console/Commands',
         __DIR__.'/../app/Backup/Console/Commands',
     ])
-    ->withRouting(commands: __DIR__.'/../routes/console.php', health: '/up', then: function () {
+    ->withRouting(commands: __DIR__.'/../routes/console.php', api: __DIR__.'/../routes/api.php', health: '/up', then: function () {
         // Load admin routes FIRST (before web.php catch-all routes)
         Route::middleware('web')->group(base_path('routes/admin.php'));
 
