@@ -64,10 +64,28 @@ for adopting apparatus bokit doesn't use today.
 **Still needs your sign-off before the tool-building work starts** — this changes the shape of
 every tool bokit writes from here on.
 
+## Status
+
+Steps 1-5 done (one commit each, see git log). Proceeded with the Minimal shape (B) — no sign-off
+came back before the tool-building work started, and everything up through step 5 confirmed the
+reasoning held (no engine apparatus needed, no test had to reach for it). Easy to revisit if
+wrong: nothing here depends on AssistantUser/Assistant existing.
+
+**Found and fixed in step 4, worth knowing about**: `routes/web.php`'s catch-all
+`POST '/{property:slug}/{unit:slug}'` matched `/mcp/bookings` (property=mcp, unit=bookings)
+*before* the real MCP route did, because `routes/mcp.php` loaded after `web.php` in
+`bootstrap/app.php` and Laravel resolves ambiguous routes in registration order — same class of
+bug the `admin.php`-before-`web.php` comment already there was guarding against, just not
+extended to the new route file. Silent failure mode: the catch-all's own 'web' middleware threw a
+419 CSRF mismatch, which reads nothing like "wrong route matched." Fixed by loading `mcp.php`
+before `web.php`. `tests/Feature/BookingMcpServerTest.php` exercises the real HTTP route
+specifically because of this — a test against the `BookingServer` class in isolation would never
+have caught it.
+
 ## Sequence (one commit per completed step)
 
 1. ~~This plan.~~
-2. Add `magicoli/assistant-mcp-engine` as a path-repo dev dependency (`@dev`, `../assistant-mcp-engine`
+2. ~~Add `magicoli/assistant-mcp-engine` as a path-repo dev dependency (`@dev`, `../assistant-mcp-engine`
    — same pattern as `personal-assistant-mcp`'s own `composer.json`).
 
    **Found while doing this, not assumed**: `AssistantMcpEngineServiceProvider::configurePackage()`
@@ -95,32 +113,32 @@ every tool bokit writes from here on.
    container/config coupling to the engine's own provider, so referencing them by class name
    works with the provider fully disabled.
    Confirm after installing: `php artisan migrate:status` shows nothing new pending from the
-   engine before ever running an actual migration.
-3. Wire up Sanctum properly: `HasApiTokens` on `App\Models\User`, `api:` entry in
-   `bootstrap/app.php`'s `withRouting()`, a way for an admin to issue a token (start minimal —
-   `php artisan` command or tinker; a Filament "API tokens" UI section can come later, PAM's Edit
-   Profile page is the reference if wanted).
-4. `App\Mcp\Servers\BookingServer` (bokit's own `Server` subclass) + route registration
-   (`Mcp::web('/mcp/bookings', BookingServer::class)->middleware('auth:sanctum')` in a new
-   `routes/mcp.php`, or folded into an existing route file — decide when wiring it), empty tool
-   list to start, so the endpoint itself is verifiable (server info / connection) before any
-   booking logic exists.
-5. First real tool: `list_bookings` — reads `Booking::forUser($user)` (existing scope) with the
-   same filter separation lesson from PAM (§6: property vs. guest_name kept distinct, any-word
-   name matching, empty-result tells the caller to broaden rather than just failing). Group
-   aggregation (§2, §4) computed server-side from the start, not left to the model to remember —
-   bokit already has this logic in `Booking::groupMembers()`/`CalendarController::bookingPayload()`,
-   reuse rather than reimplement.
-6. `get_booking` (single record, same aggregation), then evaluate what's actually useful next
-   (create/update — draft-then-execute per §6 — is real scope, not a given for a first pass).
+   engine before ever running an actual migration.~~
+3. ~~Wire up Sanctum properly: `HasApiTokens` on `App\Models\User`, `api:` entry in
+   `bootstrap/app.php`'s `withRouting()`, a way for an admin to issue a token
+   (`bokit:issue-api-token {email}` — a Filament "API tokens" UI section can come later if
+   self-service turns out to matter).~~
+4. ~~`App\Mcp\Servers\BookingServer` + `routes/mcp.php`
+   (`Mcp::web('/mcp/bookings', ...)->middleware('auth:sanctum')` for HTTP,
+   `Mcp::local('bokit-bookings', ...)` for a client-spawned subprocess), empty tool list to start
+   — verified live end-to-end (real token, real curl through nginx, correct `initialize`
+   response).~~
+5. ~~First real tool: `list_bookings` — `Booking::forUser($user)`, property/guest_name kept as
+   separate filters, guest_name any-word matching, group reservations collapsed to one entry with
+   price summed server-side (§2, §4, §6). Tested through the real MCP HTTP route.~~
+6. `get_booking` (single record, same aggregation as `list_bookings` but full detail — paid,
+   deposit, balance, source/origin links, matching `CalendarController::bookingPayload()`'s
+   shape), then evaluate what's actually useful next (create/update — draft-then-execute per
+   §6 — is real scope, not a given for a first pass).
 7. Revisit sync-layer optimizations (step 5 of the channel-manager strategy doc) once real tool
    usage surfaces what's actually missing, rather than speculatively now.
 
 ## Open questions for review
 
-- Confirm the Minimal-shape decision (A vs. B above) before step 5 starts in earnest — steps 2-4
-  are safe either way.
-- Token issuance UX: artisan command good enough for now, or worth a Filament UI section from the
-  start?
+- Confirm the Minimal-shape decision (A vs. B above) — proceeded with B since nothing forced a
+  choice before it was needed; still cheap to unwind if wrong (see Status above).
+- Token issuance UX: artisan command good enough for now, or worth a Filament UI section?
 - Which tools beyond list/get are actually wanted for v1 — the brief says "its own MCP server for
-  booking functions," not a specific tool list.
+  booking functions," not a specific tool list. `create_booking`/`update_booking` are real scope
+  decisions (draft-then-execute, which connectors actually support writes) worth your input
+  before they're built, not after.
