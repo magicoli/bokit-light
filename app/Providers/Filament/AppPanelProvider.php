@@ -77,12 +77,7 @@ class AppPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                // The class string, not TicketStatsWidget::make(): make() returns a
-                // WidgetConfiguration object, and filament:optimize (run on deploy) var_export's the
-                // widgets list — an object there emits Class::__set_state(...), which
-                // WidgetConfiguration does not implement, so every request 500'd on the cached
-                // panel. No ->visible() is applied here, so the class string is equivalent.
-                TicketStatsWidget::class,
+                TicketStatsWidget::make(),
             ])
             ->plugins([
                 TicketsPlugin::make(),
