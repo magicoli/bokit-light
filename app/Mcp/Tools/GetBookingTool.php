@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Booking;
+use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Laravel\Mcp\Request;
@@ -11,6 +12,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Title;
 use Laravel\Mcp\Server\Tool;
+use Magicoli\AssistantMcpEngine\Models\Assistant;
 
 /**
  * Full detail for one booking — id from list_bookings. Shares Booking::toDetailPayload() with
@@ -23,8 +25,14 @@ use Laravel\Mcp\Server\Tool;
 #[Description("Full detail for one booking by id (from list_bookings), including price/deposit/paid/balance and, for a group reservation, every member. 'deposit' is the amount configured to be due, not evidence it was paid — check 'paid' for that.")]
 class GetBookingTool extends Tool
 {
+    public function __construct(public ?Assistant $assistant = null, public ?User $user = null) {}
+
     public function handle(Request $request): Response
     {
+        if (! $this->assistant) {
+            return Response::error('No tenant context — this tool needs a resolved Assistant (see BookingServer::boot()).');
+        }
+
         $booking = Booking::with(['unit.property', 'originSource'])->find($request->integer('booking_id'));
 
         if (! $booking) {
@@ -32,9 +40,12 @@ class GetBookingTool extends Tool
         }
 
         $property = $booking->property ?? $booking->unit?->property;
-        $user = auth()->user();
 
-        if (! $property || ! $user?->hasAccessTo($property)) {
+        if (! $property || $property->assistant_id !== $this->assistant->id) {
+            return Response::error('Access denied.');
+        }
+
+        if (! $this->user?->hasAccessTo($property)) {
             return Response::error('Access denied.');
         }
 

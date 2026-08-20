@@ -7,18 +7,23 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
+use Magicoli\AssistantMcpEngine\Models\Assistant;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    $this->assistant = Assistant::forceCreate(['name' => 'Test Tenant', 'slug' => 'test-tenant']);
+
     $this->admin = User::create([
         'name' => 'Admin',
         'email' => 'admin@test.local',
         'password' => 'secret-password',
         'is_admin' => true,
     ]);
+    $this->assistant->forceFill(['owner_id' => $this->admin->id])->save();
 
     $this->property = Property::create([
+        'assistant_id' => $this->assistant->id,
         'name' => 'Moon',
         'slug' => 'moon',
         'is_active' => true,
@@ -39,7 +44,9 @@ beforeEach(function (): void {
  */
 function callListBookings(array $arguments = []): TestResponse
 {
-    return test()->postJson('/mcp/bookings', [
+    $slug = test()->assistant->slug;
+
+    return test()->postJson("/mcp/{$slug}/bookings", [
         'jsonrpc' => '2.0',
         'method' => 'tools/call',
         'params' => ['name' => 'list_bookings', 'arguments' => $arguments],
@@ -54,7 +61,7 @@ function bookingResults(TestResponse $response): array
     return json_decode($text, true)['bookings'];
 }
 
-it('lists bookings scoped to the authenticated user', function (): void {
+it('lists bookings scoped to the authenticated tenant', function (): void {
     Sanctum::actingAs($this->admin);
 
     Booking::create([
@@ -168,23 +175,86 @@ it('aggregates a group reservation into one entry with summed price', function (
         ->and($bookings[0]['unit'])->toBe(['Moon Unit', 'Second Unit']);
 });
 
-it('sees nothing for a user with no access to the property', function (): void {
-    $outsider = User::create([
-        'name' => 'Outsider',
-        'email' => 'outsider@test.local',
-        'password' => 'secret-password',
+it('hides bookings from a sibling property in the same tenant the user has no access to', function (): void {
+    $otherProperty = Property::create([
+        'assistant_id' => $this->assistant->id,
+        'name' => 'Sun',
+        'slug' => 'sun',
+        'is_active' => true,
+    ]);
+    $otherUnit = Unit::create([
+        'property_id' => $otherProperty->id,
+        'name' => 'Sun Unit',
+        'slug' => 'sun-unit',
+        'is_active' => true,
     ]);
 
-    Sanctum::actingAs($outsider);
-
     Booking::create([
-        'property_id' => $this->property->id,
-        'unit_id' => $this->unit->id,
-        'guest_name' => 'Jean Dupont',
+        'property_id' => $otherProperty->id,
+        'unit_id' => $otherUnit->id,
+        'guest_name' => 'Sun Guest',
         'status' => 'confirmed',
         'check_in' => '2026-09-01',
         'check_out' => '2026-09-08',
     ]);
 
+    // A staff member attached only to "Moon" — not admin, not the tenant owner.
+    $staff = User::create([
+        'name' => 'Staff',
+        'email' => 'staff@test.local',
+        'password' => 'secret-password',
+    ]);
+    $staff->properties()->attach($this->property->id, ['role' => 'manager']);
+
+    Sanctum::actingAs($staff);
+
     expect(bookingResults(callListBookings()))->toHaveCount(0);
+});
+
+it('rejects a request for another tenant\'s slug entirely', function (): void {
+    Assistant::forceCreate(['name' => 'Other Tenant', 'slug' => 'other-tenant']);
+
+    // Neither this tenant's owner nor attached to any of its properties — and not is_admin
+    // (bokit's own site-wide flag, a deliberate cross-tenant bypass, tested separately).
+    $staff = User::create([
+        'name' => 'Staff',
+        'email' => 'staff-isolation@test.local',
+        'password' => 'secret-password',
+    ]);
+    $staff->properties()->attach($this->property->id, ['role' => 'manager']);
+
+    Sanctum::actingAs($staff);
+
+    test()->postJson('/mcp/other-tenant/bookings', [
+        'jsonrpc' => '2.0',
+        'method' => 'tools/call',
+        'params' => ['name' => 'list_bookings', 'arguments' => []],
+        'id' => 1,
+    ])->assertForbidden();
+});
+
+it('lets a site-wide admin (is_admin) into any tenant, including one they neither own nor are attached to', function (): void {
+    $other = Assistant::forceCreate(['name' => 'Other Tenant', 'slug' => 'other-tenant']);
+    $otherProperty = Property::create([
+        'assistant_id' => $other->id,
+        'name' => 'Sun',
+        'slug' => 'sun',
+        'is_active' => true,
+    ]);
+    Unit::create([
+        'property_id' => $otherProperty->id,
+        'name' => 'Sun Unit',
+        'slug' => 'sun-unit',
+        'is_active' => true,
+    ]);
+
+    // $this->admin is neither other-tenant's owner nor attached to Sun — only is_admin.
+    Sanctum::actingAs($this->admin);
+
+    test()->postJson('/mcp/other-tenant/bookings', [
+        'jsonrpc' => '2.0',
+        'method' => 'tools/call',
+        'params' => ['name' => 'list_bookings', 'arguments' => []],
+        'id' => 1,
+    ])->assertSuccessful();
 });

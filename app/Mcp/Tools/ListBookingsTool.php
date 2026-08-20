@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Booking;
+use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Illuminate\Support\Collection;
@@ -12,6 +13,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Title;
 use Laravel\Mcp\Server\Tool;
+use Magicoli\AssistantMcpEngine\Models\Assistant;
 
 /**
  * Reads bokit's own already-synced local records (SourceConnector/SyncEngine keep these
@@ -26,10 +28,17 @@ use Laravel\Mcp\Server\Tool;
 #[Description('List bookings, most recent check-in first. property and guest_name are separate filters — never merge them, a property can be named after a person and collide with an unrelated guest search. guest_name matches any word in the search against any word in the name, so a partial or slightly-off name still finds it. Cancelled bookings are excluded by default. An empty result with a filter applied does not mean nothing exists — broaden or drop the filter and call again before concluding there is nothing.')]
 class ListBookingsTool extends Tool
 {
+    public function __construct(public ?Assistant $assistant = null, public ?User $user = null) {}
+
     public function handle(Request $request): Response
     {
+        if (! $this->assistant) {
+            return Response::error('No tenant context — this tool needs a resolved Assistant (see BookingServer::boot()).');
+        }
+
         $query = Booking::query()
-            ->forUser(auth()->user())
+            ->forUser($this->user)
+            ->whereHas('property', fn ($q) => $q->where('assistant_id', $this->assistant->id))
             ->with(['unit', 'property']);
 
         if (! $request->boolean('include_cancelled')) {
