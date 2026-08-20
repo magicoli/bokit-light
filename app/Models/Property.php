@@ -11,7 +11,7 @@ class Property extends Model
     use AdminResourceTrait;
     use TimezoneTrait;
 
-    protected $fillable = ['name', 'slug', 'is_active', 'options'];
+    protected $fillable = ['assistant_id', 'name', 'slug', 'is_active', 'options'];
 
     protected $casts = [
         'is_active' => 'boolean',

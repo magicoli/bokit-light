@@ -8,10 +8,15 @@ use App\Traits\TimezoneTrait;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Magicoli\AssistantMcpEngine\Contracts\AssistantUser;
+use Magicoli\AssistantMcpEngine\Models\Assistant;
+use Magicoli\AssistantMcpEngine\Models\MailAccount;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements AssistantUser, FilamentUser
 {
     use AdminResourceTrait;
     use HasApiTokens;
@@ -61,6 +66,48 @@ class User extends Authenticatable implements FilamentUser
     public function isAdmin(): bool
     {
         return $this->is_admin || $this->hasRole('admin');
+    }
+
+    /**
+     * Magicoli\AssistantMcpEngine\Contracts\AssistantUser — cascaded preference lookup, reusing
+     * the existing options JSON column rather than a dedicated one.
+     */
+    public function option(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->options, $key, $default);
+    }
+
+    /**
+     * Magicoli\AssistantMcpEngine\Contracts\AssistantUser — an Assistant is bokit's tenant (one
+     * owner account, several properties; property_user still governs per-property staff roles
+     * *within* a tenant, unchanged).
+     *
+     * isAdmin() is a site-wide bypass here on purpose — it's this bokit *install's* own
+     * platform-operator flag, not a per-tenant role, so it sees every tenant. A tenant's own
+     * "propriétaire" (owner_id, or property_user attachment) is the one scoped to just their own
+     * properties — that isolation is enforced below, unrelated to isAdmin().
+     */
+    public function canAccessTenant(Model $tenant): bool
+    {
+        if (! $tenant instanceof Assistant) {
+            return false;
+        }
+
+        return $this->isAdmin()
+            || $tenant->owner_id === $this->id
+            || $this->properties()->where('properties.assistant_id', $tenant->id)->exists();
+    }
+
+    /**
+     * Magicoli\AssistantMcpEngine\Contracts\AssistantUser — bokit has no mail-account feature of
+     * its own; declared only so engine code that type-hints AssistantUser stays satisfied. The
+     * mail_accounts table doesn't exist here (assistant-mcp-engine's migrations are
+     * dont-discover'd — see dev/project-bokit-mcp-server.md), so nothing in bokit's own tool
+     * list may actually query this relation.
+     */
+    public function mailAccounts(): HasMany
+    {
+        return $this->hasMany(MailAccount::class);
     }
 
     /**
