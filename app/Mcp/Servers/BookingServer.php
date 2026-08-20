@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Tools\GetBookingTool;
 use App\Mcp\Tools\ListBookingsTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -29,5 +30,6 @@ class BookingServer extends Server
      */
     protected array $tools = [
         ListBookingsTool::class,
+        GetBookingTool::class,
     ];
 }

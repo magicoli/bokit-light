@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use App\Services\BookingMetadataParser;
+use App\Filament\Resources\Bookings\BookingResource;
 use App\Sync\Support\SyncResolver;
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
@@ -341,6 +342,128 @@ class Booking extends Model
             ->with('unit')
             ->orderBy('check_in')
             ->get();
+    }
+
+    /**
+     * Full detail payload — the calendar modal (CalendarController::booking()) and
+     * get_booking (App\Mcp\Tools\GetBookingTool) both need the exact same thing, so this lives
+     * once, here.
+     *
+     * Group reservations aggregate dates, price, paid and guest counts over all members and
+     * expose the member list for the group detail table. Links point to the Filament admin
+     * panel; the origin link comes from the booking's origin source when its connector
+     * provides one.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDetailPayload(): array
+    {
+        $members = $this->groupMembers();
+        $isGroup = $members->count() > 1;
+
+        // Cancelled members hold nothing: they stay listed in the group
+        // detail but count for nothing in the aggregates.
+        $active = $members->reject(fn (Booking $m): bool => $m->isCancelled())->values();
+        if ($active->isEmpty()) {
+            $active = new Collection([$this]);
+        }
+
+        $rawPrice = fn (Booking $b): ?float => $b->getRawOriginal('price') !== null
+            ? (float) $b->getRawOriginal('price')
+            : null;
+        $paidOf = function (Booking $b): ?float {
+            $paid = $b->getMetadata('invoice_payment_total') ?? $b->getMetadata('paid');
+
+            return $paid !== null ? (float) $paid : null;
+        };
+        $depositOf = fn (Booking $b): ?float => $b->getMetadata('deposit') !== null
+            ? (float) $b->getMetadata('deposit')
+            : null;
+
+        if ($this->isCancelled()) {
+            // No money is expected from a cancelled booking — hide amounts.
+            $rawPrice = fn (Booking $b): ?float => null;
+            $paidOf = fn (Booking $b): ?float => null;
+            $depositOf = fn (Booking $b): ?float => null;
+        }
+
+        $sumOf = fn (Collection $members, callable $amountOf): ?float => $members->contains(
+            fn (Booking $m): bool => $amountOf($m) !== null,
+        )
+                ? $members->sum(fn (Booking $m): float => $amountOf($m) ?? 0)
+                : null;
+
+        if ($isGroup) {
+            $price = $sumOf($active, $rawPrice);
+            $paid = $sumOf($active, $paidOf);
+            $deposit = $sumOf($active, $depositOf);
+        } else {
+            $price = $rawPrice($this);
+            $paid = $paidOf($this);
+            $deposit = $depositOf($this);
+        }
+
+        $origin = $this->originSource;
+
+        return [
+            'id' => $this->id,
+            'guest_name' => $this->guest_name,
+            'status' => $this->status,
+            'status_label' => __('booking.status.'.$this->status),
+            'display_status' => $this->displayStatus(),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
+            'check_in' => ($isGroup ? $active->min('check_in') : $this->check_in)->format('Y-m-d'),
+            'check_out' => ($isGroup ? $active->max('check_out') : $this->check_out)->format('Y-m-d'),
+            'adults' => $isGroup ? ($active->sum('adults') ?: null) : $this->adults,
+            'children' => $isGroup ? ($active->sum('children') ?: null) : $this->children,
+            'guests' => $isGroup
+                ? ($active->sum(fn (Booking $m): int => (int) ($m->guests ?? 0)) ?: null)
+                : $this->guests,
+            'price' => $price,
+            'deposit' => $deposit,
+            'paid' => $paid,
+            'balance' => $price !== null ? round($price - ($paid ?? 0), 2) : null,
+            'notes' => $this->notes,
+            'metadata' => $this->metadata,
+            'unit' => [
+                'id' => $this->unit?->id,
+                'name' => $this->unit?->name,
+            ],
+            'property' => [
+                'id' => $this->property?->id,
+                'name' => $this->property?->name,
+            ],
+            'view_url' => BookingResource::getUrl('view', ['record' => $this], panel: 'app'),
+            'edit_url' => BookingResource::getUrl('edit', ['record' => $this], panel: 'app'),
+            'source' => [
+                'label' => $origin ? preg_replace('/^✓ /u', '', $origin->display_label) : $this->source_name,
+                'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
+            ],
+            // Real origin channel (airbnb, booking.com, …) with its direct
+            // link on the OTA — distinct from the transport source above.
+            'origin' => [
+                'channel' => $this->source_name,
+                'slug' => $this->api_source,
+                'url' => $this->originUrl(),
+                'logo' => icon_ota($this->api_source) ?: icon('arrow-up-right'),
+            ],
+            'group' => $isGroup
+                ? [
+                    'count' => $active->count(),
+                    'members' => $members
+                        ->map(fn (Booking $m): array => [
+                            'id' => $m->id,
+                            'unit_name' => $m->unit?->name,
+                            'check_in' => $m->check_in->format('Y-m-d'),
+                            'check_out' => $m->check_out->format('Y-m-d'),
+                            'price' => $m->isCancelled() ? null : $rawPrice($m),
+                            'is_current' => $m->id === $this->id,
+                            'is_cancelled' => $m->isCancelled(),
+                        ])
+                        ->values()
+                        ->all(),
+                ] : null,
+        ];
     }
 
     /**

@@ -66,10 +66,16 @@ every tool bokit writes from here on.
 
 ## Status
 
-Steps 1-5 done (one commit each, see git log). Proceeded with the Minimal shape (B) — no sign-off
-came back before the tool-building work started, and everything up through step 5 confirmed the
+Steps 1-6 done (one commit each, see git log). Proceeded with the Minimal shape (B) — no sign-off
+came back before the tool-building work started, and everything through step 6 confirmed the
 reasoning held (no engine apparatus needed, no test had to reach for it). Easy to revisit if
 wrong: nothing here depends on AssistantUser/Assistant existing.
+
+**Stopped here, deliberately** — the two read tools (`list_bookings`, `get_booking`) are done,
+tested, verified live end to end. `create_booking`/`update_booking` are a different kind of
+decision: real external-write scope (draft-then-execute per §6, which connectors actually accept
+a push, what "confirmed" should require) — not something to guess through alone while you're
+away. Everything up to here is safe to review and merge independently of that decision.
 
 **Found and fixed in step 4, worth knowing about**: `routes/web.php`'s catch-all
 `POST '/{property:slug}/{unit:slug}'` matched `/mcp/bookings` (property=mcp, unit=bookings)
