@@ -3,6 +3,7 @@
 return [
     'label' => 'Objekt',
     'plural_label' => 'Objekte',
+    'empty_state' => 'Keine Objekte',
     'field.name' => 'Name',
     'field.timezone' => 'Zeitzone',
     'field.logo' => 'Logo',

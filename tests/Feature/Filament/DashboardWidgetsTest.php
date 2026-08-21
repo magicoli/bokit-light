@@ -50,6 +50,12 @@ describe('Dashboard widgets', function () {
             ->assertSeeLivewire(BookingsQuotes::class);
     });
 
+    test('shows the translated empty state, not a raw/mistranslated placeholder, when there are no bookings', function () {
+        // Regression: a raw "No bookings" (or an auto-translated "Aucun(e) bookings") slipped
+        // through before booking.empty_state existed - this pins the real, gender-agreed string.
+        Livewire::test(BookingsOngoing::class)->assertSee(__('booking.empty_state'));
+    });
+
     test('lists ongoing stays ordered by departure', function () {
         $leavingSoon = ($this->makeBooking)([
             'guest_name' => 'Leaving Soon',

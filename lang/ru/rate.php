@@ -3,6 +3,7 @@
 return [
     'label' => 'Тариф',
     'plural_label' => 'Тарифы',
+    'empty_state' => 'Нет тарифов',
     'add_rate' => 'Добавить тариф',
     'rates_settings' => 'Управление тарифами',
     'booking_date' => 'Дата бронирования',

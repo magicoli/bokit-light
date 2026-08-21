@@ -3,6 +3,7 @@
 return [
     'label' => 'Rate',
     'plural_label' => 'Rates',
+    'empty_state' => 'No rates',
     'add_rate' => 'Add Rate',
     'rates_settings' => 'Rates Management',
     'booking_date' => 'Booking Date',

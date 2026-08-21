@@ -3,6 +3,7 @@
 return [
     'label' => 'العقار',
     'plural_label' => 'العقارات',
+    'empty_state' => 'لا توجد عقارات',
     'field.name' => 'الاسم',
     'field.timezone' => 'المنطقة الزمنية',
     'field.logo' => 'الشعار',

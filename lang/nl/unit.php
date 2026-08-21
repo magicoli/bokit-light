@@ -3,6 +3,7 @@
 return [
     'label' => 'Eenheid',
     'plural_label' => 'Eenheden',
+    'empty_state' => 'Geen eenheden',
     'field' => [
         'name' => 'Naam',
         'property_id' => 'Accommodatie',

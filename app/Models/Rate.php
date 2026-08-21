@@ -8,6 +8,7 @@ use App\Traits\ListTrait;
 use App\Traits\TimezoneTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class Rate extends Model
 {
@@ -17,48 +18,48 @@ class Rate extends Model
     use TimezoneTrait;
 
     protected $fillable = [
-        "name",
-        "property_id",
-        "unit_type",
-        "unit_id",
-        "coupon_code",
-        "base",
-        "parent_rate_id",
-        "calculation_formula",
-        "priority",
-        "is_active",
-        "booking_from",
-        "booking_to",
-        "stay_from",
-        "stay_to",
-        "conditions",
-        "options",
+        'name',
+        'property_id',
+        'unit_type',
+        'unit_id',
+        'coupon_code',
+        'base',
+        'parent_rate_id',
+        'calculation_formula',
+        'priority',
+        'is_active',
+        'booking_from',
+        'booking_to',
+        'stay_from',
+        'stay_to',
+        'conditions',
+        'options',
     ];
 
     protected $casts = [
-        "is_active" => "boolean",
-        "booking_from" => "date",
-        "booking_to" => "date",
-        "stay_from" => "date",
-        "stay_to" => "date",
-        "conditions" => "array",
-        "options" => "array",
+        'is_active' => 'boolean',
+        'booking_from' => 'date',
+        'booking_to' => 'date',
+        'stay_from' => 'date',
+        'stay_to' => 'date',
+        'conditions' => 'array',
+        'options' => 'array',
     ];
 
-    protected $appends = ["actions"];
+    protected $appends = ['actions'];
 
     protected $list_columns = [
-        "actions",
-        "name",
-        "property_id",
-        "unit_type",
-        "unit_id",
-        "base",
-        "priority",
-        "is_active",
+        'actions',
+        'name',
+        'property_id',
+        'unit_type',
+        'unit_id',
+        'base',
+        'priority',
+        'is_active',
     ];
 
-    protected static $icon = "cash-outline";
+    protected static $icon = 'cash-outline';
 
     protected static $order = 15;
 
@@ -71,8 +72,8 @@ class Rate extends Model
 
         static::creating(function ($rate) {
             if (empty($rate->slug)) {
-                $rate->slug = \Illuminate\Support\Str::slug(
-                    ($rate->name ?: "rate") . "-" . uniqid(),
+                $rate->slug = Str::slug(
+                    ($rate->name ?: 'rate').'-'.uniqid(),
                 );
             }
 
@@ -87,7 +88,7 @@ class Rate extends Model
 
         static::updating(function ($rate) {
             // If parent_rate_id changed, update base
-            if ($rate->isDirty("parent_rate_id") && $rate->parent_rate_id) {
+            if ($rate->isDirty('parent_rate_id') && $rate->parent_rate_id) {
                 $parent = Rate::find($rate->parent_rate_id);
                 if ($parent) {
                     $rate->base = $parent->base;
@@ -97,9 +98,9 @@ class Rate extends Model
 
         static::updated(function ($rate) {
             // If base changed, update all child rates
-            if ($rate->isDirty("base")) {
-                Rate::where("parent_rate_id", $rate->id)->update([
-                    "base" => $rate->base,
+            if ($rate->isDirty('base')) {
+                Rate::where('parent_rate_id', $rate->id)->update([
+                    'base' => $rate->base,
                 ]);
             }
         });
@@ -110,24 +111,24 @@ class Rate extends Model
      */
     public static function validationRules(bool $forUpdate = false): array
     {
-        $sometimes = $forUpdate ? "sometimes|" : "";
+        $sometimes = $forUpdate ? 'sometimes|' : '';
 
         return [
-            "name" => "nullable|string|max:255",
-            "property_id" => "{$sometimes}required|exists:properties,id",
-            "unit_type" => "nullable|string|max:100",
-            "unit_id" => "nullable|exists:units,id",
-            "coupon_code" => "nullable|string|max:100",
-            "base" => "{$sometimes}required|numeric|min:0",
-            "parent_rate_id" => "nullable|exists:rates,id",
-            "calculation_formula" => "{$sometimes}required|string|max:500",
-            "priority" => "nullable|in:high,normal,low",
-            "is_active" => "nullable|boolean",
-            "booking_from" => "nullable|date",
-            "booking_to" => "nullable|date|after_or_equal:booking_from",
-            "stay_from" => "nullable|date",
-            "stay_to" => "nullable|date|after_or_equal:stay_from",
-            "conditions" => "nullable|array",
+            'name' => 'nullable|string|max:255',
+            'property_id' => "{$sometimes}required|exists:properties,id",
+            'unit_type' => 'nullable|string|max:100',
+            'unit_id' => 'nullable|exists:units,id',
+            'coupon_code' => 'nullable|string|max:100',
+            'base' => "{$sometimes}required|numeric|min:0",
+            'parent_rate_id' => 'nullable|exists:rates,id',
+            'calculation_formula' => "{$sometimes}required|string|max:500",
+            'priority' => 'nullable|in:high,normal,low',
+            'is_active' => 'nullable|boolean',
+            'booking_from' => 'nullable|date',
+            'booking_to' => 'nullable|date|after_or_equal:booking_from',
+            'stay_from' => 'nullable|date',
+            'stay_to' => 'nullable|date|after_or_equal:stay_from',
+            'conditions' => 'nullable|array',
         ];
     }
 
@@ -145,144 +146,144 @@ class Rate extends Model
     public static function formEdit(): array
     {
         // Add required assets for this form
-        addStyle("resources/css/rates.css");
-        addScript("resources/js/rates.js");
+        addStyle('resources/css/rates.css');
+        addScript('resources/js/rates.js');
 
-        $minimumStay = options("rates.default-stay", 3);
-        $defaultStay = options("rates.default-stay", 7);
+        $minimumStay = options('rates.default-stay', 3);
+        $defaultStay = options('rates.default-stay', 7);
+
         return [
-            "scope" => [
-                "type" => "fields-row",
-                "label" => "",
-                "items" => [
-                    "property_id" => [
-                        "type" => "select",
-                        "label" => __("app.property"),
-                        "required" => true,
-                        "placeholder" => __("rates.select_a_property"),
+            'scope' => [
+                'type' => 'fields-row',
+                'label' => '',
+                'items' => [
+                    'property_id' => [
+                        'type' => 'select',
+                        'label' => __('app.property'),
+                        'required' => true,
+                        'placeholder' => __('rates.select_a_property'),
                     ],
-                    "unit_id" => [
-                        "type" => "select",
-                        "label" => __("app.unit"),
-                        "placeholder" => __("rates.all_units"),
+                    'unit_id' => [
+                        'type' => 'select',
+                        'label' => __('app.unit'),
+                        'placeholder' => __('rates.all_units'),
                     ],
-                    "unit_type" => [
-                        "type" => "select",
-                        "label" => __("rates.scope_type"),
+                    'unit_type' => [
+                        'type' => 'select',
+                        'label' => __('rates.scope_type'),
                         // "placeholder" => __("rates.all_types"), // disabled for debug
-                        "attributes" => [
-                            "data-add-new" => "unit_type",
+                        'attributes' => [
+                            'data-add-new' => 'unit_type',
                         ],
                     ],
-                    "coupon_code" => [
-                        "type" => "select",
-                        "label" => __("rates.scope_coupon"),
-                        "placeholder" => __("rates.no_coupon"),
-                        "attributes" => [
-                            "data-add-new" => "coupon",
+                    'coupon_code' => [
+                        'type' => 'select',
+                        'label' => __('rates.scope_coupon'),
+                        'placeholder' => __('rates.no_coupon'),
+                        'attributes' => [
+                            'data-add-new' => 'coupon',
                         ],
                     ],
-                    "suffix" => [
-                        "label" => __("rates.scope_suffix"),
-                        "placeholder" => __("rates.optional_suffix"),
+                    'suffix' => [
+                        'label' => __('rates.scope_suffix'),
+                        'placeholder' => __('rates.optional_suffix'),
                     ],
-                    "priority" => [
-                        "type" => "select",
-                        "label" => __("rates.priority"),
-                        "default" => "normal",
-                        "placeholder" => __("rates.select_priority"),
+                    'priority' => [
+                        'type' => 'select',
+                        'label' => __('rates.priority'),
+                        'default' => 'normal',
+                        'placeholder' => __('rates.select_priority'),
                     ],
-                    "name" => [
-                        "type" => "text",
-                        "label" => __("rates.internal_name"),
-                        "attributes" => [
-                            "placeholder" => __(
-                                "rates.name_this_rate_placeholder",
+                    'name' => [
+                        'type' => 'text',
+                        'label' => __('rates.internal_name'),
+                        'attributes' => [
+                            'placeholder' => __(
+                                'rates.name_this_rate_placeholder',
                             ),
-                            "readonly" => true,
+                            'readonly' => true,
                         ],
-                        "class" => "autofill",
+                        'class' => 'autofill',
                     ],
                 ],
             ],
 
-            "pricing-row" => [
-                "type" => "fields-row",
-                "items" => [
-                    "base" => [
-                        "type" => "number",
-                        "label" => __("rates.base"),
-                        "required" => true,
-                        "attributes" => [
-                            "step" => "0.01",
-                            "id" => "base",
-                            "size" => 7,
+            'pricing-row' => [
+                'type' => 'fields-row',
+                'items' => [
+                    'base' => [
+                        'type' => 'number',
+                        'label' => __('rates.base'),
+                        'required' => true,
+                        'attributes' => [
+                            'step' => '0.01',
+                            'id' => 'base',
+                            'size' => 7,
                         ],
                     ],
-                    "parent_rate_id" => [
-                        "type" => "select",
-                        "label" => __("rates.parent_rate"),
-                        "placeholder" => __("rates.no_parent_rate"),
-                        "attributes" => [
-                            "id" => "parent_rate_id",
+                    'parent_rate_id' => [
+                        'type' => 'select',
+                        'label' => __('rates.parent_rate'),
+                        'placeholder' => __('rates.no_parent_rate'),
+                        'attributes' => [
+                            'id' => 'parent_rate_id',
                         ],
                     ],
-                    "calculation_formula" => [
-                        "type" => "text",
-                        "label" => __("rates.calculation_formula"),
-                        "required" => true,
-                        "description" =>
-                            "Allowed tags: base, parent_rate, booking_nights, guests, adults, children",
-                        "default" => "base * booking_nights",
-                        "placeholder" => "base * booking_nights",
-                        "class" => "autofill",
+                    'calculation_formula' => [
+                        'type' => 'text',
+                        'label' => __('rates.calculation_formula'),
+                        'required' => true,
+                        'description' => 'Allowed tags: base, parent_rate, booking_nights, guests, adults, children',
+                        'default' => 'base * booking_nights',
+                        'placeholder' => 'base * booking_nights',
+                        'class' => 'autofill',
                     ],
                 ],
             ],
 
-            "dates" => [
-                "type" => "fields-row",
-                "items" => [
-                    "booking" => [
-                        "type" => "input-group",
-                        "label" => __("rates.booking"),
-                        "description" => __(
-                            "rates.date_of_the_booking_request",
+            'dates' => [
+                'type' => 'fields-row',
+                'items' => [
+                    'booking' => [
+                        'type' => 'input-group',
+                        'label' => __('rates.booking'),
+                        'description' => __(
+                            'rates.date_of_the_booking_request',
                         ),
-                        "items" => [
-                            "booking_from" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_from"),
-                                "attributes" => [
-                                    "min" => "today",
+                        'items' => [
+                            'booking_from' => [
+                                'type' => 'date',
+                                'placeholder' => __('forms.date_from'),
+                                'attributes' => [
+                                    'min' => 'today',
                                 ],
                             ],
-                            "booking_to" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_to"),
-                                "attributes" => [
-                                    "min" => "today",
+                            'booking_to' => [
+                                'type' => 'date',
+                                'placeholder' => __('forms.date_to'),
+                                'attributes' => [
+                                    'min' => 'today',
                                 ],
                             ],
                         ],
                     ],
-                    "stay" => [
-                        "type" => "input-group",
-                        "label" => __("rates.stay"),
-                        "description" => __("rates.dates_of_the_stay"),
-                        "items" => [
-                            "stay_from" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_from"),
-                                "attributes" => [
-                                    "min" => "today",
+                    'stay' => [
+                        'type' => 'input-group',
+                        'label' => __('rates.stay'),
+                        'description' => __('rates.dates_of_the_stay'),
+                        'items' => [
+                            'stay_from' => [
+                                'type' => 'date',
+                                'placeholder' => __('forms.date_from'),
+                                'attributes' => [
+                                    'min' => 'today',
                                 ],
                             ],
-                            "stay_to" => [
-                                "type" => "date",
-                                "placeholder" => __("forms.date_to"),
-                                "attributes" => [
-                                    "min" => "today",
+                            'stay_to' => [
+                                'type' => 'date',
+                                'placeholder' => __('forms.date_to'),
+                                'attributes' => [
+                                    'min' => 'today',
                                 ],
                             ],
                         ],
@@ -297,57 +298,57 @@ class Rate extends Model
      */
     public static function formBookWidget(): array
     {
-        $defaultStay = options("rates.default-stay", 7);
-        $minDaysBefore = options("rates.mimum-before", 1);
+        $defaultStay = options('rates.default-stay', 7);
+        $minDaysBefore = options('rates.mimum-before', 1);
         $defaultRange = [
-            now()->addDay($minDaysBefore)->format("Y-m-d"),
+            now()->addDay($minDaysBefore)->format('Y-m-d'),
             now()
                 ->addDay($minDaysBefore + $defaultStay)
-                ->format("Y-m-d"),
+                ->format('Y-m-d'),
         ];
+
         return [
-            "search-row" => [
-                "type" => "fields-row",
-                "label" => "",
-                "items" => [
-                    "dates" => [
-                        "type" => "date-range",
-                        "label" =>
-                            __("app.check_in") . " - " . __("app.check_out"),
-                        "required" => true,
-                        "default" => $defaultRange,
-                        "attributes" => [
-                            "min" => now()
+            'search-row' => [
+                'type' => 'fields-row',
+                'label' => '',
+                'items' => [
+                    'dates' => [
+                        'type' => 'date-range',
+                        'label' => __('app.check_in').' - '.__('app.check_out'),
+                        'required' => true,
+                        'default' => $defaultRange,
+                        'attributes' => [
+                            'min' => now()
                                 ->addDay($minDaysBefore)
-                                ->format("Y-m-d"),
-                            "data-minimum-stay" => options(
-                                "rates.minimum-stay",
+                                ->format('Y-m-d'),
+                            'data-minimum-stay' => options(
+                                'rates.minimum-stay',
                                 3,
                             ),
                         ],
                     ],
-                    "guest" => [
-                        "type" => "input-group",
-                        "label" => "",
-                        "items" => [
-                            "adults" => [
-                                "type" => "number",
-                                "label" => __("app.adults"),
-                                "required" => true,
-                                "default" => 2,
-                                "attributes" => [
-                                    "min" => 1,
-                                    "size" => 5,
+                    'guest' => [
+                        'type' => 'input-group',
+                        'label' => '',
+                        'items' => [
+                            'adults' => [
+                                'type' => 'number',
+                                'label' => __('app.adults'),
+                                'required' => true,
+                                'default' => 2,
+                                'attributes' => [
+                                    'min' => 1,
+                                    'size' => 5,
                                     // "style" => "width: 5rem",
                                 ],
                             ],
-                            "children" => [
-                                "type" => "number",
-                                "label" => __("app.children"),
-                                "default" => 0,
-                                "attributes" => [
-                                    "min" => 0,
-                                    "size" => 5,
+                            'children' => [
+                                'type' => 'number',
+                                'label' => __('app.children'),
+                                'default' => 0,
+                                'attributes' => [
+                                    'min' => 0,
+                                    'size' => 5,
                                     // "style" => "width: 5rem",
                                 ],
                             ],
@@ -364,63 +365,66 @@ class Rate extends Model
     public static function listColumns(): array
     {
         return [
-            "actions" => [
-                "label" => "",
+            'actions' => [
+                'label' => '',
             ],
-            "display_name" => [
-                "label" => __("rates.field.display_name"),
+            'display_name' => [
+                'label' => __('rate.field.display_name'),
             ],
-            "base" => [
-                "label" => __("rates.field.base"),
-                "format" => "custom",
-                "formatter" => function ($rate) {
+            'base' => [
+                'label' => __('rate.field.base'),
+                'format' => 'custom',
+                'formatter' => function ($rate) {
                     $display = number_format($rate->base, 2);
                     if ($rate->parent_rate_id && $rate->parentRate) {
                         $display .=
-                            ' <span class="parent_rate">(' .
-                            $rate->parentRate->display_name .
-                            ")</span>";
+                            ' <span class="parent_rate">('.
+                            $rate->parentRate->display_name.
+                            ')</span>';
                     }
+
                     return $display;
                 },
             ],
-            "calculation_formula" => ["label" => __("rates.field.formula")],
-            "booking_dates" => [
-                "label" => __("rates.field.booking"),
-                "format" => "custom",
-                "formatter" => function ($rate) {
-                    if (!$rate->booking_from && !$rate->booking_to) {
-                        return "-";
+            'calculation_formula' => ['label' => __('rate.field.formula')],
+            'booking_dates' => [
+                'label' => __('rate.field.booking'),
+                'format' => 'custom',
+                'formatter' => function ($rate) {
+                    if (! $rate->booking_from && ! $rate->booking_to) {
+                        return '-';
                     }
                     $from = $rate->booking_from
-                        ? $rate->booking_from->format("Y-m-d")
-                        : "...";
+                        ? $rate->booking_from->format('Y-m-d')
+                        : '...';
                     $to = $rate->booking_to
-                        ? $rate->booking_to->format("Y-m-d")
-                        : "...";
+                        ? $rate->booking_to->format('Y-m-d')
+                        : '...';
+
                     return "{$from} → {$to}";
                 },
             ],
-            "stay_dates" => [
-                "label" => __("rates.field.stay"),
-                "format" => "custom",
-                "formatter" => function ($rate) {
-                    if (!$rate->stay_from && !$rate->stay_to) {
-                        return "-";
+            'stay_dates' => [
+                'label' => __('rate.field.stay'),
+                'format' => 'custom',
+                'formatter' => function ($rate) {
+                    if (! $rate->stay_from && ! $rate->stay_to) {
+                        return '-';
                     }
                     $from = $rate->stay_from
-                        ? $rate->stay_from->format("Y-m-d")
-                        : "...";
+                        ? $rate->stay_from->format('Y-m-d')
+                        : '...';
                     $to = $rate->stay_to
-                        ? $rate->stay_to->format("Y-m-d")
-                        : "...";
+                        ? $rate->stay_to->format('Y-m-d')
+                        : '...';
+
                     return "{$from} → {$to}";
                 },
             ],
-            "priority" => ["label" => __("rates.field.priority")],
-            "is_active" => [
-                "label" => __("rates.field.enabled"),
-                "format" => "boolean",
+            'priority' => ['label' => __('rate.field.priority')],
+            'is_active' => [
+                'label' => __('rate.field.enabled'),
+                'format' => 'boolean',
             ],
         ];
     }
@@ -440,12 +444,12 @@ class Rate extends Model
 
     public function parentRate(): BelongsTo
     {
-        return $this->belongsTo(Rate::class, "parent_rate_id");
+        return $this->belongsTo(Rate::class, 'parent_rate_id');
     }
 
     public function rateProperty(): BelongsTo
     {
-        return $this->belongsTo(Property::class, "property_id");
+        return $this->belongsTo(Property::class, 'property_id');
     }
 
     /**
@@ -477,6 +481,6 @@ class Rate extends Model
             $parts[] = "Coupon: {$this->coupon_code}";
         }
 
-        return implode(" - ", $parts) ?: "Rate #{$this->id}";
+        return implode(' - ', $parts) ?: "Rate #{$this->id}";
     }
 }

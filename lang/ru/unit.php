@@ -3,6 +3,7 @@
 return [
     'label' => 'Юнит',
     'plural_label' => 'Юниты',
+    'empty_state' => 'Нет юнитов',
     'field' => [
         'name' => 'Название',
         'property_id' => 'Объект',

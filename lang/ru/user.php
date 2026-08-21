@@ -3,6 +3,7 @@
 return [
     'label' => 'Пользователь',
     'plural_label' => 'Пользователи',
+    'empty_state' => 'Нет пользователей',
     'dashboard' => 'Панель управления',
     'welcome_back_name' => 'С возвращением, :name',
     'menu' => [

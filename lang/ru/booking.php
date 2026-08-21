@@ -3,6 +3,7 @@
 return [
     'label' => 'Бронирование',
     'plural_label' => 'Бронирования',
+    'empty_state' => 'Нет бронирований',
     'field' => [
         'status' => 'Статус',
         'guest_name' => 'Имя',

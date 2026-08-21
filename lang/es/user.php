@@ -3,6 +3,7 @@
 return [
     'label' => 'Usuario',
     'plural_label' => 'Usuarios',
+    'empty_state' => 'No hay usuarios',
     'dashboard' => 'Panel de control',
     'welcome_back_name' => 'Bienvenido de nuevo, :name',
     'menu' => [

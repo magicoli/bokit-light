@@ -3,6 +3,7 @@
 return [
     'label' => 'Boeking',
     'plural_label' => 'Boekingen',
+    'empty_state' => 'Geen boekingen',
     'field' => [
         'status' => 'Status',
         'guest_name' => 'Naam',

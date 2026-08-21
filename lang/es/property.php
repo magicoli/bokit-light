@@ -3,6 +3,7 @@
 return [
     'label' => 'Propiedad',
     'plural_label' => 'Propiedades',
+    'empty_state' => 'No hay propiedades',
     'field.name' => 'Nombre',
     'field.timezone' => 'Zona horaria',
     'field.logo' => 'Logotipo',

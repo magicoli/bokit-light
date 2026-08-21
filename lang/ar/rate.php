@@ -3,6 +3,7 @@
 return [
     'label' => 'السعر',
     'plural_label' => 'الأسعار',
+    'empty_state' => 'لا توجد أسعار',
     'add_rate' => 'إضافة سعر',
     'rates_settings' => 'إدارة الأسعار',
     'booking_date' => 'تاريخ الحجز',

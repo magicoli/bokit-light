@@ -3,6 +3,7 @@
 return [
     'label' => 'المستخدم',
     'plural_label' => 'المستخدمون',
+    'empty_state' => 'لا يوجد مستخدمون',
     'dashboard' => 'لوحة التحكم',
     'welcome_back_name' => 'مرحبًا بعودتك، :name',
     'menu' => [

@@ -3,6 +3,7 @@
 return [
     'label' => 'Preis',
     'plural_label' => 'Preise',
+    'empty_state' => 'Keine Preise',
     'add_rate' => 'Preis hinzufügen',
     'rates_settings' => 'Preisverwaltung',
     'booking_date' => 'Buchungsdatum',

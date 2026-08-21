@@ -3,6 +3,7 @@
 return [
     'label' => 'Tarifa',
     'plural_label' => 'Tarifas',
+    'empty_state' => 'No hay tarifas',
     'add_rate' => 'Añadir tarifa',
     'rates_settings' => 'Gestión de tarifas',
     'booking_date' => 'Fecha de reserva',

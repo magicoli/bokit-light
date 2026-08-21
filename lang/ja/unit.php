@@ -3,6 +3,7 @@
 return [
     'label' => 'ユニット',
     'plural_label' => 'ユニット',
+    'empty_state' => 'ユニットがありません',
     'field' => [
         'name' => '名前',
         'property_id' => '物件',

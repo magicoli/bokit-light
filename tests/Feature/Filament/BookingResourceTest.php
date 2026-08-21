@@ -130,6 +130,10 @@ describe('Booking resource', function () {
         Livewire::test(ListBookings::class)->assertSuccessful();
     });
 
+    test('shows the translated empty state when there are no bookings', function () {
+        Livewire::test(ListBookings::class)->assertSee(__('booking.empty_state'));
+    });
+
     test('renders the create page', function () {
         Livewire::test(CreateBooking::class)->assertSuccessful();
     });

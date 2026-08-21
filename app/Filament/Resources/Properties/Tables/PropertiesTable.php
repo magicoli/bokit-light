@@ -24,6 +24,7 @@ class PropertiesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateHeading(__('property.empty_state'));
     }
 }

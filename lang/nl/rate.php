@@ -3,6 +3,7 @@
 return [
     'label' => 'Tarief',
     'plural_label' => 'Tarieven',
+    'empty_state' => 'Geen tarieven',
     'add_rate' => 'Tarief toevoegen',
     'rates_settings' => 'Tariefbeheer',
     'booking_date' => 'Boekingsdatum',

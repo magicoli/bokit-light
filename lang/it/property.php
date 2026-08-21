@@ -3,6 +3,7 @@
 return [
     'label' => 'Struttura',
     'plural_label' => 'Strutture',
+    'empty_state' => 'Nessuna struttura',
     'field.name' => 'Nome',
     'field.timezone' => 'Fuso orario',
     'field.logo' => 'Logo',

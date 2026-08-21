@@ -3,6 +3,7 @@
 return [
     'label' => 'Property',
     'plural_label' => 'Properties',
+    'empty_state' => 'No properties',
     'field.name' => 'Name',
     'field.timezone' => 'Timezone',
     'field.logo' => 'Logo',

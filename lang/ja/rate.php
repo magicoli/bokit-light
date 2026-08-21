@@ -3,6 +3,7 @@
 return [
     'label' => '料金',
     'plural_label' => '料金',
+    'empty_state' => '料金がありません',
     'add_rate' => '料金を追加',
     'rates_settings' => '料金管理',
     'booking_date' => '予約日',

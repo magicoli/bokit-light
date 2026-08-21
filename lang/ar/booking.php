@@ -3,6 +3,7 @@
 return [
     'label' => 'الحجز',
     'plural_label' => 'الحجوزات',
+    'empty_state' => 'لا توجد حجوزات',
     'field' => [
         'status' => 'الحالة',
         'guest_name' => 'الاسم',

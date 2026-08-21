@@ -3,6 +3,7 @@
 return [
     'label' => '予約',
     'plural_label' => '予約',
+    'empty_state' => '予約はありません',
     'field' => [
         'status' => 'ステータス',
         'guest_name' => '名前',

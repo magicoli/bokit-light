@@ -3,6 +3,7 @@
 return [
     'label' => 'الوحدة',
     'plural_label' => 'الوحدات',
+    'empty_state' => 'لا توجد وحدات',
     'field' => [
         'name' => 'الاسم',
         'property_id' => 'العقار',

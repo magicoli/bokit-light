@@ -3,6 +3,7 @@
 return [
     'label' => '物件',
     'plural_label' => '物件',
+    'empty_state' => '物件がありません',
     'field.name' => '名前',
     'field.timezone' => 'タイムゾーン',
     'field.logo' => 'ロゴ',

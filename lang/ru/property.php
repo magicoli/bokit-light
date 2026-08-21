@@ -3,6 +3,7 @@
 return [
     'label' => 'Объект',
     'plural_label' => 'Объекты',
+    'empty_state' => 'Нет объектов',
     'field.name' => 'Название',
     'field.timezone' => 'Часовой пояс',
     'field.logo' => 'Логотип',

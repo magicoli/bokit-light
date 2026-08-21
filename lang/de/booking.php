@@ -3,6 +3,7 @@
 return [
     'label' => 'Buchung',
     'plural_label' => 'Buchungen',
+    'empty_state' => 'Keine Buchungen',
     'field' => [
         'status' => 'Status',
         'guest_name' => 'Name',

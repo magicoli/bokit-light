@@ -63,10 +63,11 @@ class BookingsTable
                 ->selectRaw('(select sum(m.adults) from bookings m where '.self::activeMember().') as group_adults')
                 ->selectRaw('(select sum(m.children) from bookings m where '.self::activeMember().') as group_children'))
             ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
+            ->emptyStateHeading(__('booking.empty_state'))
             ->columns([
                 ...DynamicTable::columns(Booking::class, self::LANG, [
                     'unit_name' => TextColumn::make('unit_name')
-                        ->label(__(self::LANG.'.field.unit_name'))
+                        ->label(__('booking.field.unit_name'))
                         ->getStateUsing(fn (Booking $record): ?string => $record->group_id && $record->group_units > 1
                             ? $record->unit_name.' + '.($record->group_units - 1)
                             : $record->unit_name),
@@ -77,7 +78,7 @@ class BookingsTable
                     // Wrap long guest names so the column flexes instead of
                     // pushing the other columns off-screen.
                     'guest_name' => TextColumn::make('guest_name')
-                        ->label(__(self::LANG.'.field.guest_name'))
+                        ->label(__('booking.field.guest_name'))
                         ->searchable()
                         ->sortable()
                         ->wrap(),
@@ -87,7 +88,7 @@ class BookingsTable
                     'children' => self::groupAwareSum('children', 'group_children'),
 
                     'price' => TextColumn::make('price')
-                        ->label(__(self::LANG.'.field.price'))
+                        ->label(__('booking.field.price'))
                         ->money('EUR', locale: fn (): string => app()->getLocale())
                         ->alignEnd()
                         ->getStateUsing(fn (Booking $record) => $record->group_id
@@ -98,7 +99,7 @@ class BookingsTable
 
                     // Notes: truncated + hidden by default
                     'notes' => TextColumn::make('notes')
-                        ->label(__(self::LANG.'.field.notes'))
+                        ->label(__('booking.field.notes'))
                         ->limit(60)
                         ->toggleable(isToggledHiddenByDefault: true),
                 ]),
@@ -107,7 +108,7 @@ class BookingsTable
                 // Hidden by default; sortable so widget deep links can order
                 // by modification date (toggled-hidden columns still sort).
                 TextColumn::make('updated_at')
-                    ->label(__(self::LANG.'.field.updated_at'))
+                    ->label(__('booking.field.updated_at'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -119,7 +120,7 @@ class BookingsTable
                     // Stands down when a status is explicitly selected, so
                     // picking "Cancelled" in the status filter still works.
                     Filter::make('effective')
-                        ->label(__(self::LANG.'.filter.effective_only'))
+                        ->label(__('booking.filter.effective_only'))
                         ->toggle()
                         ->default()
                         ->query(fn (Builder $query, HasTable $livewire): Builder => ($livewire->tableFilters['status']['value'] ?? null)
@@ -127,13 +128,13 @@ class BookingsTable
                             : $query->whereNotIn('status', Booking::CANCELLED_STATUSES)),
 
                     SelectFilter::make('status')
-                        ->label(__(self::LANG.'.field.status'))
+                        ->label(__('booking.field.status'))
                         ->options(self::statusOptions()),
 
                     // Date window, also targeted by the dashboard widgets'
                     // "see all" deep links.
                     SelectFilter::make('period')
-                        ->label(__(self::LANG.'.filter.period'))
+                        ->label(__('booking.filter.period'))
                         ->options(self::periodOptions())
                         ->query(fn (Builder $query, array $data): Builder => match ($data['value'] ?? null) {
                             'ongoing' => $query
@@ -146,7 +147,7 @@ class BookingsTable
                         }),
 
                     SelectFilter::make('unit')
-                        ->label(__(self::LANG.'.field.unit_name'))
+                        ->label(__('booking.field.unit_name'))
                         ->options(fn (): array => Unit::forUser()->orderBy('name')->pluck('name', 'id')->all())
                         ->query(fn (Builder $query, array $data): Builder => $query
                             ->when($data['value'] ?? null, fn (Builder $q, $unitId): Builder => $q
@@ -155,7 +156,7 @@ class BookingsTable
                                     ->orWhereRaw('exists (select 1 from bookings m where m.group_id = bookings.group_id and m.unit_id = ? and m.deleted_at is null)', [$unitId])))),
 
                     SelectFilter::make('source_name')
-                        ->label(__(self::LANG.'.field.source_name'))
+                        ->label(__('booking.field.source_name'))
                         ->options(fn (): array => Booking::query()
                             ->whereNotNull('source_name')
                             ->distinct()

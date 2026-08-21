@@ -3,6 +3,7 @@
 return [
     'label' => 'Accommodatie',
     'plural_label' => 'Accommodaties',
+    'empty_state' => 'Geen accommodaties',
     'field.name' => 'Naam',
     'field.timezone' => 'Tijdzone',
     'field.logo' => 'Logo',

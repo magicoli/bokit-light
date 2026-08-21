@@ -57,7 +57,7 @@ abstract class BookingListWidget extends TableWidget
             // the panel CSS (AppPanelProvider) hide the empty thead.
             ->extraAttributes(['class' => 'bokit-mini-list'])
             ->query(
-                fn(): Builder => $this->scopeList(self::groupRepresentatives(
+                fn (): Builder => $this->scopeList(self::groupRepresentatives(
                     Booking::query()->forUser()->with(['unit', 'property']),
                 ))->limit(10),
             )
@@ -69,14 +69,15 @@ abstract class BookingListWidget extends TableWidget
             ])
             // Whole-row background by payment status (styles injected in
             // the panel head by AppPanelProvider).
-            ->recordClasses(fn(Booking $record): string => 'booking-status-' . $record->displayStatus())
-            ->recordUrl(fn(Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
+            ->recordClasses(fn (Booking $record): string => 'booking-status-'.$record->displayStatus())
+            ->recordUrl(fn (Booking $record): string => BookingResource::getUrl('view', ['record' => $record]))
             ->headerActions([
                 Action::make('seeAll')
                     ->label(__('booking.widget.see_all'))
                     ->link()
-                    ->url(BookingResource::getUrl('index') . '?' . http_build_query($this->listParameters())),
-            ]);
+                    ->url(BookingResource::getUrl('index').'?'.http_build_query($this->listParameters())),
+            ])
+            ->emptyStateHeading(__('booking.empty_state'));
     }
 
     /**
@@ -87,8 +88,8 @@ abstract class BookingListWidget extends TableWidget
         return TextColumn::make('amounts')
             ->label('')
             ->state(
-                fn(Booking $record): string => (
-                    self::compactMoney($record->paidAmount()) . ' / ' . self::compactMoney($record->totalAmount())
+                fn (Booking $record): string => (
+                    self::compactMoney($record->paidAmount()).' / '.self::compactMoney($record->totalAmount())
                 ),
             )
             ->alignEnd()

@@ -3,6 +3,7 @@
 return [
     'label' => 'ユーザー',
     'plural_label' => 'ユーザー',
+    'empty_state' => 'ユーザーがいません',
     'dashboard' => 'ダッシュボード',
     'welcome_back_name' => 'おかえりなさい、:name さん',
     'menu' => [

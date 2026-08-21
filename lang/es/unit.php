@@ -3,6 +3,7 @@
 return [
     'label' => 'Unidad',
     'plural_label' => 'Unidades',
+    'empty_state' => 'No hay unidades',
     'field' => [
         'name' => 'Nombre',
         'property_id' => 'Propiedad',
