@@ -8,7 +8,6 @@ use App\Backup\Console\Commands\ListBackupsCommand;
 use App\Filament\Profile\TimezoneForm;
 use App\Models\Booking;
 use App\Observers\BookingObserver;
-use App\Services\AdminMenuService;
 use App\Sync\Ical\BookingSyncIcal;
 use App\Sync\Ical\IcalConnector;
 use App\Sync\SyncRegistry;
@@ -53,7 +52,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(SpatieCleanupCommand::class, CleanBackupsCommand::class);
         $this->app->bind(SpatieListCommand::class, ListBackupsCommand::class);
 
-        $this->app->singleton(AdminMenuService::class);
         $this->app->singleton(SyncRegistry::class);
 
         $this->registerModules();

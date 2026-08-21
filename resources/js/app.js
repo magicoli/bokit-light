@@ -1,8 +1,6 @@
 import './bootstrap';
 import './pwa';
 
-/* Legacy front-end scripts, bundled into this one Vite entry instead of each having its own
-   top-level entry - see resources/css/app.css for why. */
+/* The rates calculator widget's date-range field (App\Support\Form emits flatpickr-input/
+   flatpickr-mode) is the only remaining consumer of this bundle's front-end behaviour. */
 import './flatpickr';
-import './forms';
-import './units-edit';

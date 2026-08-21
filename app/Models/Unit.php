@@ -29,7 +29,7 @@ class Unit extends Model
         'unit_type' => 'string',
     ];
 
-    protected $appends = ['actions'];
+    protected $appends = [];
 
     protected $list_columns = [
         'actions',

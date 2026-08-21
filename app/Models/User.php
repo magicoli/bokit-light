@@ -47,7 +47,7 @@ class User extends Authenticatable implements AssistantUser, FilamentUser, HasTe
         'password' => Password::class,
     ];
 
-    protected $appends = ['actions'];
+    protected $appends = [];
 
     protected $list_columns = ['actions', 'name', 'email', 'roles'];
 

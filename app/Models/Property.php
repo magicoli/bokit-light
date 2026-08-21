@@ -31,7 +31,7 @@ class Property extends Model implements HasAvatar
         'locales' => 'array',
     ];
 
-    protected $appends = ['actions'];
+    protected $appends = [];
 
     protected $list_columns = ['actions', 'name'];
 

@@ -95,7 +95,6 @@ class Booking extends Model
     protected $with = ['unit', 'property'];
 
     protected $appends = [
-        'actions',
         'unit_name',
         'ota_url',
         'ota_link',

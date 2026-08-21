@@ -3,13 +3,9 @@
 use App\Filament\Pages\Calendar;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InstallController;
-use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RatesController;
-use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UpdateController;
-use App\Http\Controllers\UserController;
 use App\Support\Options;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Installation routes (always accessible during installation)
@@ -67,11 +63,6 @@ if ($isInstalled) {
 
     // App routes (protected by auth)
     Route::middleware([$authMiddleware])->group(function () {
-        // Dashboard - main entry point for authenticated users
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->name('dashboard');
-
         // The calendar is now a standard Filament page (App\Filament\Pages\Calendar, panel 'app');
         // this keeps old bookmarks/links to /calendar working, query string included.
         Route::get('/calendar', fn () => redirect(
@@ -86,22 +77,9 @@ if ($isInstalled) {
             'resync',
         ])->name('booking.resync');
 
-        // Properties list (specific route, must be before catch-all)
-        Route::get('/properties', [PropertyController::class, 'index'])->name('properties');
-
-        // User settings
-        Route::get('/settings', [UserController::class, 'settings'])->name('user.settings');
-
-        // rate edit should not be front-end, end use AdminResourceTrait routes instead
-        Route::get('/rates', [RatesController::class, 'index'])->name('rates');
-        Route::post('/rates', [RatesController::class, 'store'])->name('rates.store');
-        Route::post('/rates/{rate}', [RatesController::class, 'update'])->name('rates.update');
-        Route::delete('/rates/{rate}', [
-            RatesController::class,
-            'destroy',
-        ])->name('rates.destroy');
-
-        // Rates calculator (kept, this is front-end)
+        // Rates calculator — the one piece of the rates front-end with no Filament equivalent
+        // yet. Everything else (properties, units, users, rates CRUD, the generic legacy-admin
+        // system) has been replaced by Filament resources/panels and removed.
         Route::get('/rates/calculator', [
             RatesController::class,
             'calculator',
@@ -116,32 +94,6 @@ if ($isInstalled) {
             RatesController::class,
             'parentRates',
         ]);
-
-        // DEPRECATED Units (edit/update)
-        // units edit should not be front-end, end use AdminResourceTrait routes instead
-        Route::get('/{property:slug}/{unit:slug}/edit', [
-            UnitController::class,
-            'edit',
-        ])->name('units.edit')->where('property', '^(?!livewire-|app(?:/|$)).*');
-        Route::post('/{property:slug}/{unit:slug}', [
-            UnitController::class,
-            'update',
-        ])
-            ->name('units.update')
-            ->where('property', '^(?!livewire-|app(?:/|$)).*');
-    });
-
-    // Public pages (no auth required - MUST be last as they are catch-all routes).
-    // Throttled: these are what anyone, scanners included, can reach without an account. Every
-    // rejection is logged with the url, the address and the agent, so it can be told apart from
-    // ordinary use afterwards.
-    Route::middleware('throttle:public')->group(function () {
-        Route::get('/{property:slug}/{unit:slug}', [
-            UnitController::class,
-            'show',
-        ])->name('units.show')->where('property', '^(?!livewire-|app(?:/|$)).*');
-
-        Route::get('/{property:slug}', [PropertyController::class, 'show'])->name('property.show');
     });
 } else {
     // If not installed, redirect everything to install

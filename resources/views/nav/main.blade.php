@@ -34,7 +34,7 @@
                              x-data="{ open: false }"
                              @mouseenter="open = true"
                              @mouseleave="open = false">
-                            <a href="{{ route('dashboard') }}"
+                            <a href="{{ \App\Filament\Main\Pages\Home::getUrl(panel: 'main') }}"
                                class="dropdown-button">
                                 <span>{{ auth()->user()->name }}</span>
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@
                             <div x-show="open"
                                  x-cloak
                                  class="dropdown-menu">
-                                <a href="{{ route('user.settings') }}" class="dropdown-item">
+                                <a href="{{ route('filament.main.pages.edit-profile') }}" class="dropdown-item">
                                     {{ __('app.user_account') }}
                                 </a>
                                 @if(Route::has('logout'))
@@ -91,7 +91,7 @@
                     <!-- User section -->
                     <div class="menu-section">
                         <div class="menu-title">{{ auth()->user()->name }}</div>
-                        <a href="{{ route('user.settings') }}" class="nav-link">
+                        <a href="{{ route('filament.main.pages.edit-profile') }}" class="nav-link">
                             {{ __('app.user_account') }}
                         </a>
                         @if(Route::has('logout'))
@@ -110,14 +110,8 @@
                             <div class="menu-title">
                                 <a href="/admin" class="nav-link">{{ __('app.admin') }}</a>
                             </div>
-                            <a href="{{ route('admin.dashboard') }}" class="nav-link">
-                                {{ __('app.admin_legacy') }}
-                            </a>
-                            <a href="{{ route('properties') }}" class="nav-link">
-                                {{ __('app.properties') }} (legacy)
-                            </a>
-                            <a href="{{ route('rates') }}" class="nav-link">
-                                {{ __('rate.plural_label') }} (legacy)
+                            <a href="{{ route('rates.calculator') }}" class="nav-link">
+                                {{ __('rate.plural_label') }}
                             </a>
                         </div>
                     @endif

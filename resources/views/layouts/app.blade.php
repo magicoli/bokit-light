@@ -42,7 +42,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     {{-- Legacy styling for deprecated pages outside Filament --}}
-    @vite('resources/css/app.css')
+    {{-- @vite('resources/css/app.css') --}}
 
     <!-- Bootstrap Icons for custom grip icon -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -58,7 +58,7 @@
 
     {{-- App scripts. Alpine is not loaded here: @livewireScripts ships its own instance at the
          end of the body, and a second one makes both fight over the same directives. --}}
-    @vite('resources/js/app.js')
+    {{-- @vite('resources/js/app.js') --}}
 
     @yield('scripts')
     @stack('scripts')

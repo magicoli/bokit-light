@@ -118,11 +118,6 @@ class MainPanelProvider extends PanelProvider
                         ->url(fn (): string => route('filament.app.pages.dashboard', ['tenant' => self::defaultTenant()]))
                         // Nothing to offer a visitor who cannot enter it, or one with no property yet.
                         ->visible(fn (): bool => self::defaultTenant() !== null),
-                    // NavigationItem::make('legacy-admin')
-                    //     ->label(fn (): string => __('app.obsolete'))
-                    //     ->icon('ri-dashboard-line')
-                    //     ->url(fn (): string => route('admin.dashboard'))
-                    //     ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
                 ]),
             ]);
     }

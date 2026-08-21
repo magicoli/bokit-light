@@ -14,20 +14,16 @@
 @import "./legacy.css";
 @import "./fonts.css";
 
-/* Legacy front-end resources, each its own file for editability but bundled here as one Vite
-   entry: the classic (pre-Filament) pages all extend layouts.app, which loads this file, so
-   they share the same stylesheet rather than each declaring its own top-level Vite entry - a
-   top-level entry per small file made every save rebuild the whole ~30-entry graph, which is
-   what made the dev watcher so noisy. */
+/* What's left of the legacy (pre-Filament) front-end, bundled here as one Vite entry rather
+   than each declaring its own top-level entry (a top-level entry per small file made every
+   save rebuild the whole graph, which is what made the dev watcher so noisy). Everything but
+   the rates calculator widget and its result list has been replaced by Filament resources. */
 @import "./layout-grid.css";
 @import "./form.css";
 @import "./list.css";
 @import "./login.css";
-@import "./properties.css";
-@import "./units.css";
 @import "./rates-widget.css";
 @import "./flatpickr.css";
-@import "./admin.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

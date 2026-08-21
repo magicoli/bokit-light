@@ -46,7 +46,7 @@ class Rate extends Model
         'options' => 'array',
     ];
 
-    protected $appends = ['actions'];
+    protected $appends = [];
 
     protected $list_columns = [
         'actions',
