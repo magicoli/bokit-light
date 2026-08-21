@@ -99,6 +99,9 @@ return [
     'display_timezone' => 'Display Timezone',
     'display_timezone_help' => 'Dates are displayed in this time zone by default. Properties or rental units may have a specific time zone that overrides this value.',
     'save_settings' => 'Save Settings',
+    // Shared placeholder for any "inherit unless overridden" field - shows the value actually
+    // used when left empty, e.g. "Default (America/Guadeloupe)".
+    'default_value' => 'Default (:value)',
     'settings_saved' => 'Settings saved successfully',
     'not_implemented' => 'Not implemented',
     'external_calendar' => 'External Calendar',

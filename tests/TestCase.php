@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Support\Options;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +12,11 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Options caches sections in a static in-memory array that RefreshDatabase knows nothing
+        // about - without this, a value set in one test leaks into every test that runs after it
+        // in the same process (see App\Support\Options::flushCache()).
+        Options::flushCache();
 
         // blade.compiler is not bound as a singleton due to how Laravel 12 bootstraps
         // in test environments, which causes Livewire directives (registered on the

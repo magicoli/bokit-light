@@ -100,6 +100,7 @@ return [
     'display_timezone' => "Fuseau horaire d'affichage",
     'display_timezone_help' => 'Les dates sont affichées par défaut dans ce fuseau horaire. Les propriétés ou les unités louées peuvent avoir un fuseau horaire spécifique qui remplace cette valeur.',
     'save_settings' => 'Enregistrer les paramètres',
+    'default_value' => 'Par défaut (:value)',
     'settings_saved' => 'Paramètres enregistrés avec succès',
     'not_implemented' => 'Non implémenté',
     'external_calendar' => 'Calendrier externe',

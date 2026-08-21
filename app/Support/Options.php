@@ -7,6 +7,17 @@ class Options
     private static array $cache = [];
 
     /**
+     * Drop the in-memory section cache. Sections load once per process and stay cached across
+     * requests within it - in a test run, every test shares that same process (PHPUnit/Pest don't
+     * fork per test), so a value set in one test would otherwise leak into every test that runs
+     * after it in the same run. tests/TestCase.php calls this in setUp() for exactly that reason.
+     */
+    public static function flushCache(): void
+    {
+        self::$cache = [];
+    }
+
+    /**
      * Normalize key by adding 'general.' prefix if no section specified
      */
     private static function normalizeKey(string $key): string
@@ -15,9 +26,9 @@ class Options
         if (strpos($key, '.') !== false) {
             return $key;
         }
-        
+
         // No section specified - add 'general.' prefix
-        return 'general.' . $key;
+        return 'general.'.$key;
     }
 
     /**
@@ -27,12 +38,12 @@ class Options
     {
         // Normalize key (add 'general.' if needed)
         $key = self::normalizeKey($key);
-        
-        // Extract section from key (e.g., 'auth.method' → 'auth')
-        $section = explode(".", $key)[0];
 
-        if (!isset(self::$cache[$section])) {
-            $path = config("options.path") . "/{$section}.json";
+        // Extract section from key (e.g., 'auth.method' → 'auth')
+        $section = explode('.', $key)[0];
+
+        if (! isset(self::$cache[$section])) {
+            $path = config('options.path')."/{$section}.json";
             self::$cache[$section] = file_exists($path)
                 ? json_decode(file_get_contents($path), true) ?? []
                 : [];
@@ -44,15 +55,14 @@ class Options
     /**
      * Get an option value
      *
-     * @param string $key Key in dot notation (e.g., 'auth.method') or simple key (e.g., 'timezone' → 'general.timezone')
-     * @param mixed $default Default value if not found
-     * @return mixed
+     * @param  string  $key  Key in dot notation (e.g., 'auth.method') or simple key (e.g., 'timezone' → 'general.timezone')
+     * @param  mixed  $default  Default value if not found
      */
     public static function get(string $key, mixed $default = null): mixed
     {
         // Normalize key
         $normalizedKey = self::normalizeKey($key);
-        
+
         [$data, $section] = self::getSection($normalizedKey);
 
         // If key is just the section, return entire section
@@ -67,6 +77,7 @@ class Options
             return data_get($data, $subKey, $default);
         } catch (Exception $e) {
             Log::error("Error getting option {$normalizedKey}: {$e->getMessage()}");
+
             return $default;
         }
     }
@@ -74,15 +85,14 @@ class Options
     /**
      * Set an option value
      *
-     * @param string $key Key in dot notation (e.g., 'auth.method') or simple key (e.g., 'timezone' → 'general.timezone')
-     * @param mixed $value Value to set
-     * @return void
+     * @param  string  $key  Key in dot notation (e.g., 'auth.method') or simple key (e.g., 'timezone' → 'general.timezone')
+     * @param  mixed  $value  Value to set
      */
     public static function set(string $key, mixed $value): void
     {
         // Normalize key
         $normalizedKey = self::normalizeKey($key);
-        
+
         [$data, $section] = self::getSection($normalizedKey);
 
         // If key is just the section, replace entire section
@@ -95,7 +105,11 @@ class Options
         }
 
         // Write to file
-        $path = config("options.path") . "/{$section}.json";
+        $dir = config('options.path');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $path = "{$dir}/{$section}.json";
         file_put_contents(
             $path,
             json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
@@ -108,8 +122,7 @@ class Options
     /**
      * Check if an option exists
      *
-     * @param string $key Key in dot notation
-     * @return bool
+     * @param  string  $key  Key in dot notation
      */
     public static function has(string $key): bool
     {
@@ -119,19 +132,18 @@ class Options
     /**
      * Delete an option
      *
-     * @param string $key Key in dot notation or simple key
-     * @return void
+     * @param  string  $key  Key in dot notation or simple key
      */
     public static function forget(string $key): void
     {
         // Normalize key
         $normalizedKey = self::normalizeKey($key);
-        
+
         [$data, $section] = self::getSection($normalizedKey);
 
         if ($normalizedKey === $section) {
             // Delete entire section file
-            $path = config("options.path") . "/{$section}.json";
+            $path = config('options.path')."/{$section}.json";
             if (file_exists($path)) {
                 unlink($path);
             }
