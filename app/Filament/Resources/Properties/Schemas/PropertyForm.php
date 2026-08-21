@@ -65,9 +65,12 @@ class PropertyForm
             // the app supports at all (dev/project-tenant-sub-sites.md).
             Select::make('locale')
                 ->label(__('property.field.locale'))
-                ->options(static::localeOptions(config('app.locales', [config('app.locale', 'en')])))
+                ->options(static::localeOptions(config('app.locales', [config('app.default_locale', 'en')])))
                 ->native(false)
-                ->placeholder(__('app.default_value', ['value' => static::localeLabel(config('app.locale', 'en'))])),
+                // config('app.default_locale'), NOT config('app.locale') - the latter is
+                // overwritten per-request by whichever locale the CURRENT viewer is seeing
+                // (Property::locale()'s own docblock explains why).
+                ->placeholder(__('app.default_value', ['value' => static::localeLabel(config('app.default_locale', 'en'))])),
             Select::make('locales')
                 ->label(__('property.field.locales'))
                 ->helperText(__('property.field.locales_description'))

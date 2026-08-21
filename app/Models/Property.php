@@ -53,13 +53,17 @@ class Property extends Model
 
     /**
      * This property's own default language, falling back to the app-wide default when unset
-     * (dev/project-tenant-sub-sites.md) - same shape as TimezoneTrait::timezone().
+     * (dev/project-tenant-sub-sites.md) - same shape as TimezoneTrait::timezone(). Reads
+     * config('app.default_locale'), NOT config('app.locale') - the latter gets overwritten by
+     * Laravel's own app()->setLocale() (called on every request by the language switcher) with
+     * whichever locale the CURRENT viewer happens to be seeing, which is exactly the "detection
+     * leaking into the property's stored default" Oli flagged.
      */
     public function locale(): string
     {
         return (isset($this->attributes['locale']) && $this->attributes['locale'] !== '')
             ? $this->attributes['locale']
-            : config('app.locale', 'en');
+            : config('app.default_locale', 'en');
     }
 
     /**
@@ -70,6 +74,6 @@ class Property extends Model
      */
     public function availableLocales(): array
     {
-        return $this->locales ?: config('app.locales', [config('app.locale', 'en')]);
+        return $this->locales ?: config('app.locales', [config('app.default_locale', 'en')]);
     }
 }

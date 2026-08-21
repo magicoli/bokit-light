@@ -154,6 +154,18 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    // A genuinely stable copy of the above: Illuminate\Foundation\Application::setLocale()
+    // (called on every request by BezhanSalleh\LanguageSwitch's own SwitchLanguageLocale
+    // middleware, among others) overwrites config('app.locale') itself with whichever locale the
+    // CURRENT viewer's detection cascade resolved to - so by the time a property's own form
+    // renders, config('app.locale') no longer holds the app's configured default, it holds
+    // "whatever locale this particular visitor happens to be seeing right now". Anything that
+    // needs the real, request-independent default (Property::locale()'s own fallback, its
+    // settings form's placeholder) must read THIS key instead
+    // (dev/project-tenant-sub-sites.md — the bug Oli caught: an admin's own French UI preference
+    // was leaking into a property's displayed "default language").
+    'default_locale' => env('APP_LOCALE', 'en'),
+
     // Latin-script languages first (en/es/de/fr/pt/it/nl), then ru (Cyrillic), ja (CJK), ar (RTL)
     // - specifically so writing-system rendering can be checked later, not because all ten are
     // translated yet (only en/fr have translation files; Laravel falls back to fallback_locale

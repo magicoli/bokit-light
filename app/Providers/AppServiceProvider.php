@@ -327,7 +327,7 @@ class AppServiceProvider extends ServiceProvider
                 // tenant-scoped panel, falling through to the full app-wide list there
                 // (dev/project-tenant-sub-sites.md).
                 ->locales(fn (): array => Filament::getTenant()?->availableLocales()
-                    ?? config('app.locales', [config('app.locale', 'en')]))
+                    ?? config('app.locales', [config('app.default_locale', 'en')]))
                 ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
                 // ->visible(outsidePanels: true)
                 // ->outsidePanelPlacement(Placement::TopCenter)
@@ -345,7 +345,7 @@ class AppServiceProvider extends ServiceProvider
                 // Russian/Japanese/Arabic silently had no flag. `php artisan vendor:publish
                 // --tag=blade-flags` copies the package's SVGs to public/vendor/blade-flags/,
                 // giving each locale a stable URL keyed by its own code, no mapping needed.
-                ->flags(collect(config('app.locales', [config('app.locale', 'en')]))
+                ->flags(collect(config('app.locales', [config('app.default_locale', 'en')]))
                     ->mapWithKeys(fn (string $locale): array => [
                         $locale => asset("vendor/blade-flags/language-{$locale}.svg"),
                     ])
