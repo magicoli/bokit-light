@@ -3,6 +3,7 @@
 @import "./_theme.css";
 @import "./legacy.css";
 @import "./fonts.css";
+@import "./glass.css";
 
 @source '../../vendor/bezhansalleh/filament-language-switch/**';
 

@@ -86,7 +86,7 @@ return [
                     : ' ('.preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? 'localhost' ?: 'localhost').')'
             ),
     'slogan' => env('APP_SLOGAN', 'Bring On Kitsch Island Time'),
-    'logo' => env('APP_LOGO', '/images/logo.png'),
+    'logo' => env('APP_LOGO'),
     'version' => $version ?: '',
 
     /*

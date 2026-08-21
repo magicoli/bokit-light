@@ -55,8 +55,8 @@ trait HasSharedPanelConfig
             ->font('Switzer', url: Vite::asset('resources/css/fonts.css'), provider: LocalFontProvider::class)
             ->assets([
                 Css::make('panels-stylesheet', Vite::asset('resources/css/panels.css')),
-                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
                 // Css::make('glass-stylesheet', Vite::asset('resources/css/glass.css')),
+                Js::make('panels-script', Vite::asset('resources/js/panels.js')),
                 // Css::make('legacy-stylesheet', Vite::asset('resources/css/legacy.css')),
             ])
             // ->breadcrumbs(false)
