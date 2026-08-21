@@ -42,13 +42,15 @@ trait HasSharedPanelConfig
         return $panel
             ->id($id)
             ->path($path)
-            // ->homeUrl('/')
+            // Default for panels with no tenant of their own (Main/Admin) - AppPanelProvider
+            // overrides this to the current tenant's own dashboard, since each tenant is its own
+            // sub-site (dev/project-app-panel-tenancy.md).
+            ->homeUrl('/')
             // No ->login() here: login is the main panel's alone — one /login for the whole app.
             // Other panels send their guests there through redirectGuestsTo (bootstrap/app.php).
             // ->brandLogo('/images/logo.png')
-            // The current tenant's own logo (Property.logo, dev/project-timezone-and-tenant-settings.md)
-            // replaces the app-wide one when set — Filament::getTenant() is null outside a
-            // tenant-scoped panel (main/admin), safely falling through to the app default there.
+            // App-wide default logo - AppPanelProvider overrides this for the App panel with the
+            // current tenant's own logo, no fallback to this one.
             ->brandLogo(config('app.logo') ?: null)
             // ->brandLogoHeight(fn () => request()->is('login', '*/login') ? '128px' : '48px')
             ->brandLogoHeight('48px')

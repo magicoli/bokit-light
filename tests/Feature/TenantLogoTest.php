@@ -32,12 +32,22 @@ describe('Tenant logo', function () {
             ->assertSee(Storage::disk('public')->url('property-logos/mosaiques.svg'), escape: false);
     });
 
-    test('a property with no logo of its own falls back to the app-wide default', function () {
+    test('a property with no logo of its own shows no logo at all in the App panel - no app-wide fallback', function () {
         $property = Property::create(['name' => 'P', 'slug' => 'p', 'is_active' => true]);
 
         $this->actingAs($this->admin);
 
         $response = $this->get("/app/{$property->slug}");
+
+        $response->assertSuccessful();
+        expect(config('app.logo'))->not->toBeNull();
+        $response->assertDontSee(config('app.logo'), escape: false);
+    });
+
+    test('the Main panel (no tenant) always shows the app-wide logo', function () {
+        $this->actingAs($this->admin);
+
+        $response = $this->get('/');
 
         $response->assertSuccessful();
         expect(config('app.logo'))->not->toBeNull();

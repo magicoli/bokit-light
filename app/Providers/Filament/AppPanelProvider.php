@@ -60,6 +60,17 @@ class AppPanelProvider extends PanelProvider
             ->brandLogo(fn (): ?string => ($logo = Filament::getTenant()?->logo)
                 ? Storage::disk('public')->url($logo)
                 : null)
+            // The brand name is always the tenant being viewed, never the app's own name - each
+            // tenant is its own sub-site (dev/project-app-panel-tenancy.md). getBrandName()
+            // itself falls back to config('app.name') when this returns null, so nothing extra
+            // is needed for a tenant with a blank/unset name (shouldn't happen — name is
+            // required — but not worth a hard crash over).
+            ->brandName(fn (): ?string => Filament::getTenant()?->name)
+            // The logo/brand link goes to the tenant CURRENTLY being viewed, not the public
+            // homepage, and not just "the user's first tenant" (Filament::getUrl()'s own default
+            // when no tenant is passed) — passing the resolved tenant explicitly is what makes it
+            // follow whichever tenant's URL you're actually on.
+            ->homeUrl(fn (): ?string => Filament::getTenant() ? Filament::getUrl(Filament::getTenant()) : null)
             ->tenant(Property::class, slugAttribute: 'slug')
             ->tenantProfile(EditTenantProfile::class)
             ->sidebarCollapsibleOnDesktop()
