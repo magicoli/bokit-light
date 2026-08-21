@@ -154,7 +154,11 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
-    'locales' => ['en', 'fr', 'nl', 'de'],
+    // Latin-script languages first (en/es/de/fr/pt/it/nl), then ru (Cyrillic), ja (CJK), ar (RTL)
+    // - specifically so writing-system rendering can be checked later, not because all ten are
+    // translated yet (only en/fr have translation files; Laravel falls back to fallback_locale
+    // gracefully for the rest — dev/project-tenant-sub-sites.md).
+    'locales' => ['en', 'es', 'de', 'fr', 'pt', 'it', 'nl', 'ru', 'ja', 'ar'],
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

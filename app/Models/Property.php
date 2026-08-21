@@ -11,11 +11,12 @@ class Property extends Model
     use AdminResourceTrait;
     use TimezoneTrait;
 
-    protected $fillable = ['name', 'slug', 'is_active', 'timezone', 'logo', 'options'];
+    protected $fillable = ['name', 'slug', 'is_active', 'timezone', 'logo', 'locale', 'locales', 'options'];
 
     protected $casts = [
         'is_active' => 'boolean',
         'options' => 'array',
+        'locales' => 'array',
     ];
 
     protected $appends = ['actions'];
@@ -48,5 +49,27 @@ class Property extends Model
     public function fullname(): string
     {
         return $this->property->name;
+    }
+
+    /**
+     * This property's own default language, falling back to the app-wide default when unset
+     * (dev/project-tenant-sub-sites.md) - same shape as TimezoneTrait::timezone().
+     */
+    public function locale(): string
+    {
+        return (isset($this->attributes['locale']) && $this->attributes['locale'] !== '')
+            ? $this->attributes['locale']
+            : config('app.locale', 'en');
+    }
+
+    /**
+     * The subset of the app-wide locale list this property actually offers visitors, falling
+     * back to every app-wide locale when it hasn't configured a subset of its own.
+     *
+     * @return array<int, string>
+     */
+    public function availableLocales(): array
+    {
+        return $this->locales ?: config('app.locales', [config('app.locale', 'en')]);
     }
 }

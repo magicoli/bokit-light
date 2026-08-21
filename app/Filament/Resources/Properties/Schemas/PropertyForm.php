@@ -59,6 +59,22 @@ class PropertyForm
                 ->disk('public')
                 ->visibility('public')
                 ->directory('property-logos'),
+            // Same "null inherits the app default" shape as timezone. Both draw from the
+            // app-wide list (config('app.locales')), not this property's own enabled subset - the
+            // subset is what visitors see in the switcher, the default just needs to be a locale
+            // the app supports at all (dev/project-tenant-sub-sites.md).
+            Select::make('locale')
+                ->label(__('property.field.locale'))
+                ->options(static::localeOptions(config('app.locales', [config('app.locale', 'en')])))
+                ->native(false)
+                ->placeholder(__('app.default_value', ['value' => static::localeLabel(config('app.locale', 'en'))])),
+            Select::make('locales')
+                ->label(__('property.field.locales'))
+                ->helperText(__('property.field.locales_description'))
+                ->options(static::localeOptions(config('app.locales', [config('app.locale', 'en')])))
+                ->multiple()
+                ->native(false)
+                ->placeholder(__('app.default_value', ['value' => __('property.field.locales_all')])),
         ];
 
         foreach (static::$extensions as $extension) {
@@ -66,5 +82,19 @@ class PropertyForm
         }
 
         return $schema->components($components);
+    }
+
+    /**
+     * @param  array<int, string>  $codes
+     * @return array<string, string>
+     */
+    protected static function localeOptions(array $codes): array
+    {
+        return array_combine($codes, array_map(static::localeLabel(...), $codes));
+    }
+
+    protected static function localeLabel(string $code): string
+    {
+        return str(locale_get_display_name(locale: $code, displayLocale: $code))->title()->toString();
     }
 }

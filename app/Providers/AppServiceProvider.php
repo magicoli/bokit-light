@@ -16,6 +16,7 @@ use BezhanSalleh\LanguageSwitch\Enums\Placement;
 use BezhanSalleh\LanguageSwitch\Enums\TriggerStyle;
 use BezhanSalleh\LanguageSwitch\Events\LocaleChanged;
 use BezhanSalleh\LanguageSwitch\LanguageSwitch;
+use Filament\Facades\Filament;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -321,12 +322,21 @@ class AppServiceProvider extends ServiceProvider
     {
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch): void {
             $switch
-                ->locales(config('app.locales', [config('app.locale', 'en')]))
+                // The current tenant's own enabled subset (e.g. Gîtes Mosaïques offering only
+                // en/fr/de out of the app-wide list) - Filament::getTenant() is null outside a
+                // tenant-scoped panel, falling through to the full app-wide list there
+                // (dev/project-tenant-sub-sites.md).
+                ->locales(fn (): array => Filament::getTenant()?->availableLocales()
+                    ?? config('app.locales', [config('app.locale', 'en')]))
                 ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
                 // ->visible(outsidePanels: true)
                 // ->outsidePanelPlacement(Placement::TopCenter)
                 ->trigger(style: TriggerStyle::FlagLabel)
-                ->userPreferredLocale(fn (): ?string => auth()->user()?->locale)
+                // Signed-in preference first; absent that, an anonymous visitor to a tenant's own
+                // URL lands on that tenant's default language rather than whatever the browser
+                // happens to prefer (this closure sits in getPreferredLocale()'s cascade right
+                // after session/query-string, before Accept-Language).
+                ->userPreferredLocale(fn (): ?string => auth()->user()?->locale ?? Filament::getTenant()?->locale())
                 // ->circular()
                 ->nativeLabel();
 
