@@ -36,3 +36,28 @@
     --color-unavailable: #88888880;
     --color-unknown: var(--color-light);
 }
+
+/* Dark-mode token overrides — Filament toggles a literal `dark` class (manual light/dark/system
+   switcher) or leaves neither and relies on the OS preference ("system"); `data-theme="dark"`
+   covers a host that stamps it explicitly. Redefining the SAME custom properties here (outside
+   @theme) is enough: every utility already generated from them (bg-light, text-dark,
+   text-secondary, text-muted, border-light...) re-resolves at runtime, with no per-usage changes
+   needed anywhere in the app. */
+.dark,
+:root[data-theme="dark"] {
+    --color-dark: var(--color-gray-200);
+    --color-light: var(--color-gray-800);
+    --color-secondary: var(--color-gray-400);
+    --color-muted: var(--color-gray-500);
+    --color-link: var(--color-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --color-dark: var(--color-gray-200);
+        --color-light: var(--color-gray-800);
+        --color-secondary: var(--color-gray-400);
+        --color-muted: var(--color-gray-500);
+        --color-link: var(--color-dark);
+    }
+}

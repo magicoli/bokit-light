@@ -514,3 +514,104 @@ header {
         }
     }
 }
+
+/* =============================================================================
+   DARK MODE
+   =============================================================================
+   The theme tokens (_theme.css: bg-light, text-dark, text-secondary, text-muted,
+   border-light) already adapt themselves - nothing above using those needs touching. What's
+   here are the raw Tailwind palette utilities (bg-white, bg-gray-50, the blue "today" accents)
+   that don't route through a token and so stayed hardcoded to their light values, unreadable
+   once the panel follows Filament's own dark mode. Same selector convention as glass.css: a
+   literal `dark` class (Filament's manual toggle) or `data-theme="dark"`, plus a
+   prefers-color-scheme fallback for "system". */
+
+.dark .calendar-nav,
+.dark .calendar-wrapper,
+.dark .calendar-body,
+.dark .nav-button,
+.dark .unit-cell,
+:root[data-theme="dark"] .calendar-nav,
+:root[data-theme="dark"] .calendar-wrapper,
+:root[data-theme="dark"] .calendar-body,
+:root[data-theme="dark"] .nav-button,
+:root[data-theme="dark"] .unit-cell {
+    @apply bg-gray-800;
+}
+
+.dark .nav-button:hover,
+.dark .unit-row:hover,
+.dark .unit-cell:hover,
+:root[data-theme="dark"] .nav-button:hover,
+:root[data-theme="dark"] .unit-row:hover,
+:root[data-theme="dark"] .unit-cell:hover {
+    @apply bg-gray-700;
+}
+
+.dark .calendar-header,
+.dark .calendar-header .unit-column,
+.dark .comments-section .comments-text,
+:root[data-theme="dark"] .calendar-header,
+:root[data-theme="dark"] .calendar-header .unit-column,
+:root[data-theme="dark"] .comments-section .comments-text {
+    @apply bg-gray-900;
+}
+
+.dark .nav-button.today,
+:root[data-theme="dark"] .nav-button.today {
+    @apply hover:bg-blue-950;
+
+    &:active {
+        @apply bg-blue-900;
+    }
+}
+
+.dark .nav-button.toggle.active,
+:root[data-theme="dark"] .nav-button.toggle.active {
+    @apply bg-blue-950;
+}
+
+.dark .calendar-header .day-column.today,
+:root[data-theme="dark"] .calendar-header .day-column.today {
+    @apply bg-blue-950/50;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        .calendar-nav,
+        .calendar-wrapper,
+        .calendar-body,
+        .nav-button,
+        .unit-cell {
+            @apply bg-gray-800;
+        }
+
+        .nav-button:hover,
+        .unit-row:hover,
+        .unit-cell:hover {
+            @apply bg-gray-700;
+        }
+
+        .calendar-header,
+        .calendar-header .unit-column,
+        .comments-section .comments-text {
+            @apply bg-gray-900;
+        }
+
+        .nav-button.today {
+            @apply hover:bg-blue-950;
+
+            &:active {
+                @apply bg-blue-900;
+            }
+        }
+
+        .nav-button.toggle.active {
+            @apply bg-blue-950;
+        }
+
+        .calendar-header .day-column.today {
+            @apply bg-blue-950/50;
+        }
+    }
+}
