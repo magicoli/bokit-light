@@ -1,0 +1,13 @@
+<?php
+
+return [
+    'label' => 'Objekt',
+    'plural_label' => 'Objekte',
+    'field.name' => 'Name',
+    'field.timezone' => 'Zeitzone',
+    'field.logo' => 'Logo',
+    'field.locale' => 'Standardsprache',
+    'field.locales' => 'Verfügbare Sprachen',
+    'field.locales_description' => 'Zwischen welchen Sprachen Besucher bei diesem Objekt wechseln können. Die eigene Standardsprache muss darunter sein.',
+    'field.locales_all' => 'Alle',
+];
