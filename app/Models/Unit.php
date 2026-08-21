@@ -12,36 +12,36 @@ class Unit extends Model
     use TimezoneTrait;
 
     protected $fillable = [
-        "property_id",
-        "slug",
-        "name",
-        "description",
-        "is_active",
-        "options",
-        "unit_type",
-        "bedrooms",
-        "max_guests",
+        'property_id',
+        'slug',
+        'name',
+        'description',
+        'is_active',
+        'options',
+        'unit_type',
+        'bedrooms',
+        'max_guests',
     ];
 
     protected $casts = [
-        "is_active" => "boolean",
-        "options" => "array",
-        "unit_type" => "string",
+        'is_active' => 'boolean',
+        'options' => 'array',
+        'unit_type' => 'string',
     ];
 
-    protected $appends = ["actions"];
+    protected $appends = ['actions'];
 
     protected $list_columns = [
-        "actions",
-        "name",
-        "property_id",
-        "unit_type",
-        "bedrooms",
-        "max_guests",
-        "is_active",
+        'actions',
+        'name',
+        'property_id',
+        'unit_type',
+        'bedrooms',
+        'max_guests',
+        'is_active',
     ];
 
-    protected static $icon = "bed-outline";
+    protected static $icon = 'bed-outline';
 
     /**
      * Get the property that owns this unit
@@ -49,6 +49,16 @@ class Unit extends Model
     public function property()
     {
         return $this->belongsTo(Property::class);
+    }
+
+    /**
+     * A unit never has its own timezone — it always uses its property's (a unit belongs to one
+     * property, "par la force des choses"). Overrides TimezoneTrait's default, which would
+     * otherwise look for a (nonexistent) timezone column on units itself.
+     */
+    public function timezone($short = false): string
+    {
+        return $this->property->timezone($short);
     }
 
     /**
@@ -78,9 +88,8 @@ class Unit extends Model
     /**
      * Get an option value with cascade: unit options -> property options -> global options
      *
-     * @param string $key Option key
-     * @param mixed $default Default value if not found anywhere
-     * @return mixed
+     * @param  string  $key  Option key
+     * @param  mixed  $default  Default value if not found anywhere
      */
     public function get(string $key, mixed $default = null): mixed
     {

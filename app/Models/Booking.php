@@ -310,6 +310,17 @@ class Booking extends Model
     }
 
     /**
+     * A booking never has its own timezone — check-in/check-out are always shown in its
+     * property's timezone (never per-unit, never per-booking), or a reservation could appear to
+     * start/end on the wrong day. Overrides TimezoneTrait's default, which would otherwise look
+     * for a (nonexistent) timezone column on bookings itself.
+     */
+    public function timezone($short = false): string
+    {
+        return $this->property->timezone($short);
+    }
+
+    /**
      * External source references for this booking (one per source).
      */
     public function sources(): HasMany

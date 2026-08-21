@@ -1,10 +1,13 @@
 <?php
 
+use App\Filament\Pages\Calendar;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -215,6 +218,15 @@ describe('calendar booking endpoint', function () {
             ->assertDontSee('Dormant Property')
             ->assertDontSee('Dormant Unit')
             ->assertDontSee('Retired Unit');
+    });
+
+    test('shows the current tenant own timezone as the page display timezone, not the app default', function () {
+        $this->property->update(['timezone' => 'Asia/Tokyo']);
+        Filament::setCurrentPanel(Filament::getPanel('app'));
+        Filament::setTenant($this->property);
+
+        Livewire::test(Calendar::class)
+            ->assertSet('displayTimezone', 'Asia/Tokyo');
     });
 
     test('exposes the real origin channel with its direct OTA link', function () {

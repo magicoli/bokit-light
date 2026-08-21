@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Traits\TimezoneTrait;
 use BackedEnum;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Collection;
@@ -82,7 +83,11 @@ class Calendar extends Page
 
         $this->viewType = $request->get('view', 'month');
 
-        $tzString = self::defaultTimezone();
+        // The current tenant's own timezone, not the blanket app-wide default (Property::timezone()
+        // already falls back to the app-wide default itself when the property has none of its
+        // own) — this is what makes calendar.blade.php's own "this property differs from the
+        // page's displayTimezone" badges meaningful instead of permanently dormant.
+        $tzString = Filament::getTenant()->timezone();
         $this->displayTimezone = $tzString;
         $this->displayTimezoneShort = self::timezoneShort($tzString);
 

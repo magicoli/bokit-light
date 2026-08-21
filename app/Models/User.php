@@ -35,6 +35,7 @@ class User extends Authenticatable implements AssistantUser, FilamentUser, HasTe
         'roles',
         'options',
         'locale',
+        'timezone',
     ];
 
     protected $casts = [
