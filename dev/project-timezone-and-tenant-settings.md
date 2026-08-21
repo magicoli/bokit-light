@@ -1,5 +1,11 @@
 # Timezone precision, dark mode, and settings pages
 
+**Status: done**, except the two items under "Explicitly deferred" below. Every piece landed as
+its own commit on `dev`: timezone cascade + Calendar displayTimezone, dark mode CSS, the
+GeneralSettings page (+ the Options testing-isolation bugs it surfaced), EditTenantProfile +
+PropertyForm fields + tenant logo, the user profile timezone field (+ the Livewire component
+registration it needed).
+
 Corrections from Oli, folded in before any code was written (not guessed at):
 
 - Legacy code already distinguished **app-wide timezone vs property timezone** — never per-unit,
