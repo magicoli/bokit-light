@@ -7,6 +7,7 @@ return [
     'field.name' => 'Name',
     'field.timezone' => 'Zeitzone',
     'field.logo' => 'Logo',
+    'field.icon' => 'Symbol',
     'field.locale' => 'Standardsprache',
     'field.locales' => 'Verfügbare Sprachen',
     'field.locales_description' => 'Zwischen welchen Sprachen Besucher bei diesem Objekt wechseln können. Die eigene Standardsprache muss darunter sein.',

@@ -23,7 +23,6 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
-use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
 use Magicoli\TwoWayTicket\ReportIssuePlugin;
 
 trait HasSharedPanelConfig
@@ -56,7 +55,7 @@ trait HasSharedPanelConfig
             ->brandLogoHeight('48px')
             ->colors([
                 'primary' => Color::Emerald,
-                'gray' => Color::Teal,
+                // 'gray' => Color::Teal,
             ])
             ->font('Switzer', url: Vite::asset('resources/css/fonts.css'), provider: LocalFontProvider::class)
             ->assets([
@@ -80,16 +79,12 @@ trait HasSharedPanelConfig
                 FilamentEditProfilePlugin::make()
                     ->shouldRegisterNavigation(false)
                     ->shouldShowSanctumTokens()
-                    // The package's own bundled fields stop at name/email/locale/avatar - timezone
-                    // is app-specific, added as its own section rather than through the package's
-                    // custom_fields (that serializes into one JSON blob, the wrong shape for a
-                    // first-class column like User.timezone).
+                    ->shouldShowAvatarForm(
+                        value: true,
+                        directory: 'avatars', // image will be stored in 'storage/app/public/avatars
+                        rules: 'mimes:jpeg,png|max:1024' // only accept jpeg and png files with a maximum size of 1MB
+                    )
                     ->customProfileComponents([TimezoneForm::class]),
-                // Cross-panel shortcuts (Calendar + the legacy admin), rendered next to the user
-                // menu on every panel that shares this config — realising the "Calendar + Admin
-                // links in the topbar, shared with the frontend" that each panel used to carry as
-                // its own duplicated navigationItems(). Each item hides itself when it does not
-                // apply. See NavigationItemsPlugin (magicoli/extra-navigation-items).
             ])
             // ->sidebarFullyCollapsibleOnDesktop()
             // ->userMenuItems([

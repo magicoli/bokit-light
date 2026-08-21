@@ -47,14 +47,27 @@ class PropertyForm
         $tabs = [
             Tab::make(__('property.tab.identity.label'))
                 ->schema([
+                    Toggle::make('is_active')
+                        ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
                     TextInput::make('name')
                         ->label(__('property.field.name'))
                         ->required(),
                     TextInput::make('slug')
                         ->label(__('app.slug'))
                         ->required(),
-                    Toggle::make('is_active')
-                        ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
+                    FileUpload::make('logo')
+                        ->label(__('property.field.logo'))
+                        ->image()
+                        ->disk('public')
+                        ->visibility('public')
+                        ->directory('property-logos'),
+                    FileUpload::make('avatar_url')
+                        ->label(__('property.field.icon'))
+                        ->image()
+                        ->avatar()
+                        ->disk('public')
+                        ->visibility('public')
+                        ->directory('avatars'),
                     Select::make('timezone')
                         ->label(__('property.field.timezone'))
                         ->options(array_combine(timezone_identifiers_list(), timezone_identifiers_list()))
@@ -76,12 +89,6 @@ class PropertyForm
                         ->multiple()
                         ->native(false)
                         ->placeholder(__('app.default_value', ['value' => __('property.field.locales_all')])),
-                    FileUpload::make('logo')
-                        ->label(__('property.field.logo'))
-                        ->image()
-                        ->disk('public')
-                        ->visibility('public')
-                        ->directory('property-logos'),
                 ]),
         ];
 

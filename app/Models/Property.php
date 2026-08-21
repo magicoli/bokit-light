@@ -4,14 +4,26 @@ namespace App\Models;
 
 use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
+use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
-class Property extends Model
+class Property extends Model implements HasAvatar
 {
     use AdminResourceTrait;
     use TimezoneTrait;
 
-    protected $fillable = ['name', 'slug', 'is_active', 'timezone', 'logo', 'locale', 'locales', 'options'];
+    protected $fillable = [
+        'name',
+        'slug',
+        'is_active',
+        'timezone',
+        'logo',
+        'locale',
+        'locales',
+        'options',
+        'avatar_url',
+    ];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -75,5 +87,12 @@ class Property extends Model
     public function availableLocales(): array
     {
         return $this->locales ?: config('app.locales', [config('app.default_locale', 'en')]);
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        $avatarColumn = config('filament-edit-profile.avatar_column', 'avatar_url');
+
+        return $this->$avatarColumn ? Storage::url($this->$avatarColumn) : null;
     }
 }

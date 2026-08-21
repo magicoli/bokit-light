@@ -7,6 +7,7 @@ return [
     'field.name' => 'Nome',
     'field.timezone' => 'Fuso horário',
     'field.logo' => 'Logótipo',
+    'field.icon' => 'Ícone',
     'field.locale' => 'Idioma predefinido',
     'field.locales' => 'Idiomas disponíveis',
     'field.locales_description' => 'Os idiomas entre os quais os visitantes podem alternar nesta propriedade. O seu próprio idioma predefinido deve ser um deles.',

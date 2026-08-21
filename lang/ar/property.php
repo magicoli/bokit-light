@@ -7,6 +7,7 @@ return [
     'field.name' => 'الاسم',
     'field.timezone' => 'المنطقة الزمنية',
     'field.logo' => 'الشعار',
+    'field.icon' => 'الأيقونة',
     'field.locale' => 'اللغة الافتراضية',
     'field.locales' => 'اللغات المتاحة',
     'field.locales_description' => 'اللغات التي يمكن للزوار التبديل بينها في هذا العقار. يجب أن تكون لغته الافتراضية إحداها.',

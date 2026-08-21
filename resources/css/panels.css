@@ -43,3 +43,14 @@ ul.extra-navigation-panelsfooter {
         @apply text-base/7 font-semibold text-dark;
     }
 }
+
+.filepond--image-preview {
+    @apply bg-transparent;
+    background: transparent;
+    background-color: transparent;
+}
+
+.filepond--image-preview-wrapper {
+    /*background: red;*/
+    @apply bg-gray-200;
+}
