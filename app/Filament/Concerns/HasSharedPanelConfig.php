@@ -19,7 +19,6 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
@@ -43,16 +42,14 @@ trait HasSharedPanelConfig
         return $panel
             ->id($id)
             ->path($path)
-            ->homeUrl('/')
+            // ->homeUrl('/')
             // No ->login() here: login is the main panel's alone — one /login for the whole app.
             // Other panels send their guests there through redirectGuestsTo (bootstrap/app.php).
             // ->brandLogo('/images/logo.png')
             // The current tenant's own logo (Property.logo, dev/project-timezone-and-tenant-settings.md)
             // replaces the app-wide one when set — Filament::getTenant() is null outside a
             // tenant-scoped panel (main/admin), safely falling through to the app default there.
-            ->brandLogo(fn (): ?string => ($logo = Filament::getTenant()?->logo)
-                ? Storage::disk('public')->url($logo)
-                : (config('app.logo') ?: null))
+            ->brandLogo(config('app.logo') ?: null)
             // ->brandLogoHeight(fn () => request()->is('login', '*/login') ? '128px' : '48px')
             ->brandLogoHeight('48px')
             ->colors([

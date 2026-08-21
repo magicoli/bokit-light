@@ -8,6 +8,7 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Tenancy\EditTenantProfile;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
 use App\Models\Property;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
@@ -16,6 +17,7 @@ use Filament\PanelProvider;
 use Filament\Support\Facades\FilamentView;
 use Filament\Tables\View\TablesRenderHook;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
 use Magicoli\TwoWayTicket\Filament\Resources\Tickets\Widgets\TicketStatsWidget;
 use Magicoli\TwoWayTicket\TicketsPlugin;
 
@@ -55,6 +57,9 @@ class AppPanelProvider extends PanelProvider
             // that's getTenants() below) — its default (camelCase of the tenant model's
             // basename, "property") already matches Booking::property()/Unit::property()/
             // Rate::property() exactly, all pre-existing plain belongsTo relationships.
+            ->brandLogo(fn (): ?string => ($logo = Filament::getTenant()?->logo)
+                ? Storage::disk('public')->url($logo)
+                : null)
             ->tenant(Property::class, slugAttribute: 'slug')
             ->tenantProfile(EditTenantProfile::class)
             ->sidebarCollapsibleOnDesktop()

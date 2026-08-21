@@ -48,6 +48,11 @@ class PropertyResource extends Resource
         return __('property.plural_label');
     }
 
+    public static function getNavigationGroup(): string
+    {
+        return __('app.admin');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PropertyForm::configure($schema)->columns(1);
