@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Backup\Console\Commands\BackupCommand;
 use App\Backup\Console\Commands\CleanBackupsCommand;
 use App\Backup\Console\Commands\ListBackupsCommand;
+use App\Filament\Profile\TimezoneForm;
 use App\Models\Booking;
 use App\Observers\BookingObserver;
 use App\Services\AdminMenuService;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Spatie\Backup\Commands\BackupCommand as SpatieBackupCommand;
 use Spatie\Backup\Commands\CleanupCommand as SpatieCleanupCommand;
 use Spatie\Backup\Commands\ListCommand as SpatieListCommand;
@@ -76,6 +78,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // filament-edit-profile registers each of its own custom-component candidates the same
+        // way (FilamentEditProfileServiceProvider::boot()) - without this, TimezoneForm mounts
+        // fine (its first render doesn't need a registered name) but any follow-up Livewire
+        // round-trip (fillForm, wire:submit...) fails with "Invalid Livewire snapshot structure",
+        // since Livewire has no name to resolve the class by for that second request.
+        Livewire::component('timezone_form', TimezoneForm::class);
+
         $this->registerSourceConnectors();
         $this->ensureConfigIsLoaded();
         $this->createStorageStructure();

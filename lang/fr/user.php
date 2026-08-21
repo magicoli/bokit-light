@@ -15,5 +15,7 @@ return [
         'auth_provider' => "Fournisseur d'auth",
         'roles' => 'Rôles',
         'is_admin' => 'Admin',
+        'timezone' => 'Fuseau horaire',
+        'timezone_description' => 'Vos propres dates et heures (dernière modification, activité...) sont affichées dans ce fuseau horaire. Les réservations affichent toujours le fuseau horaire de leur propriété, sans être affectées par ce réglage.',
     ],
 ];

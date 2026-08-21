@@ -2,6 +2,7 @@
 
 namespace App\Filament\Concerns;
 
+use App\Filament\Profile\TimezoneForm;
 use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
@@ -79,7 +80,12 @@ trait HasSharedPanelConfig
                 // path — the app must be fully manageable from the UI.
                 FilamentEditProfilePlugin::make()
                     ->shouldRegisterNavigation(false)
-                    ->shouldShowSanctumTokens(),
+                    ->shouldShowSanctumTokens()
+                    // The package's own bundled fields stop at name/email/locale/avatar - timezone
+                    // is app-specific, added as its own section rather than through the package's
+                    // custom_fields (that serializes into one JSON blob, the wrong shape for a
+                    // first-class column like User.timezone).
+                    ->customProfileComponents([TimezoneForm::class]),
                 // Cross-panel shortcuts (Calendar + the legacy admin), rendered next to the user
                 // menu on every panel that shares this config — realising the "Calendar + Admin
                 // links in the topbar, shared with the frontend" that each panel used to carry as
