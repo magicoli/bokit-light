@@ -55,9 +55,7 @@ return [
         'cancelled_by_guest' => 'Annulée par le client',
     ],
 
-    'tag' => [
-        'tag.new' => 'Nouvelle',
-    ],
+    'tag.new' => 'Nouvelle',
 
     'title' => [
         // One-line booking title (widgets, mail subjects)
@@ -76,10 +74,10 @@ return [
 
     'filter' => [
         // Display filters
-        'filter.show_cancelled' => 'Afficher les annulées',
-        'filter.show_quotes' => 'Afficher les devis',
-        'filter.effective_only' => 'Réservations effectives uniquement',
-        'filter.period' => 'Période',
+        'show_cancelled' => 'Afficher les annulées',
+        'show_quotes' => 'Afficher les devis',
+        'effective_only' => 'Réservations effectives uniquement',
+        'period' => 'Période',
     ],
 
     'period' => [

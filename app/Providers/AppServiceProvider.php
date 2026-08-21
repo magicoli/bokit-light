@@ -338,13 +338,18 @@ class AppServiceProvider extends ServiceProvider
                 // after session/query-string, before Accept-Language).
                 ->userPreferredLocale(fn (): ?string => auth()->user()?->locale ?? Filament::getTenant()?->locale())
                 // ->circular()
-                ->nativeLabel();
-
-            if (! empty(config('app.locale_flags'))) {
-                $switch->flags(array_map(callback: 'asset', array: config('app.locale_flags')));
-            }
-
-            // if(!empty(->flags(config('app.flags'))))
+                ->nativeLabel()
+                // outhebox/blade-flags ships LANGUAGE flags (language-{code}.svg), not just
+                // country ones - the previous config('app.locale_flags') array mapped COUNTRY
+                // codes (e.g. 'jp', 'arab') that never matched LOCALE codes ('ja', 'ar'), so
+                // Russian/Japanese/Arabic silently had no flag. `php artisan vendor:publish
+                // --tag=blade-flags` copies the package's SVGs to public/vendor/blade-flags/,
+                // giving each locale a stable URL keyed by its own code, no mapping needed.
+                ->flags(collect(config('app.locales', [config('app.locale', 'en')]))
+                    ->mapWithKeys(fn (string $locale): array => [
+                        $locale => asset("vendor/blade-flags/language-{$locale}.svg"),
+                    ])
+                    ->all());
         });
 
         Event::listen(function (LocaleChanged $event): void {

@@ -23,7 +23,6 @@ return [
     'sign_in' => 'Se connecter',
 
     // Calendar
-    'legacy' => 'Obsolète',
     'calendar' => 'Calendrier',
     'booking' => 'Réservation',
     'check_in' => 'Arrivée',

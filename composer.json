@@ -31,6 +31,7 @@
         "magicoli/assistant-mcp-engine": "@dev",
         "magicoli/extra-navigation-items": "^0.1.0",
         "magicoli/two-way-ticket": "@dev",
+        "outhebox/blade-flags": "^1.7",
         "sabre/vobject": "^4.5",
         "spatie/laravel-backup": "^10.3"
     },
