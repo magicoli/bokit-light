@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Concerns\HasSharedPanelConfig;
 use App\Filament\Pages\Calendar;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Tenancy\EditTenantProfile;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
 use App\Models\Property;
 use Filament\Http\Middleware\Authenticate;
@@ -55,6 +56,7 @@ class AppPanelProvider extends PanelProvider
             // basename, "property") already matches Booking::property()/Unit::property()/
             // Rate::property() exactly, all pre-existing plain belongsTo relationships.
             ->tenant(Property::class, slugAttribute: 'slug')
+            ->tenantProfile(EditTenantProfile::class)
             ->sidebarCollapsibleOnDesktop()
             // ->sidebarFullyCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
