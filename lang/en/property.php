@@ -11,4 +11,5 @@ return [
     'field.locales' => 'Available languages',
     'field.locales_description' => 'Which languages visitors can switch between on this property. Its own default language must be one of them.',
     'field.locales_all' => 'All',
+    'tab.identity.label' => 'Identity',
 ];

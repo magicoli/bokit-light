@@ -11,4 +11,5 @@ return [
     'field.locales' => 'Verfügbare Sprachen',
     'field.locales_description' => 'Zwischen welchen Sprachen Besucher bei diesem Objekt wechseln können. Die eigene Standardsprache muss darunter sein.',
     'field.locales_all' => 'Alle',
+    'tab.identity.label' => 'Identität',
 ];

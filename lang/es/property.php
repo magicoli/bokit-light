@@ -11,4 +11,5 @@ return [
     'field.locales' => 'Idiomas disponibles',
     'field.locales_description' => 'Los idiomas entre los que pueden cambiar los visitantes en esta propiedad. Su propio idioma predeterminado debe ser uno de ellos.',
     'field.locales_all' => 'Todos',
+    'tab.identity.label' => 'Identidad',
 ];

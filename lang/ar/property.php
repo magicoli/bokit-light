@@ -11,4 +11,5 @@ return [
     'field.locales' => 'اللغات المتاحة',
     'field.locales_description' => 'اللغات التي يمكن للزوار التبديل بينها في هذا العقار. يجب أن تكون لغته الافتراضية إحداها.',
     'field.locales_all' => 'الكل',
+    'tab.identity.label' => 'الهوية',
 ];
