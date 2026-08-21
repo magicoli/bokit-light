@@ -11,6 +11,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Storage;
 use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
 
 class MainPanelProvider extends PanelProvider
@@ -30,6 +31,33 @@ class MainPanelProvider extends PanelProvider
         return $user?->getTenants(Filament::getPanel('app'))->first();
     }
 
+    /**
+     * Each tenant is its own sub-site (dev/project-app-panel-tenancy.md) — a guest bounced here
+     * from a tenant URL should see THAT tenant's branding on the login screen, not the app's own.
+     * Filament's real tenant resolution only runs post-auth, so there is no Filament::getTenant()
+     * to read yet; the tenant is instead recovered from the URL the guest was actually trying to
+     * reach, which Laravel's own auth-redirect flow (redirect()->guest()) already stores in
+     * session('url.intended') before sending them here. Scoped to the login route itself so it
+     * never leaks tenant branding onto other Main panel pages from a stale session value.
+     */
+    private static function intendedTenant(): ?Property
+    {
+        if (! request()->routeIs('filament.main.auth.login')) {
+            return null;
+        }
+
+        $intended = session('url.intended');
+        if (! $intended) {
+            return null;
+        }
+
+        if (! preg_match('#/app/([^/]+)#', (string) parse_url($intended, PHP_URL_PATH), $matches)) {
+            return null;
+        }
+
+        return Property::where('slug', $matches[1])->first();
+    }
+
     public function panel(Panel $panel): Panel
     {
         $panel = $this->applyCommonConfig($panel, 'main', '');
@@ -40,6 +68,13 @@ class MainPanelProvider extends PanelProvider
             // ->path('')
             // The one login route for the whole app: /login on the main panel.
             ->login()
+            // Branding for the login screen specifically (see intendedTenant()) - every other
+            // Main panel page keeps the app-wide defaults from HasSharedPanelConfig, since
+            // intendedTenant() returns null off the login route.
+            ->brandLogo(fn (): ?string => ($logo = self::intendedTenant()?->logo)
+                ? Storage::disk('public')->url($logo)
+                : (config('app.logo') ?: null))
+            ->brandName(fn (): ?string => self::intendedTenant()?->name)
             ->default()
             ->topNavigation()
             // ->maxContentWidth(Width::Full)
