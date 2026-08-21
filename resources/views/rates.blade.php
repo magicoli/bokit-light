@@ -6,15 +6,10 @@
 @section('title', __('rate.label'))
 
 @push('styles')
-@vite('resources/css/form.css')
 @vite('resources/css/rates.css')
-@vite('resources/css/list.css')
-@vite('resources/css/flatpickr.css')
 @endpush
 
 @push('scripts')
-@vite('resources/js/flatpickr.js')
-@vite('resources/js/forms.js')
 @vite('resources/js/rates.js')
 
 <script>

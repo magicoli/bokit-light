@@ -41,9 +41,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- App Styles -->
-    @vite('resources/css/layout-grid.css')
-
     {{-- Legacy styling for deprecated pages outside Filament --}}
     @vite('resources/css/app.css')
 

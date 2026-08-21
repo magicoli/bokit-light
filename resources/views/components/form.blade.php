@@ -1,12 +1,3 @@
-{{-- @section('styles') --}}
-@vite('resources/css/form.css')
-@vite('resources/css/flatpickr.css')
-{{-- @endsection --}}
-
-{{-- @section('scripts') --}}
-@vite('resources/js/flatpickr.js')
-{{-- @endsection --}}
-
 <form id="{{ $formId }}" action="{{ $action }}" method="{{ $method === 'GET' ? 'GET' : 'POST' }}" class="form">
     @if($method !== 'GET')
         @csrf

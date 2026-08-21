@@ -3,10 +3,6 @@
 
 @section('title', __('app.login'))
 
-@push('styles')
-@vite('resources/css/login.css')
-@endpush
-
 @section('content')
 {!! appBrandingHtml() !!}
 

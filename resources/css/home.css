@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./_theme.css";
+@import "./markdown.css";
 
 /**
  * The home page: a photograph across the whole window, and the text floating on a pane of glass.

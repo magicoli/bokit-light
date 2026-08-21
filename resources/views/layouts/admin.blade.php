@@ -1,5 +1,4 @@
 @extends('layouts.app')
-@vite('resources/css/admin.css')
 
 @section('body-class', 'admin')
 

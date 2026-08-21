@@ -5,11 +5,6 @@
 
 @section('title', __('app.' . $resource))
 
-@push('styles')
-@vite('resources/css/list.css')
-@vite('resources/css/form.css')
-@endpush
-
 @section('content')
 @if($model)
     @if(method_exists($model, 'list'))

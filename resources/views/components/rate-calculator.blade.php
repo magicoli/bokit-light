@@ -1,6 +1,4 @@
 {{-- Rate Calculator Widget - Reusable component --}}
-@vite('resources/css/rates-widget.css')
-
 <div class="rate-widget">
     {!! \App\Models\Rate::form('formBookWidget', route('rates.calculate'))
         ->submitButton(__('forms.search'))

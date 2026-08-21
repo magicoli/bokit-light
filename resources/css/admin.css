@@ -3,9 +3,6 @@
  * Minimal styling for admin pages, uses existing layout
  */
 
-@import "tailwindcss";
-@import "./_theme.css";
-
 /* Admin body classes for customization */
 body.admin {
     --template-2-columns: 240px 1fr;

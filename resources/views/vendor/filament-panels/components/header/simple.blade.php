@@ -22,8 +22,6 @@
     'subheading' => null,
 ])
 
-@vite(['resources/css/login.css'])
-
 <header class="fi-simple-header">
     @if ($logo)
         <a {{ \Filament\Support\generate_href_html(filament()->getHomeUrl()) }}>

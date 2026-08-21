@@ -22,43 +22,38 @@ function wallpapers() {
 export default defineConfig({
     plugins: [
         laravel({
+            // One main entry per surface, each importing its own secondary resources, instead
+            // of a top-level entry per file: `vite build --watch` reprocesses the whole input
+            // graph on every save, so ~30 entries meant every save rebuilt everything and left
+            // the manifest in a broken intermediate state for a few seconds - a real source of
+            // the ViteManifestNotFoundException flakiness during development.
+            // - panels.css/panels.js: the Filament panels (imports _theme, legacy, fonts, glass)
+            // - app.css/app.js: the legacy (pre-Filament) front-end (imports layout-grid, form,
+            //   list, login, properties, units, rates-widget, flatpickr, admin)
+            // - calendar.css, rates.css/rates.js, home.css/home.js: kept separate because each
+            //   is heavy and used on exactly one page - bundling them into app/panels would ship
+            //   their weight everywhere for no benefit
+            // - fonts.css: also imported by panels.css and app.css, but must stay its own entry
+            //   too since HasSharedPanelConfig resolves it directly via Vite::asset()
             input: [
-                "resources/css/_theme.css",
-                "resources/css/admin.css",
                 "resources/css/app.css",
                 "resources/css/calendar.css",
-                "resources/css/flatpickr.css",
-                "resources/css/form.css",
                 "resources/css/fonts.css",
-                "resources/css/glass.css",
                 "resources/css/home.css",
-                "resources/css/layout-grid.css",
-                "resources/css/legacy.css",
-                "resources/css/list.css",
-                "resources/css/login.css",
-                "resources/css/markdown.css",
                 "resources/css/panels.css",
-                "resources/css/properties.css",
-                "resources/css/rates-widget.css",
                 "resources/css/rates.css",
-                "resources/css/units.css",
                 "resources/js/app.js",
-                "resources/js/bootstrap.js",
-                "resources/js/flatpickr.js",
-                "resources/js/forms.js",
                 "resources/js/home.js",
                 "resources/js/panels.js",
-                "resources/js/pwa.js",
                 "resources/js/rates.js",
-                "resources/js/units-edit.js",
             ],
             // detectTls: 'bokit-light.test',
-            // refresh: true,
-            refresh: [
-                "resources/css/**",
-                "resources/fonts/**",
-                "resources/js/**",
-            ],
+            refresh: true,
+            // refresh: [
+            //     "resources/css/**",
+            //     "resources/fonts/**",
+            //     "resources/js/**",
+            // ],
             // fonts: [
             //     google('Inter', { alias: 'sans' }),
             //     bunny('Figtree', { alias: 'body' }),

@@ -2,10 +2,6 @@
 
 @section('title', $property->name)
 
-@push('styles')
-@vite('resources/css/properties.css')
-@endpush
-
 @section('content')
 <div class="property-show-container">
     <!-- Header -->

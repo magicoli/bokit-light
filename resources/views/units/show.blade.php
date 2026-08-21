@@ -2,10 +2,6 @@
 
 @section('title', $unit->name . ' - ' . $unit->property->name)
 
-@push('styles')
-@vite('resources/css/properties.css')
-@endpush
-
 @section('content')
 <div class="unit-show-container">
     <!-- Header -->

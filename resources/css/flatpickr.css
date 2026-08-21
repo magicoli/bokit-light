@@ -4,9 +4,6 @@
  * Tailwind-inspired theme for Flatpickr date picker
  */
 
-@import "tailwindcss";
-@import "./_theme.css";
-
 .date-range {
     input,
     .flatpickr-input {
