@@ -16,9 +16,16 @@ use BezhanSalleh\LanguageSwitch\Enums\Placement;
 use BezhanSalleh\LanguageSwitch\Enums\TriggerStyle;
 use BezhanSalleh\LanguageSwitch\Events\LocaleChanged;
 use BezhanSalleh\LanguageSwitch\LanguageSwitch;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -93,6 +100,7 @@ class AppServiceProvider extends ServiceProvider
         $this->registerObservers();
         $this->registerRateLimiters();
         $this->configureLanguageSwitch();
+        $this->configureFilamentTableDefaults();
 
         // LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
         //     $switch->locales(config('app.locales', ['en']));
@@ -354,6 +362,43 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(function (LocaleChanged $event): void {
             auth()->user()?->update(['locale' => $event->locale]);
+        });
+    }
+
+    protected function configureFilamentTableDefaults(): void
+    {
+        Table::configureUsing(function (Table $table): void {
+            $table
+                ->paginated([10, 25, 50, 100, 'all'])
+                ->defaultPaginationPageOption(50)
+                ->filtersLayout(FiltersLayout::AboveContent)
+                // Dims a whole row when its own record is deactivated (is_active === false) —
+                // a record type without that column is untouched (array_key_exists guards it).
+                // A resource can still override this by calling ->recordClasses() itself.
+                ->recordClasses(function (Model $record): ?string {
+                    if (! array_key_exists('is_active', $record->getAttributes())) {
+                        return null;
+                    }
+
+                    return $record->is_active ? null : 'opacity-50 italic';
+                })
+                // Icons only in the row-actions column app-wide (Oli) — the label still exists
+                // as the button's tooltip. Ungrouped only: an action tucked inside a "..."
+                // ActionGroup dropdown keeps its label, since a bare icon there has no room to
+                // stay legible. Toolbar/bulk actions are untouched by this hook.
+                ->modifyUngroupedRecordActionsUsing(fn (Action $action) => $action->hiddenLabel());
+        });
+
+        SelectFilter::configureUsing(function (SelectFilter $filter): void {
+            $filter->modifyFormFieldUsing(
+                fn (Select $field): Select => $field->hiddenLabel()->placeholder($filter->getLabel()),
+            );
+        });
+
+        // Filament's own default for a false icon is red ("danger") — reads as an error, not
+        // as "just off". Applies to every ->boolean() IconColumn app-wide (Oli: gray, not red).
+        IconColumn::configureUsing(function (IconColumn $column): void {
+            $column->falseColor('gray');
         });
     }
 }

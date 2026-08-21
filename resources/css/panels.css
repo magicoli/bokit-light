@@ -52,5 +52,5 @@ ul.extra-navigation-panelsfooter {
 
 .filepond--image-preview-wrapper {
     /*background: red;*/
-    @apply bg-gray-200;
+    @apply bg-gray-300 dark:bg-gray-700;
 }
