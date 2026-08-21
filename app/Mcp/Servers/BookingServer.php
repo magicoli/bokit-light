@@ -4,21 +4,20 @@ namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\GetBookingTool;
 use App\Mcp\Tools\ListBookingsTool;
+use App\Models\Property;
 use App\Models\User;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Name;
-use Magicoli\AssistantMcpEngine\Models\Assistant;
 
 /**
  * Booking tools for bokit-light (dev/project-bokit-mcp-server.md) — usable standalone (a bare
  * MCP client pointed at bokit) or alongside personal-assistant-mcp (an assistant there gets this
  * server added as one of its own connected tools).
  *
- * Bokit IS multi-tenant (one owner account = one Assistant, several properties under it), so
- * this deliberately mirrors PersonalAssistantServer's own {assistant}-resolution shape rather
- * than avoiding it — that apparatus is exactly why the app depends on assistant-mcp-engine
- * instead of just laravel/mcp directly. What's still not adopted: Passport/Reverb/mail/skill/
- * memory, none of which bokit has a use for.
+ * Property is bokit's tenant (dev/project-app-panel-tenancy.md) — "chaque propriétaire ne peut
+ * voir que ses propres propriétés" — the same boundary the App panel itself now uses
+ * (Panel::tenant(Property::class)). assistant-mcp-engine's own Assistant model is one optional
+ * feature a property can have, unrelated to which tenant this server scopes to.
  */
 #[Name('Bokit Booking MCP')]
 class BookingServer extends Server
@@ -30,37 +29,36 @@ class BookingServer extends Server
 
     protected function boot(): void
     {
-        $assistant = $this->resolveAssistant();
-        $user = $assistant ? $this->authorizedUser($assistant) : null;
+        $property = $this->resolveProperty();
+        $user = $property ? $this->authorizedUser($property) : null;
 
         $this->tools = [
-            new ListBookingsTool($assistant, $user),
-            new GetBookingTool($assistant, $user),
+            new ListBookingsTool($property, $user),
+            new GetBookingTool($property, $user),
         ];
     }
 
     /**
-     * The {assistant} route parameter routes/mcp.php's Mcp::web() registration declares — absent
+     * The {property} route parameter routes/mcp.php's Mcp::web() registration declares — absent
      * for the stdio/local path (Mcp::local(), no HTTP request to have a route on).
      */
-    private function resolveAssistant(): ?Assistant
+    private function resolveProperty(): ?Property
     {
-        $slug = request()?->route('assistant');
+        $slug = request()?->route('property');
 
-        return $slug ? Assistant::where('slug', $slug)->firstOrFail() : null;
+        return $slug ? Property::where('slug', $slug)->firstOrFail() : null;
     }
 
     /**
      * auth:sanctum (routes/mcp.php) already required a valid bearer token to reach here at all —
-     * this is the authorization half: the token's owner must actually belong to THIS tenant
-     * (User::canAccessTenant()), the same check the Filament panel itself will use once tenancy
-     * reaches it.
+     * this is the authorization half: the token's owner must actually have access to THIS
+     * property (User::canAccessTenant(), the same check the App panel's own tenancy uses).
      */
-    private function authorizedUser(Assistant $assistant): User
+    private function authorizedUser(Property $property): User
     {
         $user = request()->user();
 
-        abort_if(! $user instanceof User || ! $user->canAccessTenant($assistant), 403);
+        abort_if(! $user instanceof User || ! $user->canAccessTenant($property), 403);
 
         return $user;
     }

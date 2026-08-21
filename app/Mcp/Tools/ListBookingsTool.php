@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Models\Booking;
+use App\Models\Property;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
@@ -13,11 +14,14 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Title;
 use Laravel\Mcp\Server\Tool;
-use Magicoli\AssistantMcpEngine\Models\Assistant;
 
 /**
  * Reads bokit's own already-synced local records (SourceConnector/SyncEngine keep these
  * current) — never calls a channel-manager API directly (bookings-lessons-learned.md §1, §5).
+ *
+ * Scoped to one property (bokit's tenant, dev/project-app-panel-tenancy.md) — no property-name
+ * filter, unlike list_bookings' PAM-era ancestor: there is only ever one property in scope here,
+ * the caller already knows which one from the connection itself.
  *
  * Group reservations (several rows sharing group_id, one reservation across several units)
  * collapse to one entry per group, price summed across active members, so the caller never has
@@ -25,20 +29,20 @@ use Magicoli\AssistantMcpEngine\Models\Assistant;
  */
 #[Name('list_bookings')]
 #[Title('List Bookings')]
-#[Description('List bookings, most recent check-in first. property and guest_name are separate filters — never merge them, a property can be named after a person and collide with an unrelated guest search. guest_name matches any word in the search against any word in the name, so a partial or slightly-off name still finds it. Cancelled bookings are excluded by default. An empty result with a filter applied does not mean nothing exists — broaden or drop the filter and call again before concluding there is nothing.')]
+#[Description('List bookings for this property, most recent check-in first. guest_name matches any word in the search against any word in the name, so a partial or slightly-off name still finds it. Cancelled bookings are excluded by default. An empty result with a filter applied does not mean nothing exists — broaden or drop the filter and call again before concluding there is nothing.')]
 class ListBookingsTool extends Tool
 {
-    public function __construct(public ?Assistant $assistant = null, public ?User $user = null) {}
+    public function __construct(public ?Property $property = null, public ?User $user = null) {}
 
     public function handle(Request $request): Response
     {
-        if (! $this->assistant) {
-            return Response::error('No tenant context — this tool needs a resolved Assistant (see BookingServer::boot()).');
+        if (! $this->property) {
+            return Response::error('No tenant context — this tool needs a resolved Property (see BookingServer::boot()).');
         }
 
         $query = Booking::query()
             ->forUser($this->user)
-            ->whereHas('property', fn ($q) => $q->where('assistant_id', $this->assistant->id))
+            ->where('property_id', $this->property->id)
             ->with(['unit', 'property']);
 
         if (! $request->boolean('include_cancelled')) {
@@ -47,10 +51,6 @@ class ListBookingsTool extends Tool
 
         if ($status = $request->string('status')->trim()->value()) {
             $query->where('status', $status);
-        }
-
-        if ($property = $request->string('property')->trim()->value()) {
-            $query->whereHas('property', fn ($q) => $q->where('name', 'like', "%{$property}%"));
         }
 
         if ($guestName = $request->string('guest_name')->trim()->value()) {
@@ -120,7 +120,6 @@ class ListBookingsTool extends Tool
             'display_status' => $booking->displayStatus(),
             'check_in' => ($isGroup ? $active->min('check_in') : $booking->check_in)->format('Y-m-d'),
             'check_out' => ($isGroup ? $active->max('check_out') : $booking->check_out)->format('Y-m-d'),
-            'property' => $booking->property?->name,
             'unit' => $isGroup ? $active->pluck('unit.name')->filter()->values()->all() : $booking->unit?->name,
             'price' => $price,
         ];
@@ -132,8 +131,6 @@ class ListBookingsTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'property' => $schema->string()
-                ->description('Filter by property name (partial match) — separate from guest_name, never combine them into one search'),
             'guest_name' => $schema->string()
                 ->description('Filter by guest name — matches any word, tolerant of a partial or misspelled name'),
             'status' => $schema->string()

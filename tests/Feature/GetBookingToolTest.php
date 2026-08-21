@@ -7,27 +7,18 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
-use Magicoli\AssistantMcpEngine\Models\Assistant;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->assistant = Assistant::forceCreate(['name' => 'Test Tenant', 'slug' => 'test-tenant']);
-
     $this->admin = User::create([
         'name' => 'Admin',
         'email' => 'admin@test.local',
         'password' => 'secret-password',
         'is_admin' => true,
     ]);
-    $this->assistant->forceFill(['owner_id' => $this->admin->id])->save();
 
-    $this->property = Property::create([
-        'assistant_id' => $this->assistant->id,
-        'name' => 'Moon',
-        'slug' => 'moon',
-        'is_active' => true,
-    ]);
+    $this->property = Property::create(['name' => 'Moon', 'slug' => 'moon', 'is_active' => true]);
     $this->unit = Unit::create([
         'property_id' => $this->property->id,
         'name' => 'Moon Unit',
@@ -36,9 +27,9 @@ beforeEach(function (): void {
     ]);
 });
 
-function callGetBooking(int $bookingId): TestResponse
+function callGetBooking(int $bookingId, ?string $slug = null): TestResponse
 {
-    $slug = test()->assistant->slug;
+    $slug ??= test()->property->slug;
 
     return test()->postJson("/mcp/{$slug}/bookings", [
         'jsonrpc' => '2.0',
@@ -86,14 +77,8 @@ it('errors cleanly for an unknown booking id', function (): void {
         ->assertJsonPath('result.isError', true);
 });
 
-it('denies access to a booking in a different tenant, even for an admin request scoped to this one', function (): void {
-    $otherAssistant = Assistant::forceCreate(['name' => 'Other Tenant', 'slug' => 'other-tenant']);
-    $otherProperty = Property::create([
-        'assistant_id' => $otherAssistant->id,
-        'name' => 'Sun',
-        'slug' => 'sun',
-        'is_active' => true,
-    ]);
+it('denies access to a booking that belongs to a different property', function (): void {
+    $otherProperty = Property::create(['name' => 'Sun', 'slug' => 'sun', 'is_active' => true]);
     $otherUnit = Unit::create([
         'property_id' => $otherProperty->id,
         'name' => 'Sun Unit',
@@ -111,21 +96,22 @@ it('denies access to a booking in a different tenant, even for an admin request 
 
     Sanctum::actingAs($this->admin);
 
-    callGetBooking($otherBooking->id)
+    // Admin CAN reach /mcp/sun/bookings directly, but not this property's booking through
+    // /mcp/moon/bookings — the property scoping is enforced by the tool itself, independent of
+    // whether the caller happens to have cross-property access some other way.
+    callGetBooking($otherBooking->id, 'moon')
         ->assertSuccessful()
         ->assertJsonPath('result.isError', true);
 });
 
-it('denies access to a booking outside the user\'s properties within the same tenant', function (): void {
+it('denies access to a booking for a staff member with no access to this property', function (): void {
     $staff = User::create([
         'name' => 'Staff',
         'email' => 'staff@test.local',
         'password' => 'secret-password',
     ]);
-    $staff->properties()->attach(
-        Property::create(['assistant_id' => $this->assistant->id, 'name' => 'Sun', 'slug' => 'sun', 'is_active' => true])->id,
-        ['role' => 'manager'],
-    );
+    $otherProperty = Property::create(['name' => 'Sun', 'slug' => 'sun', 'is_active' => true]);
+    $staff->properties()->attach($otherProperty->id, ['role' => 'manager']);
 
     Sanctum::actingAs($staff);
 
@@ -138,7 +124,5 @@ it('denies access to a booking outside the user\'s properties within the same te
         'check_out' => '2026-09-08',
     ]);
 
-    callGetBooking($booking->id)
-        ->assertSuccessful()
-        ->assertJsonPath('result.isError', true);
+    callGetBooking($booking->id)->assertForbidden();
 });

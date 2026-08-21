@@ -4,6 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Filament\Concerns\HasSharedPanelConfig;
 use App\Filament\Pages\Dashboard;
+use App\Models\Property;
+use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -14,6 +16,19 @@ use Magicoli\ExtraNavigationItems\NavigationItemsPlugin;
 class MainPanelProvider extends PanelProvider
 {
     use HasSharedPanelConfig;
+
+    /**
+     * The App panel is now tenant-scoped by Property, so its routes need a tenant param — these
+     * shortcuts, shown outside that panel (on the public/main panel's user menu), pick the
+     * signed-in user's first accessible property as a default landing tenant. Null when the user
+     * has none, which the items' own visible() hides.
+     */
+    private static function defaultTenant(): ?Property
+    {
+        $user = auth()->user();
+
+        return $user?->getTenants(Filament::getPanel('app'))->first();
+    }
 
     public function panel(Panel $panel): Panel
     {
@@ -59,16 +74,15 @@ class MainPanelProvider extends PanelProvider
                     NavigationItem::make('calendar')
                         ->label(fn (): string => __('app.calendar'))
                         ->icon('heroicon-o-calendar-date-range')
-                        ->url(fn (): string => route('filament.app.pages.calendar'))
-                        ->visible(fn (): bool => auth()->check()),
+                        ->url(fn (): string => route('filament.app.pages.calendar', ['tenant' => self::defaultTenant()]))
+                        ->visible(fn (): bool => self::defaultTenant() !== null),
                     NavigationItem::make('dashboard')
                         ->label(fn (): string => __('app.dashboard'))
                         ->icon('bi-luggage')
                         // ->group('legacy')
-                        ->url(fn (): string => route('filament.app.pages.dashboard'))
-                        // Nothing to offer a visitor who cannot enter it. Owners rather than every
-                        // account, in truth — that distinction arrives with the tenants.
-                        ->visible(fn (): bool => auth()->check()),
+                        ->url(fn (): string => route('filament.app.pages.dashboard', ['tenant' => self::defaultTenant()]))
+                        // Nothing to offer a visitor who cannot enter it, or one with no property yet.
+                        ->visible(fn (): bool => self::defaultTenant() !== null),
                     // NavigationItem::make('legacy-admin')
                     //     ->label(fn (): string => __('app.obsolete'))
                     //     ->icon('ri-dashboard-line')

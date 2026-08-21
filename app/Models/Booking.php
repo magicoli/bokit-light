@@ -433,8 +433,12 @@ class Booking extends Model
                 'id' => $this->property?->id,
                 'name' => $this->property?->name,
             ],
-            'view_url' => BookingResource::getUrl('view', ['record' => $this], panel: 'app'),
-            'edit_url' => BookingResource::getUrl('edit', ['record' => $this], panel: 'app'),
+            // Property is the App panel's own tenant now (dev/project-app-panel-tenancy.md) —
+            // an explicit tenant is required here since this can run outside a live,
+            // tenant-resolved panel request (the MCP server, CalendarController's JSON
+            // endpoints), where Filament has no "current tenant" to infer one from.
+            'view_url' => BookingResource::getUrl('view', ['record' => $this], panel: 'app', tenant: $this->property ?? $this->unit?->property),
+            'edit_url' => BookingResource::getUrl('edit', ['record' => $this], panel: 'app', tenant: $this->property ?? $this->unit?->property),
             'source' => [
                 'label' => $origin ? preg_replace('/^✓ /u', '', $origin->display_label) : $this->source_name,
                 'url' => $origin && ! $origin->is_placeholder ? $origin->external_url : null,
