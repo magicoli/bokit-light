@@ -15,7 +15,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class RateResource extends Resource
 {
@@ -67,8 +66,7 @@ class RateResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->forUser();
-    }
+    // No more getEloquentQuery()->forUser() override: Property is the App panel's own tenant now
+    // (dev/project-app-panel-tenancy.md) — Filament scopes every query to the current tenant
+    // automatically via Rate::property() (already a plain belongsTo).
 }

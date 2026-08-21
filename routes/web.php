@@ -122,13 +122,13 @@ if ($isInstalled) {
         Route::get('/{property:slug}/{unit:slug}/edit', [
             UnitController::class,
             'edit',
-        ])->name('units.edit')->where('property', '^(?!livewire-).*');
+        ])->name('units.edit')->where('property', '^(?!livewire-|app(?:/|$)).*');
         Route::post('/{property:slug}/{unit:slug}', [
             UnitController::class,
             'update',
         ])
             ->name('units.update')
-            ->where('property', '^(?!livewire-).*');
+            ->where('property', '^(?!livewire-|app(?:/|$)).*');
     });
 
     // Public pages (no auth required - MUST be last as they are catch-all routes).
@@ -139,7 +139,7 @@ if ($isInstalled) {
         Route::get('/{property:slug}/{unit:slug}', [
             UnitController::class,
             'show',
-        ])->name('units.show')->where('property', '^(?!livewire-).*');
+        ])->name('units.show')->where('property', '^(?!livewire-|app(?:/|$)).*');
 
         Route::get('/{property:slug}', [PropertyController::class, 'show'])->name('property.show');
     });

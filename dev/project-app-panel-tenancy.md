@@ -64,28 +64,60 @@ and `Models/Contracts/HasTenants.php`, not assumed)
   Filament-panel HTTP request needs the same explicit treatment. Audit before considering this
   done, not assumed complete after the obvious ones.
 
-## Open design question, not decided here
+## Open design question — resolved minimally, real answer still pending
 
-`App\Filament\Pages\Calendar` currently shows **every property the user has access to**, in one
-combined view (`Property::where(...)->forUser()->get()`, several properties grouped). Strict
-per-property tenancy means the calendar's natural home becomes "the current tenant's own units,"
-one property at a time via the tenant switcher — a real feature change (loses the combined
-multi-property overview an admin has today), not just plumbing. Flagging before touching the
-Calendar page, not deciding unilaterally: does the combined view still matter for `is_admin`
-(a cross-tenant "all properties" mode), or is losing it acceptable now that each property is its
-own workspace?
+`App\Filament\Pages\Calendar` shows **every property the user has access to**, in one combined
+view (`Property::where(...)->forUser()->get()`). Left unchanged on purpose: the page now lives at
+`/app/{tenant}/calendar` (Filament requires the segment, since it's a page in a tenant-scoped
+panel), but its own query still ignores which tenant is selected and keeps showing everything
+`forUser()` resolves — same behaviour as before tenancy, only the URL grew a prefix. The real
+question (should `is_admin` keep a cross-tenant "all properties" mode, or does each property become
+its own calendar workspace via the tenant switcher) is **still open**, not decided here — this was
+the smallest change that kept the existing feature and its tests intact.
 
 ## Sequence
 
-1. This plan.
-2. Schema correction: `assistants.property_id` (replaces `properties.assistant_id`) —
-   `Assistant belongsTo Property`, not the other way around.
-3. Wire `Panel::tenant()` on `AppPanelProvider`, `User implements HasTenants`.
-4. Migrate `BookingResource`/`UnitResource` off manual `forUser()` scoping onto Filament's own
-   tenant scope; audit `getUrl()` call sites for the new `tenant:` requirement.
-5. `PropertyResource`/`UserResource`/`RateResource` — each has its own shape question above,
-   resolved on its own rather than forced into the same pattern as Booking/Unit.
-6. Re-point the MCP server (`routes/mcp.php`, `BookingServer`, both tools) at `Property` instead
-   of `Assistant` — simpler than the current build, since a tenant now *is* one property (no more
-   "sibling property within the same tenant" scoping layer needed).
-7. Calendar page — resolved once the open question above has an answer.
+1. ~~This plan.~~ Done.
+2. ~~Schema correction: `assistants.property_id` (replaces `properties.assistant_id`) —
+   `Assistant belongsTo Property`, not the other way around.~~ Done
+   (`2026_08_20_235649_reverse_assistant_property_relationship.php`).
+3. ~~Wire `Panel::tenant()` on `AppPanelProvider`, `User implements HasTenants`.~~ Done — no
+   explicit `ownershipRelationship` in the end (see below, its default already matched).
+4. ~~Migrate `BookingResource`/`UnitResource`/`RateResource` off manual `forUser()` scoping onto
+   Filament's own tenant scope; audit `getUrl()` call sites for the new `tenant:` requirement.~~
+   Done.
+5. ~~`PropertyResource`/`UserResource` — each has its own shape question above, resolved on its
+   own.~~ Done: `PropertyResource` stays `$isScopedToTenant = false` (Property can't scope to
+   itself) but **keeps its pre-tenancy `forUser()` override** — owners still manage their own
+   property/ies from here, not admin-only as first tried (that broke the pre-existing
+   single-property-owner self-service flow, caught by `SingleRecordRedirectTest`).
+   `UserResource` stays `$isScopedToTenant = false`, already admin-only.
+6. ~~Re-point the MCP server (`routes/mcp.php`, `BookingServer`, both tools) at `Property` instead
+   of `Assistant`.~~ Done.
+7. Calendar page — minimally patched (see above), real redesign still open.
+
+### Corrections made along the way, not in the original plan
+
+- **No explicit `ownershipRelationship` on `Panel::tenant()`.** The constructor argument names the
+  relationship every tenant-scoped *resource's own model* must have back to the tenant (confirmed
+  live, contradicts the docblock's first reading) — its default (camelCase of the tenant model's
+  basename, `property`) already matched `Booking::property()`/`Unit::property()`/`Rate::property()`
+  exactly. Passing `ownershipRelationship: 'properties'` broke every tenant-scoped resource
+  ("model does not have a relationship named [properties]").
+- **`magicoli/two-way-ticket` needed a real package fix**, not a workaround here: `TicketResource`
+  had no `$isScopedToTenant = false`, so attaching `TicketsPlugin` to the now tenant-scoped App
+  panel broke ("model [Ticket] does not have a relationship named [property]") — Ticket is a
+  genuinely global model (bug tracking, not property data) and should never be tenant-scoped on
+  any panel. Fixed in the package itself (now a `@dev` path repo, like `assistant-mcp-engine`),
+  not by dropping the plugin from the App panel.
+- **Legacy catch-all route collision**: `routes/web.php`'s deprecated `/{property:slug}/{unit:slug}`
+  route (already excluding `livewire-` as a property slug) also needed to exclude `app` — Filament's
+  bare tenant dashboard route (`app/{tenant}`) is a two-segment path structurally identical to the
+  legacy route's shape, and the legacy one was winning the match, 404ing on `Property::where(slug:
+  'app')`.
+- **Cross-panel nav shortcuts** (`MainPanelProvider`'s Calendar/Dashboard links, shown outside the
+  App panel) needed an explicit `tenant:` param — added a `defaultTenant()` helper resolving the
+  signed-in user's first accessible property, with the items hidden entirely when there is none.
+- **`User::getTenants()`** filters to `is_active` properties (for both `is_admin` and regular
+  users) — an inactive property was otherwise still selectable from the tenant switcher, the one
+  place in the panel that wasn't already respecting the flag.

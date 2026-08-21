@@ -7,16 +7,17 @@ use App\Traits\AdminResourceTrait;
 use App\Traits\TimezoneTrait;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Magicoli\AssistantMcpEngine\Contracts\AssistantUser;
-use Magicoli\AssistantMcpEngine\Models\Assistant;
 use Magicoli\AssistantMcpEngine\Models\MailAccount;
 
-class User extends Authenticatable implements AssistantUser, FilamentUser
+class User extends Authenticatable implements AssistantUser, FilamentUser, HasTenants
 {
     use AdminResourceTrait;
     use HasApiTokens;
@@ -78,24 +79,32 @@ class User extends Authenticatable implements AssistantUser, FilamentUser
     }
 
     /**
-     * Magicoli\AssistantMcpEngine\Contracts\AssistantUser — an Assistant is bokit's tenant (one
-     * owner account, several properties; property_user still governs per-property staff roles
-     * *within* a tenant, unchanged).
-     *
-     * isAdmin() is a site-wide bypass here on purpose — it's this bokit *install's* own
-     * platform-operator flag, not a per-tenant role, so it sees every tenant. A tenant's own
-     * "propriétaire" (owner_id, or property_user attachment) is the one scoped to just their own
-     * properties — that isolation is enforced below, unrelated to isAdmin().
+     * Satisfies both Filament\Models\Contracts\HasTenants (the App panel's own tenancy,
+     * Property::class — dev/project-app-panel-tenancy.md) and
+     * Magicoli\AssistantMcpEngine\Contracts\AssistantUser, which declares the exact same method
+     * for the same purpose. Just hasAccessTo() under a name Filament looks for by convention —
+     * kept as one implementation rather than two, since nothing in bokit calls this with
+     * anything but a Property.
      */
     public function canAccessTenant(Model $tenant): bool
     {
-        if (! $tenant instanceof Assistant) {
-            return false;
-        }
+        return $tenant instanceof Property && $this->hasAccessTo($tenant);
+    }
 
+    /**
+     * Filament\Models\Contracts\HasTenants — every property this user may switch into. Reuses
+     * the existing properties() pivot; isAdmin() (this install's own platform-operator flag, see
+     * canAccessTenant()) sees every property, not just their own attachments. Inactive properties
+     * are excluded, matching the rest of the app (e.g. Calendar's own is_active filter) — an
+     * admin still manages them through PropertyResource, which isn't tenant-scoped.
+     *
+     * @return Collection<int, Property>
+     */
+    public function getTenants(Panel $panel): array|Collection
+    {
         return $this->isAdmin()
-            || $tenant->owner_id === $this->id
-            || $this->properties()->where('properties.assistant_id', $tenant->id)->exists();
+            ? Property::where('is_active', true)->get()
+            : $this->properties()->where('is_active', true)->get();
     }
 
     /**

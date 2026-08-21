@@ -26,6 +26,11 @@ class UserResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    // A user can belong to several properties (property_user, many-to-many) — no single property
+    // relationship for Filament to auto-scope by (dev/project-app-panel-tenancy.md). Already
+    // admin-only below; unchanged behaviour (every user, not just the current tenant's).
+    protected static bool $isScopedToTenant = false;
+
     public static function getModelLabel(): string
     {
         return __('user.label');

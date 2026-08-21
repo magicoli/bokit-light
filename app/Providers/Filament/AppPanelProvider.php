@@ -6,6 +6,7 @@ use App\Filament\Concerns\HasSharedPanelConfig;
 use App\Filament\Pages\Calendar;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Bookings\Pages\ListBookings;
+use App\Models\Property;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
@@ -44,6 +45,16 @@ class AppPanelProvider extends PanelProvider
             ->default()
             // No ->login(): the app panel has no login route of its own; its guests are sent to
             // the main panel's /login by redirectGuestsTo (bootstrap/app.php).
+            //
+            // Property IS the tenant (dev/project-app-panel-tenancy.md) — "chaque propriétaire ne
+            // peut voir que ses propres propriétés". slugAttribute: Property already has a slug
+            // column, nothing new needed for the URL scheme. No explicit ownershipRelationship:
+            // it names the relationship EVERY tenant-scoped resource's own model must have back
+            // to the tenant (confirmed live — not "which relationship User uses to list tenants",
+            // that's getTenants() below) — its default (camelCase of the tenant model's
+            // basename, "property") already matches Booking::property()/Unit::property()/
+            // Rate::property() exactly, all pre-existing plain belongsTo relationships.
+            ->tenant(Property::class, slugAttribute: 'slug')
             ->sidebarCollapsibleOnDesktop()
             // ->sidebarFullyCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

@@ -26,6 +26,18 @@ class PropertyResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    // Property IS the App panel's tenant (dev/project-app-panel-tenancy.md) — Filament would
+    // otherwise try to scope Property records by their own (nonexistent) relationship to
+    // themselves, so this resource opts out of automatic tenant scoping and keeps its own
+    // pre-tenancy forUser() scoping instead (admin sees all, everyone else only their own
+    // properties, same as before tenancy existed).
+    protected static bool $isScopedToTenant = false;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->forUser();
+    }
+
     public static function getModelLabel(): string
     {
         return __('property.label');
@@ -66,10 +78,5 @@ class PropertyResource extends Resource
             'view' => ViewProperty::route('/{record}'),
             'edit' => EditProperty::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->forUser();
     }
 }

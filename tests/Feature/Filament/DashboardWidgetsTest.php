@@ -29,6 +29,7 @@ describe('Dashboard widgets', function () {
 
         $this->actingAs($this->admin);
         Filament::setCurrentPanel(Filament::getPanel('app'));
+        Filament::setTenant($this->property);
 
         $this->makeBooking = fn (array $attributes): Booking => Booking::create(array_merge([
             'property_id' => $this->property->id,
@@ -41,7 +42,7 @@ describe('Dashboard widgets', function () {
     test('renders the dashboard with the booking widgets', function () {
         // Widgets are lazy Livewire components: the initial HTML only carries
         // their mount tags, the headings come with the deferred render.
-        $this->get('/app')
+        $this->get("/app/{$this->property->slug}")
             ->assertSuccessful()
             ->assertSeeLivewire(BookingsOngoing::class)
             ->assertSeeLivewire(BookingsUpcoming::class)

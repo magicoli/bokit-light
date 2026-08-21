@@ -46,15 +46,15 @@ describe('Single record redirect', function () {
     test('sends an owner with a single property straight to its page', function () {
         $this->actingAs($this->owner);
 
-        $this->get('/app/properties')
-            ->assertRedirect(PropertyResource::getUrl('view', ['record' => $this->property]));
+        $this->get("/app/{$this->property->slug}/properties")
+            ->assertRedirect(PropertyResource::getUrl('view', ['record' => $this->property], tenant: $this->property));
     });
 
     test('sends an owner with a single unit straight to its page', function () {
         $this->actingAs($this->owner);
 
-        $this->get('/app/units')
-            ->assertRedirect(UnitResource::getUrl('view', ['record' => $this->unit]));
+        $this->get("/app/{$this->property->slug}/units")
+            ->assertRedirect(UnitResource::getUrl('view', ['record' => $this->unit], tenant: $this->property));
     });
 
     test('keeps the list for owners with several records', function () {
@@ -71,10 +71,19 @@ describe('Single record redirect', function () {
         ]);
         $this->owner->properties()->attach($second->id, ['role' => 'owner']);
 
+        // Units are tenant-scoped: a second unit within the CURRENT tenant is what keeps its
+        // list from redirecting, regardless of how many other properties the owner also has.
+        Unit::create([
+            'property_id' => $this->property->id,
+            'name' => 'Second Unit Same Property',
+            'slug' => 'second-unit-same-property',
+            'is_active' => true,
+        ]);
+
         $this->actingAs($this->owner);
 
-        $this->get('/app/properties')->assertSuccessful();
-        $this->get('/app/units')->assertSuccessful();
+        $this->get("/app/{$this->property->slug}/properties")->assertSuccessful();
+        $this->get("/app/{$this->property->slug}/units")->assertSuccessful();
     });
 
     test('renders the property edit page with the module sections', function () {
@@ -86,7 +95,7 @@ describe('Single record redirect', function () {
         ]);
 
         $this->actingAs($admin)
-            ->get('/app/properties/'.$this->property->id.'/edit')
+            ->get("/app/{$this->property->slug}/properties/{$this->property->id}/edit")
             ->assertSuccessful()
             ->assertSee(__('beds24::property.field.beds24_invite_code'));
     });
@@ -101,7 +110,7 @@ describe('Single record redirect', function () {
 
         $this->actingAs($admin);
 
-        $this->get('/app/properties')->assertSuccessful();
-        $this->get('/app/units')->assertSuccessful();
+        $this->get("/app/{$this->property->slug}/properties")->assertSuccessful();
+        $this->get("/app/{$this->property->slug}/units")->assertSuccessful();
     });
 });

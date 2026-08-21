@@ -41,6 +41,7 @@ describe('Booking resource', function () {
 
         $this->actingAs($this->admin);
         Filament::setCurrentPanel(Filament::getPanel('app'));
+        Filament::setTenant($this->property);
         BookingResource::skipAuthorization();
     });
 
@@ -50,11 +51,11 @@ describe('Booking resource', function () {
 
     test('redirects guests from the bookings list', function () {
         auth()->logout();
-        $this->get('/app/bookings')->assertRedirect('/login');
+        $this->get("/app/{$this->property->slug}/bookings")->assertRedirect('/login');
     });
 
     test('lets admins into the panel', function () {
-        $this->get('/app/bookings')->assertSuccessful();
+        $this->get("/app/{$this->property->slug}/bookings")->assertSuccessful();
     });
 
     test('denies users without any property access to the panel', function () {
@@ -66,7 +67,9 @@ describe('Booking resource', function () {
         ]);
 
         $this->actingAs($user);
-        $this->get('/app/bookings')->assertForbidden();
+        // Not attached to $this->property at all — canAccessTenant() denies this specific tenant
+        // regardless of which property slug is asked for.
+        $this->get("/app/{$this->property->slug}/bookings")->assertForbidden();
     });
 
     test('lets property owners in and scopes bookings to their properties', function () {
@@ -108,18 +111,19 @@ describe('Booking resource', function () {
         ]);
 
         $this->actingAs($owner);
+        Filament::setTenant($this->property);
 
-        $this->get('/app/bookings')->assertSuccessful();
+        $this->get("/app/{$this->property->slug}/bookings")->assertSuccessful();
 
         Livewire::test(ListBookings::class)
             ->assertCanSeeTableRecords([$mine])
             ->assertCanNotSeeTableRecords([$foreign]);
 
-        // Other properties' records are out of reach, even by direct URL
-        $this->get('/app/bookings/'.$foreign->id)->assertNotFound();
+        // Other properties' records are out of reach, even by direct URL within this tenant
+        $this->get("/app/{$this->property->slug}/bookings/{$foreign->id}")->assertNotFound();
 
         // User management stays admin-only
-        $this->get('/app/users')->assertForbidden();
+        $this->get("/app/{$this->property->slug}/users")->assertForbidden();
     });
 
     test('renders the bookings list', function () {

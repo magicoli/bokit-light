@@ -69,10 +69,12 @@ class BookingResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->forUser();
-    }
+    // No more getEloquentQuery()->forUser() override: Property is the App panel's own tenant now
+    // (dev/project-app-panel-tenancy.md) — Filament scopes every query to the current tenant
+    // automatically via Booking::property() (already a plain belongsTo, exactly what Filament's
+    // default tenant-relationship inference expects). Which properties a user may switch into at
+    // all is decided once, by User::getTenants()/canAccessTenant() — there is no finer
+    // per-booking role check left to do once inside a tenant.
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
