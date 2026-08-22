@@ -15,13 +15,16 @@
 /node_modules
 /public/hot
 /public/storage
+/storage/backups
+/storage/*.key
+/storage/pail
+/storage/version
 Homestead.json
 Homestead.yaml
 Thumbs.db
 tmp/
 .env
 *.sqlite*
-storage/**
 *~
 .env.testing
 test-results
@@ -41,3 +44,5 @@ composer.dev.lock
 composer.local.json
 composer.local.lock
 .codex/
+/etc/
+/storage/options
