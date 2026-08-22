@@ -334,7 +334,9 @@ class AppServiceProvider extends ServiceProvider
                 // (dev/project-tenant-sub-sites.md).
                 ->locales(fn (): array => Filament::getTenant()?->availableLocales()
                     ?? config('app.locales', [config('app.default_locale', 'en')]))
-                ->renderHook(PanelsRenderHook::USER_MENU_AFTER)
+                ->renderHook(
+                    fn () => auth()->user() ? PanelsRenderHook::USER_MENU_PROFILE_AFTER : PanelsRenderHook::USER_MENU_AFTER
+                )
                 // ->visible(outsidePanels: true)
                 // ->outsidePanelPlacement(Placement::TopCenter)
                 ->trigger(style: TriggerStyle::FlagLabel)
