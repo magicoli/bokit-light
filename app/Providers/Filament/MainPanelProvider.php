@@ -94,31 +94,35 @@ class MainPanelProvider extends PanelProvider
             // ])
             ->plugins([
                 // The credit line at the foot of every panel.
-                NavigationItemsPlugin::make()->renderHook(PanelsRenderHook::FOOTER)->items(
-                    [
-                        NavigationItem::make('credit')->label(fn (): string => config('app.name').' '.config('app.version')),
-                        NavigationItem::make('github')
-                            ->label('GitHub')
-                            ->url('https://github.com/magicoli/bokit-light', shouldOpenInNewTab: true)
-                            ->icon('ri-github-line')
-                            ->group('External')
-                            ->sort(10),
-                    ]
-                ),
-                NavigationItemsPlugin::make()->items([
-                    NavigationItem::make('calendar')
-                        ->label(fn (): string => __('app.calendar'))
-                        ->icon('heroicon-o-calendar-date-range')
-                        ->url(fn (): string => route('filament.app.pages.calendar', ['tenant' => self::defaultTenant()]))
-                        ->visible(fn (): bool => self::defaultTenant() !== null),
-                    NavigationItem::make('dashboard')
-                        ->label(fn (): string => __('app.dashboard'))
-                        ->icon('bi-luggage')
-                        // ->group('legacy')
-                        ->url(fn (): string => route('filament.app.pages.dashboard', ['tenant' => self::defaultTenant()]))
-                        // Nothing to offer a visitor who cannot enter it, or one with no property yet.
-                        ->visible(fn (): bool => self::defaultTenant() !== null),
-                ]),
+                NavigationItemsPlugin::make()
+                    ->renderHook(PanelsRenderHook::FOOTER)
+                    ->items(
+                        [
+                            NavigationItem::make('credit')->label(fn (): string => config('app.name').' '.config('app.version')),
+                            NavigationItem::make('github')
+                                ->label('GitHub')
+                                ->url('https://github.com/magicoli/bokit-light', shouldOpenInNewTab: true)
+                                ->icon('ri-github-line')
+                                ->group('External')
+                                ->sort(10),
+                        ]
+                    ),
+                NavigationItemsPlugin::make()
+                    // ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER)
+                    ->items([
+                        NavigationItem::make('dashboard')
+                            ->label(fn (): string => __('app.dashboard'))
+                            ->icon('bi-luggage')
+                            // ->group('legacy')
+                            ->url(fn (): string => route('filament.app.pages.dashboard', ['tenant' => self::defaultTenant()]))
+                            // Nothing to offer a visitor who cannot enter it, or one with no property yet.
+                            ->visible(fn (): bool => self::defaultTenant() !== null),
+                        NavigationItem::make('calendar')
+                            ->label(fn (): string => __('app.calendar'))
+                            ->icon('heroicon-o-calendar-date-range')
+                            ->url(fn (): string => route('filament.app.pages.calendar', ['tenant' => self::defaultTenant()]))
+                            ->visible(fn (): bool => self::defaultTenant() !== null),
+                    ]),
             ]);
     }
 }

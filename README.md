@@ -1,11 +1,9 @@
 # BOKIT - Booking Orchestration Kit
 
-**Bring On Kitsch Island Time.**
+**Bring On Kitsch Island Time.** Indie-grade scheduling for serious sunshine.
 
-Indie-grade scheduling for serious sunshine.
-
-![Version](https://img.shields.io/badge/Version-1.1.0-lightgrey)
-[![Stable](https://img.shields.io/badge/Stable-1.0.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.2.0-lightgrey)](CHANGELOG.md)
+![Stable](https://img.shields.io/badge/Stable-1.2.0-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.3%2B-777bb4)
 ![Laravel](https://img.shields.io/badge/Laravel-12-ff2d20)
 [![License](https://img.shields.io/badge/License-AGPL--3.0--or--later-green)](LICENSE)

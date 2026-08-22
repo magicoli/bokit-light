@@ -1,39 +1,80 @@
 # Changelog
 
+## 1.2.0
+
+- (feat) bokit's tenant model - Assistant, Property belongs to it
+    - put the App panel under real Filament tenancy
+    - per-tenant sub-site with own brand logo, brand name and home link
+    - per-tenant login screen, matching logo and default language
+    - per-tenant language settings, expanded app-wide locale list
+    - EditTenantProfile: consolidate tenant preferences
+    - Tenant logo and icon (avatar) upload
+- (feat) bokit's own MCP server (work in progress)
+    - MCP server pointing at Property tenants
+    - get_booking MCP tool
+    - list_bookings MCP tool
+    - scope the MCP server and its tools to a tenant
+    - Assistant/Property relationship
+    - wire up Sanctum for token-authenticated API access
+    - manage API tokens from the UI
+- (feat) app-wide General Settings page (admin only)
+- (feat) user profile
+    - add a timezone field
+    - avatar upload
+- (feat) wire up the property/user timezone cascade
+- (feat) add Spanish, Portuguese, Italian, German, Dutch, Arabic, Japanese, Russian translations
+- (fix) Vite process triggered randomly , causing loop of compilation errors and blocking the development server
+- (fix) PropertyForm tabs: wrap in a Tabs container, one tab per module
+- (fix) a property's default language must not follow the current viewer's detected locale
+- (fix) dark mode for the calendar and shared theme tokens
+- (fix) develop two-way-ticket as a path repo, fix its tenant scoping
+- (fix) persist the user's chosen interface language
+- (fix) update magicoli/two-way-ticket
+- (fix) keep the app panel cacheable - register TicketStatsWidget by class
+- (fix) unblock production deploy - qualify InstalledVersions, unmask boot errors
+- (fix) real, grammar-correct empty-state translations for every list
+- (update) adopt outhebox/blade-flags for language flags
+- (ui) reorganize the panel menus into Admin and Deprecated groups
+- (ui) add default table config
+- (ui) new logo, load glass.css, no silent logo fallback
+- (ui) attach language switch inside user menu when user is connected
+- (chore) delete the legacy pre-Filament admin/CRUD front-end
+- (chore) remove dead code from the old classic layout
+
 ## 1.1.0
 
-- feat: serve the home page from the main panel
-- feat: home page random wallpaper and a pane of glass
-- feat: add magicoli/extra-navigation-items, better custom navigation handling (user menu, user menu before, footer)
-- feat: automatic live data backup (database, settings and the uploaded files)
-- feat: show each legacy entry to whoever it is meant for
-- feat: security - rate limit the public pages, log rejections
-- fix: main menu translations
-- fix: add missing andreiio/blade-remix-icon package
-- fix: remove unnecessary link in home page signature
-- fix: let the home page arrive already dressed
-- fix: stop the wallpaper rotation when its list is out of date
-- fix: 404 the scanner urls that reached the unit page as 500
-- fix: name the request in every logged exception
-- fix: run the periodic sync through the shared procedure
-- fix: revert wrong version to 1.0.0 - error introduced in in 59f8354
-- panels: style the extra-navigation footer in a panel-loaded stylesheet
-- home: add github link in footer menu, move footer menu definition in MainPanelProvider
-- test: follow the navigation-items merge model and steady the build check
-- localization: add missing model labels localization
-- test: convert the last two PHPUnit tests to Pest
-- auth: one login route for the whole app, on the main panel
-- login: restore home link on logo and language switcher
-- test: fix the suite after the /admin→/app rename and kill the vite flakiness
-- testing) fix unclear reports by using describe(: and tests()
-- dev: move fonts in assets/fonts/
-- dev: remove deprecated pest customization, covered by magicoli/pest-failure-summary package
+- (feat) serve the home page from the main panel
+- (feat) home page random wallpaper and a pane of glass
+- (feat) add magicoli/extra-navigation-items, better custom navigation handling (user menu, user menu before, footer)
+- (feat) automatic live data backup (database, settings and the uploaded files)
+- (feat) show each legacy entry to whoever it is meant for
+- (feat) security - rate limit the public pages, log rejections
+- (fix) main menu translations
+- (fix) add missing andreiio/blade-remix-icon package
+- (fix) remove unnecessary link in home page signature
+- (fix) let the home page arrive already dressed
+- (fix) stop the wallpaper rotation when its list is out of date
+- (fix) 404 the scanner urls that reached the unit page as 500
+- (fix) name the request in every logged exception
+- (fix) run the periodic sync through the shared procedure
+- (fix) revert wrong version to 1.0.0 - error introduced in in 59f8354
+- (panels) style the extra-navigation footer in a panel-loaded stylesheet
+- (home) add github link in footer menu, move footer menu definition in MainPanelProvider
+- (test) follow the navigation-items merge model and steady the build check
+- (localization) add missing model labels localization
+- (test) convert the last two PHPUnit tests to Pest
+- (auth) one login route for the whole app, on the main panel
+- (login) restore home link on logo and language switcher
+- (test) fix the suite after the /admin→/app rename and kill the vite flakiness
+- (testing) fix unclear reports by using describe() and tests()
+- (dev) move fonts in assets/fonts/
+- (dev) remove deprecated pest customization, covered by magicoli/pest-failure-summary package
 add laravel/pint dev package
-- nav: shared user menu with edit-profile and a signed-out login
-- dev: discard mago formatting rule, use standard pint
-- nav: render shared cross-panel shortcuts and a footer through the plugin
-- dev: add magicoli/two-way-ticket dev package, switch two-way-ticket and pest-failure-summary to packagist repo
-- home: restore the wallpaper behind the glass content pane
+- (nav) shared user menu with edit-profile and a signed-out login
+- (dev) discard mago formatting rule, use standard pint
+- (nav) render shared cross-panel shortcuts and a footer through the plugin
+- (dev) add magicoli/two-way-ticket dev package, switch two-way-ticket and pest-failure-summary to packagist repo
+- (home) restore the wallpaper behind the glass content pane
 - panel refactoring:
     - rename AdminPanel as AppPanel and change route to /app
     - apply HasSharedPanelConfig to AppPanel (formerr AdminPanel)
@@ -42,38 +83,38 @@ add laravel/pint dev package
     - move flags back in assets/flags
     - replace craft-forge/filament-language-switcher with bezhansalleh/filament-language-switch
     - add Install and Main panels
-- refactor: turn the ical sources migration into a real migration
-- refactor: move the sync entry points under App\Sync
-- refactor: remove the legacy ical sync path
-- refactor: gather the sync subsystem under App\Sync
-- admin: register two-way-ticket panel plugins
-- admin: show the ticket stats widget on the dashboard
-- ui: load alpine only once, through livewire
-- chore: keep herd.yml out of the repository
-- config: rotate the logs, keeping a fortnight
-- config: ignore composer.local.json
-- config: ignore composer.dev.json and composer.dev.lock
-- style: reformat config/app.php with mago
-- deps: add two-way-ticket, require php 8.3
-- ai: install two-way-ticket boost guidelines and record project rules
-- tests: drop a wrong claim about single-property owners
-- tests: cover the two-way-ticket integration
-- doc: ship the deploy recipe as an example
-- doc: keep the developer guide addressed to humans
-- doc: fold the model options guide into the developer guide
-- doc: split the readme, and license the app as AGPL
-- doc: refresh the boost guidelines from two-way-ticket
-- doc: describe the features in README.md
-- doc: add CHANGELOG.md with 1.0.0 as the initial release
-- doc: move the roadmap and issue inventories to the ticket tracker
-- doc: move the todo inventory to the ticket tracker
-- doc: switch php formatting to mago and refresh commit rules
+- (refactor) turn the ical sources migration into a real migration
+- (refactor) move the sync entry points under App\Sync
+- (refactor) remove the legacy ical sync path
+- (refactor) gather the sync subsystem under App\Sync
+- (admin) register two-way-ticket panel plugins
+- (admin) show the ticket stats widget on the dashboard
+- (ui) load alpine only once, through livewire
+- (chore) keep herd.yml out of the repository
+- (config) rotate the logs, keeping a fortnight
+- (config) ignore composer.local.json
+- (config) ignore composer.dev.json and composer.dev.lock
+- (style) reformat config/app.php with mago
+- (deps) add two-way-ticket, require php 8.3
+- (ai) install two-way-ticket boost guidelines and record project rules
+- (tests) drop a wrong claim about single-property owners
+- (tests) cover the two-way-ticket integration
+- (doc) ship the deploy recipe as an example
+- (doc) keep the developer guide addressed to humans
+- (doc) fold the model options guide into the developer guide
+- (doc) split the readme, and license the app as AGPL
+- (doc) refresh the boost guidelines from two-way-ticket
+- (doc) describe the features in README.md
+- (doc) add CHANGELOG.md with 1.0.0 as the initial release
+- (doc) move the roadmap and issue inventories to the ticket tracker
+- (doc) move the todo inventory to the ticket tracker
+- (doc) switch php formatting to mago and refresh commit rules
 
 ## 1.0.0 Initial release 594f325d
 
 Centralized holiday rental booking calendar, synced with PMS, OTA platforms and iCal feeds.
 
-- feat: platform synchronisation
+- (feat) platform synchronisation
   - Beds24 (dual sync) - supports grouped reservations
   - WooCommerce Booking plugin (read)
   - HBook WordPress plugin (read)
@@ -83,32 +124,32 @@ Centralized holiday rental booking calendar, synced with PMS, OTA platforms and 
   - local changes (notes, name, coordinates, etc.) preserved from future syncs overridden by platform data
   - bookings disappeared at the source are flagged as vanished rather than silently dropped
   - synchronisation runs by itself while the site is used, with no server task to set up
-- feat: multi-calendar
+- (feat) multi-calendar
   - every unit on one screen, grouped by property
   - grouped bookings (same booking for several units)
   - week and month views, responsive for phones, tablets and desktops
   - colours by booking status and by payment state
   - click a stay opens a popup with guests, dates, amounts and a direct link to the original booking on the platform it came from
-- feat: booking list
+- (feat) booking list
   - search, and filters by unit, period and status
   - a group reservation spanning several units reads as one line
   - a booking view with everything known about the stay
-- feat: amounts
+- (feat) amounts
   - price, deposit, payments and balance
   - the invoice detail when the platform provides it
-- feat: rates and pricing
+- (feat) rates and pricing
   - rates per unit and per period, parent rates for shared formulas
   - minimum stay
   - coupons
   - a price calculator
-- feat: properties and units
+- (feat) properties and units
   - each unit declares the platforms it is listed on
   - a public page per property and per unit
-- feat: who sees what
+- (feat) who sees what
   - administrators and managers see every property
   - owners see only theirs, and an owner with a single unit lands straight on it
-- feat: dashboard with ongoing and upcoming stays at a glance
-- feat: web installation wizard, no command line needed
-- feat: English and French localization
-- feat: PWA installable on phone and desktop, and readable offline
-- feat: bookings export to CSV, with channel, price, commission and guest counts
+- (feat) dashboard with ongoing and upcoming stays at a glance
+- (feat) web installation wizard, no command line needed
+- (feat) English and French localization
+- (feat) PWA installable on phone and desktop, and readable offline
+- (feat) bookings export to CSV, with channel, price, commission and guest counts

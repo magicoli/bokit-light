@@ -201,6 +201,25 @@
             </div>
         @endif
 
+        @unless ($hasUserMenuInSidebar)
+            {{--
+                magicoli/extra-navigation-items: when UserMenuPosition is Topbar, the real
+                user-menu (and the USER_MENU_BEFORE/AFTER hooks inside it, where this package
+                places its items by default) renders only in the topbar - never here. Filament's
+                own `.fi-topbar-nav-groups` hides below its `lg` breakpoint, so on mobile those
+                items are invisible in the topbar AND absent from the drawer this sidebar becomes:
+                reachable nowhere. This duplicates them into the drawer, hidden on desktop where
+                the topbar copy already covers them (see extra-navigation-sidebar-fallback in the
+                package's CSS).
+            --}}
+            <div class="extra-navigation-sidebar-fallback">
+                {!! app(\Magicoli\ExtraNavigationItems\NavigationItemsRegistry::class)
+                    ->renderForSidebarFallback(\Filament\View\PanelsRenderHook::USER_MENU_BEFORE) !!}
+                {!! app(\Magicoli\ExtraNavigationItems\NavigationItemsRegistry::class)
+                    ->renderForSidebarFallback(\Filament\View\PanelsRenderHook::USER_MENU_AFTER) !!}
+            </div>
+        @endunless
+
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIDEBAR_FOOTER) }}
     </div>
     {{-- format-ignore-end --}}

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6292fe7a7a93278fa766cf18c4c03f9a",
+    "content-hash": "cf07ef413b8755db5bfa0ecf6e2759c5",
     "packages": [
         {
             "name": "andreiio/blade-remix-icon",
@@ -5498,11 +5498,17 @@
         },
         {
             "name": "magicoli/assistant-mcp-engine",
-            "version": "dev-dev",
+            "version": "0.3.0-beta",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magicoli/assistant-mcp-engine.git",
+                "reference": "8374c649ad1066fa015bf66090d7cef4ef63278f"
+            },
             "dist": {
-                "type": "path",
-                "url": "../assistant-mcp-engine",
-                "reference": "b0b48804c0563d762cd4c9f473b181d6445f1956"
+                "type": "zip",
+                "url": "https://api.github.com/repos/magicoli/assistant-mcp-engine/zipball/8374c649ad1066fa015bf66090d7cef4ef63278f",
+                "reference": "8374c649ad1066fa015bf66090d7cef4ef63278f",
+                "shasum": ""
             },
             "require": {
                 "bezhansalleh/filament-language-switch": "^5.0",
@@ -5540,47 +5546,59 @@
                 }
             },
             "autoload": {
+                "files": [
+                    "src/Support/settings.php"
+                ],
                 "psr-4": {
                     "Magicoli\\AssistantMcpEngine\\": "src/",
                     "Magicoli\\AssistantMcpEngine\\Database\\Factories\\": "database/factories/"
-                },
-                "files": [
-                    "src/Support/settings.php"
-                ]
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "Magicoli\\AssistantMcpEngine\\Tests\\": "tests/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "AGPL-3.0-or-later"
             ],
             "description": "Reusable Filament/MCP engine for AI personal-assistant apps — auth, memory, skills, mail, AI-provider resolution.",
             "keywords": [
-                "agent",
+                "Agent",
                 "ai",
                 "assistant",
                 "filament",
                 "laravel",
                 "mcp"
             ],
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/magicoli/assistant-mcp-engine/issues",
+                "source": "https://github.com/magicoli/assistant-mcp-engine/tree/v0.3.0-beta"
+            },
+            "funding": [
+                {
+                    "url": "https://www.buymeacoffee.com/magicoli",
+                    "type": "buy_me_a_coffee"
+                },
+                {
+                    "url": "https://magiiic.org/donate/",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/magicoli",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-22T14:08:36+00:00"
         },
         {
             "name": "magicoli/extra-navigation-items",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magicoli/extra-navigation-items.git",
-                "reference": "c784c6e38dceda78dc780bef9dbb3fd5d2a8f9af"
+                "reference": "dcf2ffbd94fbab14aafaab3b3d6d47ac722aac8b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magicoli/extra-navigation-items/zipball/c784c6e38dceda78dc780bef9dbb3fd5d2a8f9af",
-                "reference": "c784c6e38dceda78dc780bef9dbb3fd5d2a8f9af",
+                "url": "https://api.github.com/repos/magicoli/extra-navigation-items/zipball/dcf2ffbd94fbab14aafaab3b3d6d47ac722aac8b",
+                "reference": "dcf2ffbd94fbab14aafaab3b3d6d47ac722aac8b",
                 "shasum": ""
             },
             "require": {
@@ -5622,7 +5640,7 @@
             ],
             "support": {
                 "issues": "https://github.com/magicoli/extra-navigation-items/issues",
-                "source": "https://github.com/magicoli/extra-navigation-items/tree/v0.1.0"
+                "source": "https://github.com/magicoli/extra-navigation-items/tree/v0.1.1"
             },
             "funding": [
                 {
@@ -5638,15 +5656,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-19T23:19:11+00:00"
+            "time": "2026-08-22T13:42:01+00:00"
         },
         {
             "name": "magicoli/two-way-ticket",
-            "version": "0.4.3",
+            "version": "0.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magicoli/two-way-ticket.git",
+                "reference": "bcca7ac846333b1b67fd3a9c3ba1c4a530b4fd47"
+            },
             "dist": {
-                "type": "path",
-                "url": "../two-way-ticket",
-                "reference": "d21e4ecda678e988d90c558b32520fa508fcffd7"
+                "type": "zip",
+                "url": "https://api.github.com/repos/magicoli/two-way-ticket/zipball/bcca7ac846333b1b67fd3a9c3ba1c4a530b4fd47",
+                "reference": "bcca7ac846333b1b67fd3a9c3ba1c4a530b4fd47",
+                "shasum": ""
             },
             "require": {
                 "filament/filament": "^5.0",
@@ -5674,16 +5698,7 @@
                     "Magicoli\\TwoWayTicket\\Database\\Factories\\": "database/factories/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Magicoli\\TwoWayTicket\\Tests\\": "tests/"
-                }
-            },
-            "scripts": {
-                "test": [
-                    "pest"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "AGPL-3.0-or-later"
             ],
@@ -5695,9 +5710,25 @@
                 "laravel",
                 "tickets"
             ],
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/magicoli/two-way-ticket/issues",
+                "source": "https://github.com/magicoli/two-way-ticket/tree/v0.4.4"
+            },
+            "funding": [
+                {
+                    "url": "https://www.buymeacoffee.com/magicoli",
+                    "type": "buy_me_a_coffee"
+                },
+                {
+                    "url": "https://magiiic.org/donate/",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/magicoli",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-22T14:26:00+00:00"
         },
         {
             "name": "masterminds/html5",
@@ -16907,10 +16938,9 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "beta",
     "stability-flags": {
-        "magicoli/assistant-mcp-engine": 20,
-        "magicoli/two-way-ticket": 20
+        "magicoli/assistant-mcp-engine": 10
     },
     "prefer-stable": true,
     "prefer-lowest": false,
