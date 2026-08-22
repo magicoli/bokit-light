@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Str;
 use Spatie\Backup\Notifications\Notifiable;
 use Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification;
 use Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification;
@@ -26,7 +27,7 @@ $essentials = [env('OPTIONS_PATH', storage_path('options')), base_path('.env')];
  * recursively, so an 'essentials' folder inside the full one would have its archives counted, and
  * thinned out, as if they were complete.
  */
-$name = config('app.name', 'Bokit');
+$name = Str::slug(config('app.name', 'Bokit'));
 
 return [
     'backup' => [
@@ -34,7 +35,7 @@ return [
          * The name of this application. You can use this name to monitor
          * the backups.
          */
-        'name' => $name . '/full',
+        'name' => $name.'/full',
 
         'source' => [
             'files' => [
@@ -339,7 +340,7 @@ return [
      * set here.
      */
     'essentials' => [
-        'name' => $name . '/essentials',
+        'name' => $name.'/essentials',
         'include' => $essentials,
         // Kept for a day and no longer: past that there is necessarily a full backup covering the
         // same ground, and a complete archive is what one wants to find a month later.
@@ -360,7 +361,7 @@ return [
      */
     'monitor_backups' => [
         [
-            'name' => $name . '/full',
+            'name' => $name.'/full',
             'disks' => explode(',', (string) env('BACKUP_DISKS', 'backups')),
             'health_checks' => [
                 MaximumAgeInDays::class => 1,
