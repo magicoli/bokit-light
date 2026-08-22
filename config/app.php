@@ -79,12 +79,7 @@ return [
      |
      */
 
-    'name' => env('APP_NAME', 'Bokit')
-            .(
-                env('APP_ENV', 'production') == 'production'
-                    ? ''
-                    : ' ('.preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? 'localhost' ?: 'localhost').')'
-            ),
+    'name' => env('APP_NAME', 'Bokit').(($env_debug || $env_env !== 'production') ? " [$env_env]" : ''),
     'slogan' => env('APP_SLOGAN', 'Bring On Kitsch Island Time'),
     'logo' => env('APP_LOGO'),
     'version' => $version ?: '',
@@ -100,7 +95,7 @@ return [
      |
      */
 
-    'env' => env('APP_ENV', isLocal() ? 'local' : 'production'),
+    'env' => $env_env,
 
     /*
      |--------------------------------------------------------------------------
