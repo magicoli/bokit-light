@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
     "name": "magicoli/bokit-light",
+    "version": "1.2.1",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "version": "1.2.0",
     "keywords": [
         "holiday",
         "rental",

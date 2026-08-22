@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.1
+
+- (fix) corrupted migrations preventing proper deployment
+- (fix) revert storage .gitignore to laravel defaults
+- (deps) udpate composer packages dependencies
+- (backup) better backup folders naming
+- (dev) add more config examples to .env.example
+- (dev) suffix non-prod or debug app name with env instead of hostname
+
 ## 1.2.0
 
 - (feat) bokit's tenant model - Assistant, Property belongs to it
